@@ -11,6 +11,9 @@ deal_with_file_path(file, ext, create_dir)
 
 \item{ext}{character: format or extension of file. Default is
 `fs::path_ext(file)`}
+
+\item{create_dir}{logical: is `TRUE` if directory in `file` does not it will
+be created. Default is FALSE}
 }
 \value{
 character vector with file path

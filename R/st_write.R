@@ -8,18 +8,20 @@
 #'   subdirectory at the same level of `file`.
 #' @param attr list of attributes to store
 #' @param ... not is used right now
+#' @param create_dir logical: is `TRUE` if directory in `file` does not it will
+#'   be created. Default is FALSE
 #'
 #' @section Details: Object `x` is stored in `file` but its hash (i.e., stamp)
 #'   is stored in subdirectory `st_file`.
-#'
-#'
-#'
-#'
 #'
 #' @return TRUE is object was saved successfully. FALSE otherwise.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'   tfile <- file_temp(ext = "qs")
+#'   st_write(df, tfile)
+#' }
 st_write <- function(x,
                      file,
                      ext        = fs::path_ext(file),
@@ -68,8 +70,8 @@ st_write <- function(x,
         fs::path_wd(st_dir) |>
         fs::dir_create()
     }
-
   }
+
 
 
 

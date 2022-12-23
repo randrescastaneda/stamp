@@ -27,6 +27,9 @@ subdirectory at the same level of `file`.}
 
 \item{attr}{list of attributes to store}
 
+\item{create_dir}{logical: is `TRUE` if directory in `file` does not it will
+be created. Default is FALSE}
+
 \item{...}{not is used right now}
 }
 \value{
@@ -40,3 +43,9 @@ Write R object with corresponding stamp (hash digest)
   is stored in subdirectory `st_file`.
 }
 
+\examples{
+\dontrun{
+  tfile <- file_temp(ext = "qs")
+  st_write(df, tfile)
+}
+}
