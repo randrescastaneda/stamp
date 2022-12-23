@@ -8,8 +8,9 @@ st_write(
   x,
   file,
   ext = fs::path_ext(file),
-  st_file = "_stamp",
+  st_dir = NULL,
   attr = list(),
+  create_dir = FALSE,
   ...
 )
 }
@@ -21,7 +22,7 @@ st_write(
 \item{ext}{character: format or extension of file. Default is
 `fs::path_ext(file)`}
 
-\item{st_file}{character: Directory to store stamp files. By default it is a
+\item{st_dir}{character: Directory to store stamp files. By default it is a
 subdirectory at the same level of `file`.}
 
 \item{attr}{list of attributes to store}
