@@ -11,6 +11,10 @@ st_write(
   st_dir = NULL,
   attr = list(),
   create_dir = FALSE,
+  force = FALSE,
+  algo = "sha1",
+  vintage = TRUE,
+  vintage_dir = NULL,
   ...
 )
 }
@@ -29,6 +33,16 @@ subdirectory at the same level of `file`.}
 
 \item{create_dir}{logical: is `TRUE` if directory in `file` does not it will
 be created. Default is FALSE}
+
+\item{force}{logical: replace file in disk even if has hasn't changed}
+
+\item{algo}{character: Algorithm to be used in [digest::digest()]. Default is
+"sha1"}
+
+\item{vintage}{logical: Whether to save vintage versions `x`. Default `TRUE`}
+
+\item{vintage_dir}{character: Directory to save vintages of `x`. By default
+it is a subdirectory at the same level of `file`}
 
 \item{...}{not is used right now}
 }

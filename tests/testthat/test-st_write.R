@@ -31,15 +31,15 @@ test_that("file management works", {
     dir_create() |>
     setwd()
 
-  st_dir <- path(tdir, "wd", "st_dir")
+  st_dir <- path(tdir, "wd", "tmp/st_dir")
   if (dir_exists(st_dir)) dir_delete(st_dir)
 
-  st_write(df, tfile, st_dir = "st_dir")
+  st_write(df, tfile, st_dir = "tmp/st_dir")
   st_dir |>
     dir_exists() |>
     expect_true(label = "relative path for st_dir does not work")
 
-  st_dir <- path(tdir, "wd", "st_dir2")
+  st_dir <- path(tdir, "wd", "tmp/st_dir2")
   if (dir_exists(st_dir)) dir_delete(st_dir)
 
   st_write(df, tfile, st_dir = st_dir)
