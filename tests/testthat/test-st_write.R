@@ -14,12 +14,13 @@ test_that("file management works", {
     expect_warning(label = "differnet extensions")
 
 
-  st_write(df, path(tdir, "temp", "file")) |>
+  st_write(df, path(tdir, "temp", "file"), recurse = FALSE) |>
     expect_error(label = "dir does not exist")
 
+  stamp_dir <- getOption("stamp.dir_stamp")
 
   tfile <- file_temp(ext = "qs")
-  st_dir <- path(tdir, "_st_dir")
+  st_dir <- path(tdir, stamp_dir)
   if (dir_exists(st_dir)) dir_delete(st_dir)
   st_write(df, tfile)
 
@@ -31,10 +32,10 @@ test_that("file management works", {
     dir_create() |>
     setwd()
 
-  st_dir <- path(tdir, "wd", "tmp/st_dir")
+  st_dir <- path(tdir, "wd", "tmp", stamp_dir)
   if (dir_exists(st_dir)) dir_delete(st_dir)
 
-  st_write(df, tfile, st_dir = "tmp/st_dir")
+  st_write(df, tfile, st_dir = paste0("tmp/", stamp_dir))
   st_dir |>
     dir_exists() |>
     expect_true(label = "relative path for st_dir does not work")

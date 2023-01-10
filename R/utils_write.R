@@ -53,7 +53,7 @@ path_info <-
     # Main file   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ext <- tolower(ext) |>
-      check_format()
+      check_format(fs::path_ext(file))
 
     file_dir  <- ensure_file_path(file, recurse)
     file      <- fs::path_ext_remove(file)
@@ -200,6 +200,7 @@ get_saving_fun <- function(ext = "Rds") {
 #'   available. It it is not, it defaults to `Rds`
 #'
 #' @inheritParams st_write
+#' @param  file_ext character: File extension
 #'
 #' @return character with extension of desired format
 #' @export
@@ -207,12 +208,20 @@ get_saving_fun <- function(ext = "Rds") {
 #' @examples
 #' fmt <- check_format()
 #' fmt
-check_format <- function(ext = "Rds") {
+check_format <- function(ext = "Rds", file_ext) {
   # Computations ------------
   ext <- tolower(ext)
+
+  if (ext != file_ext) {
+    cli::cli_warn("Format provided, {.strong .{ext}}, is different from format in
+                  file name, {.strong .{file_ext}}. The former will be used.",
+                  wrap = TRUE)
+  }
+
   # correctly write file name
   if (ext == "") {
-    ext <- getOption("stamp.default.ext")
+    ext <- getOption("stamp.default.ext") |>
+      tolower()
   }
 
   pkg_name <- c("base", "fst", "haven", "qs", "arrow", "arrow")
@@ -246,7 +255,7 @@ check_format <- function(ext = "Rds") {
 #' @export
 #'
 #' @examples
-#' False
+#' # False
 #' check_complex_data(data.frame())
 #'
 #' # TRUE

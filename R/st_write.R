@@ -160,10 +160,12 @@ st_write <- function(x,
                                 ext = lp$ext))
 
     ## save stamp -------
-    st_x <- st_attr(x, hash, complete_stamp, algo)
-    save_file(x    = st_x,
+    st_x       <- st_attr(x, hash, complete_stamp, algo)
+    st_ext     <- getOption("stamp.default.ext")
+    save_stamp <- get_saving_fun(ext = st_ext)
+    save_stamp(x    = st_x,
               path = fs::path(lp$st_file,
-                              ext = getOption("stamp.default.ext")))
+                              ext = st_ext))
 
     ## save vintage --------
     save_file(x    = x,
@@ -171,22 +173,22 @@ st_write <- function(x,
                               ext = lp$ext))
 
 
-    if (verbose) {
-
-      infmsg <-
-        "Data signature {fillintext}
-        {.file {measure}.{ext}} has been updated"
-
-      cli::cli_alert_warning(infmsg)
-    }
+    # if (verbose) {
+    #
+    #   infmsg <-
+    #     "Data signature {fillintext}
+    #     {.file {measure}.{ext}} has been updated"
+    #
+    #   cli::cli_alert_warning(infmsg)
+    # }
 
     return(invisible(saved))
 
   } else {
-    if (verbose) {
-      cli::cli_alert_info("Data signature is up to date.
-                        {cli::col_blue('No update performed')}")
-    }
+    # if (verbose) {
+    #   cli::cli_alert_info("Data signature is up to date.
+    #                     {cli::col_blue('No update performed')}")
+    # }
     return(invisible(saved))
   }
 
