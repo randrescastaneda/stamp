@@ -12,37 +12,41 @@ st_write(
   attr = list(),
   create_dir = FALSE,
   force = FALSE,
-  algo = "sha1",
-  vintage = TRUE,
+  algo = getOption("stamp.digest.algo"),
+  vintage = getOption("stamp.vintage"),
   vintage_dir = NULL,
+  verbose = getOption("stamp.verbose"),
   ...
 )
 }
 \arguments{
-\item{x}{R object to write to disk as per limitations of `file` format.}
+\item{x}{R object to write to disk as per limitations of \code{file} format.}
 
 \item{file}{character: File or connection to write to}
 
 \item{ext}{character: format or extension of file. Default is
-`fs::path_ext(file)`}
+\code{fs::path_ext(file)}}
 
 \item{st_dir}{character: Directory to store stamp files. By default it is a
-subdirectory at the same level of `file`.}
+subdirectory at the same level of \code{file}.}
 
 \item{attr}{list of attributes to store}
 
-\item{create_dir}{logical: is `TRUE` if directory in `file` does not it will
+\item{create_dir}{logical: is \code{TRUE} if directory in \code{file} does not it will
 be created. Default is FALSE}
 
 \item{force}{logical: replace file in disk even if has hasn't changed}
 
-\item{algo}{character: Algorithm to be used in [digest::digest()]. Default is
+\item{algo}{character: Algorithm to be used in \code{\link[digest:digest]{digest::digest()}}. Default is
 "sha1"}
 
-\item{vintage}{logical: Whether to save vintage versions `x`. Default `TRUE`}
+\item{vintage}{logical: Whether to save vintage versions \code{x}. Default \code{TRUE}}
 
-\item{vintage_dir}{character: Directory to save vintages of `x`. By default
-it is a subdirectory at the same level of `file`}
+\item{vintage_dir}{character: Directory to save vintages of \code{x}. By default
+it is a subdirectory at the same level of \code{file}}
+
+\item{verbose}{logical: whether to display additional information. This could
+be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
 
 \item{...}{not is used right now}
 }
@@ -50,16 +54,28 @@ it is a subdirectory at the same level of `file`}
 TRUE is object was saved successfully. FALSE otherwise.
 }
 \description{
-Write R object with corresponding stamp (hash digest)
+The \code{st_write} function is intended to be a wrapper of several
+other functions in different packages that save data disk. Yet, it goes
+several steps beyond that. First it creates the stamps (e.g., hashes) as
+part of the attributes of the object and saves it in a different file for
+easy access. Also, it may create vintage files of the object to keep track
+of changes. The philosophy of this package is increase speed in processes
+that work with many files, avoiding the need to load files to check whether
+the data has changed or not. Since disk space is cheap and time is not,
+\code{stamp} may be redundant in the files it saves.
 }
-\section{Details}{
- Object `x` is stored in `file` but its hash (i.e., stamp)
-  is stored in subdirectory `st_file`.
-}
+\details{
+Object \code{x} is stored in \code{file} but its hash (i.e., stamp) is stored
+in subdirectory \code{st_file}.
+\subsection{Vintage files Vintage files are optional but play an important role for}{
 
+replicability purposes. We highly recommend you turn this option off if you
+don't have enough space in your disk.
+}
+}
 \examples{
 \dontrun{
-  tfile <- file_temp(ext = "qs")
+  tfile <- fs::file_temp(ext = "qs")
   st_write(df, tfile)
 }
 }

@@ -1,8 +1,15 @@
 
 
 stamp_default_options <- list(
-  stamp.verbose  = TRUE,
-  stamp.default.ext = "qs"
+  stamp.verbose     = TRUE,
+  stamp.default.ext = "qs",
+  stamp.vintage     = TRUE,
+  stamp.digest.algo = "sha1",
+
+  # time stamp management
+  stamp.timezone    = Sys.timezone(),
+  stamp.timeformat  = "%Y%m%d%H%M%S",
+  stamp.usetz       = FALSE
 )
 
 .onLoad <- function(libname, pkgname) {

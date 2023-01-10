@@ -2,5 +2,5 @@
 
 export(check_complex_data)
 export(check_format)
-export(get_save_fun)
+export(get_saving_fun)
 export(st_write)

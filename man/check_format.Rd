@@ -8,14 +8,14 @@ check_format(ext = "Rds")
 }
 \arguments{
 \item{ext}{character: format or extension of file. Default is
-`fs::path_ext(file)`}
+\code{fs::path_ext(file)}}
 }
 \value{
 character with extension of desired format
 }
 \description{
-Use valus in `ext` to check the corresponding package is
-  available. It it is not, it defaults to `Rds`
+Use valus in \code{ext} to check the corresponding package is
+available. It it is not, it defaults to \code{Rds}
 }
 \examples{
 fmt <- check_format()

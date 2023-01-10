@@ -7,7 +7,7 @@
 check_complex_data(x)
 }
 \arguments{
-\item{x}{R object to write to disk as per limitations of `file` format.}
+\item{x}{R object to write to disk as per limitations of \code{file} format.}
 }
 \value{
 logical for complex data
