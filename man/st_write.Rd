@@ -9,8 +9,8 @@ st_write(
   file,
   ext = fs::path_ext(file),
   st_dir = NULL,
-  attr = list(),
-  create_dir = FALSE,
+  complete_stamp = getOption("stamp.completestamp"),
+  recurse = FALSE,
   force = FALSE,
   algo = getOption("stamp.digest.algo"),
   vintage = getOption("stamp.vintage"),
@@ -30,9 +30,11 @@ st_write(
 \item{st_dir}{character: Directory to store stamp files. By default it is a
 subdirectory at the same level of \code{file}.}
 
-\item{attr}{list of attributes to store}
+\item{complete_stamp}{logical: Whether to add a complete report of data.frame
+to stamp file. You need the \code{skimr} package. If \code{skimr} is not in
+namespace, limited but lighter report will be added.}
 
-\item{create_dir}{logical: is \code{TRUE} if directory in \code{file} does not it will
+\item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will
 be created. Default is FALSE}
 
 \item{force}{logical: replace file in disk even if has hasn't changed}

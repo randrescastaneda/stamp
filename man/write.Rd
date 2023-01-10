@@ -4,15 +4,12 @@
 \alias{write}
 \title{Save objects in disk according to desired file}
 \usage{
-write(x, lp, ext = fs::path_ext(file))
+write(x, lp)
 }
 \arguments{
 \item{x}{R object to write to disk as per limitations of \code{file} format.}
 
 \item{lp}{list of paths returned by \code{path_info()}}
-
-\item{ext}{character: format or extension of file. Default is
-\code{fs::path_ext(file)}}
 }
 \value{
 logical value if it was waved correctly

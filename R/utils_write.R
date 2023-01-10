@@ -5,7 +5,7 @@
 #'
 #' @return logical value if it was waved correctly
 #' @keywords internal
-write <- function(x, lp, ext = fs::path_ext(file)) {
+write <- function(x, lp) {
 
   #   ____________________________________________________
   #   on.exit                                         ####
@@ -31,63 +31,8 @@ write <- function(x, lp, ext = fs::path_ext(file)) {
 
   ##  Save main file ----------
 
-  ### data.frames only formats  ---------
-  complex_df <- check_complex_data(x)
-  simple_fmts <- c("fst", "dta", "feather")
-
-  if ((ext %in% simple_fmts) && isTRUE(complex_df)) {
-    cli::cli_alert_warning("format {.strong .{ext}} does not support complex data,
-                           changing to {.strong .Rds} format")
-    file <- change_file_ext(file, "rds")
-  }
 
 
-
-  l_fun <- list()
-  save_file <- get_saving_fun(ext = ext)
-
-
-
-
-
-  if (ext %in% c("fst", "dta")) {
-
-    var_class <- purrr::map(x, class) # variables class
-    if (is.data.frame(x) && !("list"  %in% unique(var_class))) {
-      # is_dt <- data.table::is.data.table(x)
-
-      x <- data.frame(a = 1)
-      file <-  fs::file_temp(ext = "fst")
-
-
-
-      if (ext == "fst")
-        fst::write_fst(x = x,
-                       path = fs::path(file)
-        )
-
-      if (ext == "dta")
-        haven::write_dta(data =  x,
-                         path = fs::path(file)
-        )
-    } else {
-
-    }
-
-
-  } else {
-
-
-
-    readr::write_rds(x = x,
-                     file = fs::path(msrdir, measure, ext = "rds"))
-    ext <- "rds"
-  }
-
-  qs::qsave(
-    x = x,
-    file = fs::path(msrdir, measure, ext = "qs")
-  )
 
   ##  ............................................................................
   ##  Save vintages                                                           ####
@@ -161,7 +106,7 @@ path_info <-
            st_dir      = NULL,
            vintage     = getOption("stamp.vintage"),
            vintage_dir = NULL,
-           create_dir  = FALSE
+           recurse     = FALSE
   ) {
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -189,18 +134,26 @@ path_info <-
     }
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # initialk parameters   ---------
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # tz <- "America/Los_Angeles"
+    # tformat <- "%Y%m%d%H%M%S"
+    tz        <- getOption("stamp.timezone")
+    tformat   <- getOption("stamp.timeformat")
+    usetz     <- getOption("stamp.usetz")
+    dir_stamp <- getOption("stamp.dir_stamp")
+    dir_vtg   <- getOption("stamp.dir_vintage")
+
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Main file   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ext <- tolower(ext) |>
       check_format()
 
-    file <-
-      change_file_ext(file, ext) |>
-      deal_with_file_path(ext, create_dir)
-
-    file_dir  <- fs::path_dir(file)
-    file_name <- fs::path_file(file) |>
-      fs::path_ext_remove()
+    file_dir  <- ensure_file_path(file, recurse)
+    file      <- fs::path_ext_remove(file)
+    file_name <- fs::path_file(file)
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Stamp file and dir   ---------
@@ -211,7 +164,7 @@ path_info <-
     st_dir <-
       if (is.null(st_dir)) {
         file_dir |>
-          fs::path("_st_dir") |>
+          fs::path(dir_stamp) |>
           fs::dir_create(recurse = TRUE)
       } else {
         if (fs::is_absolute_path(st_dir)) {
@@ -227,11 +180,6 @@ path_info <-
     # Vintage file   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # tz <- "America/Los_Angeles"
-    # tformat <- "%Y%m%d%H%M%S"
-    tz      <- getOption("stamp.timezone")
-    tformat <- getOption("stamp.timeformat")
-    usetz   <- getOption("stamp.usetz")
     st_time <-
       Sys.time() |>
       format(format = tformat,
@@ -244,7 +192,7 @@ path_info <-
       vintage_dir <-
         if (is.null(vintage_dir)) {
           file_dir |>
-            fs::path("_st_vintage") |>
+            fs::path(dir_vtg) |>
             fs::dir_create(recurse = TRUE)
         } else {
           if (fs::is_absolute_path(vintage_dir)) {
@@ -270,6 +218,7 @@ path_info <-
     # Return   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     l_path <- list(
+      ext          = ext,
       file         = file,
       file_dir     = file_dir,
       file_name    = file_name,
@@ -321,9 +270,21 @@ get_saving_fun <- function(ext = "Rds") {
     } else {
       cli::cli_abort("format {.strong .{ext}} is not available")
     }
+
+  # make sure that data saved properly
+
+  sv2 <- \(x, path, ...) {
+    t1 <- Sys.time()
+    Sys.sleep(.2)
+    sv(x, path, ...)
+    saved <- t1 <= file.mtime(path)
+    names(saved) <- path
+    return(saved)
+  }
+
 #   ____________________________________________________
 #   Return                                           ####
-  return(invisible(sv))
+  return(invisible(sv2))
 
 }
 
@@ -345,6 +306,10 @@ get_saving_fun <- function(ext = "Rds") {
 check_format <- function(ext = "Rds") {
   # Computations ------------
   ext <- tolower(ext)
+  # correctly write file name
+  if (ext == "") {
+    ext <- getOption("stamp.default.ext")
+  }
 
   pkg_name <- c("base", "fst", "haven", "qs", "arrow", "arrow")
   formats  <- c("rds", "fst", "dta", "qs", "feather", "parquet")
@@ -438,29 +403,14 @@ change_file_ext <- function(file, ext) {
 #'
 #' @return character vector with file path
 #' @keywords internal
-deal_with_file_path <- function(file, ext, create_dir) {
-
-  # correctly write file name
-  if (ext == "") {
-    ext <- getOption("stamp.default.ext")
-  } else {
-    # check that file ext and ext provided by the user are not different
-    o_ext <- fs::path_ext(file)
-
-    if (ext != o_ext) {
-      cli::cli_warn("Original extension {.field {o_ext}} is different
-                    from the one provided in {.field ext}: {ext}.
-                    The ext {ext} provided will be used.")
-    }
-    file <- change_file_ext(file, ext)
-  }
+ensure_file_path <- function(file, recurse) {
 
   # Check that dir exists
   file_dir <- fs::path_dir(file)
-  if (!fs::dir_exists(file_dir) && create_dir == FALSE) {
+  if (!fs::dir_exists(file_dir) && recurse == FALSE) {
     msg     <- c(
       "directory {.file {file_dir}} does not exist",
-      "i" = "You could use option {.arg create_dir = TRUE}"
+      "i" = "You could use option {.arg recurse = TRUE}"
     )
     cli::cli_abort(msg,
                    class = "stamp_error"
@@ -471,7 +421,76 @@ deal_with_file_path <- function(file, ext, create_dir) {
 
   #   ____________________________________________________
   #   Return                                           ####
-  return(file)
+  return(file_dir)
 
 }
 
+
+
+#' Add attributes and characteristics of x to stamp file
+#'
+#' @inheritParams st_write
+#' @param hash character: stamp previously calculated. otherwise it will be
+#'   added
+#'
+#' @return list of attributes
+#' @keywords internal
+#'
+#' @examples
+#' x <- data.frame(a = 1:10, b = letters[1:10])
+#' st_attr(x)
+st_attr <- function(x,
+                    hash = NULL,
+                    complete_stamp = getOption("stamp.completestamp"),
+                    algo           = getOption("stamp.digest.algo")
+                    ) {
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Defensive setup   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## On Exit --------
+    on.exit({
+
+    })
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Defenses --------
+    stopifnot( exprs = {
+
+      }
+    )
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Early Return --------
+    if (FALSE) {
+      return()
+    }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Get basic info from X  ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  if (is.null(hash)) {
+    hash <- digest::digest(x, algo = algo)
+  }
+  st_x      <- attributes(x)
+
+  if (is.data.frame(x)) {
+    if (requireNamespace("skimr", quietly = TRUE) && complete_stamp == TRUE) {
+      st_x$skim <- skimr::skim(x)
+    } else {
+      st_x$dim <- dim(x)
+    }
+  } else {
+    st_x$length <- length(x)
+  }
+
+  st_x$stamp <- hash
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    return(st_x)
+
+}

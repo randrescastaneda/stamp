@@ -16,9 +16,8 @@
 #'   `fs::path_ext(file)`
 #' @param st_dir character: Directory to store stamp files. By default it is a
 #'   subdirectory at the same level of `file`.
-#' @param attr list of attributes to store
 #' @param ... not is used right now
-#' @param create_dir logical: is `TRUE` if directory in `file` does not it will
+#' @param recurse logical: is `TRUE` if directory in `file` does not it will
 #'   be created. Default is FALSE
 #' @param force logical: replace file in disk even if has hasn't changed
 #' @param algo character: Algorithm to be used in [digest::digest()]. Default is
@@ -28,6 +27,9 @@
 #'   it is a subdirectory at the same level of `file`
 #' @param verbose logical: whether to display additional information. This could
 #'   be changed in option `"stamp.verbose"`. Default is `TRUE`
+#' @param complete_stamp logical: Whether to add a complete report of data.frame
+#'   to stamp file. You need the `skimr` package. If `skimr` is not in
+#'   namespace, limited but lighter report will be added.
 #'
 #' @details Object `x` is stored in `file` but its hash (i.e., stamp) is stored
 #'   in subdirectory `st_file`.
@@ -46,39 +48,39 @@
 #' }
 st_write <- function(x,
                      file,
-                     ext         = fs::path_ext(file),
-                     st_dir      = NULL,
-                     attr        = list(),
-                     create_dir  = FALSE,
-                     force       = FALSE,
-                     algo        = getOption("stamp.digest.algo"),
-                     vintage     = getOption("stamp.vintage"),
-                     vintage_dir = NULL,
-                     verbose     = getOption("stamp.verbose"),
+                     ext            = fs::path_ext(file),
+                     st_dir         = NULL,
+                     complete_stamp = getOption("stamp.completestamp"),
+                     recurse     = FALSE,
+                     force          = FALSE,
+                     algo           = getOption("stamp.digest.algo"),
+                     vintage        = getOption("stamp.vintage"),
+                     vintage_dir    = NULL,
+                     verbose        = getOption("stamp.verbose"),
                      ...) {
 
-#   ____________________________________________________
-#   on.exit                                         ####
+  #   ____________________________________________________
+  #   on.exit                                         ####
   on.exit({
 
   })
 
-#   ____________________________________________________
-#   Defenses and set up   ####
+  #   ____________________________________________________
+  #   Defenses and set up   ####
   stopifnot( exprs = {
 
-    }
+  }
   )
 
-#   ____________________________________________________
-#   Early returns                                   ####
+  #   ____________________________________________________
+  #   Early returns                                   ####
   if (FALSE) {
     return()
   }
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# deal with file and path   ---------
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # deal with file and path   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   # List of paths (lp)
   lp <- path_info(
@@ -87,44 +89,87 @@ st_write <- function(x,
     st_dir      = st_dir,
     vintage     = vintage,
     vintage_dir = vintage_dir,
-    create_dir  = create_dir
+    recurse     = recurse
   )
+  saved <- FALSE
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# add hash   ---------
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # add hash   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   ## Check if there is a stamp already ----------
+  ms_status <- ""
   if (fs::file_exists(lp$st_file)) {
     stamp <- qs::qread(lp$st_file)
   } else {
     stamp <- digest::digest(0, algo = algo) # if not created before
+    ms_status <- "new"
   }
 
-  ##  if Signature is different from the one in production ---------
+  ##  Find proper status  ---------
   hash <- digest::digest(x, algo = algo)
-
-  if (hash != stamp) {
-    ms_status <- "changed"
-  } else {
-    ms_status <- "unchanged"
+  if (ms_status != "new") {
+    if (hash != stamp) {
+      ms_status <- "changed"
+    } else {
+      ms_status <- "unchanged"
+    }
+    if (force == TRUE) {
+      ms_status <- "forced"
+    }
   }
 
-  if (force == TRUE) {
-    ms_status <- "forced"
-  }
+  # if signature changes or force = TRUE ---------
 
-  ## if signature changes or force = TRUE ---------
+  if (ms_status != "unchanged") {
 
-  if (ms_status %in% c("forced", "changed")) {
-    # re-write x in production if data signature is not found
-    # Vintage
-
+    ## Add attributes -----------
     if (data.table::is.data.table(x)) {
       data.table::setattr(x, "stamp_time", lp$st_time)
     } else {
-      attr(x, "stamp_time") <- time
+      attr(x, "stamp_time") <- lp$st_time
     }
+
+    ## data.frames only formats  ---------
+    complex_df <- check_complex_data(x)
+    simple_fmts <- c("fst", "dta", "feather")
+
+    if ((lp$ext %in% simple_fmts) && isTRUE(complex_df)) {
+      msg     <- c(
+        "Chosen format is not compatipable with object structure",
+        "*" = "format {.strong .{lp$ext}} does not support complex data",
+        "i" = "Use either {.strong qs} or {.strong rds} format."
+        )
+      cli::cli_abort(msg,
+                    class = "stamp_error",
+                    wrap = TRUE
+                    )
+    }
+
+    ## Get saving function ------------
+    save_file <- get_saving_fun(ext = lp$ext)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Save files   ---------
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    ## Save main file -----
+    saved <-
+      save_file(x   = x,
+                path = fs::path(lp$file,
+                                ext = lp$ext))
+
+    ## save stamp -------
+    st_x <- st_attr(x, hash, complete_stamp, algo)
+    save_file(x    = st_x,
+              path = fs::path(lp$st_file,
+                              ext = getOption("stamp.default.ext")))
+
+    ## save vintage --------
+    save_file(x    = x,
+              path = fs::path(lp$vintage_file,
+                              ext = lp$ext))
+
 
     if (verbose) {
 
@@ -135,33 +180,15 @@ st_write <- function(x,
       cli::cli_alert_warning(infmsg)
     }
 
-    return(invisible(TRUE))
+    return(invisible(saved))
 
   } else {
     if (verbose) {
       cli::cli_alert_info("Data signature is up to date.
                         {cli::col_blue('No update performed')}")
     }
+    return(invisible(saved))
+  }
 
-
-  # Note: clean CPI data file and then create data signature
-  # ds_dlw <- digest::digest(x, algo = "xxhash64") # Data signature of file
-  #
-  # if (ds_dlw != ds_production) {
-  #   ms_status <- "changed"
-  # } else {
-  #   ms_status <- "unchanged"
-  # }
-  #
-  # if (force == TRUE) {
-  #   ms_status <- "forced"
-  # }
-
-
-#   ____________________________________________________
-#   Return                                           ####
-  return(invisible(file))
-
-}
 }
 

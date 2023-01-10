@@ -21,7 +21,8 @@ Suggests:
     arrow,
     fst,
     testthat (>= 3.0.0),
-    haven
+    haven,
+    skimr
 Config/testthat/edition: 3
 RoxygenNote: 7.2.2
 Roxygen: list(markdown = TRUE)

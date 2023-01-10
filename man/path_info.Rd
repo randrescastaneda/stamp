@@ -10,7 +10,7 @@ path_info(
   st_dir = NULL,
   vintage = getOption("stamp.vintage"),
   vintage_dir = NULL,
-  create_dir = FALSE
+  recurse = FALSE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ subdirectory at the same level of \code{file}.}
 \item{vintage_dir}{character: Directory to save vintages of \code{x}. By default
 it is a subdirectory at the same level of \code{file}}
 
-\item{create_dir}{logical: is \code{TRUE} if directory in \code{file} does not it will
+\item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will
 be created. Default is FALSE}
 }
 \value{
