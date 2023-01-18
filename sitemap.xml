@@ -22,10 +22,16 @@
     <loc>https://randrescastaneda.github.io/stamp/reference/check_complex_data.html</loc>
   </url>
   <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/check_file.html</loc>
+  </url>
+  <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/check_format.html</loc>
   </url>
   <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/ensure_file_path.html</loc>
+  </url>
+  <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/get_reading_fun.html</loc>
   </url>
   <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/get_saving_fun.html</loc>
@@ -37,9 +43,27 @@
     <loc>https://randrescastaneda.github.io/stamp/reference/path_info.html</loc>
   </url>
   <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/pkg_available.html</loc>
+  </url>
+  <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/st_attr.html</loc>
   </url>
   <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/st_read.html</loc>
+  </url>
+  <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/st_write.html</loc>
+  </url>
+  <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/stamp-package.html</loc>
+  </url>
+  <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/stamp_get.html</loc>
+  </url>
+  <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/stamp_set.html</loc>
+  </url>
+  <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/stamp_time.html</loc>
   </url>
 </urlset>

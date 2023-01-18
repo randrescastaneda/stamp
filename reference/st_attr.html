@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9002</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,7 +89,39 @@ namespace, limited but lighter report will be added.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, b <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">st_attr</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in st_attr(x):</span> could not find function "st_attr"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $names</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "a" "b"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "data.frame"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $row.names</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1]  1  2  3  4  5  6  7  8  9 10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $skim</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Data Summary ────────────────────────</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                            Values</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Name                       x     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of rows             10    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of columns          2     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________________          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Column type frequency:           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   character                1     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   numeric                  1     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________________         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Group variables            None  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Variable type: character ────────────────────────────────────────────────────</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   skim_variable n_missing complete_rate min max empty n_unique whitespace</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> b                     0             1   1   1     0       10          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ── Variable type: numeric ──────────────────────────────────────────────────────</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   skim_variable n_missing complete_rate mean   sd p0  p25 p50  p75 p100 hist </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> a                     0             1  5.5 3.03  1 3.25 5.5 7.75   10 ▇▇▇▇▇</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stamp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "5d3f6593e2ec5d9466ab891f29c5b6734064b056"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
@@ -97,7 +129,7 @@ namespace, limited but lighter report will be added.</p></dd>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by The package maintainer.</p>
+  <p></p><p>Developed by R.Andres Castaneda.</p>
 </div>
 
 <div class="pkgdown-footer-right">
