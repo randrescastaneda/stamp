@@ -38,7 +38,7 @@ path_info <-
     }
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # initialk parameters   ---------
+    # initial parameters   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # tz <- "America/Los_Angeles"
     # tformat <- "%Y%m%d%H%M%S"
@@ -140,21 +140,24 @@ path_info <-
 
 
 
-#' Saving function depending on format selected
+#'Saving function depending on format selected
 #'
-#' @inheritParams st_write
+#'@inheritParams st_write
 #'
-#' @return saving function according to `ext`
-#' @export
+#'@return saving function according to `ext` that returns logical value
+#'  depending on whether the file was saved successfully
+#'@export
 #'
 #' @examples
 #' # Rds default
-#' save_fun <- get_save_fun()
+#' save_fun <- get_saving_fun()
 #' save_fun
 #'
 #' # fst format
-#' save_fun <- get_save_fun(ext="fst")
+#' \dontrun{
+#' save_fun <- get_saving_fun(ext="fst")
 #' save_fun
+#'}
 get_saving_fun <- function(ext = "Rds") {
 
   # Select function -------------
@@ -169,10 +172,12 @@ get_saving_fun <- function(ext = "Rds") {
       \(x, path, ...) qs::qsave(x = x, file = path, ...)
     } else if (ext == "feather") {
       \(x, path, ...) arrow::write_feather(x = x, sink = path, ...)
+    } else if (ext == "parquet") {
+      \(x, path, ...) arrow::write_parquet(x = x, sink = path, ...)
     } else if (ext == "rds") {
       \(x, path, ...) saveRDS(object = x, file = path, ...)
     } else {
-      cli::cli_abort("format {.strong .{ext}} is not available")
+      cli::cli_abort("format {.strong .{ext}} is not supported by {.pkg stamp}")
     }
 
   # make sure that data saved properly
@@ -189,60 +194,6 @@ get_saving_fun <- function(ext = "Rds") {
 #   ____________________________________________________
 #   Return                                           ####
   return(invisible(sv2))
-
-}
-
-
-
-#' Check whether the format is in Namespace
-#'
-#' @description Use valus in `ext` to check the corresponding package is
-#'   available. It it is not, it defaults to `Rds`
-#'
-#' @inheritParams st_write
-#' @param  file_ext character: File extension
-#'
-#' @return character with extension of desired format
-#' @export
-#'
-#' @examples
-#' fmt <- check_format()
-#' fmt
-check_format <- function(ext = "Rds", file_ext) {
-  # Computations ------------
-  ext <- tolower(ext)
-
-  if (ext != file_ext) {
-    cli::cli_warn("Format provided, {.strong .{ext}}, is different from format in
-                  file name, {.strong .{file_ext}}. The former will be used.",
-                  wrap = TRUE)
-  }
-
-  # correctly write file name
-  if (ext == "") {
-    ext <- getOption("stamp.default.ext") |>
-      tolower()
-  }
-
-  pkg_name <- c("base", "fst", "haven", "qs", "arrow", "arrow")
-  formats  <- c("rds", "fst", "dta", "qs", "feather", "parquet")
-
-  fmt <- which(ext %in% formats)
-  if (length(fmt) == 0) {
-    cli::cli_abort("format {.strong .{ext}} is not available")
-  }
-
-  pkg <- pkg_name[fmt]
-
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    cli::cli_alert_warning("Package {.pkg {pkg}} is not available in namespace,
-                           switching to {.strong .Rds} format")
-    ext <- "Rds"
-  }
-
-  #   ____________________________________________________
-  #   Return                                           ####
-  return(invisible(ext))
 
 }
 

@@ -1,11 +1,21 @@
 Package: stamp
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Read and Write R Objects with Data Hash
 Version: 0.0.0.9000
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Authors@R: person(
+  "R.Andres", "Castaneda", 
+  email = "acastanedaa@worldbank.org",
+  role = c("aut", "cre"), 
+  comment = c(ORCID = "0000-0003-1154-1374")
+  )
+Maintainer: person(
+  "R.Andres", "Castaneda", 
+  email = "acastanedaa@worldbank.org",
+  role = c("aut", "cre"), 
+  comment = c(ORCID = "0000-0003-1154-1374")
+  )
+Description: A system to manage the reading and writing R objects in disk 
+    by creating and saving data signatures (hash). 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

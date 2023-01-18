@@ -11,17 +11,20 @@ get_saving_fun(ext = "Rds")
 \code{fs::path_ext(file)}}
 }
 \value{
-saving function according to \code{ext}
+saving function according to \code{ext} that returns logical value
+depending on whether the file was saved successfully
 }
 \description{
 Saving function depending on format selected
 }
 \examples{
 # Rds default
-save_fun <- get_save_fun()
+save_fun <- get_saving_fun()
 save_fun
 
 # fst format
-save_fun <- get_save_fun(ext="fst")
+\dontrun{
+save_fun <- get_saving_fun(ext="fst")
 save_fun
+}
 }

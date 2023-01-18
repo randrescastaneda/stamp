@@ -16,7 +16,7 @@ logical for complex data
 Check whther object can be saved in tabular formats like fst
 }
 \examples{
-False
+# False
 check_complex_data(data.frame())
 
 # TRUE

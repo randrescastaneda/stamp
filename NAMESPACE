@@ -2,5 +2,8 @@
 
 export(check_complex_data)
 export(check_format)
+export(get_reading_fun)
 export(get_saving_fun)
+export(st_read)
 export(st_write)
+export(stamp_get)

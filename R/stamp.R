@@ -1,35 +1,44 @@
-#' stamp: Create signature stamp when saving R objects
+#' Get stamp
 #'
-#' Stamp allows to store attributes and data signatures (hashes) that allows you
-#' to know whether the data in memory has changed or not. This is mainly used in
-#' projects with data that is changing constantly and should not be rewritten in
-#' each run.
+#' @description This is basically a wrapper around [digest::digest()]
 #'
-#' @section stamp functions: The stamp functions ...
+#' @inheritParams digest::digest
 #'
-#' @docType package
-#' @name stamp
-
-# Make sure data.table knows we know we're using it
-#' @noRd
-.datatable.aware = TRUE
-
-# Prevent R CMD check from complaining about the use of pipe expressions
-# standard data.table variables
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables(
-    names = c(
-      ".",
-      ".I",
-      ".N",
-      ".SD",
-      ".",
-      "!!",
-      ":="
-    ),
-    package = utils::packageName()
-  )
+#' @param x 	An arbitrary R object which will then be passed to the
+#'   base::serialize function
+#' @param algo character: default is value in option "stamp.digest.algo". This
+#'   argument is the algorithms to be used; currently available choices are md5,
+#'   which is also the default, sha1, crc32, sha256, sha512, xxhash32, xxhash64,
+#'   murmur32, spookyhash and blake3
+#'
+#' @inherit digest::digest return details
+#' @export
+#'
+#' @examples
+#' stamp_get("abc")
+stamp_get <- function(x,
+                      algo            = c(
+                        getOption("stamp.digest.algo"),
+                        "md5",
+                        "sha1",
+                        "crc32",
+                        "sha256",
+                        "sha512",
+                        "xxhash32",
+                        "xxhash64",
+                        "murmur32",
+                        "spookyhash",
+                        "blake3"
+                      ),
+                      serialize       = TRUE,
+                      file            = FALSE,
+                      length          = Inf,
+                      skip            = "auto",
+                      ascii           = FALSE,
+                      raw             = FALSE,
+                      seed            = 0,
+                      errormode       = c("stop", "warn", "silent"),
+                      serializeVersion = .getSerializeVersion()) {
+  algo <- match.arg(algo)
+  digest::digest(x, algo = algo)
 }
-
-NULL
-
