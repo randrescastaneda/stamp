@@ -8,12 +8,6 @@ Authors@R: person(
   role = c("aut", "cre"), 
   comment = c(ORCID = "0000-0003-1154-1374")
   )
-Maintainer: person(
-  "R.Andres", "Castaneda", 
-  email = "acastanedaa@worldbank.org",
-  role = c("aut", "cre"), 
-  comment = c(ORCID = "0000-0003-1154-1374")
-  )
 Description: A system to manage the reading and writing R objects in disk 
     by creating and saving data signatures (hash). 
 License: MIT + file LICENSE

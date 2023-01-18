@@ -37,8 +37,82 @@ stamp_get <- function(x,
                       ascii           = FALSE,
                       raw             = FALSE,
                       seed            = 0,
-                      errormode       = c("stop", "warn", "silent"),
-                      serializeVersion = .getSerializeVersion()) {
+                      errormode       = c("stop", "warn", "silent")) {
   algo <- match.arg(algo)
   digest::digest(x, algo = algo)
 }
+
+
+#' Set an attribute *stamp* to R object
+#'
+#'
+#' @inheritDotParams stamp_get
+#'
+#' @return R object in `x` with attribute *stamp*
+#' @export
+#'
+#' @examples
+#' x <- data.frame(a = 1:10, b = letters[1:10])
+#' stamp_set(x) |> attr(which = "stamp")
+stamp_set <- function(x, ...) {
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Stamp   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  hash <- stamp_get(x, ...)
+  lt   <- stamp_time()
+
+  if (data.table::is.data.table(x)) {
+    data.table::setattr(x, "stamp", hash)
+    data.table::setattr(x, "stamp_time", lt$st_time)
+  } else {
+    attr(x, "stamp")      <- hash
+    attr(x, "stamp_time") <- lt$st_time
+  }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    return(x)
+}
+
+
+
+#' Get time parameters
+#'
+#' It uses the values stored in "stamp.timezone", "stamp.timeformat" and
+#' "stamp.usetz" options
+#'
+#' @return list of time parameters as objects
+#' @export
+#'
+#' @examples
+#' stamp_time()
+stamp_time <- function() {
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Time parameters   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+  # tz <- "America/Los_Angeles"
+  # tformat <- "%Y%m%d%H%M%S"
+  l <- list()
+  l$tz        <- getOption("stamp.timezone")
+  l$tformat   <- getOption("stamp.timeformat")
+  l$usetz     <- getOption("stamp.usetz")
+
+  l$st_time <-
+    Sys.time() |>
+    format(format = l$tformat,
+           tz     = l$tz,
+           usetz  = l$usetz) |>
+    {\(.) gsub('\\s+', '_', .)}()
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  return(l)
+}
+
+

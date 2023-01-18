@@ -15,8 +15,7 @@ stamp_get(
   ascii = FALSE,
   raw = FALSE,
   seed = 0,
-  errormode = c("stop", "warn", "silent"),
-  serializeVersion = .getSerializeVersion()
+  errormode = c("stop", "warn", "silent")
 )
 }
 \arguments{
@@ -70,12 +69,6 @@ murmur32, spookyhash and blake3}
     the case of error: \sQuote{stop} aborts (and is the default value),
     \sQuote{warn} emits a warning and returns \code{NULL} and
     \sQuote{silent} suppresses the error and returns an empty string.}
-
-\item{serializeVersion}{An integer value specifying the internal
-    version of the serialization format, with 2 being the default;
-    see \code{\link{serialize}} for details. The \code{serializeVersion}
-    field of \code{\link{option}} can also be used to set a different
-    value.}
 }
 \value{
 The \code{digest} function returns a character string of a fixed

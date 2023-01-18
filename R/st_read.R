@@ -18,7 +18,7 @@
 #'   Option "00" is useful for vintage control
 #' @inheritParams st_write
 #'
-#' @return
+#' @return object store in `file`
 #' @export
 #'
 #' @examples

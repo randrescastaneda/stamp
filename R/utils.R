@@ -1,3 +1,139 @@
+#' Get file names and paths
+#'
+#' @inheritParams st_write
+#'
+#' @return list of directories and files information
+#' @keywords internal
+path_info <-
+  function(file,
+           ext         = fs::path_ext(file),
+           st_dir      = NULL,
+           vintage     = getOption("stamp.vintage"),
+           vintage_dir = NULL,
+           recurse     = FALSE
+  ) {
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Defensive setup   ---------
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ## On Exit --------
+    on.exit({
+
+    })
+
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ## Defenses --------
+    stopifnot( exprs = {
+
+    }
+    )
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ## Early Return --------
+    if (FALSE) {
+      return()
+    }
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # initial parameters   ---------
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # Time parameters
+    lt <- stamp_time()
+
+    # stamp parameters
+    dir_stamp <- getOption("stamp.dir_stamp")
+    dir_vtg   <- getOption("stamp.dir_vintage")
+
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Main file   ---------
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ext <- tolower(ext) |>
+      check_format(fs::path_ext(file))
+
+    file_dir  <- ensure_file_path(file, recurse)
+    file      <- fs::path_ext_remove(file)
+    file_name <- fs::path_file(file)
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Stamp file and dir   ---------
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    st_name   <- paste0("_st_", file_name)
+
+    # format directory to store stamps
+    st_dir <-
+      if (is.null(st_dir)) {
+        file_dir |>
+          fs::path(dir_stamp) |>
+          fs::dir_create(recurse = TRUE)
+      } else {
+        if (fs::is_absolute_path(st_dir)) {
+          fs::dir_create(st_dir, recurse = TRUE)
+        } else {
+          fs::path_wd(st_dir) |>
+            fs::dir_create(recurse = TRUE)
+        }
+      }
+
+    st_file <- fs::path(st_dir, st_name)
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Vintage file   ---------
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    st_time <- lt$st_time
+
+    if (isTRUE(vintage)) {
+      vintage_dir <-
+        if (is.null(vintage_dir)) {
+          file_dir |>
+            fs::path(dir_vtg) |>
+            fs::dir_create(recurse = TRUE)
+        } else {
+          if (fs::is_absolute_path(vintage_dir)) {
+            fs::dir_create(vintage_dir, recurse = TRUE)
+          } else {
+            fs::path_wd(vintage_dir) |>
+              fs::dir_create(recurse = TRUE)
+          }
+        }
+
+      vintage_name <- paste0(file_name, "_", st_time )
+      vintage_file <- fs::path(vintage_dir, vintage_name)
+
+    } else {
+      vintage_name <- NA_character_
+      vintage_dir  <- NA_character_
+      vintage_file <- NA_character_
+    }
+
+
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Return   ---------
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    l_path <- list(
+      ext          = ext,
+      file         = file,
+      file_dir     = file_dir,
+      file_name    = file_name,
+      st_name      = st_name,
+      st_dir       = st_dir,
+      st_file      = st_file,
+      st_time      = st_time,
+      vintage_dir  = vintage_dir,
+      vintage_name = vintage_name,
+      vintage_file = vintage_file
+    )
+    return(l_path)
+
+  }
+
+
+
 #' Check whether the format is in Namespace
 #'
 #' @description Use valus in `ext` to check the corresponding package is
@@ -10,7 +146,7 @@
 #' @export
 #'
 #' @examples
-#' fmt <- check_format()
+#' fmt <- check_format(file_ext = "fst")
 #' fmt
 check_format <- function(ext = "Rds", file_ext) {
   # Computations ------------
@@ -48,7 +184,6 @@ check_format <- function(ext = "Rds", file_ext) {
 #' @param ext character: extension of file
 #'
 #' @return logical vector for availability of package
-#' @keywords internal
 #' @examples
 #' \dontrun{
 #' pkg_available("fst")

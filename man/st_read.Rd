@@ -42,6 +42,9 @@ be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
 
 \item{...}{not is used right now}
 }
+\value{
+object store in \code{file}
+}
 \description{
 Read files with Stamp
 }

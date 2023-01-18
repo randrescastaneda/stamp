@@ -34,4 +34,3 @@ Add attributes and characteristics of x to stamp file
 x <- data.frame(a = 1:10, b = letters[1:10])
 st_attr(x)
 }
-\keyword{internal}
