@@ -17,5 +17,10 @@ reference:
   desc: "Functions for reading and writing files with stamp."
   contents:
   - starts_with("st_")
+- title: "Working with vintages"
+  desc: "Functions to manipulate vintages files"
+  contents:
+  - starts_with("vt_")
+
 
 
