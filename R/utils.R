@@ -286,3 +286,119 @@ check_file <- function(file) {
   return(invisible(pkg_av))
 
 }
+
+
+
+#' Format Stamp directory
+#'
+#' @inheritParams stamp_save
+#'
+#' @return formatted directory
+#' @keywords internal
+format_st_dir <- function(st_dir = NULL) {
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # format dir   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  # format directory to store stamps
+  dir_stamp <- getOption("stamp.dir_stamp")
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ## If it NULL --------
+
+    if (is.null(st_dir)) {
+      # create in current directory if NULL
+      st_dir <-
+        "." |> # curent directory
+        fs::path(dir_stamp) |>
+        fs::dir_create(recurse = TRUE)
+    } else {
+
+      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      ## check if it is a dir --------
+      if (!fs::is_dir(st_dir)) {
+        msg     <- c(
+          "Path {.file {st_dir}} must be a directory")
+        cli::cli_abort(msg,
+                      class = "stamp_error",
+                      wrap = TRUE
+                      )
+      }
+
+      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      ## check last dir name --------
+
+      last_dir <- fs::path_file(st_dir)
+      if (last_dir != dir_stamp) {
+        st_dir <- fs::path(st_dir, dir_stamp)
+      }
+
+      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      ## relative of absolute path --------
+
+      st_dir <-
+        if (fs::is_absolute_path(st_dir)) {
+          fs::dir_create(st_dir, recurse = TRUE)
+        } else {
+          fs::path_wd(st_dir) |>
+            fs::dir_create(recurse = TRUE)
+        }
+    }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    return(st_dir)
+}
+
+
+#' Format Stamp name
+#'
+#' @param st_name
+#'
+#' @inheritParams stamp_save
+#'
+#' @return formatted directory
+#' @keywords internal
+format_st_name <- function(st_name = rand_name()) {
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # format name   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  st_nm_pr <- getOption("stamp.stamp_prefix")
+  pattern    <- paste0("^", st_nm_pr)
+  if (!grepl(pattern, st_name)) {
+    st_name <- paste0(st_nm_pr, st_name)
+  }
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    return(TRUE)
+
+}
+
+
+
+#' General random name
+#'
+#' @param l numeric: length of name. Default 8
+#'
+#' @return random string name
+#' @keywords internal
+rand_name <- function(l = 8)
+  {
+  # punct <- c("!",  "#", "$", "%", "&", "(", ")", "*",  "+", "-", "/", ":",
+  #            ";", "<", "=", ">", "?", "@", "[", "^", "_", "{", "|", "}", "~")
+  nums <- c(0:9)
+  # chars <- c(letters, LETTERS, punct, nums)
+  chars <- c(letters, nums)
+  # p <- c(rep(0.0105, 52), rep(0.0102, 25), rep(0.02, 10))
+  pword <- paste0(sample(x = chars,
+                         size = length,
+                         replace = TRUE),
+                  collapse = "")
+  return(pword)
+}

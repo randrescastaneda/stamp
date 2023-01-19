@@ -97,8 +97,8 @@ stamp_set <- function(x, ...) {
 #'
 #' @param x R object to stamp
 #' @param st_name character: name of stamp in file. All stamp files are prefixed
-#'   with value in option "stamp.stamp_prefix", which by default is "_st_"
-#' @param st_dir character: parent directory to store stamp file.
+#'   with value in option "stamp.stamp_prefix", which by default is "_st_".
+#' @param st_dir character: parent directory to store stamp file (see details).
 #' @param stamp list of stamp from stamp_get() in case it was calculated before
 #'   hand. Developers option. It should be used interactively.
 #' @param x_attr logical: whether or not to save the attributes of `x` along
@@ -110,11 +110,17 @@ stamp_set <- function(x, ...) {
 #' @family stamp functions
 #'
 #' @details `st_dir` is parent directory. It is inside `st_dir` that {stamp}
-#' creates another subdirectory with name in option "stamp.dir_stamp" and it is
-#' in there where the stamps are saved. The idea objective is to have a
-#' directory for stamps only. By default, `st_dir` is the current directory. If
-#' last directory name of `st_dir` is equal to option "stamp.dir_stamp", then
-#' `st_dir` becomes the stamps directory.
+#'   creates another subdirectory with name in option "stamp.dir_stamp" and it
+#'   is in there where the stamps are saved. The idea objective is to have a
+#'   directory for stamps only. By default, `st_dir` is the current directory.
+#'   If last directory name of `st_dir` is equal to option "stamp.dir_stamp",
+#'   then `st_dir` becomes the stamps directory.
+#'
+#'   `st_name` must prefixed to avoid overwriting actual data. This is just a
+#'   precaution that should not present bumps in any workflow.  If the beginning
+#'   of `st_name` is identical to the value in "stamp.stamp_prefix", then it is
+#'   adopted as is. Otherwise, the prefix in "stamp.stamp_prefix" will be added
+#'   to `st_name`. Be default, `st_name` is random name of 8 characters.
 #'
 #' @examples
 stamp_save <- function(x,
@@ -154,6 +160,12 @@ stamp_save <- function(x,
   if (is.null(stamp)) {
     stamp <- stamp_get(x, ...)
   }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Directory and stamp name   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  st_dir <- format_st_dir(st_dir)
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

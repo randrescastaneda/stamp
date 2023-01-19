@@ -10,9 +10,9 @@ stamp_save(x, st_name, st_dir = NULL, stamp = NULL, x_attr = FALSE, ...)
 \item{x}{R object to stamp}
 
 \item{st_name}{character: name of stamp in file. All stamp files are prefixed
-with value in option "stamp.stamp_prefix", which by default is "\emph{st}"}
+with value in option "stamp.stamp_prefix", which by default is "\emph{st}".}
 
-\item{st_dir}{character: parent directory to store stamp file.}
+\item{st_dir}{character: parent directory to store stamp file (see details).}
 
 \item{stamp}{list of stamp from stamp_get() in case it was calculated before
 hand. Developers option. It should be used interactively.}
@@ -27,11 +27,17 @@ f
 }
 \details{
 \code{st_dir} is parent directory. It is inside \code{st_dir} that {stamp}
-creates another subdirectory with name in option "stamp.dir_stamp" and it is
-in there where the stamps are saved. The idea objective is to have a
-directory for stamps only. By default, \code{st_dir} is the current directory. If
-last directory name of \code{st_dir} is equal to option "stamp.dir_stamp", then
-\code{st_dir} becomes the stamps directory.
+creates another subdirectory with name in option "stamp.dir_stamp" and it
+is in there where the stamps are saved. The idea objective is to have a
+directory for stamps only. By default, \code{st_dir} is the current directory.
+If last directory name of \code{st_dir} is equal to option "stamp.dir_stamp",
+then \code{st_dir} becomes the stamps directory.
+
+\code{st_name} must prefixed to avoid overwriting actual data. This is just a
+precaution that should not present bumps in any workflow.  If the beginning
+of \code{st_name} is identical to the value in "stamp.stamp_prefix", then it is
+adopted as is. Otherwise, the prefix in "stamp.stamp_prefix" will be added
+to \code{st_name}. Be default, \code{st_name} is random name of 8 characters.
 }
 \seealso{
 Other stamp functions: 
