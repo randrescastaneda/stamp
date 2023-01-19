@@ -2,6 +2,10 @@ url: https://randrescastaneda.github.io/stamp/
 template:
   bootstrap: 5
 
+home:
+  title: An R package for putting a stamp to your data
+  description: Manage data from disk by adding hash stamps.
+
 reference:
 - title: "Stamp functions"
   desc: >
