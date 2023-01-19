@@ -55,6 +55,8 @@ one previously set with stamp_set().</p>
 <span>  <span class="va">x</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.verbose"</span><span class="op">)</span>,</span>
 <span>  using <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"self"</span>, <span class="st">"stamp"</span><span class="op">)</span>,</span>
+<span>  st_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  st_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -69,6 +71,11 @@ base::serialize function</p></dd>
 <dt>verbose</dt>
 <dd><p>logical: whether to display additional information. This could
 be changed in option <code>"stamp.verbose"</code>. Default is <code>TRUE</code></p></dd>
+
+
+<dt>st_dir</dt>
+<dd><p>character: Directory to store stamp files. By default it is a
+subdirectory at the same level of <code>file</code>.</p></dd>
 
 
 <dt>...</dt>
@@ -87,6 +94,7 @@ they do.</p>
     <div class="dont-index"><p>Other stamp functions: 
 <code><a href="stamp_attr.html">stamp_attr</a>()</code>,
 <code><a href="stamp_get.html">stamp_get</a>()</code>,
+<code><a href="stamp_save.html">stamp_save</a>()</code>,
 <code><a href="stamp_set.html">stamp_set</a>()</code>,
 <code><a href="stamp_time.html">stamp_time</a>()</code></p></div>
     </div>
