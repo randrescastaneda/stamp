@@ -131,10 +131,6 @@ stamp_time <- function() {
 #'
 #' @inheritParams stamp_set
 #' @inheritParams st_write
-#' @param waldo logical: whether to display waldo::compare results if objects
-#'   are different. Requires package waldo. If not in namespace,
-#'   base::identical() will be executed.
-#'
 #'
 #' @return
 #' @export
@@ -142,7 +138,6 @@ stamp_time <- function() {
 #'
 #' @examples
 stamp_confirm <- function(x,
-                          waldo   = getOption("stamp.waldo"),
                           verbose = getOption("stamp.verbose"),
                           ...) {
 
@@ -172,6 +167,10 @@ stamp_confirm <- function(x,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Computations   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

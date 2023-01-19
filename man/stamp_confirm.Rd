@@ -4,19 +4,10 @@
 \alias{stamp_confirm}
 \title{Confirm stamp has not changed}
 \usage{
-stamp_confirm(
-  x,
-  waldo = getOption("stamp.waldo"),
-  verbose = getOption("stamp.verbose"),
-  ...
-)
+stamp_confirm(x, verbose = getOption("stamp.verbose"), ...)
 }
 \arguments{
 \item{x}{R object to write to disk as per limitations of \code{file} format.}
-
-\item{waldo}{logical: whether to display waldo::compare results if objects
-are different. Requires package waldo. If not in namespace,
-base::identical() will be executed.}
 
 \item{verbose}{logical: whether to display additional information. This could
 be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
