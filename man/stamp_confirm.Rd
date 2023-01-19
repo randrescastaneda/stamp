@@ -2,15 +2,22 @@
 % Please edit documentation in R/stamp.R
 \name{stamp_confirm}
 \alias{stamp_confirm}
-\title{Title}
+\title{Confirm stamp has not changed}
 \usage{
-stamp_confirm()
+stamp_confirm(
+  x,
+  waldo = getOption("stamp.waldo"),
+  verbose = getOption("stamp.verbose"),
+  ...
+)
 }
 \description{
-Title
+verifies that, were the stamp recalculated, it
+would match the one previously set with stamp_set(). It returns \code{FALSE} if the objects do not match and returns \code{TRUE} if they do. You can also see the differences by displaing waldo::compare results using \code{waldo = TRUE}.
 }
 \seealso{
 Other stamp functions: 
+\code{\link{stamp_attr}()},
 \code{\link{stamp_get}()},
 \code{\link{stamp_set}()},
 \code{\link{stamp_time}()}

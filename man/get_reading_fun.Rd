@@ -27,3 +27,4 @@ read_fun <- get_reading_fun(ext="fst")
 read_fun
 }
 }
+\keyword{internal}

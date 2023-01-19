@@ -18,6 +18,7 @@ stamp_time()
 }
 \seealso{
 Other stamp functions: 
+\code{\link{stamp_attr}()},
 \code{\link{stamp_confirm}()},
 \code{\link{stamp_get}()},
 \code{\link{stamp_set}()}

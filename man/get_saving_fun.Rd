@@ -28,3 +28,4 @@ save_fun <- get_saving_fun(ext="fst")
 save_fun
 }
 }
+\keyword{internal}

@@ -3,7 +3,7 @@
 #' @inheritParams st_write
 #'
 #' @return reading function according to `ext`
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' # Rds default

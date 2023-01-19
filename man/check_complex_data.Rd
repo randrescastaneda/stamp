@@ -22,3 +22,4 @@ check_complex_data(data.frame())
 # TRUE
 check_complex_data(list())
 }
+\keyword{internal}

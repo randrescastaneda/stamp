@@ -4,7 +4,8 @@
 #'
 #'@return saving function according to `ext` that returns logical value
 #'  depending on whether the file was saved successfully
-#'@export
+#'
+#' @keywords internal
 #'
 #' @examples
 #' # Rds default
@@ -61,7 +62,7 @@ get_saving_fun <- function(ext = "Rds") {
 #' @inheritParams st_write
 #'
 #' @return logical for complex data
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' # False
@@ -149,69 +150,3 @@ ensure_file_path <- function(file, recurse) {
 
 
 
-#' Add attributes and characteristics of x to stamp file
-#'
-#' @inheritParams st_write
-#' @param hash character: stamp previously calculated. otherwise it will be
-#'   added
-#'
-#' @return list of attributes
-#' @export
-#' @examples
-#' x <- data.frame(a = 1:10, b = letters[1:10])
-#' st_attr(x)
-st_attr <- function(x,
-                    hash = NULL,
-                    complete_stamp = getOption("stamp.completestamp"),
-                    algo           = getOption("stamp.digest.algo")
-                    ) {
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Defensive setup   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## On Exit --------
-    on.exit({
-
-    })
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Defenses --------
-    stopifnot( exprs = {
-
-      }
-    )
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Early Return --------
-    if (FALSE) {
-      return()
-    }
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Get basic info from X  ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  if (is.null(hash)) {
-    hash <- digest::digest(x, algo = algo)
-  }
-  st_x      <- attributes(x)
-
-  if (is.data.frame(x)) {
-    if (requireNamespace("skimr", quietly = TRUE) && complete_stamp == TRUE) {
-      st_x$skim <- skimr::skim(x)
-    } else {
-      st_x$dim <- dim(x)
-    }
-  } else {
-    st_x$length <- length(x)
-  }
-
-  st_x$stamp <- hash
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(st_x)
-
-}

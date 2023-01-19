@@ -57,7 +57,9 @@ murmur32, spookyhash and blake3}
 R object in \code{x} with attribute \emph{stamp}
 }
 \description{
-Set an attribute \emph{stamp} to R object
+This functions does the same as stamp_get() but stores the
+stamps as an attribute in the object. If the object is not saved afterward
+the stamps won't be permanent. Yet, it is useful for quick verification.
 }
 \examples{
 x <- data.frame(a = 1:10, b = letters[1:10])
@@ -65,6 +67,7 @@ stamp_set(x) |> attr(which = "stamp")
 }
 \seealso{
 Other stamp functions: 
+\code{\link{stamp_attr}()},
 \code{\link{stamp_confirm}()},
 \code{\link{stamp_get}()},
 \code{\link{stamp_time}()}

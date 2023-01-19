@@ -5,7 +5,8 @@ template:
 reference:
 - title: "Stamp functions"
   desc: >
-    Functions for getting, setting, confirming, and working in genaral with stamps
+    Functions for getting, setting, confirming, and working in genaral
+    with stamps
   contents:
   - starts_with("stamp")
 - title: "Reading and Writing Data"
