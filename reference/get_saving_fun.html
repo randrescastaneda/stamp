@@ -68,23 +68,12 @@ depending on whether the file was saved successfully</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Rds default</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="co"># Rds default</span></span></span>
 <span class="r-in"><span><span class="va">save_fun</span> <span class="op">&lt;-</span> <span class="fu">get_saving_fun</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">save_fun</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (x, path, ...) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> {</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     t1 &lt;- Sys.time()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Sys.sleep(0.2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     sv(x, path, ...)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     saved &lt;- t1 &lt;= file.mtime(path)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     names(saved) &lt;- path</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     return(saved)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> }</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;bytecode: 0x556add9fa300&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x556add9fadb8&gt;</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># fst format</span></span></span>
-<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="va">save_fun</span> <span class="op">&lt;-</span> <span class="fu">get_saving_fun</span><span class="op">(</span>ext<span class="op">=</span><span class="st">"fst"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">save_fun</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
