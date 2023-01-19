@@ -32,7 +32,7 @@ Add attributes and characteristics of x to stamp file
 }
 \examples{
 x <- data.frame(a = 1:10, b = letters[1:10])
-st_attr(x)
+stamp_attr(x)
 }
 \seealso{
 Other stamp functions: 

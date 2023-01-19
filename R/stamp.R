@@ -124,8 +124,17 @@ stamp_time <- function() {
 
 #' Confirm stamp has not changed
 #'
-#' @description verifies that, were the stamp recalculated, it
-#' would match the one previously set with stamp_set(). It returns `FALSE` if the objects do not match and returns `TRUE` if they do. You can also see the differences by displaing waldo::compare results using `waldo = TRUE`.
+#' @description verifies that, were the stamp recalculated, it would match the
+#'   one previously set with stamp_set(). It returns `FALSE` if the objects do
+#'   not match and returns `TRUE` if they do. You can also see the differences
+#'   by displaing waldo::compare results using `waldo = TRUE`.
+#'
+#' @inheritParams stamp_set
+#' @inheritParams st_write
+#' @param waldo logical: whether to display waldo::compare results if objects
+#'   are different. Requires package waldo. If not in namespace,
+#'   base::identical() will be executed.
+#'
 #'
 #' @return
 #' @export
@@ -133,7 +142,7 @@ stamp_time <- function() {
 #'
 #' @examples
 stamp_confirm <- function(x,
-                          waldo = getOption("stamp.waldo"),
+                          waldo   = getOption("stamp.waldo"),
                           verbose = getOption("stamp.verbose"),
                           ...) {
 
@@ -188,7 +197,7 @@ stamp_confirm <- function(x,
 #' @family stamp functions
 #' @examples
 #' x <- data.frame(a = 1:10, b = letters[1:10])
-#' st_attr(x)
+#' stamp_attr(x)
 stamp_attr <- function(x,
                     hash = NULL,
                     complete_stamp = getOption("stamp.completestamp"),

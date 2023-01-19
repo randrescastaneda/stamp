@@ -11,9 +11,23 @@ stamp_confirm(
   ...
 )
 }
+\arguments{
+\item{x}{R object to write to disk as per limitations of \code{file} format.}
+
+\item{waldo}{logical: whether to display waldo::compare results if objects
+are different. Requires package waldo. If not in namespace,
+base::identical() will be executed.}
+
+\item{verbose}{logical: whether to display additional information. This could
+be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
+
+\item{...}{not is used right now}
+}
 \description{
-verifies that, were the stamp recalculated, it
-would match the one previously set with stamp_set(). It returns \code{FALSE} if the objects do not match and returns \code{TRUE} if they do. You can also see the differences by displaing waldo::compare results using \code{waldo = TRUE}.
+verifies that, were the stamp recalculated, it would match the
+one previously set with stamp_set(). It returns \code{FALSE} if the objects do
+not match and returns \code{TRUE} if they do. You can also see the differences
+by displaing waldo::compare results using \code{waldo = TRUE}.
 }
 \seealso{
 Other stamp functions: 

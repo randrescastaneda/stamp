@@ -12,7 +12,8 @@ stamp_default_options <- list(
   stamp.usetz            = FALSE,
   stamp.completestamp    = TRUE,
   stamp.dir_stamp        = "_stamp",
-  stamp.dir_vintage      = "_vintage"
+  stamp.dir_vintage      = "_vintage",
+  stamp.waldo            = TRUE
 )
 
 .onLoad <- function(libname, pkgname) {
