@@ -143,11 +143,13 @@ path_info <-
 #' @param  file_ext character: File extension
 #'
 #' @return character with extension of desired format
-#' @export
+#' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #' fmt <- check_format(file_ext = "fst")
 #' fmt
+#'}
 check_format <- function(ext = "Rds", file_ext) {
   # Computations ------------
   ext <- tolower(ext)
@@ -184,6 +186,7 @@ check_format <- function(ext = "Rds", file_ext) {
 #' @param ext character: extension of file
 #'
 #' @return logical vector for availability of package
+#' @keywords internal
 #' @examples
 #' \dontrun{
 #' pkg_available("fst")

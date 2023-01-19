@@ -19,3 +19,4 @@ Compares where the differences are between R objects using waldo
 package. You can select whether to compare vintages with the R object in used
 or between any of the vintages files saved
 }
+\concept{vintage tools}

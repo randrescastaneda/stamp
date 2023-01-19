@@ -20,6 +20,9 @@ Use valus in \code{ext} to check the corresponding package is
 available. It it is not, it defaults to \code{Rds}
 }
 \examples{
+\dontrun{
 fmt <- check_format(file_ext = "fst")
 fmt
 }
+}
+\keyword{internal}

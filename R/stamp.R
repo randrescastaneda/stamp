@@ -145,6 +145,8 @@ stamp_time <- function() {
 #' @examples
 stamp_confirm <- function(x,
                           verbose = getOption("stamp.verbose"),
+                          using   = c("self", "stamp"),
+
                           ...) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

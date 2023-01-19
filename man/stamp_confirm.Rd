@@ -4,7 +4,12 @@
 \alias{stamp_confirm}
 \title{Confirm stamp has not changed}
 \usage{
-stamp_confirm(x, verbose = getOption("stamp.verbose"), ...)
+stamp_confirm(
+  x,
+  verbose = getOption("stamp.verbose"),
+  using = c("self", "stamp"),
+  ...
+)
 }
 \arguments{
 \item{x}{An arbitrary R object which will then be passed to the

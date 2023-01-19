@@ -20,3 +20,4 @@ Check whether format is supported and package is available
 pkg_available("fst")
 }
 }
+\keyword{internal}

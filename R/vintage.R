@@ -12,6 +12,7 @@
 #'
 #' @return Logic value. `TRUE` if objects are identival, `FALSE` otherwise.
 #' @export
+#' @family vintage tools
 #'
 #' @examples
 vt_compare <- function(waldo   = getOption("stamp.waldo")) {
