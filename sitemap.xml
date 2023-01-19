@@ -31,6 +31,12 @@
     <loc>https://randrescastaneda.github.io/stamp/reference/ensure_file_path.html</loc>
   </url>
   <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/format_st_dir.html</loc>
+  </url>
+  <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/format_st_name.html</loc>
+  </url>
+  <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/get_reading_fun.html</loc>
   </url>
   <url>
@@ -44,6 +50,9 @@
   </url>
   <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/pkg_available.html</loc>
+  </url>
+  <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/rand_name.html</loc>
   </url>
   <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/st_read.html</loc>
