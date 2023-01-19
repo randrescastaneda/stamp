@@ -7,18 +7,21 @@
 stamp_confirm(x, verbose = getOption("stamp.verbose"), ...)
 }
 \arguments{
-\item{x}{R object to write to disk as per limitations of \code{file} format.}
+\item{x}{An arbitrary R object which will then be passed to the
+base::serialize function}
 
 \item{verbose}{logical: whether to display additional information. This could
 be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
 
 \item{...}{not is used right now}
 }
+\value{
+Logical value. \code{FALSE} if the objects do not match and  \code{TRUE} if
+they do.
+}
 \description{
 verifies that, were the stamp recalculated, it would match the
-one previously set with stamp_set(). It returns \code{FALSE} if the objects do
-not match and returns \code{TRUE} if they do. You can also see the differences
-by displaing waldo::compare results using \code{waldo = TRUE}.
+one previously set with stamp_set().
 }
 \seealso{
 Other stamp functions: 

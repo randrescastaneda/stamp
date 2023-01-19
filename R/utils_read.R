@@ -6,11 +6,11 @@
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #' # Rds default
 #' read_fun <- get_reading_fun()
 #' read_fun
 #'
-#' \dontrun{
 #' # fst format
 #' read_fun <- get_reading_fun(ext="fst")
 #' read_fun
@@ -22,17 +22,17 @@ get_reading_fun <- function(ext = "Rds") {
 
   rd <-
     if (ext == "fst") {
-      \(x, path, ...) fst::read_fst(x = x, path = path, ...)
+      \(x, path, ...) fst::read_fst(path = path, ...)
     } else if (ext == "dta") {
-      \(x, path, ...) haven::read_dta(data = x, path =  path, ...)
+      \(x, path, ...) haven::read_dta(file = path, ...)
     } else if (ext == "qs") {
-      \(x, path, ...) qs::qread(x = x, file = path, ...)
+      \(x, path, ...) qs::qread(file = path, ...)
     } else if (ext == "feather") {
-      \(x, path, ...) arrow::read_feather(x = x, sink = path, ...)
+      \(x, path, ...) arrow::read_feather(file = path, ...)
     } else if (ext == "parquet") {
-      \(x, path, ...) arrow::read_parquet(x = x, sink = path, ...)
+      \(x, path, ...) arrow::read_parquet(file = path, ...)
     } else if (ext == "rds") {
-      \(x, path, ...) readRDS(object = x, file = path, ...)
+      \(x, path, ...) readRDS(file = path, ...)
     } else {
       cli::cli_abort("format {.strong .{ext}} is not supported by {.pkg stamp}")
     }

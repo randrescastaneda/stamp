@@ -7,11 +7,12 @@
 stamp_set(x, ...)
 }
 \arguments{
+\item{x}{An arbitrary R object which will then be passed to the
+base::serialize function}
+
 \item{...}{
   Arguments passed on to \code{\link[=stamp_get]{stamp_get}}
   \describe{
-    \item{\code{x}}{An arbitrary R object which will then be passed to the
-base::serialize function}
     \item{\code{algo}}{character: default is value in option "stamp.digest.algo". This
 argument is the algorithms to be used; currently available choices are md5,
 which is also the default, sha1, crc32, sha256, sha512, xxhash32, xxhash64,

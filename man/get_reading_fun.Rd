@@ -17,11 +17,11 @@ reading function according to \code{ext}
 Reading function depending on format selected
 }
 \examples{
+\dontrun{
 # Rds default
 read_fun <- get_reading_fun()
 read_fun
 
-\dontrun{
 # fst format
 read_fun <- get_reading_fun(ext="fst")
 read_fun

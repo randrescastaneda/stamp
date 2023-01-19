@@ -40,7 +40,13 @@ stamp_get <- function(x,
                       seed            = 0,
                       errormode       = c("stop", "warn", "silent")) {
   algo <- match.arg(algo)
-  digest::digest(x, algo = algo)
+
+
+  ls <- lapply(x, \(.) {
+    digest::digest(., algo = algo)
+  })
+  return(list(stamps  = ls,
+              algo    = algo))
 }
 
 
@@ -52,6 +58,7 @@ stamp_get <- function(x,
 #'
 #'
 #' @inheritDotParams stamp_get
+#' @inheritParams  stamp_get
 #'
 #' @return R object in `x` with attribute *stamp*
 #' @export
@@ -125,14 +132,13 @@ stamp_time <- function() {
 #' Confirm stamp has not changed
 #'
 #' @description verifies that, were the stamp recalculated, it would match the
-#'   one previously set with stamp_set(). It returns `FALSE` if the objects do
-#'   not match and returns `TRUE` if they do. You can also see the differences
-#'   by displaing waldo::compare results using `waldo = TRUE`.
+#'   one previously set with stamp_set().
 #'
 #' @inheritParams stamp_set
 #' @inheritParams st_write
 #'
-#' @return
+#' @return Logical value. `FALSE` if the objects do not match and  `TRUE` if
+#'   they do.
 #' @export
 #' @family stamp functions
 #'

@@ -8,12 +8,12 @@
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #' # Rds default
 #' save_fun <- get_saving_fun()
 #' save_fun
 #'
 #' # fst format
-#' \dontrun{
 #' save_fun <- get_saving_fun(ext="fst")
 #' save_fun
 #'}
@@ -65,11 +65,13 @@ get_saving_fun <- function(ext = "Rds") {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #' # False
 #' check_complex_data(data.frame())
 #'
 #' # TRUE
 #' check_complex_data(list())
+#'}
 check_complex_data <- function(x) {
 
 

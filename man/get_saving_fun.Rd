@@ -18,12 +18,12 @@ depending on whether the file was saved successfully
 Saving function depending on format selected
 }
 \examples{
+\dontrun{
 # Rds default
 save_fun <- get_saving_fun()
 save_fun
 
 # fst format
-\dontrun{
 save_fun <- get_saving_fun(ext="fst")
 save_fun
 }
