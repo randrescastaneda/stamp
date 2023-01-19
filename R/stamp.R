@@ -13,7 +13,7 @@
 #'
 #' @inherit digest::digest return details
 #' @export
-#'
+#' @family stamp functions
 #' @examples
 #' stamp_get("abc")
 stamp_get <- function(x,
@@ -50,6 +50,7 @@ stamp_get <- function(x,
 #'
 #' @return R object in `x` with attribute *stamp*
 #' @export
+#' @family stamp functions
 #'
 #' @examples
 #' x <- data.frame(a = 1:10, b = letters[1:10])
@@ -86,6 +87,7 @@ stamp_set <- function(x, ...) {
 #'
 #' @return list of time parameters as objects
 #' @export
+#' @family stamp functions
 #'
 #' @examples
 #' stamp_time()
@@ -115,4 +117,46 @@ stamp_time <- function() {
   return(l)
 }
 
+#' Title
+#'
+#' @return
+#' @export
+#' @family stamp functions
+#'
+#' @examples
+stamp_confirm <- function() {
 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Defensive setup   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## On Exit --------
+    on.exit({
+
+    })
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Defenses --------
+    stopifnot( exprs = {
+
+      }
+    )
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Early Return --------
+    if (FALSE) {
+      return()
+    }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Computations   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    return(TRUE)
+
+}

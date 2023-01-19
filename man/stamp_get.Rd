@@ -112,3 +112,10 @@ Cryptographic hash functions are well researched and documented. The
 \examples{
 stamp_get("abc")
 }
+\seealso{
+Other stamp functions: 
+\code{\link{stamp_confirm}()},
+\code{\link{stamp_set}()},
+\code{\link{stamp_time}()}
+}
+\concept{stamp functions}

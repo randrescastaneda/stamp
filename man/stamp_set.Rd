@@ -63,3 +63,10 @@ Set an attribute \emph{stamp} to R object
 x <- data.frame(a = 1:10, b = letters[1:10])
 stamp_set(x) |> attr(which = "stamp")
 }
+\seealso{
+Other stamp functions: 
+\code{\link{stamp_confirm}()},
+\code{\link{stamp_get}()},
+\code{\link{stamp_time}()}
+}
+\concept{stamp functions}

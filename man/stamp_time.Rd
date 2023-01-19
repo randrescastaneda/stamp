@@ -16,3 +16,10 @@ It uses the values stored in "stamp.timezone", "stamp.timeformat" and
 \examples{
 stamp_time()
 }
+\seealso{
+Other stamp functions: 
+\code{\link{stamp_confirm}()},
+\code{\link{stamp_get}()},
+\code{\link{stamp_set}()}
+}
+\concept{stamp functions}
