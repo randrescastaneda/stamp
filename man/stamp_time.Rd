@@ -21,6 +21,7 @@ Other stamp functions:
 \code{\link{stamp_attr}()},
 \code{\link{stamp_confirm}()},
 \code{\link{stamp_get}()},
+\code{\link{stamp_save}()},
 \code{\link{stamp_set}()}
 }
 \concept{stamp functions}

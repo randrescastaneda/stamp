@@ -1,7 +1,9 @@
 #' Get stamp
 #'
-#' @description This is basically a wrapper around [digest::digest()], which
-#'   calculates and displays the signature of the data in memory.
+#' @description calculates and displays the hash of the data in memory for all
+#' the elements of the first level of `x`. This function is basically a wrapper
+#' around [digest::digest()]. It also stores the time of the estimation of the
+#' stamp.
 #'
 #' @inheritParams digest::digest
 #'
@@ -45,7 +47,9 @@ stamp_get <- function(x,
   ls <- lapply(x, \(.) {
     digest::digest(., algo = algo)
   })
+  lt   <- stamp_time()
   return(list(stamps  = ls,
+              time    = lt,
               algo    = algo))
 }
 
@@ -74,14 +78,11 @@ stamp_set <- function(x, ...) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   hash <- stamp_get(x, ...)
-  lt   <- stamp_time()
 
   if (data.table::is.data.table(x)) {
     data.table::setattr(x, "stamp", hash)
-    data.table::setattr(x, "stamp_time", lt$st_time)
   } else {
     attr(x, "stamp")      <- hash
-    attr(x, "stamp_time") <- lt$st_time
   }
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -90,7 +91,77 @@ stamp_set <- function(x, ...) {
     return(x)
 }
 
+#' Save Stamp in disk
+#'
+#' @description f
+#'
+#' @param x R object to stamp
+#' @param st_name character: name of stamp in file. All stamp files are prefixed
+#'   with value in option "stamp.stamp_prefix", which by default is "_st_"
+#' @param st_dir character: parent directory to store stamp file.
+#' @param stamp list of stamp from stamp_get() in case it was calculated before
+#'   hand. Developers option. It should be used interactively.
+#' @param x_attr logical: whether or not to save the attributes of `x` along
+#'   with the stamp. Useful for quick comparisons
+#' @param ... other arguments passed to stamp_get()
+#'
+#' @return
+#' @export
+#' @family stamp functions
+#'
+#' @details `st_dir` is parent directory. It is inside `st_dir` that {stamp}
+#' creates another subdirectory with name in option "stamp.dir_stamp" and it is
+#' in there where the stamps are saved. The idea objective is to have a
+#' directory for stamps only. By default, `st_dir` is the current directory. If
+#' last directory name of `st_dir` is equal to option "stamp.dir_stamp", then
+#' `st_dir` becomes the stamps directory.
+#'
+#' @examples
+stamp_save <- function(x,
+                       st_name,
+                       st_dir     = NULL,
+                       stamp      = NULL,
+                       x_attr     = FALSE,
+                       ...) {
 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Defensive setup   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## On Exit --------
+    on.exit({
+
+    })
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Defenses --------
+    stopifnot( exprs = {
+
+      }
+    )
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Early Return --------
+    if (FALSE) {
+      return()
+    }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Get stamp   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  if (is.null(stamp)) {
+    stamp <- stamp_get(x, ...)
+  }
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    return(TRUE)
+
+}
 
 #' Get time parameters
 #'

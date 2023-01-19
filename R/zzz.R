@@ -13,7 +13,8 @@ stamp_default_options <- list(
   stamp.completestamp    = TRUE,
   stamp.dir_stamp        = "_stamp",
   stamp.dir_vintage      = "_vintage",
-  stamp.waldo            = TRUE
+  stamp.waldo            = TRUE,
+  stamp.stamp_prefix     = "_st_"
 )
 
 .onLoad <- function(libname, pkgname) {

@@ -78,8 +78,10 @@ The \code{digest} function returns a character string of a fixed
   xxhash64; and of length 8 for murmur32.
 }
 \description{
-This is basically a wrapper around \code{\link[digest:digest]{digest::digest()}}, which
-calculates and displays the signature of the data in memory.
+calculates and displays the hash of the data in memory for all
+the elements of the first level of \code{x}. This function is basically a wrapper
+around \code{\link[digest:digest]{digest::digest()}}. It also stores the time of the estimation of the
+stamp.
 }
 \details{
 Cryptographic hash functions are well researched and documented. The
@@ -117,6 +119,7 @@ stamp_get("abc")
 Other stamp functions: 
 \code{\link{stamp_attr}()},
 \code{\link{stamp_confirm}()},
+\code{\link{stamp_save}()},
 \code{\link{stamp_set}()},
 \code{\link{stamp_time}()}
 }

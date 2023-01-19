@@ -8,6 +8,8 @@ stamp_confirm(
   x,
   verbose = getOption("stamp.verbose"),
   using = c("self", "stamp"),
+  st_dir = NULL,
+  st_name = NULL,
   ...
 )
 }
@@ -17,6 +19,9 @@ base::serialize function}
 
 \item{verbose}{logical: whether to display additional information. This could
 be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
+
+\item{st_dir}{character: Directory to store stamp files. By default it is a
+subdirectory at the same level of \code{file}.}
 
 \item{...}{not is used right now}
 }
@@ -32,6 +37,7 @@ one previously set with stamp_set().
 Other stamp functions: 
 \code{\link{stamp_attr}()},
 \code{\link{stamp_get}()},
+\code{\link{stamp_save}()},
 \code{\link{stamp_set}()},
 \code{\link{stamp_time}()}
 }
