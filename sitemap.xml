@@ -64,9 +64,6 @@
     <loc>https://randrescastaneda.github.io/stamp/reference/stamp-package.html</loc>
   </url>
   <url>
-    <loc>https://randrescastaneda.github.io/stamp/reference/stamp_attr.html</loc>
-  </url>
-  <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/stamp_confirm.html</loc>
   </url>
   <url>
@@ -80,6 +77,9 @@
   </url>
   <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/stamp_time.html</loc>
+  </url>
+  <url>
+    <loc>https://randrescastaneda.github.io/stamp/reference/stamp_x_attr.html</loc>
   </url>
   <url>
     <loc>https://randrescastaneda.github.io/stamp/reference/vt_compare.html</loc>
