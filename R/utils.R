@@ -354,13 +354,11 @@ format_st_dir <- function(st_dir = NULL) {
 
 #' Format Stamp name
 #'
-#' @param st_name
-#'
 #' @inheritParams stamp_save
 #'
 #' @return formatted directory
 #' @keywords internal
-format_st_name <- function(st_name = rand_name()) {
+format_st_name <- function(st_name = NULL) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # format name   ---------
@@ -368,16 +366,17 @@ format_st_name <- function(st_name = rand_name()) {
 
   st_nm_pr <- getOption("stamp.stamp_prefix")
   pattern    <- paste0("^", st_nm_pr)
+  if (is.null(st_name))
+    st_name <-  rand_name()
+
   if (!grepl(pattern, st_name)) {
     st_name <- paste0(st_nm_pr, st_name)
   }
 
-
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Return   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(TRUE)
-
+    return(st_name)
 }
 
 
@@ -397,7 +396,7 @@ rand_name <- function(l = 8)
   chars <- c(letters, nums)
   # p <- c(rep(0.0105, 52), rep(0.0102, 25), rep(0.02, 10))
   pword <- paste0(sample(x = chars,
-                         size = length,
+                         size = l,
                          replace = TRUE),
                   collapse = "")
   return(pword)

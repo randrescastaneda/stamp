@@ -4,10 +4,11 @@
 \alias{format_st_name}
 \title{Format Stamp name}
 \usage{
-format_st_name(st_name = rand_name())
+format_st_name(st_name = NULL)
 }
 \arguments{
-\item{st_name}{}
+\item{st_name}{character: name of stamp in file. All stamp files are prefixed
+with value in option "stamp.stamp_prefix", which by default is "\emph{st}".}
 }
 \value{
 formatted directory

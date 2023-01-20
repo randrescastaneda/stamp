@@ -48,6 +48,7 @@ stamp_get <- function(x,
     digest::digest(., algo = algo)
   })
   lt   <- stamp_time()
+
   return(list(stamps  = ls,
               time    = lt,
               algo    = algo))
@@ -96,14 +97,17 @@ stamp_set <- function(x, ...) {
 #' @description f
 #'
 #' @param x R object to stamp
+#' @param st_dir character: parent directory to store stamp file (see details).
 #' @param st_name character: name of stamp in file. All stamp files are prefixed
 #'   with value in option "stamp.stamp_prefix", which by default is "_st_".
-#' @param st_dir character: parent directory to store stamp file (see details).
 #' @param stamp list of stamp from stamp_get() in case it was calculated before
 #'   hand. Developers option. It should be used interactively.
 #' @param x_attr logical: whether or not to save the attributes of `x` along
 #'   with the stamp. Useful for quick comparisons
+#' @param st_ext character: format of stamp file to save. Default is value in
+#'   option "stamp.default.ext"
 #' @param ... other arguments passed to stamp_get()
+#' @inheritParams st_write
 #'
 #' @return
 #' @export
@@ -120,38 +124,17 @@ stamp_set <- function(x, ...) {
 #'   precaution that should not present bumps in any workflow.  If the beginning
 #'   of `st_name` is identical to the value in "stamp.stamp_prefix", then it is
 #'   adopted as is. Otherwise, the prefix in "stamp.stamp_prefix" will be added
-#'   to `st_name`. Be default, `st_name` is random name of 8 characters.
+#'   to `st_name`. If NULL, `st_name` would be a random name of 8 characters.
 #'
 #' @examples
 stamp_save <- function(x,
-                       st_name,
                        st_dir     = NULL,
+                       st_name    = NULL,
                        stamp      = NULL,
-                       x_attr     = FALSE,
+                       x_attr     = TRUE,
+                       st_ext     = getOption("stamp.default.ext"),
+                       verbose    = getOption("stamp.verbose"),
                        ...) {
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Defensive setup   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## On Exit --------
-    on.exit({
-
-    })
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Defenses --------
-    stopifnot( exprs = {
-
-      }
-    )
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Early Return --------
-    if (FALSE) {
-      return()
-    }
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Get stamp   ---------
@@ -164,15 +147,57 @@ stamp_save <- function(x,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Directory and stamp name   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  pkg_av <- pkg_available(st_ext)
+  if (!pkg_av) {
+    st_ext <- "rds"
+  }
 
-  st_dir <- format_st_dir(st_dir)
+  st_dir  <- format_st_dir(st_dir)
+  st_name <- format_st_name(st_name)
+  st_file <- fs::path(st_dir,
+                      st_name,
+                      ext = st_ext)
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # X attributes   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  if (x_attr) {
+    st_xattr <- stamp_x_attr(x)
+  } else {
+    st_xattr <- NULL
+  }
+
+  stamp_attr <- append(stamp, list(x_attr = st_xattr))
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Save   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  save_stamp <- get_saving_fun(ext = st_ext)
+
+  saved <- save_stamp(x = stamp_attr, path = st_file)
+
+  if (verbose) {
+    if (saved) {
+      cli::cli_alert_success("stamp file {.file {st_file}} has been saved
+                             successfully",
+                             wrap =  TRUE)
+    } else {
+      cli::cli_alert_danger("stamp file {.file {st_file}} could {.red NOT}
+                            been saved",
+                             wrap =  TRUE)
+    }
+  }
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Return   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(TRUE)
 
+  invisible(saved)
 }
 
 #' Get time parameters
@@ -277,54 +302,25 @@ stamp_confirm <- function(x,
 
 
 
-#' Add attributes and characteristics of x to stamp file
+#' Add attributes and characteristics of x to be used in stamp file
 #'
 #' @inheritParams st_write
-#' @param hash character: stamp previously calculated. otherwise it will be
-#'   added
 #'
 #' @return list of attributes
 #' @export
 #' @family stamp functions
 #' @examples
 #' x <- data.frame(a = 1:10, b = letters[1:10])
-#' stamp_attr(x)
-stamp_attr <- function(x,
-                    hash = NULL,
-                    complete_stamp = getOption("stamp.completestamp"),
-                    algo           = getOption("stamp.digest.algo")
-) {
+#' stamp_x_attr(x)
+stamp_x_attr <- function(x,
+                         complete_stamp = getOption("stamp.completestamp")
+                         ) {
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Defensive setup   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## On Exit --------
-  on.exit({
-
-  })
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Defenses --------
-  stopifnot( exprs = {
-
-  }
-  )
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Early Return --------
-  if (FALSE) {
-    return()
-  }
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Get basic info from X  ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  if (is.null(hash)) {
-    hash <- digest::digest(x, algo = algo)
-  }
   st_x      <- attributes(x)
 
   if (is.data.frame(x)) {
@@ -336,8 +332,9 @@ stamp_attr <- function(x,
   } else {
     st_x$length <- length(x)
   }
+  st_x$type  <- typeof(x)
+  st_x$class <- class(x)
 
-  st_x$stamp <- hash
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Return   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

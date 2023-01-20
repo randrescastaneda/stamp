@@ -20,10 +20,11 @@ stamp_default_options <- list(
 .onLoad <- function(libname, pkgname) {
 
 # https://cli.r-lib.org/reference/inline-markup.html#classes
-  # cli::cli_div(theme = list(
-  #   span.myclass = list(color = "red"),
-  #   "span.myclass" = list(before = "<<"),
-  #   "span.myclass" = list(after = ">>")))
+  cli_red <- cli::cli_div(theme = list(span.red = list(color = "red")),
+               .auto_close = FALSE)
+  # test_cli()
+  # cli::cli_end(cli_red)
+  # test_cli()
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Options --------
@@ -37,3 +38,13 @@ stamp_default_options <- list(
 
   invisible()
 }
+
+test_cli <- function() {
+  cli::cli_text("This is {.red text in red} and this is not.")
+}
+#
+# .onUnload <- function(libpath) {
+#   cli::cli_end(cli_red)
+# }
+
+

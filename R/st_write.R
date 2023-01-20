@@ -160,12 +160,8 @@ st_write <- function(x,
                                 ext = lp$ext))
 
     ## save stamp -------
-    st_x       <- stamp_attr(x, hash, complete_stamp, algo)
-    st_ext     <- getOption("stamp.default.ext")
-    save_stamp <- get_saving_fun(ext = st_ext)
-    save_stamp(x    = st_x,
-              path = fs::path(lp$st_file,
-                              ext = st_ext))
+    stamp_save(x = x,
+               )
 
     ## save vintage --------
     save_file(x    = x,
