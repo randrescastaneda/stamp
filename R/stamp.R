@@ -55,22 +55,23 @@ stamp_get <- function(x,
 }
 
 
-#' Set an attribute *stamp* to R object
+#' Set and call stamps from `.stamp` environment
 #'
-#' @description This functions does the same as stamp_get() but stores the
-#'   stamps as an attribute in the object. If the object is not saved afterward
-#'   the stamps won't be permanent. Yet, it is useful for quick verification.
+#' @description `stamp_set()` makes use of `stamp_get()` and stores the stamp
+#'   into the `.stamp` environment, which can be accesses via `stamp_call()` or
+#'   `stamp_env()`. `stamp_call()`  retrieves one single stamp. `stamp_env()`
+#'   display all the stamps available in the `.stamp` env.
 #'
 #' @rdname set-call
 #' @order 1
 #'
-#' @inheritDotParams stamp_get
 #' @inheritParams  stamp_get
 #' @inheritParams  st_write
-#' @param st_name character: Name of stamp to be saved in .stamp env.
+#' @param st_name character: Name of stamp to be set or called in .stamp env.
 #' @param replace Logical: if TRUE and `st_name` already exists in `.stamp`
 #'   environment, it will be replaced with new stamp. If `FALSE` it gives an
 #'   error. Default is `FALSE`
+#' @param ... arguments passed on to [stamp_get()]
 #'
 #' @return invisible stamp from stamp_get() but it can now be called with
 #'   stamp_call()
@@ -78,9 +79,14 @@ stamp_get <- function(x,
 #' @family stamp functions
 #'
 #' @examples
+#' stamp_env()
 #' x <- data.frame(a = 1:10, b = letters[1:10])
-#' stamp_set(x, st_name = "sttest")
-#' stamp_call("sttest")
+#' stamp_set(x, st_name = "xts")
+#' stamp_call("xst")
+#'
+#' y <- data.frame(a = 5:10, b = letters[5:10])
+#' stamp_set(y, st_name = "yts")
+#' stamp_env()
 stamp_set <- function(x,
                       st_name = NULL,
                       verbose = getOption("stamp.verbose"),
@@ -134,7 +140,9 @@ stamp_call <- function(st_name) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   if (env_has(.stamp, st_name)) {
+
     return(env_get(.stamp, st_name))
+
   } else {
     msg     <- c(
       "*" = "stamp {.field {st_name}} does not exist",
@@ -142,11 +150,30 @@ stamp_call <- function(st_name) {
     )
     cli::cli_abort(msg,
                    class = "stamp_error",
-                   wrap = TRUE
-    )
-
+                   wrap = TRUE)
   }
 
+}
+
+
+#' Display stamps available
+#'
+#' @rdname set-call
+#' @order 3
+#'
+#' @return names of stamps available in .stamp env. If no stamp is available, it
+#'   returns an invisible character vector of length 0.
+#' @export
+stamp_env <- function(verbose = getOption("stamp.verbose")) {
+  st_name <- env_names(.stamp)
+
+  if (verbose){
+    if(length(st_name) == 0) {
+      cli::cli_alert_info("no stamps in {.env .stamp} environment")
+    }
+    return(invisible(st_name))
+  }
+  return(st_name)
 }
 
 #' Save Stamp in disk

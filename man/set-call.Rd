@@ -3,7 +3,8 @@
 \name{stamp_set}
 \alias{stamp_set}
 \alias{stamp_call}
-\title{Set an attribute \emph{stamp} to R object}
+\alias{stamp_env}
+\title{Set and call stamps from \code{.stamp} environment}
 \usage{
 stamp_set(
   x,
@@ -14,12 +15,14 @@ stamp_set(
 )
 
 stamp_call(st_name)
+
+stamp_env(verbose = getOption("stamp.verbose"))
 }
 \arguments{
 \item{x}{An arbitrary R object which will then be passed to the
 base::serialize function}
 
-\item{st_name}{character: Name of stamp to be saved in .stamp env.}
+\item{st_name}{character: Name of stamp to be set or called in .stamp env.}
 
 \item{verbose}{logical: whether to display additional information. This could
 be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
@@ -28,65 +31,32 @@ be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
 environment, it will be replaced with new stamp. If \code{FALSE} it gives an
 error. Default is \code{FALSE}}
 
-\item{...}{
-  Arguments passed on to \code{\link[=stamp_get]{stamp_get}}
-  \describe{
-    \item{\code{algo}}{character: default is value in option "stamp.digest.algo". This
-argument is the algorithms to be used; currently available choices are md5,
-which is also the default, sha1, crc32, sha256, sha512, xxhash32, xxhash64,
-murmur32, spookyhash and blake3}
-    \item{\code{serialize}}{A logical variable indicating whether the object
-    should be serialized using \code{serialize} (in ASCII
-    form). Setting this to \code{FALSE} allows to compare the digest
-    output of given character strings to known control output. It also
-    allows the use of raw vectors such as the output of non-ASCII
-    serialization.
-  }
-    \item{\code{file}}{A logical variable indicating whether the object is a file
-    name or a file name if \code{object} is not specified.}
-    \item{\code{length}}{Number of characters to process. By default, when
-    \code{length} is set to \code{Inf}, the whole string or file is
-    processed.}
-    \item{\code{skip}}{Number of input bytes to skip before calculating the
-    digest. Negative values are invalid and currently treated as zero.
-    Special value \code{"auto"} will cause serialization header to be
-    skipped if \code{serialize} is set to \code{TRUE} (the serialization
-    header contains the R version number thus skipping it allows the
-    comparison of hashes across platforms and some R versions).
-  }
-    \item{\code{ascii}}{This flag is passed to the \code{serialize} function if
-    \code{serialize} is set to \code{TRUE}, determining whether the hash
-    is computed on the ASCII or binary representation.}
-    \item{\code{raw}}{A logical variable with a default value of FALSE, implying
-    \code{digest} returns digest output as ASCII hex values. Set to TRUE
-    to return \code{digest} output in raw (binary) form. Note that this
-    option is supported by most but not all of the implemented hashing
-    algorithms}
-    \item{\code{seed}}{an integer to seed the random number generator.  This is only
-    used in the \code{xxhash32}, \code{xxhash64} and \code{murmur32} functions
-    and can be used to generate additional hashes for the same input if
-    desired.}
-    \item{\code{errormode}}{A character value denoting a choice for the behaviour in
-    the case of error: \sQuote{stop} aborts (and is the default value),
-    \sQuote{warn} emits a warning and returns \code{NULL} and
-    \sQuote{silent} suppresses the error and returns an empty string.}
-  }}
+\item{...}{arguments passed on to \code{\link[=stamp_get]{stamp_get()}}}
 }
 \value{
 invisible stamp from stamp_get() but it can now be called with
 stamp_call()
 
 list with stamp values
+
+names of stamps available in .stamp env. If no stamp is available, it
+returns an invisible character vector of length 0.
 }
 \description{
-This functions does the same as stamp_get() but stores the
-stamps as an attribute in the object. If the object is not saved afterward
-the stamps won't be permanent. Yet, it is useful for quick verification.
+\code{stamp_set()} makes use of \code{stamp_get()} and stores the stamp
+into the \code{.stamp} environment, which can be accesses via \code{stamp_call()} or
+\code{stamp_env()}. \code{stamp_call()}  retrieves one single stamp. \code{stamp_env()}
+display all the stamps available in the \code{.stamp} env.
 }
 \examples{
+stamp_env()
 x <- data.frame(a = 1:10, b = letters[1:10])
-stamp_set(x, st_name = "sttest")
-stamp_call("sttest")
+stamp_set(x, st_name = "xts")
+stamp_call("xst")
+
+y <- data.frame(a = 5:10, b = letters[5:10])
+stamp_set(y, st_name = "yts")
+stamp_env()
 }
 \seealso{
 Other stamp functions: 
