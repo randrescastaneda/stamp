@@ -16,7 +16,7 @@ display all the stamps available in the .stamp env."><!-- mathjax --><script src
     
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9006</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9007</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -126,9 +126,32 @@ returns an invisible character vector of length 0.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> no stamps in .stamp environment</span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, b <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">stamp_set</span><span class="op">(</span><span class="va">x</span>, st_name <span class="op">=</span> <span class="st">"xts"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">stamp_call</span><span class="op">(</span><span class="st">"xst"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in stamp_call("xst"):</span> <span style="color: #00BBBB;">•</span> stamp <span style="color: #00BB00;">xst</span> does not exist</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> make sure it was created with `stamp::stamp_set()`</span>
+<span class="r-in"><span><span class="fu">stamp_call</span><span class="op">(</span><span class="st">"xts"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stamps</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stamps$a</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "1f13173d1d78e38b1df3ddeff0ae3b8efd9c20b8"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $stamps$b</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "52564269a73de74842708a3aec99783949834294"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $time$tz</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "UTC"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $time$tformat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "%Y%m%d%H%M%S"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $time$usetz</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $time$st_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "20230121055341"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $algo</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "sha1"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">5</span><span class="op">:</span><span class="fl">10</span>, b <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">stamp_set</span><span class="op">(</span><span class="va">y</span>, st_name <span class="op">=</span> <span class="st">"yts"</span><span class="op">)</span></span></span>
