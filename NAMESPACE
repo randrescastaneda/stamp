@@ -2,6 +2,7 @@
 
 export(st_read)
 export(st_write)
+export(stamp_call)
 export(stamp_confirm)
 export(stamp_get)
 export(stamp_save)
@@ -9,3 +10,4 @@ export(stamp_set)
 export(stamp_time)
 export(stamp_x_attr)
 export(vt_compare)
+import(rlang)

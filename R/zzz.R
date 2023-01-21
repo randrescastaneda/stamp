@@ -17,14 +17,21 @@ stamp_default_options <- list(
   stamp.stamp_prefix     = "_st_"
 )
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# On Load   ---------
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 .onLoad <- function(libname, pkgname) {
 
 # https://cli.r-lib.org/reference/inline-markup.html#classes
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## cli --------
+
   cli_red <- cli::cli_div(theme = list(span.red = list(color = "red")),
                .auto_close = FALSE)
-  # test_cli()
-  # cli::cli_end(cli_red)
-  # test_cli()
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Options --------

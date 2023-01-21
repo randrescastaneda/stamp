@@ -20,7 +20,9 @@ Imports:
     cli,
     data.table,
     digest,
-    fs
+    fs,
+    rlang,
+    waldo
 Suggests: 
     qs,
     arrow,
@@ -28,7 +30,6 @@ Suggests:
     testthat (>= 3.0.0),
     haven,
     skimr,
-    waldo,
     withr
 Config/testthat/edition: 3
 RoxygenNote: 7.2.2

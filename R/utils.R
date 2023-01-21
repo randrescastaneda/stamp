@@ -355,19 +355,21 @@ format_st_dir <- function(st_dir = NULL) {
 #' Format Stamp name
 #'
 #' @inheritParams stamp_save
+#' @param st_nm_pr character: `st_name` prefix to save in file. default is value
+#'   in option "stamp.stamp_prefix".
 #'
 #' @return formatted directory
 #' @keywords internal
-format_st_name <- function(st_name = NULL) {
+format_st_name <- function(st_name = NULL,
+                           st_nm_pr = getOption("stamp.stamp_prefix")) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # format name   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  st_nm_pr <- getOption("stamp.stamp_prefix")
   pattern    <- paste0("^", st_nm_pr)
-  if (is.null(st_name))
+  if (is.null(st_name)) {
     st_name <-  rand_name()
+  }
 
   if (!grepl(pattern, st_name)) {
     st_name <- paste0(st_nm_pr, st_name)
@@ -379,6 +381,55 @@ format_st_name <- function(st_name = NULL) {
     return(st_name)
 }
 
+
+
+#' Format stamp file
+#'
+#' @inheritParams stamp_save
+#'
+#' @return formatted directory
+#' @keywords internal
+format_st_file <- function(st_dir     = NULL,
+                           st_name    = NULL,
+                           st_ext     = getOption("stamp.default.ext")) {
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # get sf_file   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## dir and name --------
+
+  st_dir  <- format_st_dir(st_dir)
+  st_name <- format_st_name(st_name)
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## fix extension --------
+
+  st_name_ext <- fs::path_ext(st_name)
+  if (st_name_ext != "") {
+    st_ext <- st_name_ext
+  }
+
+  pkg_av <- pkg_available(st_ext)
+  if (!pkg_av) {
+    st_ext <- "rds"
+  }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## create st_file --------
+
+  st_file <- fs::path(st_dir,
+                      st_name,
+                      ext = st_ext)
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    return(st_file)
+
+}
 
 
 #' General random name

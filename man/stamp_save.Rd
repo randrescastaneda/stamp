@@ -8,9 +8,9 @@ stamp_save(
   x,
   st_dir = NULL,
   st_name = NULL,
+  st_ext = getOption("stamp.default.ext"),
   stamp = NULL,
   x_attr = TRUE,
-  st_ext = getOption("stamp.default.ext"),
   verbose = getOption("stamp.verbose"),
   ...
 )
@@ -21,7 +21,11 @@ stamp_save(
 \item{st_dir}{character: parent directory to store stamp file (see details).}
 
 \item{st_name}{character: name of stamp in file. All stamp files are prefixed
-with value in option "stamp.stamp_prefix", which by default is "\emph{st}".}
+with value in option "stamp.stamp_prefix", which by default is "\emph{st}".
+You don't need to add the prefix.}
+
+\item{st_ext}{character: format of stamp file to save. Default is value in
+option "stamp.default.ext"}
 
 \item{stamp}{list of stamp from stamp_get() in case it was calculated before
 hand. Developers option. It should be used interactively.}
@@ -29,16 +33,12 @@ hand. Developers option. It should be used interactively.}
 \item{x_attr}{logical: whether or not to save the attributes of \code{x} along
 with the stamp. Useful for quick comparisons}
 
-\item{st_ext}{character: format of stamp file to save. Default is value in
-option "stamp.default.ext"}
-
-\item{verbose}{logical: whether to display additional information. This could
-be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
+\item{verbose}{logical: Fi TRUE displays information about stamping process.}
 
 \item{...}{other arguments passed to stamp_get()}
 }
 \description{
-f
+Create and save in file stamp for future use
 }
 \details{
 \code{st_dir} is parent directory. It is inside \code{st_dir} that {stamp}

@@ -58,21 +58,34 @@ stamp_get <- function(x,
 #' Set an attribute *stamp* to R object
 #'
 #' @description This functions does the same as stamp_get() but stores the
-#' stamps as an attribute in the object. If the object is not saved afterward
-#' the stamps won't be permanent. Yet, it is useful for quick verification.
+#'   stamps as an attribute in the object. If the object is not saved afterward
+#'   the stamps won't be permanent. Yet, it is useful for quick verification.
 #'
+#' @rdname set-call
+#' @order 1
 #'
 #' @inheritDotParams stamp_get
 #' @inheritParams  stamp_get
+#' @inheritParams  st_write
+#' @param st_name character: Name of stamp to be saved in .stamp env.
+#' @param replace Logical: if TRUE and `st_name` already exists in `.stamp`
+#'   environment, it will be replaced with new stamp. If `FALSE` it gives an
+#'   error. Default is `FALSE`
 #'
-#' @return R object in `x` with attribute *stamp*
+#' @return invisible stamp from stamp_get() but it can now be called with
+#'   stamp_call()
 #' @export
 #' @family stamp functions
 #'
 #' @examples
 #' x <- data.frame(a = 1:10, b = letters[1:10])
-#' stamp_set(x) |> attr(which = "stamp")
-stamp_set <- function(x, ...) {
+#' stamp_set(x, st_name = "sttest")
+#' stamp_call("sttest")
+stamp_set <- function(x,
+                      st_name = NULL,
+                      verbose = getOption("stamp.verbose"),
+                      replace = FALSE,
+                      ...) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Stamp   ---------
@@ -80,26 +93,72 @@ stamp_set <- function(x, ...) {
 
   hash <- stamp_get(x, ...)
 
-  if (data.table::is.data.table(x)) {
-    data.table::setattr(x, "stamp", hash)
+  st_name <- format_st_name(st_name,
+                            st_nm_pr = "") |>
+    make.names(unique = TRUE)
+
+  if (!env_has(.stamp, st_name) || isTRUE(replace)) {
+    env_poke(.stamp, st_name, hash)
   } else {
-    attr(x, "stamp")      <- hash
+    msg     <- c(
+      "*" = "stamp {.field {st_name}} already exists in environment
+      {.env .stamp}",
+      "i" = "change name of stamp in {.field st_name} or use option
+      {.code replace = TRUE}"
+      )
+    cli::cli_abort(msg,
+                  class = "stamp_error",
+                  wrap = TRUE
+                  )
   }
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Return   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(x)
+    return(invisible(hash))
+}
+
+
+
+#' Call stamps in memory
+#'
+#' @rdname set-call
+#' @order 2
+#'
+#' @return list with stamp values
+#' @export
+stamp_call <- function(st_name) {
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Call stamp   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  if (env_has(.stamp, st_name)) {
+    return(env_get(.stamp, st_name))
+  } else {
+    msg     <- c(
+      "*" = "stamp {.field {st_name}} does not exist",
+      "i" = "make sure it was created with {.code stamp::stamp_set()}"
+    )
+    cli::cli_abort(msg,
+                   class = "stamp_error",
+                   wrap = TRUE
+    )
+
+  }
+
 }
 
 #' Save Stamp in disk
 #'
-#' @description f
+#' @description
+#' Create and save in file stamp for future use
 #'
 #' @param x R object to stamp
 #' @param st_dir character: parent directory to store stamp file (see details).
 #' @param st_name character: name of stamp in file. All stamp files are prefixed
 #'   with value in option "stamp.stamp_prefix", which by default is "_st_".
+#'   You don't need to add the prefix.
 #' @param stamp list of stamp from stamp_get() in case it was calculated before
 #'   hand. Developers option. It should be used interactively.
 #' @param x_attr logical: whether or not to save the attributes of `x` along
@@ -107,7 +166,7 @@ stamp_set <- function(x, ...) {
 #' @param st_ext character: format of stamp file to save. Default is value in
 #'   option "stamp.default.ext"
 #' @param ... other arguments passed to stamp_get()
-#' @inheritParams st_write
+#' @param verbose logical: Fi TRUE displays information about stamping process.
 #'
 #' @return
 #' @export
@@ -130,9 +189,9 @@ stamp_set <- function(x, ...) {
 stamp_save <- function(x,
                        st_dir     = NULL,
                        st_name    = NULL,
+                       st_ext     = getOption("stamp.default.ext"),
                        stamp      = NULL,
                        x_attr     = TRUE,
-                       st_ext     = getOption("stamp.default.ext"),
                        verbose    = getOption("stamp.verbose"),
                        ...) {
 
@@ -147,16 +206,10 @@ stamp_save <- function(x,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Directory and stamp name   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  pkg_av <- pkg_available(st_ext)
-  if (!pkg_av) {
-    st_ext <- "rds"
-  }
-
-  st_dir  <- format_st_dir(st_dir)
-  st_name <- format_st_name(st_name)
-  st_file <- fs::path(st_dir,
-                      st_name,
-                      ext = st_ext)
+  st_file <- format_st_file(st_dir = st_dir,
+                            st_name = st_name,
+                            st_ext = st_ext)
+  st_ext <- fs::path_ext(st_file)
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -240,50 +293,98 @@ stamp_time <- function() {
 #' Confirm stamp has not changed
 #'
 #' @description verifies that, were the stamp recalculated, it would match the
-#'   one previously set with stamp_set().
+#'   one previously set with stamp_set() of stamp_save().
 #'
 #' @inheritParams stamp_set
 #' @inheritParams st_write
+#' @inheritParams stamp_save
+#' @inheritDotParams stamp_get
+#' @param st_dir character: parent directory where the stamp file if saved.
+#' @param st_name character: name of stamp in file. All stamp files are prefixed
+#'   with the value in option "stamp.stamp_prefix", which by default is "_st_".
+#'   You don't need to add the prefix
+#' @param  using character: either "self" of "stamp" (see details).
 #'
 #' @return Logical value. `FALSE` if the objects do not match and  `TRUE` if
 #'   they do.
 #' @export
 #' @family stamp functions
 #'
+#' @details `using` If "self" verifies that stamp has not changed by
+#' recalculating it and comparing with the one previously set `x`. If no stamp
+#' has been set in `x`, it yields error. If "stamp", you must provide a `st_dir`
+#' and a `st_name`, which correspond to the stamp in file to compare with. If
+#' only `st_dir` is provided, it is assumes to contain the name of the file as
+#' well. Otherwise, error is yield.
+#'
 #' @examples
 stamp_confirm <- function(x,
-                          verbose = getOption("stamp.verbose"),
                           using   = c("self", "stamp"),
                           st_dir  = NULL,
                           st_name = NULL,
+                          st_ext  = getOption("stamp.default.ext"),
+                          verbose = getOption("stamp.verbose"),
                           ...) {
 
+
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Defensive setup   ---------
+  # Get stamp   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  using <- match.arg(using)
+  if (using == "self") {
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## On Exit --------
-    on.exit({
-
-    })
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Defenses --------
-    stopifnot( exprs = {
-
-      }
-    )
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Early Return --------
-    if (FALSE) {
-      return()
+    stamp <- attr(x, "stamp")
+    if (is.null(stamp)) {
+      msg     <- c(
+        "{.field stamp} attribute not found in {.code x}",
+        "i" = "create stamp attribute with {.code stamp::stamp_set(x)}",
+        "i" = 'confirm attribute has been created with {.code attr(x, "stamp")}'
+        )
+      cli::cli_abort(msg,
+                    class = "stamp_error",
+                    wrap = TRUE
+                    )
     }
 
+  } else {
+
+    st_file <- format_st_file(st_dir = st_dir,
+                              st_name = st_name,
+                              st_ext = st_ext)
+    st_ext <- fs::path_ext(st_file)
+
+    if (!fs::file_exists(st_file)) {
+      msg     <- c(
+        "File {.file {st_file}} does not exist",
+        "*" = "make sure it was created with {.code stamp::stamp_save()} or
+        {.code stamp::st_write()}")
+      cli::cli_abort(msg,
+                    class = "stamp_error",
+                    wrap = TRUE
+                    )
+    }
+
+    read_stamp <- get_reading_fun(st_ext)
+    stamp      <- read_stamp(st_file)
+  }
+
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Computations   ---------
+  # get stamp   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  algo <- stamp$algo
+  hash <- stamp_get(x, algo = algo, ...)
+
+  ss <- stamp$stamps # Original stamps
+  sh <- hash$stamps  # New stamps
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # confirm   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## names --------
+  cn <- confirm_names(ss, sh)
 
 
 

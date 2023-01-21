@@ -22,17 +22,17 @@ get_reading_fun <- function(ext = "Rds") {
 
   rd <-
     if (ext == "fst") {
-      \(x, path, ...) fst::read_fst(path = path, ...)
+      \(path, ...) fst::read_fst(path = path, ...)
     } else if (ext == "dta") {
-      \(x, path, ...) haven::read_dta(file = path, ...)
+      \(path, ...) haven::read_dta(file = path, ...)
     } else if (ext == "qs") {
-      \(x, path, ...) qs::qread(file = path, ...)
+      \(path, ...) qs::qread(file = path, ...)
     } else if (ext == "feather") {
-      \(x, path, ...) arrow::read_feather(file = path, ...)
+      \(path, ...) arrow::read_feather(file = path, ...)
     } else if (ext == "parquet") {
-      \(x, path, ...) arrow::read_parquet(file = path, ...)
+      \(path, ...) arrow::read_parquet(file = path, ...)
     } else if (ext == "rds") {
-      \(x, path, ...) readRDS(file = path, ...)
+      \(path, ...) readRDS(file = path, ...)
     } else {
       cli::cli_abort("format {.strong .{ext}} is not supported by {.pkg stamp}")
     }

@@ -6,10 +6,11 @@
 \usage{
 stamp_confirm(
   x,
-  verbose = getOption("stamp.verbose"),
   using = c("self", "stamp"),
   st_dir = NULL,
   st_name = NULL,
+  st_ext = getOption("stamp.default.ext"),
+  verbose = getOption("stamp.verbose"),
   ...
 )
 }
@@ -17,13 +18,63 @@ stamp_confirm(
 \item{x}{An arbitrary R object which will then be passed to the
 base::serialize function}
 
+\item{using}{character: either "self" of "stamp" (see details).}
+
+\item{st_dir}{character: parent directory where the stamp file if saved.}
+
+\item{st_name}{character: name of stamp in file. All stamp files are prefixed
+with the value in option "stamp.stamp_prefix", which by default is "\emph{st}".
+You don't need to add the prefix}
+
+\item{st_ext}{character: format of stamp file to save. Default is value in
+option "stamp.default.ext"}
+
 \item{verbose}{logical: whether to display additional information. This could
 be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
 
-\item{st_dir}{character: Directory to store stamp files. By default it is a
-subdirectory at the same level of \code{file}.}
-
-\item{...}{not is used right now}
+\item{...}{
+  Arguments passed on to \code{\link[=stamp_get]{stamp_get}}
+  \describe{
+    \item{\code{algo}}{character: default is value in option "stamp.digest.algo". This
+argument is the algorithms to be used; currently available choices are md5,
+which is also the default, sha1, crc32, sha256, sha512, xxhash32, xxhash64,
+murmur32, spookyhash and blake3}
+    \item{\code{serialize}}{A logical variable indicating whether the object
+    should be serialized using \code{serialize} (in ASCII
+    form). Setting this to \code{FALSE} allows to compare the digest
+    output of given character strings to known control output. It also
+    allows the use of raw vectors such as the output of non-ASCII
+    serialization.
+  }
+    \item{\code{file}}{A logical variable indicating whether the object is a file
+    name or a file name if \code{object} is not specified.}
+    \item{\code{length}}{Number of characters to process. By default, when
+    \code{length} is set to \code{Inf}, the whole string or file is
+    processed.}
+    \item{\code{skip}}{Number of input bytes to skip before calculating the
+    digest. Negative values are invalid and currently treated as zero.
+    Special value \code{"auto"} will cause serialization header to be
+    skipped if \code{serialize} is set to \code{TRUE} (the serialization
+    header contains the R version number thus skipping it allows the
+    comparison of hashes across platforms and some R versions).
+  }
+    \item{\code{ascii}}{This flag is passed to the \code{serialize} function if
+    \code{serialize} is set to \code{TRUE}, determining whether the hash
+    is computed on the ASCII or binary representation.}
+    \item{\code{raw}}{A logical variable with a default value of FALSE, implying
+    \code{digest} returns digest output as ASCII hex values. Set to TRUE
+    to return \code{digest} output in raw (binary) form. Note that this
+    option is supported by most but not all of the implemented hashing
+    algorithms}
+    \item{\code{seed}}{an integer to seed the random number generator.  This is only
+    used in the \code{xxhash32}, \code{xxhash64} and \code{murmur32} functions
+    and can be used to generate additional hashes for the same input if
+    desired.}
+    \item{\code{errormode}}{A character value denoting a choice for the behaviour in
+    the case of error: \sQuote{stop} aborts (and is the default value),
+    \sQuote{warn} emits a warning and returns \code{NULL} and
+    \sQuote{silent} suppresses the error and returns an empty string.}
+  }}
 }
 \value{
 Logical value. \code{FALSE} if the objects do not match and  \code{TRUE} if
@@ -31,7 +82,15 @@ they do.
 }
 \description{
 verifies that, were the stamp recalculated, it would match the
-one previously set with stamp_set().
+one previously set with stamp_set() of stamp_save().
+}
+\details{
+\code{using} If "self" verifies that stamp has not changed by
+recalculating it and comparing with the one previously set \code{x}. If no stamp
+has been set in \code{x}, it yields error. If "stamp", you must provide a \code{st_dir}
+and a \code{st_name}, which correspond to the stamp in file to compare with. If
+only \code{st_dir} is provided, it is assumes to contain the name of the file as
+well. Otherwise, error is yield.
 }
 \seealso{
 Other stamp functions: 

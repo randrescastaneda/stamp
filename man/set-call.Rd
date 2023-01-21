@@ -2,13 +2,31 @@
 % Please edit documentation in R/stamp.R
 \name{stamp_set}
 \alias{stamp_set}
+\alias{stamp_call}
 \title{Set an attribute \emph{stamp} to R object}
 \usage{
-stamp_set(x, ...)
+stamp_set(
+  x,
+  st_name = NULL,
+  verbose = getOption("stamp.verbose"),
+  replace = FALSE,
+  ...
+)
+
+stamp_call(st_name)
 }
 \arguments{
 \item{x}{An arbitrary R object which will then be passed to the
 base::serialize function}
+
+\item{st_name}{character: Name of stamp to be saved in .stamp env.}
+
+\item{verbose}{logical: whether to display additional information. This could
+be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
+
+\item{replace}{Logical: if TRUE and \code{st_name} already exists in \code{.stamp}
+environment, it will be replaced with new stamp. If \code{FALSE} it gives an
+error. Default is \code{FALSE}}
 
 \item{...}{
   Arguments passed on to \code{\link[=stamp_get]{stamp_get}}
@@ -55,7 +73,10 @@ murmur32, spookyhash and blake3}
   }}
 }
 \value{
-R object in \code{x} with attribute \emph{stamp}
+invisible stamp from stamp_get() but it can now be called with
+stamp_call()
+
+list with stamp values
 }
 \description{
 This functions does the same as stamp_get() but stores the
@@ -64,7 +85,8 @@ the stamps won't be permanent. Yet, it is useful for quick verification.
 }
 \examples{
 x <- data.frame(a = 1:10, b = letters[1:10])
-stamp_set(x) |> attr(which = "stamp")
+stamp_set(x, st_name = "sttest")
+stamp_call("sttest")
 }
 \seealso{
 Other stamp functions: 

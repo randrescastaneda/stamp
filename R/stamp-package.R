@@ -15,6 +15,7 @@
 .datatable.aware = TRUE
 
 #' @keywords internal
+#' @import rlang
 "_PACKAGE"
 
 # Prevent R CMD check from complaining about the use of pipe expressions
