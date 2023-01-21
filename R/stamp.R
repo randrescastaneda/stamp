@@ -82,7 +82,7 @@ stamp_get <- function(x,
 #' stamp_env()
 #' x <- data.frame(a = 1:10, b = letters[1:10])
 #' stamp_set(x, st_name = "xts")
-#' stamp_call("xst")
+#' stamp_call("xts")
 #'
 #' y <- data.frame(a = 5:10, b = letters[5:10])
 #' stamp_set(y, st_name = "yts")
