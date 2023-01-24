@@ -1,0 +1,67 @@
+---
+title: "stamp"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{stamp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(stamp)
+
+x <- data.frame(a = 1:5, 
+                b = letters[1:5])
+
+ 
+```
+
+## stamp and digest
+
+At the most basic level, {stamp} is a wrapper of the {[digest](https://github.com/eddelbuettel/digest)} package which creates hashed of arbitrary objects using different algorithms. This is why, the most basic function of stamp, `stamp_get()`, which is used by all the other functions of stamp, receives all the arguments in `digest::digest()`. The main differences is that `stamp_get()` returns a hash for every element of a list object or a single hash of an atomic vector. In addition, it returns some information about the time and date in which the hash was calculated and the algorithm used.
+
+```{r}
+# stamp of a data frame
+stamp_get(x)
+
+# stamp of an atomic vector
+stamp_get(letters)
+
+```
+
+## Save the Stamp
+
+Getting a stamp by itself is not very useful. The main idea of the stamp package is to keep track of an R object and find when in the process its data has changed. You can do it in two different but complementary ways. Either saving the stamps into memory or by saving the stamp in disk.
+
+## Set and Call stamps
+
+{stamp] allows you to save stamps into memory, making use of a special environment call `.stamp` that is created each time the {stamp} package is loaded. As long as you don't restart your R session, the objects saved in this environment will be available for continuous use.
+
+To save a stamp you use `stamp_set()`, which require the object you want to stamp and, ideally, a name for the stamp. If you don't provide a name, `stamp_set()` will create a random name for you. This is useful in no interactive sessions.
+
+```{r}
+# with name
+stamp_set(x = x, st_name = "x_st")
+
+# with random name
+stamp_set(x = x)
+```
+
+To avoid mistakes, {stamp] makes it difficult for you to access directly the stamps saved on memory. If you need to call a stamp, the best way to do is by using `stamp_call()`
+
+```{r}
+stamp_call(st_name = "x_st")
+```
+
+You don't need to remember all the the stamps save into memory. You can get all the names using `stamps_env()` .
+
+```{r}
+stamp_env()
+```

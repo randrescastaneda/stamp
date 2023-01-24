@@ -43,10 +43,23 @@ stamp_get <- function(x,
                       errormode       = c("stop", "warn", "silent")) {
   algo <- match.arg(algo)
 
+  if (is.list(x)) {
+    ls <- lapply(x, \(.) {
+      digest::digest(., algo = algo)
+    })
+  } else if (is.atomic(x)) {
+    ls <- list()
+    ls[[1]] <- digest::digest(x, algo = algo)
+  } else {
+    msg     <- c(
+      "Objects of type {.field {typeof(x)}} are not supported by
+      {.pkg {stamp}}")
+    cli::cli_abort(msg,
+                  class = "stamp_error",
+                  wrap = TRUE
+                  )
 
-  ls <- lapply(x, \(.) {
-    digest::digest(., algo = algo)
-  })
+  }
   lt   <- stamp_time()
 
   return(list(stamps  = ls,
@@ -427,10 +440,11 @@ stamp_confirm <- function(x,
 
 
 
-
-
-
-#' Add attributes and characteristics of x to be used in stamp file
+#' Add attributes and characteristics of x to be used in stamp
+#'
+#' In addition to the information from [stamp_set], [stamp_x_attr] generates
+#' information about the attributes of the R object, including basic descriptive
+#' stats.
 #'
 #' @inheritParams st_write
 #'
@@ -440,9 +454,7 @@ stamp_confirm <- function(x,
 #' @examples
 #' x <- data.frame(a = 1:10, b = letters[1:10])
 #' stamp_x_attr(x)
-stamp_x_attr <- function(x,
-                         complete_stamp = getOption("stamp.completestamp")
-                         ) {
+stamp_x_attr <- function(x) {
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -455,7 +467,7 @@ stamp_x_attr <- function(x,
     if (requireNamespace("skimr", quietly = TRUE) && complete_stamp == TRUE) {
       st_x$skim <- skimr::skim(x)
     } else {
-      st_x$dim <- dim(x)
+      st_x$summary <- summary(x)
     }
   } else {
     st_x$length <- length(x)

@@ -1,0 +1,60 @@
+---
+title: "stamp-algorithm"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+{stamp} makes heavy use of the package {[digest](https://github.com/eddelbuettel/digest)} package, which is basically a generator of hashes of R objects using different types of algorithms.
+
+```{r setup}
+library(stamp)
+```
+
+Let's use the Reporter-Partner trade data at commodity level for the USA between 2010 and 2020.
+
+```{r, echo = FALSE}
+library(tradestatistics)
+# US HS4-level trade from 2010 to 2020
+x <- ots_create_tidy_data(years = 2010:2020,
+                         reporters = "usa",
+                         table = "yrpc")
+```
+
+it is a huge data dataset with `r nrow(x)` observations.
+
+```{r}
+bench <- microbenchmark::microbenchmark(
+  times = 20,
+  md5 = stamp_get(x, algo = "md5"),
+  sha1 = stamp_get(x, algo = "sha1"),
+  crc32 = stamp_get(x, algo = "crc32"),
+  sha256 = stamp_get(x, algo = "sha256"),
+  sha512 = stamp_get(x, algo = "sha512"),
+  xxhash32 = stamp_get(x, algo = "xxhash32"),
+  xxhash64 = stamp_get(x, algo = "xxhash64"),
+  murmur32 = stamp_get(x, algo = "murmur32"),
+  spookyhash = stamp_get(x, algo = "spookyhash"),
+  blake3 = stamp_get(x, algo = "blake3")
+)
+if (requireNamespace("highcharter")) {
+  hc_dt <- highcharter::data_to_boxplot(bench,
+                                        time,
+                                        expr,
+                                        add_outliers = FALSE,
+                                        name = "Time in milliseconds")
+
+  highcharter::highchart() |>
+  highcharter::hc_xAxis(type = "category") |>
+  highcharter::hc_chart(inverted=TRUE) |>
+  highcharter::hc_add_series_list(hc_dt)
+  
+} else {
+  boxplot(bench, outline = FALSE)
+}
+
+```

@@ -2,22 +2,20 @@
 % Please edit documentation in R/stamp.R
 \name{stamp_x_attr}
 \alias{stamp_x_attr}
-\title{Add attributes and characteristics of x to be used in stamp file}
+\title{Add attributes and characteristics of x to be used in stamp}
 \usage{
-stamp_x_attr(x, complete_stamp = getOption("stamp.completestamp"))
+stamp_x_attr(x)
 }
 \arguments{
 \item{x}{R object to write to disk as per limitations of \code{file} format.}
-
-\item{complete_stamp}{logical: Whether to add a complete report of data.frame
-to stamp file. You need the \code{skimr} package. If \code{skimr} is not in
-namespace, limited but lighter report will be added.}
 }
 \value{
 list of attributes
 }
 \description{
-Add attributes and characteristics of x to be used in stamp file
+In addition to the information from \link{stamp_set}, \link{stamp_x_attr} generates
+information about the attributes of the R object, including basic descriptive
+stats.
 }
 \examples{
 x <- data.frame(a = 1:10, b = letters[1:10])
