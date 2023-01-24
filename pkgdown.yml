@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   stamp-algorithm: stamp-algorithm.html
   stamp: stamp.html
-last_built: 2023-01-24T00:40Z
+last_built: 2023-01-24T00:59Z
 urls:
   reference: https://randrescastaneda.github.io/stamp/reference
   article: https://randrescastaneda.github.io/stamp/articles
