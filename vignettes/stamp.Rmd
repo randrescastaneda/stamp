@@ -19,9 +19,13 @@ library(stamp)
 
 x <- data.frame(a = 1:5, 
                 b = letters[1:5])
-
- 
 ```
+
+## Intro
+
+-   It is inspired in the `datasignature` Stata command
+
+-   
 
 ## stamp and digest
 
@@ -33,7 +37,6 @@ stamp_get(x)
 
 # stamp of an atomic vector
 stamp_get(letters)
-
 ```
 
 ## Save the Stamp
@@ -60,7 +63,7 @@ To avoid mistakes, {stamp] makes it difficult for you to access directly the sta
 stamp_call(st_name = "x_st")
 ```
 
-You don't need to remember all the the stamps save into memory. You can get all the names using `stamps_env()` .
+You don't need to remember all the the stamps save into memory. You can get all the names using `stamps_env()` . Notice that the second name you see below is the random name generated above with `stamp_set(x = x)`.
 
 ```{r}
 stamp_env()

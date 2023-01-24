@@ -17,7 +17,7 @@ library(stamp)
 
 Let's use the Reporter-Partner trade data at commodity level for the USA between 2010 and 2020.
 
-```{r, echo = FALSE}
+```{r, results=FALSE}
 library(tradestatistics)
 # US HS4-level trade from 2010 to 2020
 x <- ots_create_tidy_data(years = 2010:2020,

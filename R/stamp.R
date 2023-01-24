@@ -180,11 +180,11 @@ stamp_call <- function(st_name) {
 stamp_env <- function(verbose = getOption("stamp.verbose")) {
   st_name <- env_names(.stamp)
 
-  if (verbose){
-    if(length(st_name) == 0) {
+  if (verbose) {
+    if (length(st_name) == 0) {
       cli::cli_alert_info("no stamps in {.env .stamp} environment")
+      return(invisible(st_name))
     }
-    return(invisible(st_name))
   }
   return(st_name)
 }
