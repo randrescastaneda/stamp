@@ -47,19 +47,11 @@ stamp_get <- function(x,
     ls <- lapply(x, \(.) {
       digest::digest(., algo = algo)
     })
-  } else if (is.atomic(x)) {
+  } else  {
     ls <- list()
     ls[[1]] <- digest::digest(x, algo = algo)
-  } else {
-    msg     <- c(
-      "Objects of type {.field {typeof(x)}} are not supported by
-      {.pkg {stamp}}")
-    cli::cli_abort(msg,
-                  class = "stamp_error",
-                  wrap = TRUE
-                  )
-
   }
+
   lt   <- stamp_time()
 
   return(list(stamps  = ls,
