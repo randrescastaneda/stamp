@@ -35,7 +35,8 @@ Suggests:
     rmarkdown (>= 2.18),
     microbenchmark (>= 1.4.9),
     highcharter (>= 0.9.4),
-    tradestatistics (>= 4.4.0)
+    tradestatistics (>= 4.4.0),
+    covr
 Config/testthat/edition: 3
 RoxygenNote: 7.2.2
 Roxygen: list(markdown = TRUE)

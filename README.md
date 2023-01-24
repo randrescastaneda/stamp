@@ -4,6 +4,9 @@
 # stamp
 
 <!-- badges: start -->
+
+[![Codecov test
+coverage](https://codecov.io/gh/randrescastaneda/stamp/branch/master/graph/badge.svg)](https://app.codecov.io/gh/randrescastaneda/stamp?branch=master)
 <!-- badges: end -->
 
 The goal of stamp is to …

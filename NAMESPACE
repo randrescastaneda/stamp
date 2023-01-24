@@ -3,6 +3,7 @@
 export(st_read)
 export(st_write)
 export(stamp_call)
+export(stamp_clean)
 export(stamp_confirm)
 export(stamp_env)
 export(stamp_get)

@@ -34,7 +34,54 @@ test_that("stamp_get works as expected", {
 })
 
 test_that("stamp_set works as expected", {
+  st <- stamp_get(x)
+  stamp_set(x, "st_x")
+  st_x <- stamp_call("st_x")
+  expect_equal(st, st_x)
+
+  # try to reset an existiing stamp
+  stamp_set(x, "st_x") |>
+    expect_error()
+
+  # replace works
+  stamp_set(letters, "st_x", replace = TRUE)
+  stl <- stamp_get(letters)
+  expect_equal(stl, stamp_call("st_x"))
 
 
+  # Call a stamp that does not exist
+  stamp_call("hola") |>
+    expect_error()
+
+})
+
+
+
+test_that("stamp_env and stamp_clean works as expected", {
+
+  # clean all
+  stamp_clean()
+  stn <- stamp_env()
+  expect_length(stn, 0)
+
+  # lean specific stamps
+  stamp_set(x, "st_x")
+  stamp_set(x, "st_y")
+  stamp_set(x, "st_z")
+
+  stamp_clean(st_name = "st_x")
+  stn <- stamp_env()
+  expect_equal(stn, c("st_y", "st_z"))
+
+
+  # error if stamp is not found
+  stamp_clean("hola") |>
+    expect_error()
+
+  stamp_clean()
+
+  # Clean stamp
+  stamp_clean() |>
+    expect_false()
 
 })

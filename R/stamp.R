@@ -181,6 +181,101 @@ stamp_env <- function(verbose = getOption("stamp.verbose")) {
   return(st_name)
 }
 
+
+
+#' Clean .stamp env
+#'
+#' @param st_name chracter: stamp name to clean. default is NULL, which cleans
+#'   all names
+#' @param verbose logica: whether to display additional information.
+#'
+#' @return invisible TRUE is something was clened. FALSE otherwise
+#' @export
+#'
+#' @examples
+#' stamp_clean()
+stamp_clean <- function(st_name  = NULL,
+                        verbose  = getOption("stamp.verbose")) {
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # defenses   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  stopifnot({
+    length(st_name) == 1 || is.null(st_name)
+  })
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # cleaning   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## if it is st_name -------
+
+  if (!is.null(st_name)) {
+    if (!env_has(.stamp, st_name)) {
+      msg     <- c(
+        "*" = "stamp {.field {st_name}} does not exist",
+        "i" = "make sure it was created with {.code stamp::stamp_set()}"
+      )
+      cli::cli_abort(msg,
+                     class = "stamp_error",
+                     wrap = TRUE)
+    }
+
+    env_unbind(.stamp, st_name)
+
+    if (env_has(.stamp, st_name)) {
+      msg     <- c(
+        "Stamp {.field {st_name}} could not be removed")
+      cli::cli_abort(msg,
+                    class = "stamp_error",
+                    wrap = TRUE
+                    )
+    } else {
+      if (verbose) {
+        cli::cli_alert_info("Stamp {.field {st_name}} cleaned from
+                            environment {.env .stamp}",
+                            wrap = TRUE)
+      }
+      return(invisible(TRUE))
+    }
+
+
+  } else {
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ## If it is null --------
+    stn <- env_names(.stamp)
+
+    if (length(stn) == 0) {
+      cli::cli_alert_info("There is no stamp available in the {.env .stamp}
+                          environment... Nothing to clean")
+      return(invisible(FALSE))
+    } else {
+      ff <- lapply(stn, \(.) {
+        env_unbind(.stamp, .)
+      })
+
+      stn2 <- env_names(.stamp)
+      if (!length(stn2) == 0) {
+        msg     <- c(
+          "Stamp{?s} {.field {stn}} could not be removed")
+        cli::cli_abort(msg,
+                       class = "stamp_error",
+                       wrap = TRUE
+        )
+      } else {
+        if (verbose) {
+          cli::cli_alert_info("Environment {.env .stamp} successfully cleaned",
+                              wrap = TRUE)
+        }
+        return(invisible(TRUE))
+      }
+    }
+
+  }
+
+}
 #' Save Stamp in disk
 #'
 #' @description
