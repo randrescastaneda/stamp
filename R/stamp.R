@@ -428,7 +428,6 @@ stamp_time <- function() {
 #' @inheritDotParams stamp_get
 #' @param st_dir character: parent directory where the stamp file if saved.
 #' @param st_name character: name of stamp (see details).
-#' @param  using character: either "self" of "stamp" (see details).
 #'
 #' @return Logical value. `FALSE` if the objects do not match and  `TRUE` if
 #'   they do.

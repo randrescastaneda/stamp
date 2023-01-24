@@ -70,8 +70,6 @@ murmur32, spookyhash and blake3}
     \sQuote{warn} emits a warning and returns \code{NULL} and
     \sQuote{silent} suppresses the error and returns an empty string.}
   }}
-
-\item{using}{character: either "self" of "stamp" (see details).}
 }
 \value{
 Logical value. \code{FALSE} if the objects do not match and  \code{TRUE} if
