@@ -68,3 +68,5 @@ You don't need to remember all the the stamps save into memory. You can get all 
 ```{r}
 stamp_env()
 ```
+
+## Confirm

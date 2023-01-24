@@ -464,7 +464,7 @@ stamp_x_attr <- function(x) {
   st_x      <- attributes(x)
 
   if (is.data.frame(x)) {
-    if (requireNamespace("skimr", quietly = TRUE) && complete_stamp == TRUE) {
+    if (requireNamespace("skimr", quietly = TRUE)) {
       st_x$skim <- skimr::skim(x)
     } else {
       st_x$summary <- summary(x)
