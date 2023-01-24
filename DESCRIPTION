@@ -17,25 +17,25 @@ URL: https://github.com/randrescastaneda/stamp,
     https://randrescastaneda.github.io/stamp/
 BugReports: https://github.com/randrescastaneda/stamp/issues
 Imports: 
-    cli,
-    data.table,
-    digest,
-    fs,
-    rlang,
-    waldo
+    cli (>= 3.4.1),
+    digest (>= 0.6.30),
+    fs (>= 1.5.2),
+    rlang (>= 1.0.6),
+    waldo (>= 0.4.0)
 Suggests: 
-    qs,
-    arrow,
-    fst,
-    testthat (>= 3.0.0),
-    haven,
-    skimr,
-    withr,
-    knitr,
-    rmarkdown,
-    microbenchmark,
-    highcharter,
-    tradestatistics
+    data.table (>= 1.14.6),
+    qs (>= 0.25.4),
+    arrow (>= 10.0.0),
+    fst (>= 0.9.8),
+    testthat (>= 3.1.5),
+    haven (>= 2.5.1),
+    skimr (>= 2.1.4),
+    withr (>= 2.5.0),
+    knitr (>= 1.41),
+    rmarkdown (>= 2.18),
+    microbenchmark (>= 1.4.9),
+    highcharter (>= 0.9.4),
+    tradestatistics (>= 4.4.0)
 Config/testthat/edition: 3
 RoxygenNote: 7.2.2
 Roxygen: list(markdown = TRUE)
