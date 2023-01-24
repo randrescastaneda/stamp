@@ -69,7 +69,8 @@ test_that("stamp_env and stamp_clean works as expected", {
   stamp_set(x, "st_y")
   stamp_set(x, "st_z")
 
-  stamp_clean(st_name = "st_x")
+  stamp_clean(st_name = "st_x") |>
+    expect_true()
   stn <- stamp_env()
   expect_equal(stn, c("st_y", "st_z"))
 
