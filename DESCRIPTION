@@ -1,7 +1,7 @@
 Package: stamp
 Type: Package
 Title: Read and Write R Objects with Data Hash
-Version: 0.0.0.9010
+Version: 0.0.0.9011
 Authors@R: person(
   "R.Andres", "Castaneda", 
   email = "acastanedaa@worldbank.org",
