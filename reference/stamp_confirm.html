@@ -62,7 +62,6 @@ one previously set with stamp_set() of stamp_save().</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stamp_confirm</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
-<span>  using <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"self"</span>, <span class="st">"stamp"</span><span class="op">)</span>,</span>
 <span>  st_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_ext <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.default.ext"</span><span class="op">)</span>,</span>
@@ -78,18 +77,12 @@ one previously set with stamp_set() of stamp_save().</p>
 base::serialize function</p></dd>
 
 
-<dt>using</dt>
-<dd><p>character: either "self" of "stamp" (see details).</p></dd>
-
-
 <dt>st_dir</dt>
 <dd><p>character: parent directory where the stamp file if saved.</p></dd>
 
 
 <dt>st_name</dt>
-<dd><p>character: name of stamp in file. All stamp files are prefixed
-with the value in option "stamp.stamp_prefix", which by default is "<em>st</em>".
-You don't need to add the prefix</p></dd>
+<dd><p>character: name of stamp (see details).</p></dd>
 
 
 <dt>st_ext</dt>
@@ -161,6 +154,10 @@ murmur32, spookyhash and blake3</p></dd>
   
 </dl></dd>
 
+
+<dt>using</dt>
+<dd><p>character: either "self" of "stamp" (see details).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -171,12 +168,14 @@ they do.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><code>using</code> If "self" verifies that stamp has not changed by
-recalculating it and comparing with the one previously set <code>x</code>. If no stamp
-has been set in <code>x</code>, it yields error. If "stamp", you must provide a <code>st_dir</code>
-and a <code>st_name</code>, which correspond to the stamp in file to compare with. If
-only <code>st_dir</code> is provided, it is assumes to contain the name of the file as
-well. Otherwise, error is yield.</p>
+    <p><code>st_name</code> is the name of the stamp and it could be used in two
+different ways. First, if <code>st_dir</code> is NULL, it is assumed that the user
+refers to <code>st_name</code> as the stamp saved in the <code>.stamp</code> env and not to a stamp
+saved in a particular drive. If <code>st_dir</code> is not NULL, then <code>st_name</code> is the
+name of file that contains the stamp. Notice that all stamps that are saved
+to disk are prefixed with the value in option "stamp.stamp_prefix", which by
+default is "st_". You don't need to add the prefix, but if you do and it
+happens to be the same as in "stamp.stamp_prefix", it will be ignored.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
