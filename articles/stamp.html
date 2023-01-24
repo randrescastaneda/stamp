@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9010</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -128,7 +128,7 @@ calculated and the algorithm used.</p>
 <span><span class="co">#&gt; [1] FALSE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time$st_time</span></span>
-<span><span class="co">#&gt; [1] "20230124011745"</span></span>
+<span><span class="co">#&gt; [1] "20230124020224"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $algo</span></span>
@@ -152,7 +152,7 @@ calculated and the algorithm used.</p>
 <span><span class="co">#&gt; [1] FALSE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time$st_time</span></span>
-<span><span class="co">#&gt; [1] "20230124011745"</span></span>
+<span><span class="co">#&gt; [1] "20230124020224"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $algo</span></span>
@@ -166,10 +166,9 @@ stamp package is to keep track of an R object and find when in the
 process its data has changed. You can do it in two different but
 complementary ways. Either saving the stamps into memory or by saving
 the stamp in disk.</p>
-</div>
-<div class="section level2">
-<h2 id="set-and-call-stamps">Set and Call stamps<a class="anchor" aria-label="anchor" href="#set-and-call-stamps"></a>
-</h2>
+<div class="section level3">
+<h3 id="set-stamps">Set stamps<a class="anchor" aria-label="anchor" href="#set-stamps"></a>
+</h3>
 <p>{stamp] allows you to save stamps into memory, making use of a
 special environment call <code>.stamp</code> that is created each time
 the {stamp} package is loaded. As long as you don’t restart your R
@@ -185,6 +184,10 @@ for you. This is useful in no interactive sessions.</p>
 <span></span>
 <span><span class="co"># with random name</span></span>
 <span><span class="fu"><a href="../reference/set-call.html">stamp_set</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="call-stamps">Call stamps<a class="anchor" aria-label="anchor" href="#call-stamps"></a>
+</h3>
 <p>To avoid mistakes, {stamp] makes it difficult for you to access
 directly the stamps saved on memory. If you need to call a stamp, the
 best way to do is by using <code><a href="../reference/set-call.html">stamp_call()</a></code></p>
@@ -209,7 +212,7 @@ best way to do is by using <code><a href="../reference/set-call.html">stamp_call
 <span><span class="co">#&gt; [1] FALSE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time$st_time</span></span>
-<span><span class="co">#&gt; [1] "20230124011745"</span></span>
+<span><span class="co">#&gt; [1] "20230124020225"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $algo</span></span>
@@ -220,7 +223,8 @@ second name you see below is the random name generated above with
 <code>stamp_set(x = x)</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/set-call.html">stamp_env</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "x_st"      "X4x61q0g6"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "x_st"      "X6g3o7lsu"</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="confirm">Confirm<a class="anchor" aria-label="anchor" href="#confirm"></a>
