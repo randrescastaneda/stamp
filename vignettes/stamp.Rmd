@@ -43,7 +43,7 @@ stamp_get(letters)
 
 Getting a stamp by itself is not very useful. The main idea of the stamp package is to keep track of an R object and find when in the process its data has changed. You can do it in two different but complementary ways. Either saving the stamps into memory or by saving the stamp in disk.
 
-## Set and Call stamps
+### Set stamps
 
 {stamp] allows you to save stamps into memory, making use of a special environment call `.stamp` that is created each time the {stamp} package is loaded. As long as you don't restart your R session, the objects saved in this environment will be available for continuous use.
 
@@ -56,6 +56,8 @@ stamp_set(x = x, st_name = "x_st")
 # with random name
 stamp_set(x = x)
 ```
+
+### Call stamps
 
 To avoid mistakes, {stamp] makes it difficult for you to access directly the stamps saved on memory. If you need to call a stamp, the best way to do is by using `stamp_call()`
 
