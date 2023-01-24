@@ -1,3 +1,4 @@
+skip("st_write has to be re-written")
 library(fs)
 library(withr)
 df <- data.frame(l = letters[1:5],

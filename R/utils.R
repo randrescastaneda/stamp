@@ -62,7 +62,7 @@ path_info <-
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Stamp file and dir   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    st_name   <- paste0("_st_", file_name)
+    st_name   <- paste0("st_", file_name)
 
     # format directory to store stamps
     st_dir <-
@@ -392,6 +392,37 @@ format_st_name <- function(st_name = NULL,
 format_st_file <- function(st_dir     = NULL,
                            st_name    = NULL,
                            st_ext     = getOption("stamp.default.ext")) {
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Defensive setup   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Defenses --------
+  stopifnot( exprs = {
+    !is.null(st_dir) || !is.null(st_name)
+  }
+  )
+
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Early return --------
+
+  if (!is.null(st_dir) && is.null(st_name)) {
+    isfile <- fs::is_file(st_dir)
+    if (isfile) {
+      return(st_dir)
+    } else {
+      msg     <- c(
+        "file {.file {st_dir}} does not exist")
+      cli::cli_abort(msg,
+                    class = "stamp_error",
+                    wrap = TRUE
+                    )
+    }
+  }
+
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # get sf_file   ---------

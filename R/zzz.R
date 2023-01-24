@@ -14,7 +14,7 @@ stamp_default_options <- list(
   stamp.dir_stamp        = "_stamp",
   stamp.dir_vintage      = "_vintage",
   stamp.waldo            = TRUE,
-  stamp.stamp_prefix     = "_st_"
+  stamp.stamp_prefix     = "st_"
 )
 
 
@@ -31,6 +31,8 @@ stamp_default_options <- list(
   ## cli --------
 
   cli_red <- cli::cli_div(theme = list(span.red = list(color = "red")),
+               .auto_close = FALSE)
+  cli_blue <- cli::cli_div(theme = list(span.blue = list(color = "blue")),
                .auto_close = FALSE)
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

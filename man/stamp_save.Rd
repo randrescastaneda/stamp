@@ -21,7 +21,7 @@ stamp_save(
 \item{st_dir}{character: parent directory to store stamp file (see details).}
 
 \item{st_name}{character: name of stamp in file. All stamp files are prefixed
-with value in option "stamp.stamp_prefix", which by default is "\emph{st}".
+with value in option "stamp.stamp_prefix", which by default is "st_".
 You don't need to add the prefix.}
 
 \item{st_ext}{character: format of stamp file to save. Default is value in

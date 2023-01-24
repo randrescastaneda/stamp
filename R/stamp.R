@@ -284,7 +284,7 @@ stamp_clean <- function(st_name  = NULL,
 #' @param x R object to stamp
 #' @param st_dir character: parent directory to store stamp file (see details).
 #' @param st_name character: name of stamp in file. All stamp files are prefixed
-#'   with value in option "stamp.stamp_prefix", which by default is "_st_".
+#'   with value in option "stamp.stamp_prefix", which by default is "st_".
 #'   You don't need to add the prefix.
 #' @param stamp list of stamp from stamp_get() in case it was calculated before
 #'   hand. Developers option. It should be used interactively.
@@ -427,9 +427,7 @@ stamp_time <- function() {
 #' @inheritParams stamp_save
 #' @inheritDotParams stamp_get
 #' @param st_dir character: parent directory where the stamp file if saved.
-#' @param st_name character: name of stamp in file. All stamp files are prefixed
-#'   with the value in option "stamp.stamp_prefix", which by default is "_st_".
-#'   You don't need to add the prefix
+#' @param st_name character: name of stamp (see details).
 #' @param  using character: either "self" of "stamp" (see details).
 #'
 #' @return Logical value. `FALSE` if the objects do not match and  `TRUE` if
@@ -437,41 +435,40 @@ stamp_time <- function() {
 #' @export
 #' @family stamp functions
 #'
-#' @details `using` If "self" verifies that stamp has not changed by
-#' recalculating it and comparing with the one previously set `x`. If no stamp
-#' has been set in `x`, it yields error. If "stamp", you must provide a `st_dir`
-#' and a `st_name`, which correspond to the stamp in file to compare with. If
-#' only `st_dir` is provided, it is assumes to contain the name of the file as
-#' well. Otherwise, error is yield.
+#' @details `st_name` is the name of the stamp and it could be used in two
+#' different ways. First, if `st_dir` is NULL, it is assumed that the user
+#' refers to `st_name` as the stamp saved in the `.stamp` env and not to a stamp
+#' saved in a particular drive. If `st_dir` is not NULL, then `st_name` is the
+#' name of file that contains the stamp. Notice that all stamps that are saved
+#' to disk are prefixed with the value in option "stamp.stamp_prefix", which by
+#' default is "st_". You don't need to add the prefix, but if you do and it
+#' happens to be the same as in "stamp.stamp_prefix", it will be ignored.
 #'
 #' @examples
 stamp_confirm <- function(x,
-                          using   = c("self", "stamp"),
                           st_dir  = NULL,
                           st_name = NULL,
                           st_ext  = getOption("stamp.default.ext"),
                           verbose = getOption("stamp.verbose"),
                           ...) {
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Defensive setup   ---------
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ## Defenses --------
+      stopifnot( exprs = {
+          !is.null(st_dir) || !is.null(st_name)
+        }
+      )
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Get stamp   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  using <- match.arg(using)
-  if (using == "self") {
 
-    stamp <- attr(x, "stamp")
-    if (is.null(stamp)) {
-      msg     <- c(
-        "{.field stamp} attribute not found in {.code x}",
-        "i" = "create stamp attribute with {.code stamp::stamp_set(x)}",
-        "i" = 'confirm attribute has been created with {.code attr(x, "stamp")}'
-        )
-      cli::cli_abort(msg,
-                    class = "stamp_error",
-                    wrap = TRUE
-                    )
-    }
+  if (is.null(st_dir) && !is.null(st_name)) {
+
+    stamp <- stamp_call(st_name)
 
   } else {
 
@@ -504,24 +501,38 @@ stamp_confirm <- function(x,
   ss <- stamp$stamps # Original stamps
   sh <- hash$stamps  # New stamps
 
-
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # confirm   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## names --------
   cn <- confirm_names(ss, sh)
+  cd <- confirm_data(ss, sh)
+  changed <- !any(c(cn, cd))
+
+  if (verbose) {
+    st_time <- stamp$time$st_time
+    tformat <- stamp$time$tformat
+    tz <- stamp$time$tz
+
+    last_change <- as.POSIXct(x = st_time,
+                              tz = tz,
+                              format = tformat)
 
 
+    if (changed) {
+      cli::cli_alert_danger("data have {.red changed} since
+                            {.val {last_change}}",
+                            wrap = TRUE)
+    } else {
+      cli::cli_alert_success("data {.field unchanged} since
+                             {.val {last_change}}",
+                             wrap = TRUE)
+    }
 
-
-
-
+  }
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Return   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(TRUE)
+    return(invisible(changed))
 
 }
 

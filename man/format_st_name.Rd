@@ -8,7 +8,7 @@ format_st_name(st_name = NULL, st_nm_pr = getOption("stamp.stamp_prefix"))
 }
 \arguments{
 \item{st_name}{character: name of stamp in file. All stamp files are prefixed
-with value in option "stamp.stamp_prefix", which by default is "\emph{st}".
+with value in option "stamp.stamp_prefix", which by default is "st_".
 You don't need to add the prefix.}
 
 \item{st_nm_pr}{character: \code{st_name} prefix to save in file. default is value

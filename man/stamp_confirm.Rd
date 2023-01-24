@@ -6,7 +6,6 @@
 \usage{
 stamp_confirm(
   x,
-  using = c("self", "stamp"),
   st_dir = NULL,
   st_name = NULL,
   st_ext = getOption("stamp.default.ext"),
@@ -18,13 +17,9 @@ stamp_confirm(
 \item{x}{An arbitrary R object which will then be passed to the
 base::serialize function}
 
-\item{using}{character: either "self" of "stamp" (see details).}
-
 \item{st_dir}{character: parent directory where the stamp file if saved.}
 
-\item{st_name}{character: name of stamp in file. All stamp files are prefixed
-with the value in option "stamp.stamp_prefix", which by default is "\emph{st}".
-You don't need to add the prefix}
+\item{st_name}{character: name of stamp (see details).}
 
 \item{st_ext}{character: format of stamp file to save. Default is value in
 option "stamp.default.ext"}
@@ -75,6 +70,8 @@ murmur32, spookyhash and blake3}
     \sQuote{warn} emits a warning and returns \code{NULL} and
     \sQuote{silent} suppresses the error and returns an empty string.}
   }}
+
+\item{using}{character: either "self" of "stamp" (see details).}
 }
 \value{
 Logical value. \code{FALSE} if the objects do not match and  \code{TRUE} if
@@ -85,12 +82,14 @@ verifies that, were the stamp recalculated, it would match the
 one previously set with stamp_set() of stamp_save().
 }
 \details{
-\code{using} If "self" verifies that stamp has not changed by
-recalculating it and comparing with the one previously set \code{x}. If no stamp
-has been set in \code{x}, it yields error. If "stamp", you must provide a \code{st_dir}
-and a \code{st_name}, which correspond to the stamp in file to compare with. If
-only \code{st_dir} is provided, it is assumes to contain the name of the file as
-well. Otherwise, error is yield.
+\code{st_name} is the name of the stamp and it could be used in two
+different ways. First, if \code{st_dir} is NULL, it is assumed that the user
+refers to \code{st_name} as the stamp saved in the \code{.stamp} env and not to a stamp
+saved in a particular drive. If \code{st_dir} is not NULL, then \code{st_name} is the
+name of file that contains the stamp. Notice that all stamps that are saved
+to disk are prefixed with the value in option "stamp.stamp_prefix", which by
+default is "st_". You don't need to add the prefix, but if you do and it
+happens to be the same as in "stamp.stamp_prefix", it will be ignored.
 }
 \seealso{
 Other stamp functions: 
