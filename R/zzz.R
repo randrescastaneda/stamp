@@ -1,20 +1,26 @@
 
 
 stamp_default_options <- list(
+
+  # interactive
   stamp.verbose          = TRUE,
-  stamp.default.ext      = "qs",
   stamp.vintage          = TRUE,
-  stamp.digest.algo      = "sha1",
+  stamp.completestamp    = TRUE,
+  stamp.digest.algo      = "spookyhash",
 
   # time stamp management
   stamp.timezone         = Sys.timezone(),
   stamp.timeformat       = "%Y%m%d%H%M%S",
   stamp.usetz            = FALSE,
-  stamp.completestamp    = TRUE,
+
+  # file management
   stamp.dir_stamp        = "_stamp",
   stamp.dir_vintage      = "_vintage",
-  stamp.waldo            = TRUE,
-  stamp.stamp_prefix     = "st_"
+  stamp.stamp_prefix     = "st_",
+  stamp.default.ext      = "qs",
+
+  # Others
+  stamp.waldo            = TRUE
 )
 
 

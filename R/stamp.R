@@ -505,7 +505,7 @@ stamp_confirm <- function(x,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   cn <- confirm_names(ss, sh)
   cd <- confirm_data(ss, sh)
-  changed <- !any(c(cn, cd))
+  unchanged <- any(c(cn, cd))
 
   if (verbose) {
     st_time <- stamp$time$st_time
@@ -517,21 +517,21 @@ stamp_confirm <- function(x,
                               format = tformat)
 
 
-    if (changed) {
-      cli::cli_alert_danger("data have {.red changed} since
-                            {.val {last_change}}",
-                            wrap = TRUE)
-    } else {
+    if (unchanged) {
       cli::cli_alert_success("data {.field unchanged} since
                              {.val {last_change}}",
                              wrap = TRUE)
+    } else {
+      cli::cli_alert_danger("data have {.red changed} since
+                            {.val {last_change}}",
+                            wrap = TRUE)
     }
 
   }
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Return   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(invisible(changed))
+    return(invisible(unchanged))
 
 }
 
@@ -566,6 +566,7 @@ stamp_x_attr <- function(x) {
     } else {
       st_x$summary <- summary(x)
     }
+    st_x$dim <- dim(x)
   } else {
     st_x$length <- length(x)
   }

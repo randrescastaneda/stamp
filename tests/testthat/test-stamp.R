@@ -1,4 +1,4 @@
-
+options(stamp.verbose = FALSE)
 x <- data.frame(a = 1:5,
                 b = letters[1:5])
 test_that("stamp_get works as expected", {
@@ -84,5 +84,48 @@ test_that("stamp_env and stamp_clean works as expected", {
   # Clean stamp
   stamp_clean() |>
     expect_false()
+
+})
+
+
+test_that("stamp_confirm works as expected", {
+  x <- data.frame(a = 1:5, b = "hola")
+  st_name <- "stx"
+  stamp_set(x, st_name, replace = TRUE)
+
+  # must provide st_dir or st_name
+  stamp_confirm(x) |>
+    expect_error()
+
+  # st_name does not exist
+  stamp_confirm(x, st_name = "blabhblabh") |>
+    expect_error()
+
+  # New variable
+  x <- data.frame(a = 1:5, b = "hola", c = "chao")
+  stamp_confirm(x, st_name = st_name) |>
+    expect_false()
+
+})
+
+
+
+test_that("stamp_x_attr works as expected", {
+
+  # Data.frame
+  x    <- data.frame(a = 1:5, b = "hola")
+  at_x <-  stamp_x_attr(x)
+  atn <- names(at_x)
+  skip_if_not(requireNamespace("skimr", quietly = TRUE))
+  expect_equal(atn, c("names", "class", "row.names", "skim", "dim", "type"))
+
+  skip_if(requireNamespace("skimr", quietly = TRUE))
+  expect_equal(atn, c("names", "class", "row.names", "summary","dim", "type"))
+
+  # list
+  x    <- data.frame(a = 1:5, b = "hola")
+  at_x <-  stamp_x_attr(x)
+  atn <- names(at_x)
+
 
 })
