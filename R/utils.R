@@ -309,8 +309,7 @@ format_st_dir <- function(st_dir = NULL) {
     if (is.null(st_dir)) {
       # create in current directory if NULL
       st_dir <-
-        "." |> # curent directory
-        fs::path(dir_stamp) |>
+        fs::path(dir_stamp) |> # curent directory
         fs::dir_create(recurse = TRUE)
     } else {
 

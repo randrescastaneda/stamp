@@ -1,4 +1,6 @@
 library(fs)
+library(withr)
+
 test_that("check_format", {
 
   # upper cases
@@ -22,7 +24,6 @@ test_that("check_format", {
 
 })
 
-
 test_that("pkg_available ", {
 
   # package avilable
@@ -36,7 +37,6 @@ test_that("pkg_available ", {
 
 
 })
-
 
 test_that("check_file ", {
 
@@ -56,5 +56,28 @@ test_that("check_file ", {
 
   check_file(tf) |>
     expect_true()
+
+})
+
+test_that("format_st_dir ", {
+  crt_wd <- getwd()
+  defer(setwd(crt_wd))
+
+  while (!is.null(file_temp_pop())) next
+  file_temp_push(path(path_temp(),letters))
+
+  tdir <- path_temp()
+  setwd(tdir)
+
+  dir_stamp <- getOption("stamp.dir_stamp")
+  st_dir <- format_st_dir() |>
+    path_wd()
+
+  expect_equal(st_dir, path(tdir, dir_stamp))
+
+  tdir <- path_temp("n1")
+
+  format_st_dir(tdir) |>
+    expect_error()
 
 })
