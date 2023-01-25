@@ -111,10 +111,10 @@ calculated and the algorithm used.</p>
 <span><span class="fu"><a href="../reference/stamp_get.html">stamp_get</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $stamps</span></span>
 <span><span class="co">#&gt; $stamps$a</span></span>
-<span><span class="co">#&gt; [1] "ed4e05aa5d15ff681fe20cd2e550e9481c66b594"</span></span>
+<span><span class="co">#&gt; [1] "f8c70106cb55eb803d1ab78e093bc2d1"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $stamps$b</span></span>
-<span><span class="co">#&gt; [1] "3f489c57a8e4bdd49f0c3d1de25d68fe026de294"</span></span>
+<span><span class="co">#&gt; [1] "5802b7a27d20ad9feb00616660d4c1e7"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time</span></span>
@@ -128,17 +128,17 @@ calculated and the algorithm used.</p>
 <span><span class="co">#&gt; [1] FALSE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time$st_time</span></span>
-<span><span class="co">#&gt; [1] "20230125185730"</span></span>
+<span><span class="co">#&gt; [1] "20230125192718"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $algo</span></span>
-<span><span class="co">#&gt; [1] "sha1"</span></span>
+<span><span class="co">#&gt; [1] "spookyhash"</span></span>
 <span></span>
 <span><span class="co"># stamp of an atomic vector</span></span>
 <span><span class="fu"><a href="../reference/stamp_get.html">stamp_get</a></span><span class="op">(</span><span class="va">letters</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $stamps</span></span>
 <span><span class="co">#&gt; $stamps[[1]]</span></span>
-<span><span class="co">#&gt; [1] "174b54126178f63dcfd088a201f0c014dbb5d3b0"</span></span>
+<span><span class="co">#&gt; [1] "b85e2561a4cab45b3798abcf32a54464"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time</span></span>
@@ -152,11 +152,11 @@ calculated and the algorithm used.</p>
 <span><span class="co">#&gt; [1] FALSE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time$st_time</span></span>
-<span><span class="co">#&gt; [1] "20230125185730"</span></span>
+<span><span class="co">#&gt; [1] "20230125192718"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $algo</span></span>
-<span><span class="co">#&gt; [1] "sha1"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "spookyhash"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="save-the-stamp">Save the Stamp<a class="anchor" aria-label="anchor" href="#save-the-stamp"></a>
@@ -195,10 +195,10 @@ best way to do is by using <code><a href="../reference/set-call.html">stamp_call
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/set-call.html">stamp_call</a></span><span class="op">(</span>st_name <span class="op">=</span> <span class="st">"x_st"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $stamps</span></span>
 <span><span class="co">#&gt; $stamps$a</span></span>
-<span><span class="co">#&gt; [1] "ed4e05aa5d15ff681fe20cd2e550e9481c66b594"</span></span>
+<span><span class="co">#&gt; [1] "f8c70106cb55eb803d1ab78e093bc2d1"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $stamps$b</span></span>
-<span><span class="co">#&gt; [1] "3f489c57a8e4bdd49f0c3d1de25d68fe026de294"</span></span>
+<span><span class="co">#&gt; [1] "5802b7a27d20ad9feb00616660d4c1e7"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time</span></span>
@@ -212,18 +212,18 @@ best way to do is by using <code><a href="../reference/set-call.html">stamp_call
 <span><span class="co">#&gt; [1] FALSE</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $time$st_time</span></span>
-<span><span class="co">#&gt; [1] "20230125185730"</span></span>
+<span><span class="co">#&gt; [1] "20230125192718"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $algo</span></span>
-<span><span class="co">#&gt; [1] "sha1"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "spookyhash"</span></span></code></pre></div>
 <p>You don’t need to remember all the the stamps save into memory. You
 can get all the names using <code>stamps_env()</code> . Notice that the
 second name you see below is the random name generated above with
 <code>stamp_set(x = x)</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/set-call.html">stamp_env</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "x_st"     "ktonen6o"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "x_st"     "u1db9ofn"</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
