@@ -52,8 +52,8 @@ path_info <-
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Main file   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ext <- tolower(ext) |>
-      check_format(fs::path_ext(file))
+    ext <- fs::path_ext(file) |>
+      check_format(ext = tolower(ext))
 
     file_dir  <- ensure_file_path(file, recurse)
     file      <- fs::path_ext_remove(file)
@@ -139,8 +139,8 @@ path_info <-
 #' @description Use valus in `ext` to check the corresponding package is
 #'   available. It it is not, it defaults to `Rds`
 #'
-#' @inheritParams st_write
 #' @param  file_ext character: File extension
+#' @inheritParams st_write
 #'
 #' @return character with extension of desired format
 #' @keywords internal
@@ -150,22 +150,22 @@ path_info <-
 #' fmt <- check_format(file_ext = "fst")
 #' fmt
 #'}
-check_format <- function(ext = "Rds", file_ext) {
+check_format <- function(file_ext, ext = NULL) {
   # Computations ------------
-  ext <- tolower(ext)
+  file_ext <- tolower(file_ext)
+  if (!is.null(ext)) {
+    ext      <- tolower(ext)
 
-  if (ext != file_ext) {
-    cli::cli_warn("Format provided, {.strong .{ext}}, is different from format in
-                  file name, {.strong .{file_ext}}. The former will be used.",
-                  wrap = TRUE)
+    if (ext != file_ext) {
+      cli::cli_warn("Format provided, {.strong .{ext}}, is different from format in
+                    file name, {.strong .{file_ext}}. The former will be used.",
+                    wrap = TRUE)
+    }
+  } else {
+    ext <- file_ext
   }
 
-  # correctly write file name
-  if (ext == "") {
-    ext <- getOption("stamp.default.ext") |>
-      tolower()
-  }
-
+  # check that package is available for this extension
   pkg_av <- pkg_available(ext)
   if (!pkg_av) {
     cli::cli_alert_warning("switching to {.strong .Rds} format")

@@ -4,13 +4,13 @@
 \alias{check_format}
 \title{Check whether the format is in Namespace}
 \usage{
-check_format(ext = "Rds", file_ext)
+check_format(file_ext, ext = NULL)
 }
 \arguments{
+\item{file_ext}{character: File extension}
+
 \item{ext}{character: format or extension of file. Default is
 \code{fs::path_ext(file)}}
-
-\item{file_ext}{character: File extension}
 }
 \value{
 character with extension of desired format
