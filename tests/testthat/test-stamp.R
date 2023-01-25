@@ -106,6 +106,11 @@ test_that("stamp_confirm works as expected", {
   stamp_confirm(x, st_name = st_name) |>
     expect_false()
 
+  # unchanged data
+  x <- data.frame(a = 1:5, b = "hola")
+  stamp_confirm(x, st_name = st_name) |>
+    expect_true()
+
 })
 
 
@@ -123,9 +128,10 @@ test_that("stamp_x_attr works as expected", {
   expect_equal(atn, c("names", "class", "row.names", "summary","dim", "type"))
 
   # list
-  x    <- data.frame(a = 1:5, b = "hola")
+  x    <- list(a = 1:5, b = "hola")
   at_x <-  stamp_x_attr(x)
   atn <- names(at_x)
+  expect_equal(atn,  c("names", "length", "type", "class"))
 
 
 })

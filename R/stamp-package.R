@@ -5,7 +5,6 @@
 #' projects with data that is changing constantly and should not be rewritten in
 #' each run.
 #'
-#' @section stamp functions: The stamp functions ...
 #'
 #' @docType package
 #' @name stamp
