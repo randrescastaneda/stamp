@@ -165,3 +165,17 @@ test_that("format_st_file ", {
     expect_equal(exp_out)
 
 })
+
+
+test_that("rand_name", {
+
+  # number of characters
+  rand_name(l = 10) |>
+    nchar() |>
+    expect_equal(10)
+
+  # seed\
+  rand_name(seed = 232) |>
+    expect_equal("psmxinai")
+
+})
