@@ -60,7 +60,8 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">format_st_file</span><span class="op">(</span></span>
 <span>  st_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  st_ext <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.default.ext"</span><span class="op">)</span></span>
+<span>  st_ext <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.default.ext"</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -79,6 +80,11 @@ You don't need to add the prefix.</p></dd>
 <dt>st_ext</dt>
 <dd><p>character: format of stamp file to save. Default is value in
 option "stamp.default.ext"</p></dd>
+
+
+<dt>seed</dt>
+<dd><p>numeric: seed for random name. Default is NULL so each time the
+the random name generated is the same. Use only for replicability purposes</p></dd>
 
 </dl></div>
     <div class="section level2">

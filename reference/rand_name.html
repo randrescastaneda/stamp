@@ -57,12 +57,17 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rand_name</span><span class="op">(</span>l <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rand_name</span><span class="op">(</span>seed <span class="op">=</span> <span class="cn">NULL</span>, l <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>l</dt>
+    <dl><dt>seed</dt>
+<dd><p>numeric: seed for random name. Default is NULL so each time the
+the random name generated is the same. Use only for replicability purposes</p></dd>
+
+
+<dt>l</dt>
 <dd><p>numeric: length of name. Default 8</p></dd>
 
 </dl></div>
