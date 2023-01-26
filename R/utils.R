@@ -313,16 +313,6 @@ format_st_dir <- function(st_dir = NULL) {
         fs::dir_create(recurse = TRUE)
     } else {
 
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      ## check if it is a dir --------
-      if (!fs::is_dir(st_dir)) {
-        msg     <- c(
-          "Path {.file {st_dir}} must be a directory")
-        cli::cli_abort(msg,
-                      class = "stamp_error",
-                      wrap = TRUE
-                      )
-      }
 
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ## check last dir name --------
@@ -354,20 +344,22 @@ format_st_dir <- function(st_dir = NULL) {
 #' Format Stamp name
 #'
 #' @inheritParams stamp_save
+#' @inheritParams rand_name
 #' @param st_nm_pr character: `st_name` prefix to save in file. default is value
 #'   in option "stamp.stamp_prefix".
 #'
 #' @return formatted directory
 #' @keywords internal
 format_st_name <- function(st_name = NULL,
-                           st_nm_pr = getOption("stamp.stamp_prefix")) {
+                           st_nm_pr = getOption("stamp.stamp_prefix"),
+                           seed     = NULL) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # format name   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   pattern    <- paste0("^", st_nm_pr)
   if (is.null(st_name)) {
-    st_name <-  rand_name()
+    st_name <-  rand_name(seed = seed)
   }
 
   if (!grepl(pattern, st_name)) {
@@ -465,11 +457,14 @@ format_st_file <- function(st_dir     = NULL,
 #' General random name
 #'
 #' @param l numeric: length of name. Default 8
+#' @param seed numeric: seed for random name. Default is NULL so each time the
+#'   the random name generated is the same. Use only for replicability purposes
 #'
 #' @return random string name
 #' @keywords internal
-rand_name <- function(l = 8)
-  {
+rand_name <- function(seed = NULL,
+                      l = 8){
+  set.seed(seed)
   # punct <- c("!",  "#", "$", "%", "&", "(", ")", "*",  "+", "-", "/", ":",
   #            ";", "<", "=", ">", "?", "@", "[", "^", "_", "{", "|", "}", "~")
   nums <- c(0:9)

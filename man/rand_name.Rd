@@ -4,9 +4,12 @@
 \alias{rand_name}
 \title{General random name}
 \usage{
-rand_name(l = 8)
+rand_name(seed = NULL, l = 8)
 }
 \arguments{
+\item{seed}{numeric: seed for random name. Default is NULL so each time the
+the random name generated is the same. Use only for replicability purposes}
+
 \item{l}{numeric: length of name. Default 8}
 }
 \value{

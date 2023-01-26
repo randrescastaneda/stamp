@@ -77,7 +77,42 @@ test_that("format_st_dir ", {
 
   tdir <- path_temp("n1")
 
-  format_st_dir(tdir) |>
-    expect_error()
+  # add dir_stamp in the process
+  tdir |>
+    format_st_dir() |>
+    expect_equal(path(tdir, dir_stamp))
+
+  tdir <- path_temp("n2")
+
+  # add dir_stamp before
+  tdir |>
+    path(dir_stamp) |>
+    dir_create() |>
+    format_st_dir() |>
+    expect_equal(path(tdir, dir_stamp))
+
+  # relative path
+  tdir <- path_temp("n3")
+
+  "n3" |>
+    format_st_dir() |>
+    expect_equal(path(tdir, dir_stamp))
+})
+
+test_that("format_st_name", {
+
+  # random name
+  format_st_name(seed = 123) |>
+    expect_equal("st_4oncnyz0")
+
+  # name with suffix
+  st_name <-  "hola"
+  format_st_name(st_name) |>
+    expect_equal(paste0("st_", st_name))
+
+  # With suffix
+  format_st_name(paste0("st_", st_name)) |>
+    expect_equal(paste0("st_", st_name))
+
 
 })
