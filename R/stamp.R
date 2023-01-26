@@ -312,7 +312,7 @@ stamp_clean <- function(st_name  = NULL,
 #'   `st_name`.
 #' @inheritParams stamp_set
 #'
-#' @return
+#' @return TRUE is saved correctly. FALSE otherwise
 #' @export
 #' @family stamp functions
 #'
@@ -330,6 +330,18 @@ stamp_clean <- function(st_name  = NULL,
 #'   to `st_name`. If NULL, `st_name` would be a random name of 8 characters.
 #'
 #' @examples
+#' \dontrun{
+#'
+#' x <- data.frame(a = 1:5,
+#' b = letters[1:5])
+#'
+#' st_dir <- tempdir()
+#' st_name <- "xst"
+#' stamp_save(x = x,
+#' st_dir = st_dir,
+#' st_name = st_name)
+#'
+#'}
 stamp_save <- function(x         = NULL,
                        st_dir    = NULL,
                        st_name   = NULL,
@@ -523,6 +535,13 @@ stamp_time <- function() {
 #' happens to be the same as in "stamp.stamp_prefix", it will be ignored.
 #'
 #' @examples
+#' \dontrun{
+#'   x <- data.frame(a = 1:5, b = "hola")
+#'   st_name <- "stx"
+#'   stamp_set(x, st_name, replace = TRUE)
+#'   # must provide st_dir or st_name
+#'   stamp_confirm(x, st_name = st_name)
+#'}
 stamp_confirm <- function(x,
                           st_dir  = NULL,
                           st_name = NULL,

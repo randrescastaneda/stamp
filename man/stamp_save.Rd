@@ -46,6 +46,9 @@ with the stamp. Useful for quick comparisons. Default is FALSE}
 
 \item{...}{other arguments passed to stamp_get()}
 }
+\value{
+TRUE is saved correctly. FALSE otherwise
+}
 \description{
 Create and save in file stamp for future use
 }
@@ -62,6 +65,20 @@ precaution that should not present bumps in any workflow.  If the beginning
 of \code{st_name} is identical to the value in "stamp.stamp_prefix", then it is
 adopted as is. Otherwise, the prefix in "stamp.stamp_prefix" will be added
 to \code{st_name}. If NULL, \code{st_name} would be a random name of 8 characters.
+}
+\examples{
+\dontrun{
+
+x <- data.frame(a = 1:5,
+b = letters[1:5])
+
+st_dir <- tempdir()
+st_name <- "xst"
+stamp_save(x = x,
+st_dir = st_dir,
+st_name = st_name)
+
+}
 }
 \seealso{
 Other stamp functions: 

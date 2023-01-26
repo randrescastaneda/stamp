@@ -89,6 +89,15 @@ to disk are prefixed with the value in option "stamp.stamp_prefix", which by
 default is "st_". You don't need to add the prefix, but if you do and it
 happens to be the same as in "stamp.stamp_prefix", it will be ignored.
 }
+\examples{
+\dontrun{
+  x <- data.frame(a = 1:5, b = "hola")
+  st_name <- "stx"
+  stamp_set(x, st_name, replace = TRUE)
+  # must provide st_dir or st_name
+  stamp_confirm(x, st_name = st_name)
+}
+}
 \seealso{
 Other stamp functions: 
 \code{\link{stamp_get}()},
