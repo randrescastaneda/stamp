@@ -116,3 +116,52 @@ test_that("format_st_name", {
 
 
 })
+
+
+test_that("format_st_file ", {
+
+  while (!is.null(file_temp_pop())) next
+  file_temp_push(path(path_temp(),letters))
+
+  # No arguments
+  format_st_file() |>
+    expect_error()
+
+  # If no name provided, st_dir MUST be a file
+  tdir <- path_temp("dos")
+
+  tdir |>
+    dir_create() |>
+    format_st_file() |>
+    expect_error()
+
+
+  # If directory does not exist
+  file_temp() |>
+    path(ext = "fst") |>
+    format_st_file() |>
+    expect_error()
+
+  # add format
+  format_st_file(st_dir = tdir,
+                 st_name = "cuatro") |>
+    path_ext() |>
+    expect_equal(getOption("stamp.default.ext"))
+
+
+  # replace format based on st_name
+  format_st_file(st_dir = tdir,
+                 st_name = "cinco.fst") |>
+    path_ext() |>
+    expect_equal("fst")
+
+  # Check output
+  exp_out <- path(tdir,
+                  getOption("stamp.dir_stamp"),
+                  paste0(getOption("stamp.stamp_prefix"), "cinco.fst"))
+
+  format_st_file(st_dir = tdir,
+                 st_name = "cinco.fst") |>
+    expect_equal(exp_out)
+
+})

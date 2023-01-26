@@ -377,12 +377,14 @@ format_st_name <- function(st_name = NULL,
 #' Format stamp file
 #'
 #' @inheritParams stamp_save
+#' @inheritParams rand_name
 #'
 #' @return formatted directory
 #' @keywords internal
 format_st_file <- function(st_dir     = NULL,
                            st_name    = NULL,
-                           st_ext     = getOption("stamp.default.ext")) {
+                           st_ext     = getOption("stamp.default.ext"),
+                           seed       = NULL) {
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -405,8 +407,14 @@ format_st_file <- function(st_dir     = NULL,
     if (isfile) {
       return(st_dir)
     } else {
-      msg     <- c(
-        "file {.file {st_dir}} does not exist")
+      if (fs::is_dir(st_dir)) {
+        msg     <- c("{.file {st_dir}} is a directory, not a file",
+                     "*" = "If {.field st_name} is not provided,
+                     {.blue st_dir} must be a file")
+      } else {
+        msg     <- c("Directory {.file {st_dir}} does not exist")
+      }
+
       cli::cli_abort(msg,
                     class = "stamp_error",
                     wrap = TRUE
@@ -423,7 +431,7 @@ format_st_file <- function(st_dir     = NULL,
   ## dir and name --------
 
   st_dir  <- format_st_dir(st_dir)
-  st_name <- format_st_name(st_name)
+  st_name <- format_st_name(st_name, seed = seed)
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -431,7 +439,8 @@ format_st_file <- function(st_dir     = NULL,
 
   st_name_ext <- fs::path_ext(st_name)
   if (st_name_ext != "") {
-    st_ext <- st_name_ext
+    st_ext  <- st_name_ext
+    st_name <- fs::path_ext_remove(st_name)
   }
 
   pkg_av <- pkg_available(st_ext)

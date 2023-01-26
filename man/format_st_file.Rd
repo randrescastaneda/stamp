@@ -7,7 +7,8 @@
 format_st_file(
   st_dir = NULL,
   st_name = NULL,
-  st_ext = getOption("stamp.default.ext")
+  st_ext = getOption("stamp.default.ext"),
+  seed = NULL
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ You don't need to add the prefix.}
 
 \item{st_ext}{character: format of stamp file to save. Default is value in
 option "stamp.default.ext"}
+
+\item{seed}{numeric: seed for random name. Default is NULL so each time the
+the random name generated is the same. Use only for replicability purposes}
 }
 \value{
 formatted directory
