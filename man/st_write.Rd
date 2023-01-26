@@ -9,6 +9,7 @@ st_write(
   file,
   ext = fs::path_ext(file),
   st_dir = NULL,
+  st_name = NULL,
   complete_stamp = getOption("stamp.completestamp"),
   recurse = FALSE,
   force = FALSE,
@@ -29,6 +30,10 @@ st_write(
 
 \item{st_dir}{character: Directory to store stamp files. By default it is a
 subdirectory at the same level of \code{file}.}
+
+\item{st_name}{character: name of stamp in file. All stamp files are prefixed
+with value in option "stamp.stamp_prefix", which by default is "st_". You
+don't need to add the prefix.}
 
 \item{complete_stamp}{logical: Whether to add a complete report of data.frame
 to stamp file. You need the \code{skimr} package. If \code{skimr} is not in

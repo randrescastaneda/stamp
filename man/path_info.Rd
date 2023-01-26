@@ -10,7 +10,8 @@ path_info(
   st_dir = NULL,
   vintage = getOption("stamp.vintage"),
   vintage_dir = NULL,
-  recurse = FALSE
+  recurse = FALSE,
+  st_name = NULL
 )
 }
 \arguments{
@@ -29,6 +30,10 @@ it is a subdirectory at the same level of \code{file}}
 
 \item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will
 be created. Default is FALSE}
+
+\item{st_name}{character: name of stamp in file. All stamp files are prefixed
+with value in option "stamp.stamp_prefix", which by default is "st_". You
+don't need to add the prefix.}
 }
 \value{
 list of directories and files information

@@ -291,6 +291,9 @@ stamp_clean <- function(st_name  = NULL,
   }
 
 }
+
+
+
 #' Save Stamp in disk
 #'
 #' @description Create and save in file stamp for future use
@@ -439,36 +442,98 @@ stamp_save <- function(x         = NULL,
 }
 
 
-
-#' defenses of stamp_save
+#' Read Stamp in disk
 #'
-#' @inheritParams  stamp_save
-#' @inheritDotParams stamp_get
-#' @return Nothing
-#' @keywords internal
-stamp_save_defense <- function(x        = NULL,
-                               st_dir   = NULL,
-                               st_name  = NULL,
-                               st_ext   = getOption("stamp.default.ext"),
-                               stamp    = NULL,
-                               x_attr   = TRUE,
-                               verbose  = getOption("stamp.verbose"),
-                               ...) {
+#'
+#' @param st_file
+#' @inheritParams stamp_save
+#'
+#'
+#' @return stamp list invisibly
+#' @export
+#' @family stamp functions
+#'
+#' @examples
+#' \dontrun{
+#'
+#' x <- data.frame(a = 1:5,
+#' b = letters[1:5])
+#'
+#' st_dir <- tempdir()
+#' st_name <- "xst"
+#' sv <- stamp_save(x = x,
+#' st_dir = st_dir,
+#' st_name = st_name)
+#'
+#' nsv <- names(sv) |>
+#'  fs::path()
+#'
+#' stamp_read(nsv)
+#'
+#'}
+stamp_read <- function(st_file   = NULL,
+                       st_dir    = NULL,
+                       st_name   = NULL,
+                       st_ext    = getOption("stamp.default.ext"),
+                       stamp_set = FALSE,
+                       replace   = FALSE) {
 
-  if (isTRUE(x_attr) && is.null(x)) {
-    msg     <- c("{.field x_attr} can't be TRUE while {.field x} is NULL")
-    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # defenses ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  sr_args <- environment() |>
+    as.list()
+  do.call("stamp_read_defense", sr_args)
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # stamp file   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  if (!is.null(st_dir)) {
+    st_file <- format_st_file(st_dir  = st_dir,
+                              st_name = st_name,
+                              st_ext  = st_ext)
   }
 
-  if (is.null(stamp) && is.null(x)) {
-    msg     <- c("Either {.field stamp} or {.field x} must be provided")
-    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Get stamp   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  st_ext <- fs::path_ext(st_file)
+
+  read_stamp <- get_reading_fun(ext = st_ext)
+  stamp      <- read_stamp(st_file)
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## set stamp --------
+
+  if (stamp_set) {
+
+    if (is.null(st_name)) {
+      st_name <- st_file |>
+        fs::path_file() |>
+        fs::path_ext_remove()
+    }
+
+    stamp_set(stamp = stamp,
+              st_name = st_name,
+              replace = replace)
+
+    if (verbose) {
+      if (env_has(.stamp, st_name)) {
+        cli::cli_alert("Stamp {.blue {st_name}} set in {.env .stamp}")
+      }
+    }
   }
 
 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Return   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  invisible(stamp)
 }
-
 
 
 #' Get time parameters

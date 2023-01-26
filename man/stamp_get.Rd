@@ -118,6 +118,7 @@ stamp_get("abc")
 \seealso{
 Other stamp functions: 
 \code{\link{stamp_confirm}()},
+\code{\link{stamp_read}()},
 \code{\link{stamp_save}()},
 \code{\link{stamp_set}()},
 \code{\link{stamp_time}()},

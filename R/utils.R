@@ -1,6 +1,7 @@
 #' Get file names and paths
 #'
 #' @inheritParams st_write
+#' @inheritParams stamp_save
 #'
 #' @return list of directories and files information
 #' @keywords internal
@@ -10,32 +11,10 @@ path_info <-
            st_dir      = NULL,
            vintage     = getOption("stamp.vintage"),
            vintage_dir = NULL,
-           recurse     = FALSE
+           recurse     = FALSE,
+           st_name     = NULL
   ) {
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Defensive setup   ---------
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ## On Exit --------
-    on.exit({
-
-    })
-
-
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ## Defenses --------
-    stopifnot( exprs = {
-
-    }
-    )
-
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ## Early Return --------
-    if (FALSE) {
-      return()
-    }
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # initial parameters   ---------
@@ -45,7 +24,6 @@ path_info <-
     lt <- stamp_time()
 
     # stamp parameters
-    dir_stamp <- getOption("stamp.dir_stamp")
     dir_vtg   <- getOption("stamp.dir_vintage")
 
 
@@ -62,24 +40,23 @@ path_info <-
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Stamp file and dir   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    st_name   <- paste0("st_", file_name)
+    if (is.null(st_name)) {
+      st_name   <- file_name
+    }
 
-    # format directory to store stamps
-    st_dir <-
+
+    st_file <-
       if (is.null(st_dir)) {
-        file_dir |>
-          fs::path(dir_stamp) |>
-          fs::dir_create(recurse = TRUE)
+        format_st_file(st_dir  = file_dir,  # use file directory
+                       st_name = st_name)
       } else {
-        if (fs::is_absolute_path(st_dir)) {
-          fs::dir_create(st_dir, recurse = TRUE)
-        } else {
-          fs::path_wd(st_dir) |>
-            fs::dir_create(recurse = TRUE)
-        }
+        format_st_file(st_dir  = st_dir,  # use file directory
+                       st_name = st_name)
       }
 
-    st_file <- fs::path(st_dir, st_name)
+    st_dir <- fs::path_dir(st_file)
+    st_ext <- fs::path_ext(st_file)
+
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Vintage file   ---------
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -123,6 +100,7 @@ path_info <-
       st_name      = st_name,
       st_dir       = st_dir,
       st_file      = st_file,
+      st_ext       = st_ext,
       st_time      = st_time,
       vintage_dir  = vintage_dir,
       vintage_name = vintage_name,
@@ -287,202 +265,3 @@ check_file <- function(file) {
 
 }
 
-
-
-#' Format Stamp directory
-#'
-#' @inheritParams stamp_save
-#'
-#' @return formatted directory
-#' @keywords internal
-format_st_dir <- function(st_dir = NULL) {
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # format dir   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  # format directory to store stamps
-  dir_stamp <- getOption("stamp.dir_stamp")
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ## If it NULL --------
-
-    if (is.null(st_dir)) {
-      # create in current directory if NULL
-      st_dir <-
-        fs::path(dir_stamp) |> # curent directory
-        fs::dir_create(recurse = TRUE)
-    } else {
-
-
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      ## check last dir name --------
-
-      last_dir <- fs::path_file(st_dir)
-      if (last_dir != dir_stamp) {
-        st_dir <- fs::path(st_dir, dir_stamp)
-      }
-
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      ## relative of absolute path --------
-
-      st_dir <-
-        if (fs::is_absolute_path(st_dir)) {
-          fs::dir_create(st_dir, recurse = TRUE)
-        } else {
-          fs::path_wd(st_dir) |>
-            fs::dir_create(recurse = TRUE)
-        }
-    }
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(st_dir)
-}
-
-
-#' Format Stamp name
-#'
-#' @inheritParams stamp_save
-#' @inheritParams rand_name
-#' @param st_nm_pr character: `st_name` prefix to save in file. default is value
-#'   in option "stamp.stamp_prefix".
-#'
-#' @return formatted directory
-#' @keywords internal
-format_st_name <- function(st_name = NULL,
-                           st_nm_pr = getOption("stamp.stamp_prefix"),
-                           seed     = NULL) {
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # format name   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  pattern    <- paste0("^", st_nm_pr)
-  if (is.null(st_name)) {
-    st_name <-  rand_name(seed = seed)
-  }
-
-  if (!grepl(pattern, st_name)) {
-    st_name <- paste0(st_nm_pr, st_name)
-  }
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(st_name)
-}
-
-
-
-#' Format stamp file
-#'
-#' @inheritParams stamp_save
-#' @inheritParams rand_name
-#'
-#' @return formatted directory
-#' @keywords internal
-format_st_file <- function(st_dir     = NULL,
-                           st_name    = NULL,
-                           st_ext     = getOption("stamp.default.ext"),
-                           seed       = NULL) {
-
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Defensive setup   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Defenses --------
-  stopifnot( exprs = {
-    !is.null(st_dir) || !is.null(st_name)
-  }
-  )
-
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Early return --------
-
-  if (!is.null(st_dir) && is.null(st_name)) {
-    isfile <- fs::is_file(st_dir)
-    if (isfile) {
-      return(st_dir)
-    } else {
-      if (fs::is_dir(st_dir)) {
-        msg     <- c("{.file {st_dir}} is a directory, not a file",
-                     "*" = "If {.field st_name} is not provided,
-                     {.blue st_dir} must be a file")
-      } else {
-        msg     <- c("Directory {.file {st_dir}} does not exist")
-      }
-
-      cli::cli_abort(msg,
-                    class = "stamp_error",
-                    wrap = TRUE
-                    )
-    }
-  }
-
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # get sf_file   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## dir and name --------
-
-  st_dir  <- format_st_dir(st_dir)
-  st_name <- format_st_name(st_name, seed = seed)
-
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## fix extension --------
-
-  st_name_ext <- fs::path_ext(st_name)
-  if (st_name_ext != "") {
-    st_ext  <- st_name_ext
-    st_name <- fs::path_ext_remove(st_name)
-  }
-
-  pkg_av <- pkg_available(st_ext)
-  if (!pkg_av) {
-    st_ext <- "rds"
-  }
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## create st_file --------
-
-  st_file <- fs::path(st_dir,
-                      st_name,
-                      ext = st_ext)
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return   ---------
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    return(st_file)
-
-}
-
-
-#' General random name
-#'
-#' @param l numeric: length of name. Default 8
-#' @param seed numeric: seed for random name. Default is NULL so each time the
-#'   the random name generated is the same. Use only for replicability purposes
-#'
-#' @return random string name
-#' @keywords internal
-rand_name <- function(seed = NULL,
-                      l = 8){
-  set.seed(seed)
-  # punct <- c("!",  "#", "$", "%", "&", "(", ")", "*",  "+", "-", "/", ":",
-  #            ";", "<", "=", ">", "?", "@", "[", "^", "_", "{", "|", "}", "~")
-  nums <- c(0:9)
-  # chars <- c(letters, LETTERS, punct, nums)
-  chars <- c(letters, nums)
-  # p <- c(rep(0.0105, 52), rep(0.0102, 25), rep(0.02, 10))
-  pword <- paste0(sample(x = chars,
-                         size = l,
-                         replace = TRUE),
-                  collapse = "")
-  return(pword)
-}

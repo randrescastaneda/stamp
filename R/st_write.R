@@ -30,6 +30,8 @@
 #' @param complete_stamp logical: Whether to add a complete report of data.frame
 #'   to stamp file. You need the `skimr` package. If `skimr` is not in
 #'   namespace, limited but lighter report will be added.
+#' @inheritParams stamp_save
+#'
 #'
 #' @details Object `x` is stored in `file` but its hash (i.e., stamp) is stored
 #'   in subdirectory `st_file`.
@@ -50,6 +52,7 @@ st_write <- function(x,
                      file,
                      ext            = fs::path_ext(file),
                      st_dir         = NULL,
+                     st_name        = NULL,
                      complete_stamp = getOption("stamp.completestamp"),
                      recurse        = FALSE,
                      force          = FALSE,
@@ -59,24 +62,11 @@ st_write <- function(x,
                      verbose        = getOption("stamp.verbose"),
                      ...) {
 
-  #   ____________________________________________________
-  #   on.exit                                         ####
-  on.exit({
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Defenses   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  })
 
-  #   ____________________________________________________
-  #   Defenses and set up   ####
-  stopifnot( exprs = {
-
-  }
-  )
-
-  #   ____________________________________________________
-  #   Early returns                                   ####
-  if (FALSE) {
-    return()
-  }
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # deal with file and path   ---------
@@ -87,11 +77,14 @@ st_write <- function(x,
     file        = file,
     ext         = ext,
     st_dir      = st_dir,
+    st_name     = st_name,
     vintage     = vintage,
     vintage_dir = vintage_dir,
     recurse     = recurse
   )
   saved <- FALSE
+
+
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # add hash   ---------
@@ -100,6 +93,7 @@ st_write <- function(x,
   ## Check if there is a stamp already ----------
   ms_status <- ""
   if (fs::file_exists(lp$st_file)) {
+
     stamp <- qs::qread(lp$st_file)
   } else {
     stamp <- digest::digest(0, algo = algo) # if not created before
@@ -160,8 +154,7 @@ st_write <- function(x,
                                 ext = lp$ext))
 
     ## save stamp -------
-    stamp_save(x = x,
-               )
+    # stamp_save(x = x)
 
     ## save vintage --------
     save_file(x    = x,

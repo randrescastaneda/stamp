@@ -213,3 +213,33 @@ test_that("stamp_save", {
 
 })
 
+test_that("stamp_read", {
+
+  x <- data.frame(a = 1:5,
+                  b = letters[1:5])
+
+  st_dir <- tempdir()
+  st_name <- "xst"
+  sv <- stamp_save(x = x,
+                  st_dir = st_dir,
+                  st_name = st_name,
+                  stamp_set = TRUE
+                  )
+
+  nsv <- names(sv) |>
+   fs::path()
+
+  str <- stamp_read(st_file = nsv)
+  stc <- stamp_call(st_name)
+
+  expect_equal(str$stamps,
+               stc$stamps)
+
+  str2 <- stamp_read(st_dir = st_dir,
+                    st_name = st_name)
+
+  expect_equal(str2$stamps,
+               stc$stamps)
+
+
+})

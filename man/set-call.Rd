@@ -65,6 +65,7 @@ stamp_env()
 Other stamp functions: 
 \code{\link{stamp_confirm}()},
 \code{\link{stamp_get}()},
+\code{\link{stamp_read}()},
 \code{\link{stamp_save}()},
 \code{\link{stamp_time}()},
 \code{\link{stamp_x_attr}()}

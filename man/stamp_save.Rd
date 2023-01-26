@@ -84,6 +84,7 @@ st_name = st_name)
 Other stamp functions: 
 \code{\link{stamp_confirm}()},
 \code{\link{stamp_get}()},
+\code{\link{stamp_read}()},
 \code{\link{stamp_set}()},
 \code{\link{stamp_time}()},
 \code{\link{stamp_x_attr}()}
