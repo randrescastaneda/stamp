@@ -12,6 +12,7 @@ test_that("check_format", {
 
   # change format of file
   check_format(file_ext = "Rds", ext = "fst") |>
+    suppressWarnings() |>
     expect_equal("fst")
 
   # pakcage available

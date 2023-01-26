@@ -5,12 +5,14 @@
 \title{Save Stamp in disk}
 \usage{
 stamp_save(
-  x,
+  x = NULL,
   st_dir = NULL,
   st_name = NULL,
   st_ext = getOption("stamp.default.ext"),
   stamp = NULL,
-  x_attr = TRUE,
+  stamp_set = FALSE,
+  replace = FALSE,
+  x_attr = FALSE,
   verbose = getOption("stamp.verbose"),
   ...
 )
@@ -21,8 +23,8 @@ stamp_save(
 \item{st_dir}{character: parent directory to store stamp file (see details).}
 
 \item{st_name}{character: name of stamp in file. All stamp files are prefixed
-with value in option "stamp.stamp_prefix", which by default is "st_".
-You don't need to add the prefix.}
+with value in option "stamp.stamp_prefix", which by default is "st_". You
+don't need to add the prefix.}
 
 \item{st_ext}{character: format of stamp file to save. Default is value in
 option "stamp.default.ext"}
@@ -30,8 +32,15 @@ option "stamp.default.ext"}
 \item{stamp}{list of stamp from stamp_get() in case it was calculated before
 hand. Developers option. It should be used interactively.}
 
+\item{stamp_set}{logical: whether to set stamp in .stamp env, using
+\code{st_name}.}
+
+\item{replace}{Logical: if TRUE and \code{st_name} already exists in \code{.stamp}
+environment, it will be replaced with new stamp. If \code{FALSE} it gives an
+error. Default is \code{FALSE}}
+
 \item{x_attr}{logical: whether or not to save the attributes of \code{x} along
-with the stamp. Useful for quick comparisons}
+with the stamp. Useful for quick comparisons. Default is FALSE}
 
 \item{verbose}{logical: Fi TRUE displays information about stamping process.}
 

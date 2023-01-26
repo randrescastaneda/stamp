@@ -73,6 +73,7 @@ stamp_get <- function(x,
 #' @inheritParams  stamp_get
 #' @inheritParams  st_write
 #' @param st_name character: Name of stamp to be set or called in .stamp env.
+#' @param stamp previously calculated stamp with [stamp_get].
 #' @param replace Logical: if TRUE and `st_name` already exists in `.stamp`
 #'   environment, it will be replaced with new stamp. If `FALSE` it gives an
 #'   error. Default is `FALSE`
@@ -92,17 +93,31 @@ stamp_get <- function(x,
 #' y <- data.frame(a = 5:10, b = letters[5:10])
 #' stamp_set(y, st_name = "yts")
 #' stamp_env()
-stamp_set <- function(x,
+stamp_set <- function(x       = NULL,
                       st_name = NULL,
+                      stamp   = NULL,
                       verbose = getOption("stamp.verbose"),
                       replace = FALSE,
                       ...) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # defense   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if (is.null(x) && is.null(stamp) ||
+      !is.null(x) && !is.null(stamp) ) {
+    msg <- c("Either {.field x} or {.field stamp} must be provided")
+      cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Stamp   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  hash <- stamp_get(x, ...)
+  if (is.null(stamp)) {
+    hash <- stamp_get(x, ...)
+  } else {
+    hash <- stamp
+  }
 
   st_name <- format_st_name(st_name,
                             st_nm_pr = "") |>
@@ -278,22 +293,24 @@ stamp_clean <- function(st_name  = NULL,
 }
 #' Save Stamp in disk
 #'
-#' @description
-#' Create and save in file stamp for future use
+#' @description Create and save in file stamp for future use
 #'
 #' @param x R object to stamp
 #' @param st_dir character: parent directory to store stamp file (see details).
 #' @param st_name character: name of stamp in file. All stamp files are prefixed
-#'   with value in option "stamp.stamp_prefix", which by default is "st_".
-#'   You don't need to add the prefix.
+#'   with value in option "stamp.stamp_prefix", which by default is "st_". You
+#'   don't need to add the prefix.
 #' @param stamp list of stamp from stamp_get() in case it was calculated before
 #'   hand. Developers option. It should be used interactively.
 #' @param x_attr logical: whether or not to save the attributes of `x` along
-#'   with the stamp. Useful for quick comparisons
+#'   with the stamp. Useful for quick comparisons. Default is FALSE
 #' @param st_ext character: format of stamp file to save. Default is value in
 #'   option "stamp.default.ext"
 #' @param ... other arguments passed to stamp_get()
 #' @param verbose logical: Fi TRUE displays information about stamping process.
+#' @param stamp_set logical: whether to set stamp in .stamp env, using
+#'   `st_name`.
+#' @inheritParams stamp_set
 #'
 #' @return
 #' @export
@@ -313,14 +330,27 @@ stamp_clean <- function(st_name  = NULL,
 #'   to `st_name`. If NULL, `st_name` would be a random name of 8 characters.
 #'
 #' @examples
-stamp_save <- function(x,
-                       st_dir     = NULL,
-                       st_name    = NULL,
-                       st_ext     = getOption("stamp.default.ext"),
-                       stamp      = NULL,
-                       x_attr     = TRUE,
-                       verbose    = getOption("stamp.verbose"),
+stamp_save <- function(x         = NULL,
+                       st_dir    = NULL,
+                       st_name   = NULL,
+                       st_ext    = getOption("stamp.default.ext"),
+                       stamp     = NULL,
+                       stamp_set = FALSE,
+                       replace   = FALSE,
+                       x_attr    = FALSE,
+                       verbose   = getOption("stamp.verbose"),
                        ...) {
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # defenses   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ss_args <- environment() |>
+    as.list() |>
+    c(list(...))
+
+  do.call("stamp_save_defense", ss_args)
+
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Get stamp   ---------
@@ -356,9 +386,25 @@ stamp_save <- function(x,
   # Save   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  save_stamp <- get_saving_fun(ext = st_ext)
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## save stamp --------
 
-  saved <- save_stamp(x = stamp_attr, path = st_file)
+  save_stamp <- get_saving_fun(ext = st_ext)
+  saved      <- save_stamp(x = stamp_attr, path = st_file)
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## set stamp --------
+
+  if (stamp_set) {
+    stamp_set(stamp = stamp_attr,
+              st_name = st_name,
+              replace = replace)
+    if (verbose) {
+      if (env_has(.stamp, st_name)) {
+        cli::cli_alert("Stamp {.blue {st_name}} set in {.env .stamp}")
+      }
+    }
+  }
 
   if (verbose) {
     if (saved) {
@@ -379,6 +425,39 @@ stamp_save <- function(x,
 
   invisible(saved)
 }
+
+
+
+#' defenses of stamp_save
+#'
+#' @inheritParams  stamp_save
+#' @inheritDotParams stamp_get
+#' @return Nothing
+#' @keywords internal
+stamp_save_defense <- function(x        = NULL,
+                               st_dir   = NULL,
+                               st_name  = NULL,
+                               st_ext   = getOption("stamp.default.ext"),
+                               stamp    = NULL,
+                               x_attr   = TRUE,
+                               verbose  = getOption("stamp.verbose"),
+                               ...) {
+
+  if (isTRUE(x_attr) && is.null(x)) {
+    msg     <- c("{.field x_attr} can't be TRUE while {.field x} is NULL")
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+  if (is.null(stamp) && is.null(x)) {
+    msg     <- c("Either {.field stamp} or {.field x} must be provided")
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+
+
+}
+
+
 
 #' Get time parameters
 #'

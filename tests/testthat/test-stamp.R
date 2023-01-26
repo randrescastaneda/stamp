@@ -1,7 +1,10 @@
+library(fs)
+library(withr)
+
 options(stamp.verbose = FALSE)
 x <- data.frame(a = 1:5,
                 b = letters[1:5])
-test_that("stamp_get works as expected", {
+test_that("stamp_get", {
 
   # Names of stamp
   st <- stamp_get(x)
@@ -33,7 +36,7 @@ test_that("stamp_get works as expected", {
 
 })
 
-test_that("stamp_set works as expected", {
+test_that("stamp_set & stamp_call", {
   st <- stamp_get(x)
   stamp_set(x, "st_x")
   st_x <- stamp_call("st_x")
@@ -48,16 +51,26 @@ test_that("stamp_set works as expected", {
   stl <- stamp_get(letters)
   expect_equal(stl, stamp_call("st_x"))
 
-
   # Call a stamp that does not exist
   stamp_call("hola") |>
     expect_error()
 
+  # set previously calculated stamp
+  st <- stamp_get(x)
+  stamp_set(stamp = st, st_name = "st_x2")
+  st_x <- stamp_call("st_x2")
+  expect_equal(st, st_x)
+
+  stamp_set() |>
+    expect_error()
+
+  stamp_set(x = x, stamp = st) |>
+    expect_error()
+
+
 })
 
-
-
-test_that("stamp_env and stamp_clean works as expected", {
+test_that("stamp_env & stamp_clean", {
 
   # clean all
   stamp_clean()
@@ -87,8 +100,7 @@ test_that("stamp_env and stamp_clean works as expected", {
 
 })
 
-
-test_that("stamp_confirm works as expected", {
+test_that("stamp_confirm", {
   x <- data.frame(a = 1:5, b = "hola")
   st_name <- "stx"
   stamp_set(x, st_name, replace = TRUE)
@@ -103,19 +115,17 @@ test_that("stamp_confirm works as expected", {
 
   # New variable
   x <- data.frame(a = 1:5, b = "hola", c = "chao")
-  stamp_confirm(x, st_name = st_name) |>
+  stamp_confirm(x, st_name = st_name, verbose = TRUE) |>
     expect_false()
 
   # unchanged data
   x <- data.frame(a = 1:5, b = "hola")
-  stamp_confirm(x, st_name = st_name) |>
+  stamp_confirm(x, st_name = st_name, verbose = TRUE) |>
     expect_true()
 
 })
 
-
-
-test_that("stamp_x_attr works as expected", {
+test_that("stamp_x_attr ", {
 
   # Data.frame
   x    <- data.frame(a = 1:5, b = "hola")
@@ -135,3 +145,71 @@ test_that("stamp_x_attr works as expected", {
 
 
 })
+
+
+test_that("stamp_save", {
+
+  # defenses
+  stamp_save() |>
+    expect_error()
+
+  stamp_save(x_attr = TRUE) |>
+    expect_error()
+
+  # stamps
+  crt_wd <- getwd()
+  defer(setwd(crt_wd))
+
+  while (!is.null(file_temp_pop())) next
+  file_temp_push(path(path_temp(),letters))
+
+
+  stamp <- stamp_get(x)
+  st_dir <- path_temp()
+  st_name <- "xst"
+
+  sv <- stamp_save(st_dir = st_dir,
+             st_name = st_name,
+             stamp   = stamp)
+
+  expect_true(sv)
+
+  nsv <- names(sv) |>
+    path()
+  nsv |>
+    is_file() |>
+    expect_true()
+
+  exp_out <- path(st_dir,
+                  getOption("stamp.dir_stamp"),
+                  paste0(getOption("stamp.stamp_prefix"), st_name),
+                  ext = getOption("stamp.default.ext"))
+  expect_equal(nsv, exp_out)
+
+  sv <- stamp_save(st_dir = st_dir,
+                   st_name = st_name,
+                   stamp   = stamp)
+
+  svx <- stamp_save(x = x,
+                    st_dir = st_dir,
+                   st_name = st_name)
+  expect_equal(sv, svx)
+
+
+  stamp_save(x = x,
+            st_dir = st_dir,
+            st_name = st_name,
+            x_attr = TRUE,
+            stamp_set = TRUE)
+
+  svxa <- stamp_call(st_name)
+
+  xtt <- stamp_x_attr(x)
+
+  expect_equal(svxa$x_attr, xtt)
+
+
+
+
+})
+

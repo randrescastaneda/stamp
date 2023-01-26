@@ -12,8 +12,8 @@ format_st_name(
 }
 \arguments{
 \item{st_name}{character: name of stamp in file. All stamp files are prefixed
-with value in option "stamp.stamp_prefix", which by default is "st_".
-You don't need to add the prefix.}
+with value in option "stamp.stamp_prefix", which by default is "st_". You
+don't need to add the prefix.}
 
 \item{st_nm_pr}{character: \code{st_name} prefix to save in file. default is value
 in option "stamp.stamp_prefix".}

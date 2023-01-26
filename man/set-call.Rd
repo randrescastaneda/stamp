@@ -7,8 +7,9 @@
 \title{Set and call stamps from \code{.stamp} environment}
 \usage{
 stamp_set(
-  x,
+  x = NULL,
   st_name = NULL,
+  stamp = NULL,
   verbose = getOption("stamp.verbose"),
   replace = FALSE,
   ...
@@ -23,6 +24,8 @@ stamp_env(verbose = getOption("stamp.verbose"))
 base::serialize function}
 
 \item{st_name}{character: Name of stamp to be set or called in .stamp env.}
+
+\item{stamp}{previously calculated stamp with \link{stamp_get}.}
 
 \item{verbose}{logical: whether to display additional information. This could
 be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
