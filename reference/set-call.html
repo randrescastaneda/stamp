@@ -67,8 +67,9 @@ display all the stamps available in the <code>.stamp</code> env.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stamp_set</span><span class="op">(</span></span>
-<span>  <span class="va">x</span>,</span>
+<span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stamp <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.verbose"</span><span class="op">)</span>,</span>
 <span>  replace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -88,6 +89,10 @@ base::serialize function</p></dd>
 
 <dt>st_name</dt>
 <dd><p>character: Name of stamp to be set or called in .stamp env.</p></dd>
+
+
+<dt>stamp</dt>
+<dd><p>previously calculated stamp with <a href="stamp_get.html">stamp_get</a>.</p></dd>
 
 
 <dt>verbose</dt>
@@ -155,7 +160,7 @@ returns an invisible character vector of length 0.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $time$st_time</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "20230126165416"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "20230126181822"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $algo</span>
