@@ -12,7 +12,7 @@ one previously set with stamp_set() of stamp_save()."><!-- mathjax --><script sr
     
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9011</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9013</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -183,6 +183,17 @@ happens to be the same as in "stamp.stamp_prefix", it will be ignored.</p>
 <code><a href="stamp_x_attr.html">stamp_x_attr</a>()</code></p></div>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, b <span class="op">=</span> <span class="st">"hola"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">st_name</span> <span class="op">&lt;-</span> <span class="st">"stx"</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="set-call.html">stamp_set</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">st_name</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># must provide st_dir or st_name</span></span></span>
+<span class="r-in"><span>  <span class="fu">stamp_confirm</span><span class="op">(</span><span class="va">x</span>, st_name <span class="op">=</span> <span class="va">st_name</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
