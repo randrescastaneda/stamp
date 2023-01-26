@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9013</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9014</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,8 @@
 <span>  st_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  vintage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.vintage"</span><span class="op">)</span>,</span>
 <span>  vintage_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  recurse <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  recurse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  st_name <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -95,6 +96,12 @@ it is a subdirectory at the same level of <code>file</code></p></dd>
 <dt>recurse</dt>
 <dd><p>logical: is <code>TRUE</code> if directory in <code>file</code> does not it will
 be created. Default is FALSE</p></dd>
+
+
+<dt>st_name</dt>
+<dd><p>character: name of stamp in file. All stamp files are prefixed
+with value in option "stamp.stamp_prefix", which by default is "st_". You
+don't need to add the prefix.</p></dd>
 
 </dl></div>
     <div class="section level2">
