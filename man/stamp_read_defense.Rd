@@ -10,10 +10,13 @@ stamp_read_defense(
   st_name = NULL,
   st_ext = getOption("stamp.default.ext"),
   stamp_set = FALSE,
-  replace = FALSE
+  replace = FALSE,
+  verbose = getOption("stamp.verbose")
 )
 }
 \arguments{
+\item{st_file}{character: file path to be read}
+
 \item{st_dir}{character: parent directory to store stamp file (see details).}
 
 \item{st_name}{character: name of stamp in file. All stamp files are prefixed
@@ -29,6 +32,8 @@ option "stamp.default.ext"}
 \item{replace}{Logical: if TRUE and \code{st_name} already exists in \code{.stamp}
 environment, it will be replaced with new stamp. If \code{FALSE} it gives an
 error. Default is \code{FALSE}}
+
+\item{verbose}{logical: Fi TRUE displays information about stamping process.}
 }
 \value{
 Nothing

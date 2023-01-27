@@ -1,5 +1,8 @@
 library(fs)
 library(withr)
+op <- options(stamp.verbose = FALSE,
+              stamp.seed    = 12332)
+defer(options(op))
 
 options(stamp.verbose = FALSE)
 x <- data.frame(a = 1:5,
@@ -90,9 +93,10 @@ test_that("stamp_env & stamp_clean", {
 
   # error if stamp is not found
   stamp_clean("hola") |>
-    expect_error()
+    expect_false()
 
-  stamp_clean()
+  stamp_clean() |>
+    expect_true()
 
   # Clean stamp
   stamp_clean() |>
@@ -102,11 +106,38 @@ test_that("stamp_env & stamp_clean", {
 
 test_that("stamp_confirm", {
   x <- data.frame(a = 1:5, b = "hola")
+  stx <- stamp_get(x)
   st_name <- "stx"
   stamp_set(x, st_name, replace = TRUE)
 
+  tdir <- path_temp()
+  sv <- stamp_save(x, st_dir = tdir, st_name = st_name)
+  sv
+
+
   # must provide st_dir or st_name
   stamp_confirm(x) |>
+    expect_error()
+
+  # st_dir can't be alone
+  stamp_confirm(x,
+                st_dir = "hola") |>
+    expect_error()
+
+  # Syntax errors
+  stamp_confirm(x,
+                st_dir = "hola",
+                st_file =  "chao") |>
+    expect_error()
+
+  stamp_confirm(x,
+                st_name = "hola",
+                st_file =  "chao") |>
+    expect_error()
+
+  stamp_confirm(x,
+                st_name = "hola",
+                stamp =  "chao") |>
     expect_error()
 
   # st_name does not exist
@@ -120,8 +151,53 @@ test_that("stamp_confirm", {
 
   # unchanged data
   x <- data.frame(a = 1:5, b = "hola")
+
+  # test with st_name
   stamp_confirm(x, st_name = st_name, verbose = TRUE) |>
     expect_true()
+
+  # test with st_file
+  stamp_confirm(x, st_file = names(sv), verbose = TRUE) |>
+    expect_true()
+
+  # test with st_dir and st_name
+  stamp_confirm(x,
+                st_dir = tdir,
+                st_name = st_name,
+                verbose = TRUE) |>
+    expect_true()
+
+  # test with stamp
+  stamp_confirm(x,
+                stamp = stx,
+                verbose = TRUE) |>
+    expect_true()
+
+
+  # set hash
+  x <- data.frame(a = 1:5, b = "hola", c = "chao")
+
+  stamp_clean(st_name = "bmpnocyc")
+  stamp_confirm(x,
+                st_name = st_name,
+                set_hash = TRUE,
+                verbose = TRUE)
+
+  "bmpnocyc" %in% stamp_env() |>
+  expect_true()
+
+  t_hash <- "test_hash"
+  stamp_clean(st_name = t_hash)
+  stamp_confirm(x,
+                st_name = st_name,
+                set_hash = t_hash,
+                verbose = TRUE,
+                replace = TRUE)
+
+  t_hash %in% stamp_env() |>
+  expect_true()
+
+
 
 })
 

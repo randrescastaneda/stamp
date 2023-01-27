@@ -182,7 +182,7 @@ format_st_file <- function(st_dir     = NULL,
 #'
 #' @return random string name
 #' @keywords internal
-rand_name <- function(seed = NULL,
+rand_name <- function(seed = getOption("stamp.seed"),
                       l = 8){
   set.seed(seed)
   # punct <- c("!",  "#", "$", "%", "&", "(", ")", "*",  "+", "-", "/", ":",
@@ -236,7 +236,8 @@ stamp_read_defense <- function(st_file   = NULL,
                                st_name   = NULL,
                                st_ext    = getOption("stamp.default.ext"),
                                stamp_set = FALSE,
-                               replace   = FALSE) {
+                               replace   = FALSE,
+                               verbose   = getOption("stamp.verbose")) {
   if ((is.null(st_file) && is.null(st_dir)) ||
       (!is.null(st_file) && !is.null(st_dir))) {
     msg <- c("Eiher {.field st_file} or {.field st_dir} must be provided")

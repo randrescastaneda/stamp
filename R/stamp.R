@@ -230,12 +230,13 @@ stamp_clean <- function(st_name  = NULL,
   if (!is.null(st_name)) {
     if (!env_has(.stamp, st_name)) {
       msg     <- c(
-        "*" = "stamp {.field {st_name}} does not exist",
-        "i" = "make sure it was created with {.code stamp::stamp_set()}"
-      )
-      cli::cli_abort(msg,
-                     class = "stamp_error",
+        "stamp {.field {st_name}} does not exist
+        make sure it was created with {.code stamp::stamp_set()}")
+      cli::cli_alert_info(msg,
                      wrap = TRUE)
+
+      return(invisible(FALSE))
+
     }
 
     env_unbind(.stamp, st_name)
@@ -445,7 +446,7 @@ stamp_save <- function(x         = NULL,
 #' Read Stamp in disk
 #'
 #'
-#' @param st_file
+#' @param st_file character: file path to be read
 #' @inheritParams stamp_save
 #'
 #'
@@ -476,7 +477,8 @@ stamp_read <- function(st_file   = NULL,
                        st_name   = NULL,
                        st_ext    = getOption("stamp.default.ext"),
                        stamp_set = FALSE,
-                       replace   = FALSE) {
+                       replace   = FALSE,
+                       verbose   = getOption("stamp.verbose")) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # defenses ---------
@@ -573,31 +575,40 @@ stamp_time <- function() {
   return(l)
 }
 
-#' Confirm stamp has not changed
+#'Confirm stamp has not changed
 #'
-#' @description verifies that, were the stamp recalculated, it would match the
-#'   one previously set with stamp_set() of stamp_save().
+#'@description verifies that, were the stamp recalculated, it would match the
+#'  one previously set with stamp_set() of stamp_save().
 #'
-#' @inheritParams stamp_set
-#' @inheritParams st_write
-#' @inheritParams stamp_save
-#' @inheritDotParams stamp_get
-#' @param st_dir character: parent directory where the stamp file if saved.
-#' @param st_name character: name of stamp (see details).
+#'@inheritParams stamp_set
+#'@inheritParams st_write
+#'@inheritParams stamp_save
+#'@inheritDotParams stamp_get
+#'@param st_file character: path of stamp file to compare with.
+#'@param st_dir character: parent directory where the stamp file if saved.
+#'@param st_name character: name of stamp (see details).
+#'@param set_hash Logical or character. The hash is the intermediate stamp
+#'  estimated to confirm that data has not changed. If FALSE, the default, hash
+#'  won't be set as part of the .stamp env. If TRUE, a random name would be
+#'  assigned to the hash and it will be saved in .stamp env. If character, it
+#'  would be use as the stamp name in .stamp env.
+#'@param replace logical: replace hash in .stamp env in case it already exists.
+#'  Default is FALSE.
 #'
-#' @return Logical value. `FALSE` if the objects do not match and  `TRUE` if
-#'   they do.
-#' @export
-#' @family stamp functions
+#'@return Logical value. `FALSE` if the objects do not match and  `TRUE` if they
+#'  do.
+#'@export
+#'@family stamp functions
 #'
-#' @details `st_name` is the name of the stamp and it could be used in two
-#' different ways. First, if `st_dir` is NULL, it is assumed that the user
-#' refers to `st_name` as the stamp saved in the `.stamp` env and not to a stamp
-#' saved in a particular drive. If `st_dir` is not NULL, then `st_name` is the
-#' name of file that contains the stamp. Notice that all stamps that are saved
-#' to disk are prefixed with the value in option "stamp.stamp_prefix", which by
-#' default is "st_". You don't need to add the prefix, but if you do and it
-#' happens to be the same as in "stamp.stamp_prefix", it will be ignored.
+#'@details `st_name` is the name of the stamp and it could be used in two
+#'  different ways. First, if `st_dir` is NULL, it is assumed that the user
+#'  refers to `st_name` as the stamp saved in the `.stamp` env and not to a
+#'  stamp saved in a particular drive. If `st_dir` is not NULL, then `st_name`
+#'  is the name of file that contains the stamp. Notice that all stamps that are
+#'  saved to disk are prefixed with the value in option "stamp.stamp_prefix",
+#'  which by default is "st_". You don't need to add the prefix, but if you do
+#'  and it happens to be the same as in "stamp.stamp_prefix", it will be
+#'  ignored.
 #'
 #' @examples
 #' \dontrun{
@@ -608,35 +619,40 @@ stamp_time <- function() {
 #'   stamp_confirm(x, st_name = st_name)
 #'}
 stamp_confirm <- function(x,
-                          st_dir  = NULL,
-                          st_name = NULL,
-                          st_ext  = getOption("stamp.default.ext"),
-                          verbose = getOption("stamp.verbose"),
+                          st_dir   = NULL,
+                          st_name  = NULL,
+                          st_file  = NULL,
+                          stamp    = NULL,
+                          st_ext   = getOption("stamp.default.ext"),
+                          verbose  = getOption("stamp.verbose"),
+                          set_hash = FALSE,
+                          replace  = FALSE,
                           ...) {
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Defensive setup   ---------
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Defensive setup   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ## Defenses --------
-      stopifnot( exprs = {
-          !is.null(st_dir) || !is.null(st_name)
-        }
-      )
+
+  sc_args <- environment() |>
+    as.list() |>
+    {\(.) .[c("st_dir", "st_name", "st_file", "stamp")]}()
+
+
+  case <- do.call("stamp_confirm_case", sc_args)
+
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Get stamp   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  if (is.null(st_dir) && !is.null(st_name)) {
+  if (case %in% c("st_dir_name", "st_file")) {
 
-    stamp <- stamp_call(st_name)
+    if (case == "st_dir_name") {
+      st_file <- format_st_file(st_dir = st_dir,
+                                st_name = st_name,
+                                st_ext = st_ext)
+    }
 
-  } else {
-
-    st_file <- format_st_file(st_dir = st_dir,
-                              st_name = st_name,
-                              st_ext = st_ext)
     st_ext <- fs::path_ext(st_file)
 
     if (!fs::file_exists(st_file)) {
@@ -645,20 +661,38 @@ stamp_confirm <- function(x,
         "*" = "make sure it was created with {.code stamp::stamp_save()} or
         {.code stamp::st_write()}")
       cli::cli_abort(msg,
-                    class = "stamp_error",
-                    wrap = TRUE
-                    )
+                     class = "stamp_error",
+                     wrap = TRUE
+      )
     }
 
     read_stamp <- get_reading_fun(st_ext)
     stamp      <- read_stamp(st_file)
+
+  } else if (case == "st_name") {
+    stamp <- stamp_call(st_name)
   }
+
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # get stamp   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   algo <- stamp$algo
   hash <- stamp_get(x, algo = algo, ...)
+
+  if (!isFALSE(set_hash)) {
+
+    if (isTRUE(set_hash)) {
+      hs_name <- rand_name()
+    } else {
+      hs_name <- set_hash
+    }
+    stamp_set(stamp = hash,
+              st_name = hs_name,
+              replace = replace,
+              verbose = verbose)
+  }
+
 
   ss <- stamp$stamps # Original stamps
   sh <- hash$stamps  # New stamps
@@ -698,6 +732,97 @@ stamp_confirm <- function(x,
 
 }
 
+
+
+#' Ger confirmation case
+#'
+#' @inheritParams stamp_set
+#' @inheritParams stamp_save
+#'
+#' @return character of length 1
+#' @keywords internal
+stamp_confirm_case <- function(st_dir  = NULL,
+                               st_name = NULL,
+                               st_file = NULL,
+                               stamp   = NULL) {
+
+  r1 <- c("i" = "If {.field st_dir} and {.field st_name} are provided,
+          {.field st_file} and {.field stamp} must be `NULL`")
+
+
+  r2 <- c("i" = 'If {.field stamp} is provided,
+          arguments {.field  {c("st_file", "st_name", "stamp")}}
+          must be `NULL`')
+
+  r3 <- c("i" = 'If you need to confirm with stamp in {.env .stamp} env,
+          you have to provide stamp name in {.field st_name} and make sure
+          arguments {.field  {c("st_file", "st_dir", "stamp")}} are `NULL')
+
+  r4 <- c("i" = 'If {.field st_file} is provided,
+          arguments {.field  {c("st_dir", "st_name", "stamp")}}
+          must be `NULL`')
+
+
+  wl <-
+    list(st_dir  = st_dir,
+         st_name = st_name,
+         st_file = st_file,
+         stamp   = stamp) |>
+    sapply(\(.) !is.null(.)) |>
+    which()
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Error cases --------
+
+  if (!any(c(1, 2, 3, 4) %in% wl)) {
+    msg <- c("Syntax error. You must meet the following rules",r1, r2, r3, r4)
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+  if (all(c(1, 2) %in% wl) && any(c(3,4) %in% wl)) {
+    msg <- c("Syntax error",r1)
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+  if ((4 %in% wl) && any(c(1, 2, 3) %in% wl)) {
+    msg <- c("Syntax error",r2)
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+
+  if ((2 %in% wl) && any(c(3,4) %in% wl)) {
+    msg <- c("Syntax error",r3)
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+  if ((3 %in% wl) && any(c(1,2,4) %in% wl)) {
+    msg <- c("Syntax error",r4)
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ## Find work case --------
+
+  if (all(wl == c(1, 2))) {
+    case <- "st_dir_name"
+  } else if (wl == 3) {
+    case <- "st_file"
+  } else if (wl == 2) {
+    case <- "st_name"
+  } else if (wl == 4) {
+    case <- "stamp"
+  } else {
+    msg <- c("Syntax error.",
+             "x" = "Argument{?s} {.field {names(wl)}}
+             {?can't be provided alone/can't be provided together} ",
+             "*" = "You must meet the following rules",
+             r1, r2, r3, r4)
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
+  return(case)
+
+}
 
 
 #' Add attributes and characteristics of x to be used in stamp

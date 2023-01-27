@@ -7,6 +7,7 @@ stamp_default_options <- list(
   stamp.vintage          = TRUE,
   stamp.completestamp    = TRUE,
   stamp.digest.algo      = "spookyhash",
+  stamp.seed             = NULL,
 
   # time stamp management
   stamp.timezone         = Sys.timezone(),

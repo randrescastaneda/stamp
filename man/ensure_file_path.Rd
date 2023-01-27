@@ -9,8 +9,8 @@ ensure_file_path(file, recurse)
 \arguments{
 \item{file}{character: File or connection to write to}
 
-\item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will
-be created. Default is FALSE}
+\item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will be
+created. Default is FALSE}
 }
 \value{
 character vector with file path

@@ -28,8 +28,8 @@ subdirectory at the same level of \code{file}.}
 \item{vintage_dir}{character: Directory to save vintages of \code{x}. By default
 it is a subdirectory at the same level of \code{file}}
 
-\item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will
-be created. Default is FALSE}
+\item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will be
+created. Default is FALSE}
 
 \item{st_name}{character: name of stamp in file. All stamp files are prefixed
 with value in option "stamp.stamp_prefix", which by default is "st_". You

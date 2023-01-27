@@ -8,8 +8,12 @@ stamp_confirm(
   x,
   st_dir = NULL,
   st_name = NULL,
+  st_file = NULL,
+  stamp = NULL,
   st_ext = getOption("stamp.default.ext"),
   verbose = getOption("stamp.verbose"),
+  set_hash = FALSE,
+  replace = FALSE,
   ...
 )
 }
@@ -21,11 +25,24 @@ base::serialize function}
 
 \item{st_name}{character: name of stamp (see details).}
 
+\item{st_file}{character: path of stamp file to compare with.}
+
+\item{stamp}{previously calculated stamp with \link{stamp_get}.}
+
 \item{st_ext}{character: format of stamp file to save. Default is value in
 option "stamp.default.ext"}
 
 \item{verbose}{logical: whether to display additional information. This could
 be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
+
+\item{set_hash}{Logical or character. The hash is the intermediate stamp
+estimated to confirm that data has not changed. If FALSE, the default, hash
+won't be set as part of the .stamp env. If TRUE, a random name would be
+assigned to the hash and it will be saved in .stamp env. If character, it
+would be use as the stamp name in .stamp env.}
+
+\item{replace}{logical: replace hash in .stamp env in case it already exists.
+Default is FALSE.}
 
 \item{...}{
   Arguments passed on to \code{\link[=stamp_get]{stamp_get}}
@@ -72,8 +89,8 @@ murmur32, spookyhash and blake3}
   }}
 }
 \value{
-Logical value. \code{FALSE} if the objects do not match and  \code{TRUE} if
-they do.
+Logical value. \code{FALSE} if the objects do not match and  \code{TRUE} if they
+do.
 }
 \description{
 verifies that, were the stamp recalculated, it would match the
@@ -82,12 +99,13 @@ one previously set with stamp_set() of stamp_save().
 \details{
 \code{st_name} is the name of the stamp and it could be used in two
 different ways. First, if \code{st_dir} is NULL, it is assumed that the user
-refers to \code{st_name} as the stamp saved in the \code{.stamp} env and not to a stamp
-saved in a particular drive. If \code{st_dir} is not NULL, then \code{st_name} is the
-name of file that contains the stamp. Notice that all stamps that are saved
-to disk are prefixed with the value in option "stamp.stamp_prefix", which by
-default is "st_". You don't need to add the prefix, but if you do and it
-happens to be the same as in "stamp.stamp_prefix", it will be ignored.
+refers to \code{st_name} as the stamp saved in the \code{.stamp} env and not to a
+stamp saved in a particular drive. If \code{st_dir} is not NULL, then \code{st_name}
+is the name of file that contains the stamp. Notice that all stamps that are
+saved to disk are prefixed with the value in option "stamp.stamp_prefix",
+which by default is "st_". You don't need to add the prefix, but if you do
+and it happens to be the same as in "stamp.stamp_prefix", it will be
+ignored.
 }
 \examples{
 \dontrun{

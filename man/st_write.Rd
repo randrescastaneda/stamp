@@ -10,6 +10,7 @@ st_write(
   ext = fs::path_ext(file),
   st_dir = NULL,
   st_name = NULL,
+  save_stamp = TRUE,
   complete_stamp = getOption("stamp.completestamp"),
   recurse = FALSE,
   force = FALSE,
@@ -35,12 +36,17 @@ subdirectory at the same level of \code{file}.}
 with value in option "stamp.stamp_prefix", which by default is "st_". You
 don't need to add the prefix.}
 
+\item{save_stamp}{logical: Whether to save a stamp in a separate file.
+Default is TRUE. It doesn't make a lot of sense to use \code{\link[=st_write]{st_write()}} when
+\code{save_stamp = FALSE}, as saving data along with the stamp is the main
+functionality of \code{\link[=st_write]{st_write()}}.}
+
 \item{complete_stamp}{logical: Whether to add a complete report of data.frame
 to stamp file. You need the \code{skimr} package. If \code{skimr} is not in
 namespace, limited but lighter report will be added.}
 
-\item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will
-be created. Default is FALSE}
+\item{recurse}{logical: is \code{TRUE} if directory in \code{file} does not it will be
+created. Default is FALSE}
 
 \item{force}{logical: replace file in disk even if has hasn't changed}
 
@@ -55,7 +61,43 @@ it is a subdirectory at the same level of \code{file}}
 \item{verbose}{logical: whether to display additional information. This could
 be changed in option \code{"stamp.verbose"}. Default is \code{TRUE}}
 
-\item{...}{not is used right now}
+\item{...}{
+  Arguments passed on to \code{\link[=stamp_get]{stamp_get}}
+  \describe{
+    \item{\code{serialize}}{A logical variable indicating whether the object
+    should be serialized using \code{serialize} (in ASCII
+    form). Setting this to \code{FALSE} allows to compare the digest
+    output of given character strings to known control output. It also
+    allows the use of raw vectors such as the output of non-ASCII
+    serialization.
+  }
+    \item{\code{length}}{Number of characters to process. By default, when
+    \code{length} is set to \code{Inf}, the whole string or file is
+    processed.}
+    \item{\code{skip}}{Number of input bytes to skip before calculating the
+    digest. Negative values are invalid and currently treated as zero.
+    Special value \code{"auto"} will cause serialization header to be
+    skipped if \code{serialize} is set to \code{TRUE} (the serialization
+    header contains the R version number thus skipping it allows the
+    comparison of hashes across platforms and some R versions).
+  }
+    \item{\code{ascii}}{This flag is passed to the \code{serialize} function if
+    \code{serialize} is set to \code{TRUE}, determining whether the hash
+    is computed on the ASCII or binary representation.}
+    \item{\code{raw}}{A logical variable with a default value of FALSE, implying
+    \code{digest} returns digest output as ASCII hex values. Set to TRUE
+    to return \code{digest} output in raw (binary) form. Note that this
+    option is supported by most but not all of the implemented hashing
+    algorithms}
+    \item{\code{seed}}{an integer to seed the random number generator.  This is only
+    used in the \code{xxhash32}, \code{xxhash64} and \code{murmur32} functions
+    and can be used to generate additional hashes for the same input if
+    desired.}
+    \item{\code{errormode}}{A character value denoting a choice for the behaviour in
+    the case of error: \sQuote{stop} aborts (and is the default value),
+    \sQuote{warn} emits a warning and returns \code{NULL} and
+    \sQuote{silent} suppresses the error and returns an empty string.}
+  }}
 }
 \value{
 TRUE is object was saved successfully. FALSE otherwise.

@@ -17,8 +17,12 @@
 #' @param st_dir character: Directory to store stamp files. By default it is a
 #'   subdirectory at the same level of `file`.
 #' @param ... not is used right now
-#' @param recurse logical: is `TRUE` if directory in `file` does not it will
-#'   be created. Default is FALSE
+#' @param save_stamp logical: Whether to save a stamp in a separate file.
+#'   Default is TRUE. It doesn't make a lot of sense to use [st_write()] when
+#'   `save_stamp = FALSE`, as saving data along with the stamp is the main
+#'   functionality of [st_write()].
+#' @param recurse logical: is `TRUE` if directory in `file` does not it will be
+#'   created. Default is FALSE
 #' @param force logical: replace file in disk even if has hasn't changed
 #' @param algo character: Algorithm to be used in [digest::digest()]. Default is
 #'   "sha1"
@@ -31,6 +35,7 @@
 #'   to stamp file. You need the `skimr` package. If `skimr` is not in
 #'   namespace, limited but lighter report will be added.
 #' @inheritParams stamp_save
+#' @inheritDotParams stamp_get
 #'
 #'
 #' @details Object `x` is stored in `file` but its hash (i.e., stamp) is stored
@@ -53,6 +58,7 @@ st_write <- function(x,
                      ext            = fs::path_ext(file),
                      st_dir         = NULL,
                      st_name        = NULL,
+                     save_stamp     = TRUE,
                      complete_stamp = getOption("stamp.completestamp"),
                      recurse        = FALSE,
                      force          = FALSE,
@@ -90,23 +96,28 @@ st_write <- function(x,
   # add hash   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
   ## Check if there is a stamp already ----------
   ms_status <- ""
   if (fs::file_exists(lp$st_file)) {
 
-    stamp <- qs::qread(lp$st_file)
+    stamp <- stamp_read(lp$st_file)
+
   } else {
-    stamp <- digest::digest(0, algo = algo) # if not created before
+    # if not created before
+    stamp <- stamp_get(0, algo = algo,...)
     ms_status <- "new"
   }
 
   ##  Find proper status  ---------
-  hash <- digest::digest(x, algo = algo)
+  # hash <- stamp_get(x, algo = algo,...)
+
   if (ms_status != "new") {
-    if (hash != stamp) {
-      ms_status <- "changed"
-    } else {
+    sc <- stamp_confirm(x,stamp = stamp,verbose = verbose, ...)
+    if (sc) {
       ms_status <- "unchanged"
+    } else {
+      ms_status <- "changed"
     }
     if (force == TRUE) {
       ms_status <- "forced"
@@ -116,13 +127,6 @@ st_write <- function(x,
   # if signature changes or force = TRUE ---------
 
   if (ms_status != "unchanged") {
-
-    ## Add attributes -----------
-    if (data.table::is.data.table(x)) {
-      data.table::setattr(x, "stamp_time", lp$st_time)
-    } else {
-      attr(x, "stamp_time") <- lp$st_time
-    }
 
     ## data.frames only formats  ---------
     complex_df <- check_complex_data(x)

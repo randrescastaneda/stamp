@@ -4,7 +4,7 @@
 \alias{rand_name}
 \title{General random name}
 \usage{
-rand_name(seed = NULL, l = 8)
+rand_name(seed = getOption("stamp.seed"), l = 8)
 }
 \arguments{
 \item{seed}{numeric: seed for random name. Default is NULL so each time the
