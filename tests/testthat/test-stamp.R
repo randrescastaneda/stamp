@@ -146,7 +146,6 @@ test_that("stamp_x_attr ", {
 
 })
 
-
 test_that("stamp_save", {
 
   # defenses
@@ -196,11 +195,12 @@ test_that("stamp_save", {
   expect_equal(sv, svx)
 
 
-  stamp_save(x = x,
-            st_dir = st_dir,
-            st_name = st_name,
-            x_attr = TRUE,
-            stamp_set = TRUE)
+  stamp_save(x        = x,
+            st_dir    = st_dir,
+            st_name   = st_name,
+            x_attr    = TRUE,
+            stamp_set = TRUE,
+            replace   = TRUE)
 
   svxa <- stamp_call(st_name)
 
@@ -219,7 +219,7 @@ test_that("stamp_read", {
                   b = letters[1:5])
 
   st_dir <- tempdir()
-  st_name <- "xst"
+  st_name <- "xst2"
   sv <- stamp_save(x = x,
                   st_dir = st_dir,
                   st_name = st_name,
