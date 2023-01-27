@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9015</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,13 +63,18 @@
 <span>  st_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_ext <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.default.ext"</span><span class="op">)</span>,</span>
 <span>  stamp_set <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  replace <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  replace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.verbose"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>st_dir</dt>
+    <dl><dt>st_file</dt>
+<dd><p>character: file path to be read</p></dd>
+
+
+<dt>st_dir</dt>
 <dd><p>character: parent directory to store stamp file (see details).</p></dd>
 
 
@@ -93,6 +98,10 @@ option "stamp.default.ext"</p></dd>
 <dd><p>Logical: if TRUE and <code>st_name</code> already exists in <code>.stamp</code>
 environment, it will be replaced with new stamp. If <code>FALSE</code> it gives an
 error. Default is <code>FALSE</code></p></dd>
+
+
+<dt>verbose</dt>
+<dd><p>logical: Fi TRUE displays information about stamping process.</p></dd>
 
 </dl></div>
     <div class="section level2">

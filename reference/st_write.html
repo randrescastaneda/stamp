@@ -26,7 +26,7 @@ stamp may be redundant in the files it saves."><!-- mathjax --><script src="http
     
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9015</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,6 +87,7 @@ the data has changed or not. Since disk space is cheap and time is not,
 <span>  ext <span class="op">=</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_file.html" class="external-link">path_ext</a></span><span class="op">(</span><span class="va">file</span><span class="op">)</span>,</span>
 <span>  st_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  save_stamp <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  complete_stamp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.completestamp"</span><span class="op">)</span>,</span>
 <span>  recurse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  force <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -124,6 +125,13 @@ with value in option "stamp.stamp_prefix", which by default is "st_". You
 don't need to add the prefix.</p></dd>
 
 
+<dt>save_stamp</dt>
+<dd><p>logical: Whether to save a stamp in a separate file.
+Default is TRUE. It doesn't make a lot of sense to use <code>st_write()</code> when
+<code>save_stamp = FALSE</code>, as saving data along with the stamp is the main
+functionality of <code>st_write()</code>.</p></dd>
+
+
 <dt>complete_stamp</dt>
 <dd><p>logical: Whether to add a complete report of data.frame
 to stamp file. You need the <code>skimr</code> package. If <code>skimr</code> is not in
@@ -131,8 +139,8 @@ namespace, limited but lighter report will be added.</p></dd>
 
 
 <dt>recurse</dt>
-<dd><p>logical: is <code>TRUE</code> if directory in <code>file</code> does not it will
-be created. Default is FALSE</p></dd>
+<dd><p>logical: is <code>TRUE</code> if directory in <code>file</code> does not it will be
+created. Default is FALSE</p></dd>
 
 
 <dt>force</dt>
@@ -159,7 +167,53 @@ be changed in option <code>"stamp.verbose"</code>. Default is <code>TRUE</code><
 
 
 <dt>...</dt>
-<dd><p>not is used right now</p></dd>
+<dd><p>Arguments passed on to <code><a href="stamp_get.html">stamp_get</a></code></p><dl><dt><code>serialize</code></dt>
+<dd><p>A logical variable indicating whether the object
+    should be serialized using <code>serialize</code> (in ASCII
+    form). Setting this to <code>FALSE</code> allows to compare the digest
+    output of given character strings to known control output. It also
+    allows the use of raw vectors such as the output of non-ASCII
+    serialization.</p></dd>
+
+    <dt><code>length</code></dt>
+<dd><p>Number of characters to process. By default, when
+    <code>length</code> is set to <code>Inf</code>, the whole string or file is
+    processed.</p></dd>
+
+    <dt><code>skip</code></dt>
+<dd><p>Number of input bytes to skip before calculating the
+    digest. Negative values are invalid and currently treated as zero.
+    Special value <code>"auto"</code> will cause serialization header to be
+    skipped if <code>serialize</code> is set to <code>TRUE</code> (the serialization
+    header contains the R version number thus skipping it allows the
+    comparison of hashes across platforms and some R versions).</p></dd>
+
+    <dt><code>ascii</code></dt>
+<dd><p>This flag is passed to the <code>serialize</code> function if
+    <code>serialize</code> is set to <code>TRUE</code>, determining whether the hash
+    is computed on the ASCII or binary representation.</p></dd>
+
+    <dt><code>raw</code></dt>
+<dd><p>A logical variable with a default value of FALSE, implying
+    <code>digest</code> returns digest output as ASCII hex values. Set to TRUE
+    to return <code>digest</code> output in raw (binary) form. Note that this
+    option is supported by most but not all of the implemented hashing
+    algorithms</p></dd>
+
+    <dt><code>seed</code></dt>
+<dd><p>an integer to seed the random number generator.  This is only
+    used in the <code>xxhash32</code>, <code>xxhash64</code> and <code>murmur32</code> functions
+    and can be used to generate additional hashes for the same input if
+    desired.</p></dd>
+
+    <dt><code>errormode</code></dt>
+<dd><p>A character value denoting a choice for the behaviour in
+    the case of error: ‘stop’ aborts (and is the default value),
+    ‘warn’ emits a warning and returns <code>NULL</code> and
+    ‘silent’ suppresses the error and returns an empty string.</p></dd>
+
+  
+</dl></dd>
 
 </dl></div>
     <div class="section level2">
