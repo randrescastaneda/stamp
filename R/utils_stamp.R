@@ -207,6 +207,7 @@ rand_name <- function(seed = getOption("stamp.seed"),
 #' @return Nothing
 #' @keywords internal
 stamp_save_defense <- function(x        = NULL,
+                               st_file  = NULL,
                                st_dir   = NULL,
                                st_name  = NULL,
                                st_ext   = getOption("stamp.default.ext"),
@@ -224,6 +225,16 @@ stamp_save_defense <- function(x        = NULL,
     msg     <- c("Either {.field stamp} or {.field x} must be provided")
     cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
   }
+
+  if ((!is.null(st_file) &&
+       !is.null(st_dir)  &&
+       !is.null(st_name))) {
+    msg     <- c("Syntax error",
+                "*" = "you need to provide either {.field st_file} or
+                {.field st_dir} and {.field st_name}")
+    cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+  }
+
 }
 
 #' defenses of stamp_read

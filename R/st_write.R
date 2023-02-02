@@ -26,7 +26,7 @@
 #' @param force logical: replace file in disk even if has hasn't changed
 #' @param algo character: Algorithm to be used in [digest::digest()]. Default is
 #'   "sha1"
-#' @param vintage logical: Whether to save vintage versions `x`. Default `TRUE`
+#' @param save_vintage logical: Whether to save vintage versions `x`. Default `TRUE`
 #' @param vintage_dir character: Directory to save vintages of `x`. By default
 #'   it is a subdirectory at the same level of `file`
 #' @param verbose logical: whether to display additional information. This could
@@ -63,7 +63,7 @@ st_write <- function(x,
                      recurse        = FALSE,
                      force          = FALSE,
                      algo           = getOption("stamp.digest.algo"),
-                     vintage        = getOption("stamp.vintage"),
+                     save_vintage   = getOption("stamp.vintage"),
                      vintage_dir    = NULL,
                      verbose        = getOption("stamp.verbose"),
                      ...) {
@@ -84,7 +84,7 @@ st_write <- function(x,
     ext         = ext,
     st_dir      = st_dir,
     st_name     = st_name,
-    vintage     = vintage,
+    vintage     = save_vintage,
     vintage_dir = vintage_dir,
     recurse     = recurse
   )
@@ -101,7 +101,7 @@ st_write <- function(x,
   ms_status <- ""
   if (fs::file_exists(lp$st_file)) {
 
-    stamp <- stamp_read(lp$st_file)
+    stamp <- stamp_read(st_file = lp$st_file)
 
   } else {
     # if not created before
@@ -110,10 +110,13 @@ st_write <- function(x,
   }
 
   ##  Find proper status  ---------
-  # hash <- stamp_get(x, algo = algo,...)
+  hash <- stamp_get(x, algo = algo,...)
 
   if (ms_status != "new") {
-    sc <- stamp_confirm(x,stamp = stamp,verbose = verbose, ...)
+    sc <- stamp_confirm(hash = hash,
+                        stamp = stamp,
+                        verbose = verbose,
+                        ...)
     if (sc) {
       ms_status <- "unchanged"
     } else {
@@ -129,20 +132,7 @@ st_write <- function(x,
   if (ms_status != "unchanged") {
 
     ## data.frames only formats  ---------
-    complex_df <- check_complex_data(x)
-    simple_fmts <- c("fst", "dta", "feather")
-
-    if ((lp$ext %in% simple_fmts) && isTRUE(complex_df)) {
-      msg     <- c(
-        "Chosen format is not compatipable with object structure",
-        "*" = "format {.strong .{lp$ext}} does not support complex data",
-        "i" = "Use either {.strong qs} or {.strong rds} format."
-        )
-      cli::cli_abort(msg,
-                    class = "stamp_error",
-                    wrap = TRUE
-                    )
-    }
+    check_complex_data(x, ext = lp$ext)
 
     ## Get saving function ------------
     save_file <- get_saving_fun(ext = lp$ext)
@@ -155,16 +145,22 @@ st_write <- function(x,
     saved <-
       save_file(x   = x,
                 path = fs::path(lp$file,
-                                ext = lp$ext))
+                                ext = lp$ext)
+                )
 
     ## save stamp -------
-    # stamp_save(x = x)
+    if (isTRUE(save_stamp)) {
+      stamp_save(x = x,
+                 st_file = lp$st_file)
+    }
+
 
     ## save vintage --------
-    save_file(x    = x,
-              path = fs::path(lp$vintage_file,
-                              ext = lp$ext))
-
+    if (isTRUE(save_vintage)) {
+      save_file(x    = x,
+                path = fs::path(lp$vintage_file,
+                                ext = lp$ext))
+    }
 
     # if (verbose) {
     #

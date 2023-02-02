@@ -6,6 +6,7 @@
 \usage{
 stamp_save(
   x = NULL,
+  st_file = NULL,
   st_dir = NULL,
   st_name = NULL,
   st_ext = getOption("stamp.default.ext"),
@@ -19,6 +20,8 @@ stamp_save(
 }
 \arguments{
 \item{x}{R object to stamp}
+
+\item{st_file}{character: path of stamp file to compare with.}
 
 \item{st_dir}{character: parent directory to store stamp file (see details).}
 

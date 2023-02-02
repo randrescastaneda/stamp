@@ -23,8 +23,6 @@ path_info(
 \item{st_dir}{character: Directory to store stamp files. By default it is a
 subdirectory at the same level of \code{file}.}
 
-\item{vintage}{logical: Whether to save vintage versions \code{x}. Default \code{TRUE}}
-
 \item{vintage_dir}{character: Directory to save vintages of \code{x}. By default
 it is a subdirectory at the same level of \code{file}}
 

@@ -4,12 +4,24 @@
 \alias{stamp_confirm_case}
 \title{Ger confirmation case}
 \usage{
-stamp_confirm_case(st_dir = NULL, st_name = NULL, st_file = NULL, stamp = NULL)
+stamp_confirm_case(
+  x = NULL,
+  hash = NULL,
+  st_dir = NULL,
+  st_name = NULL,
+  st_file = NULL,
+  stamp = NULL
+)
 }
 \arguments{
+\item{x}{An arbitrary R object which will then be passed to the
+base::serialize function}
+
 \item{st_dir}{character: parent directory to store stamp file (see details).}
 
 \item{st_name}{character: Name of stamp to be set or called in .stamp env.}
+
+\item{st_file}{character: path of stamp file to compare with.}
 
 \item{stamp}{previously calculated stamp with \link{stamp_get}.}
 }

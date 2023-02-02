@@ -315,6 +315,7 @@ stamp_clean <- function(st_name  = NULL,
 #' @param stamp_set logical: whether to set stamp in .stamp env, using
 #'   `st_name`.
 #' @inheritParams stamp_set
+#' @inheritParams stamp_confirm
 #'
 #' @return TRUE is saved correctly. FALSE otherwise
 #' @export
@@ -347,6 +348,7 @@ stamp_clean <- function(st_name  = NULL,
 #'
 #'}
 stamp_save <- function(x         = NULL,
+                       st_file   = NULL,
                        st_dir    = NULL,
                        st_name   = NULL,
                        st_ext    = getOption("stamp.default.ext"),
@@ -368,6 +370,7 @@ stamp_save <- function(x         = NULL,
   do.call("stamp_save_defense", ss_args)
 
 
+
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Get stamp   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -379,9 +382,11 @@ stamp_save <- function(x         = NULL,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Directory and stamp name   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  st_file <- format_st_file(st_dir = st_dir,
-                            st_name = st_name,
-                            st_ext = st_ext)
+  if (is.null(st_file)) {
+    st_file <- format_st_file(st_dir  = st_dir,
+                              st_name = st_name,
+                              st_ext  = st_ext)
+  }
   st_ext <- fs::path_ext(st_file)
 
 
@@ -510,21 +515,36 @@ stamp_read <- function(st_file   = NULL,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## set stamp --------
 
-  if (stamp_set) {
+  if (!isFALSE(stamp_set)) {
 
-    if (is.null(st_name)) {
-      st_name <- st_file |>
+    if (is.null(st_name) && isTRUE(stamp_set)) {
+      st_name2 <- st_file |>
         fs::path_file() |>
-        fs::path_ext_remove()
+        fs::path_ext_remove() |>
+        {\(.) gsub("^st_", "", .)}()
+
+    } else if (is.character(stamp_set)) {
+
+      st_name2 <- stamp_set
+
+    } else if (is.character(st_name) && isTRUE(stamp_set)) {
+
+      st_name2 <- st_name
+
+    } else {
+
+      msg <- c("{.field st_name} {.strong {st_name}} is invalid",
+               "*" = "{.field st_name} must be either NULL or character")
+        cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
     }
 
     stamp_set(stamp = stamp,
-              st_name = st_name,
+              st_name = st_name2,
               replace = replace)
 
     if (verbose) {
-      if (env_has(.stamp, st_name)) {
-        cli::cli_alert("Stamp {.blue {st_name}} set in {.env .stamp}")
+      if (env_has(.stamp, st_name2)) {
+        cli::cli_alert("Stamp {.blue {st_name2}} set in {.env .stamp}")
       }
     }
   }
@@ -587,6 +607,9 @@ stamp_time <- function() {
 #'@param st_file character: path of stamp file to compare with.
 #'@param st_dir character: parent directory where the stamp file if saved.
 #'@param st_name character: name of stamp (see details).
+#'@param hash previously calculated stamp with `stamp_get(x)`. This will be
+#'  compared against the stamps in file. You can't provide `x` along with
+#'  `hash`. Of them must be NULL.
 #'@param set_hash Logical or character. The hash is the intermediate stamp
 #'  estimated to confirm that data has not changed. If FALSE, the default, hash
 #'  won't be set as part of the .stamp env. If TRUE, a random name would be
@@ -618,11 +641,12 @@ stamp_time <- function() {
 #'   # must provide st_dir or st_name
 #'   stamp_confirm(x, st_name = st_name)
 #'}
-stamp_confirm <- function(x,
+stamp_confirm <- function(x        = NULL,
                           st_dir   = NULL,
                           st_name  = NULL,
                           st_file  = NULL,
                           stamp    = NULL,
+                          hash     = NULL,
                           st_ext   = getOption("stamp.default.ext"),
                           verbose  = getOption("stamp.verbose"),
                           set_hash = FALSE,
@@ -635,7 +659,7 @@ stamp_confirm <- function(x,
 
   sc_args <- environment() |>
     as.list() |>
-    {\(.) .[c("st_dir", "st_name", "st_file", "stamp")]}()
+    {\(.) .[c("x", "hash", "st_dir", "st_name", "st_file", "stamp")]}()
 
 
   case <- do.call("stamp_confirm_case", sc_args)
@@ -647,27 +671,10 @@ stamp_confirm <- function(x,
 
   if (case %in% c("st_dir_name", "st_file")) {
 
-    if (case == "st_dir_name") {
-      st_file <- format_st_file(st_dir = st_dir,
-                                st_name = st_name,
-                                st_ext = st_ext)
-    }
-
-    st_ext <- fs::path_ext(st_file)
-
-    if (!fs::file_exists(st_file)) {
-      msg     <- c(
-        "File {.file {st_file}} does not exist",
-        "*" = "make sure it was created with {.code stamp::stamp_save()} or
-        {.code stamp::st_write()}")
-      cli::cli_abort(msg,
-                     class = "stamp_error",
-                     wrap = TRUE
-      )
-    }
-
-    read_stamp <- get_reading_fun(st_ext)
-    stamp      <- read_stamp(st_file)
+    stamp <- stamp_read(st_file = st_file,
+                        st_dir  = st_dir,
+                        st_name = st_name,
+                        st_ext  = st_ext)
 
   } else if (case == "st_name") {
     stamp <- stamp_call(st_name)
@@ -675,10 +682,21 @@ stamp_confirm <- function(x,
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # get stamp   ---------
+  # get Hash   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  algo <- stamp$algo
-  hash <- stamp_get(x, algo = algo, ...)
+
+  if (is.null(hash)) {
+    algo <- stamp$algo
+    hash <- stamp_get(x, algo = algo, ...)
+  } else {
+    if (stamp$algo != hash$algo) {
+      msg <- c("Algoritms to estimate stamps must be equal",
+               "*" = "{.field stamp} is {.strong {stamp$algo}},
+               whereas {.field hash} is {.strong {hash$algo}}")
+        cli::cli_abort(msg,class = "pkg_error",wrap = TRUE)
+    }
+  }
+
 
   if (!isFALSE(set_hash)) {
 
@@ -702,7 +720,7 @@ stamp_confirm <- function(x,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   cn <- confirm_names(ss, sh)
   cd <- confirm_data(ss, sh)
-  unchanged <- any(c(cn, cd))
+  unchanged <- all(c(cn, cd))
 
   if (verbose) {
     st_time <- stamp$time$st_time
@@ -741,10 +759,20 @@ stamp_confirm <- function(x,
 #'
 #' @return character of length 1
 #' @keywords internal
-stamp_confirm_case <- function(st_dir  = NULL,
+stamp_confirm_case <- function(x       = NULL,
+                               hash    = NULL,
+                               st_dir  = NULL,
                                st_name = NULL,
                                st_file = NULL,
                                stamp   = NULL) {
+
+  if ((is.null(x) && is.null(hash)) ||
+      (!is.null(x) && !is.null(hash))) {
+    msg <- c("Syntax error",
+             "*" = "You must provide wither {.field x} of {.field hash}")
+      cli::cli_abort(msg,class = "stamp_error",wrap = TRUE)
+
+  }
 
   r1 <- c("i" = "If {.field st_dir} and {.field st_name} are provided,
           {.field st_file} and {.field stamp} must be `NULL`")

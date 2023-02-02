@@ -4,10 +4,14 @@
 \alias{check_complex_data}
 \title{Check whther object can be saved in tabular formats like fst}
 \usage{
-check_complex_data(x)
+check_complex_data(x, ext = NULL)
 }
 \arguments{
-\item{x}{R object to write to disk as per limitations of \code{file} format.}
+\item{x}{object to confirm if its in tabular form}
+
+\item{ext}{Extension of file to be saved. If NULL it only checks whther or not
+it is complex data. If character, it checks whther the data could be saved
+in that format.}
 }
 \value{
 logical for complex data

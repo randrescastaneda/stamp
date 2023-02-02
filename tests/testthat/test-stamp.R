@@ -1,6 +1,12 @@
 library(fs)
 library(withr)
-op <- options(stamp.verbose = FALSE,
+
+if (interactive()) {
+  vverbose <- FALSE
+} else {
+  vverbose <- TRUE
+}
+op <- options(stamp.verbose = vverbose,
               stamp.seed    = 12332)
 defer(options(op))
 
@@ -244,8 +250,8 @@ test_that("stamp_save", {
   st_name <- "xst"
 
   sv <- stamp_save(st_dir = st_dir,
-             st_name = st_name,
-             stamp   = stamp)
+                  st_name = st_name,
+                  stamp   = stamp)
 
   expect_true(sv)
 
@@ -261,7 +267,7 @@ test_that("stamp_save", {
                   ext = getOption("stamp.default.ext"))
   expect_equal(nsv, exp_out)
 
-  sv <- stamp_save(st_dir = st_dir,
+  sv <- stamp_save(st_dir  = st_dir,
                    st_name = st_name,
                    stamp   = stamp)
 
@@ -296,11 +302,10 @@ test_that("stamp_read", {
 
   st_dir <- tempdir()
   st_name <- "xst2"
-  sv <- stamp_save(x = x,
-                  st_dir = st_dir,
-                  st_name = st_name,
-                  stamp_set = TRUE
-                  )
+  sv <- stamp_save(x        = x,
+                  st_dir    = st_dir,
+                  st_name   = st_name,
+                  stamp_set = TRUE)
 
   nsv <- names(sv) |>
    fs::path()
@@ -317,5 +322,35 @@ test_that("stamp_read", {
   expect_equal(str2$stamps,
                stc$stamps)
 
+  # Stamp set reading
+  stamp_clean(st_name)
+  str2 <- stamp_read(st_dir    = st_dir,
+                     st_name   = st_name,
+                     stamp_set = TRUE)
+  st_name %in% stamp_env() |>
+    expect_true()
+
+  str2 <- stamp_read(st_dir    = st_dir,
+                     st_name   = st_name,
+                     stamp_set = "hola")
+  "hola" %in% stamp_env() |>
+    expect_true()
+
+
+  stamp_read(st_dir    = st_dir,
+             st_name   = st_name,
+             stamp_set = TRUE) |>
+    expect_error()
+
+  stamp_read(st_file   = nsv,
+             stamp_set = TRUE) |>
+    expect_error()
+
+  stamp_clean("chao")
+  stamp_read(st_file   = nsv,
+             stamp_set = "chao") |>
+    expect_equal(str)
 
 })
+
+

@@ -57,12 +57,17 @@ get_saving_fun <- function(ext = "Rds") {
 }
 
 
-#' Check whther object can be saved in tabular formats like fst
+#'Check whther object can be saved in tabular formats like fst
 #'
-#' @inheritParams st_write
 #'
-#' @return logical for complex data
-#' @keywords internal
+#'
+#'@param x object to confirm if its in tabular form
+#'@param ext Extension of file to be saved. If NULL it only checks whther or not
+#'  it is complex data. If character, it checks whther the data could be saved
+#'  in that format.
+#'
+#'@return logical for complex data
+#'@keywords internal
 #'
 #' @examples
 #' \dontrun{
@@ -72,7 +77,8 @@ get_saving_fun <- function(ext = "Rds") {
 #' # TRUE
 #' check_complex_data(list())
 #'}
-check_complex_data <- function(x) {
+check_complex_data <- function(x,
+                               ext = NULL) {
 
 
 #   ____________________________________________________
@@ -88,9 +94,27 @@ check_complex_data <- function(x) {
     complex_df <- TRUE
   }
 
+  if (!is.null(ext)) {
+    simple_fmts <- c("fst", "dta", "feather")
+
+    if ((ext %in% simple_fmts) && isTRUE(complex_df)) {
+      msg     <- c(
+        "Chosen format is not compatipable with object structure",
+        "*" = "format {.strong .{ext}} does not support complex data",
+        "i" = "Use either {.strong qs} or {.strong rds} format."
+      )
+      cli::cli_abort(msg,
+                     class = "stamp_error",
+                     wrap = TRUE
+      )
+    }
+  }
+
+
+
 #   ____________________________________________________
 #   Return                                           ####
-  return(complex_df)
+  return(invisible(complex_df))
 
 }
 

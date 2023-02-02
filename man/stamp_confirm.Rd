@@ -5,11 +5,12 @@
 \title{Confirm stamp has not changed}
 \usage{
 stamp_confirm(
-  x,
+  x = NULL,
   st_dir = NULL,
   st_name = NULL,
   st_file = NULL,
   stamp = NULL,
+  hash = NULL,
   st_ext = getOption("stamp.default.ext"),
   verbose = getOption("stamp.verbose"),
   set_hash = FALSE,
@@ -18,8 +19,7 @@ stamp_confirm(
 )
 }
 \arguments{
-\item{x}{An arbitrary R object which will then be passed to the
-base::serialize function}
+\item{x}{R object to write to disk as per limitations of \code{file} format.}
 
 \item{st_dir}{character: parent directory where the stamp file if saved.}
 
@@ -28,6 +28,10 @@ base::serialize function}
 \item{st_file}{character: path of stamp file to compare with.}
 
 \item{stamp}{previously calculated stamp with \link{stamp_get}.}
+
+\item{hash}{previously calculated stamp with \code{stamp_get(x)}. This will be
+compared against the stamps in file. You can't provide \code{x} along with
+\code{hash}. Of them must be NULL.}
 
 \item{st_ext}{character: format of stamp file to save. Default is value in
 option "stamp.default.ext"}

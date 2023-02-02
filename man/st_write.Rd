@@ -15,7 +15,7 @@ st_write(
   recurse = FALSE,
   force = FALSE,
   algo = getOption("stamp.digest.algo"),
-  vintage = getOption("stamp.vintage"),
+  save_vintage = getOption("stamp.vintage"),
   vintage_dir = NULL,
   verbose = getOption("stamp.verbose"),
   ...
@@ -53,7 +53,7 @@ created. Default is FALSE}
 \item{algo}{character: Algorithm to be used in \code{\link[digest:digest]{digest::digest()}}. Default is
 "sha1"}
 
-\item{vintage}{logical: Whether to save vintage versions \code{x}. Default \code{TRUE}}
+\item{save_vintage}{logical: Whether to save vintage versions \code{x}. Default \code{TRUE}}
 
 \item{vintage_dir}{character: Directory to save vintages of \code{x}. By default
 it is a subdirectory at the same level of \code{file}}
