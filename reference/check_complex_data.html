@@ -57,13 +57,19 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">check_complex_data</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">check_complex_data</span><span class="op">(</span><span class="va">x</span>, ext <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>x</dt>
-<dd><p>R object to write to disk as per limitations of <code>file</code> format.</p></dd>
+<dd><p>object to confirm if its in tabular form</p></dd>
+
+
+<dt>ext</dt>
+<dd><p>Extension of file to be saved. If NULL it only checks whther or not
+it is complex data. If character, it checks whther the data could be saved
+in that format.</p></dd>
 
 </dl></div>
     <div class="section level2">

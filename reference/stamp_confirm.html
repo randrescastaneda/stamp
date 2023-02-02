@@ -61,11 +61,12 @@ one previously set with stamp_set() of stamp_save().</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stamp_confirm</span><span class="op">(</span></span>
-<span>  <span class="va">x</span>,</span>
+<span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stamp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  hash <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  st_ext <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.default.ext"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"stamp.verbose"</span><span class="op">)</span>,</span>
 <span>  set_hash <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -77,8 +78,7 @@ one previously set with stamp_set() of stamp_save().</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>x</dt>
-<dd><p>An arbitrary R object which will then be passed to the
-base::serialize function</p></dd>
+<dd><p>R object to write to disk as per limitations of <code>file</code> format.</p></dd>
 
 
 <dt>st_dir</dt>
@@ -95,6 +95,12 @@ base::serialize function</p></dd>
 
 <dt>stamp</dt>
 <dd><p>previously calculated stamp with <a href="stamp_get.html">stamp_get</a>.</p></dd>
+
+
+<dt>hash</dt>
+<dd><p>previously calculated stamp with <code>stamp_get(x)</code>. This will be
+compared against the stamps in file. You can't provide <code>x</code> along with
+<code>hash</code>. Of them must be NULL.</p></dd>
 
 
 <dt>st_ext</dt>

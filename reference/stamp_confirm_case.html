@@ -57,17 +57,33 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stamp_confirm_case</span><span class="op">(</span>st_dir <span class="op">=</span> <span class="cn">NULL</span>, st_name <span class="op">=</span> <span class="cn">NULL</span>, st_file <span class="op">=</span> <span class="cn">NULL</span>, stamp <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">stamp_confirm_case</span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  hash <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  st_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  st_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  st_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stamp <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>st_dir</dt>
+    <dl><dt>x</dt>
+<dd><p>An arbitrary R object which will then be passed to the
+base::serialize function</p></dd>
+
+
+<dt>st_dir</dt>
 <dd><p>character: parent directory to store stamp file (see details).</p></dd>
 
 
 <dt>st_name</dt>
 <dd><p>character: Name of stamp to be set or called in .stamp env.</p></dd>
+
+
+<dt>st_file</dt>
+<dd><p>character: path of stamp file to compare with.</p></dd>
 
 
 <dt>stamp</dt>
