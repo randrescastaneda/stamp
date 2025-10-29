@@ -1,0 +1,62 @@
+---
+title: "Saving & Loading Objects"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Saving & Loading Objects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Goal
+Use `st_save()` and `st_load()` for atomic writes and reliable reads.
+
+## Quick start
+
+```r
+st_init()
+st_opts(meta_format = "json")   # or "qs2", or "both"
+
+x <- data.frame(a = 1:3, b = letters[1:3])
+
+# Save (atomic: temp -> move), sidecar written next to file
+st_save(x, "derived/example.qs2", metadata = list(description = "toy"))
+
+# Load (format auto-detected)
+y <- st_load("derived/example.qs2")
+
+identical(x, y)
+````
+
+## Sidecar metadata
+
+Per-file metadata next to your artifact:
+
+* JSON: `file.ext.stmeta.json`
+* QS2:  `file.ext.stmeta.qs2`
+* Both if `st_opts(meta_format = "both")`
+
+Contents in Milestone 1:
+
+* `path`, `format`, `created_at` (UTC), `size_bytes`, `attrs` (reserved), plus any user `metadata`.
+
+Inspect directly:
+
+```r
+jsonlite::read_json("derived/example.qs2.stmeta.json", simplifyVector = TRUE)
+# or qs2::qread("derived/example.qs2.stmeta.qs2")
+```
+
+## CSV & friends
+
+```r
+if (requireNamespace("data.table", quietly = TRUE)) {
+  d <- data.table::data.table(id = 1:3, v = c(10, 20, 30))
+  st_save(d, "tables/d.csv")        # uses data.table::fwrite
+  d2 <- st_load("tables/d.csv")     # uses data.table::fread
+}
+```
+
+**Notes**
+
+* Hashing, versioning, and dependency tracking arrive in later milestones;
+  today `st_save()` focuses on atomic writes + basic metadata.

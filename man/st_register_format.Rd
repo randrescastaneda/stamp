@@ -9,10 +9,9 @@ st_register_format(name, read, write)
 \arguments{
 \item{name}{Character scalar: format name (e.g. \code{"qs2"}, \code{"rds"}).}
 
-\item{read}{Function with signature \verb{function(path, ...)} returning
-an R object read from \code{path}.}
+\item{read}{Function \verb{function(path, ...)} returning an R object.}
 
-\item{write}{Function with signature \verb{function(object, path, ...)} that writes \code{object} to \code{path} and returns invisibly.}
+\item{write}{Function \verb{function(object, path, ...)} that writes \code{object} to \code{path}.}
 }
 \value{
 Invisibly returns \code{TRUE} on success.
@@ -23,8 +22,9 @@ or override an existing one. Handlers must be functions with the
 expected signatures documented below.
 }
 \examples{
-# register a trivial format
-stamp:::st_register_format("txt", 
-read = function(p) readLines(p), 
-write = function(x, p) writeLines(x, p))
+st_register_format(
+  "txt",
+  read  = function(p, ...) readLines(p, ...),
+  write = function(x, p, ...) writeLines(x, p, ...)
+)
 }

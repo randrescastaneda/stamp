@@ -1,0 +1,49 @@
+---
+title: "Paths & Formats"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Paths & Formats}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Goal
+Understand how **stamp** declares file paths and chooses formats.
+
+## `st_path()`
+Declare a path with an optional format hint (S3 object used by I/O helpers).
+
+```r
+p1 <- st_path("data/iris.qs2")                  # format inferred (qs2)
+p2 <- st_path("data/mtcars.fst", format = "fst")
+p1
+````
+
+You can pass either a plain string path or an `st_path()` to `st_save()` /
+`st_load()`.
+
+## Format registry
+
+Built-ins (Milestone 1): `qs2` (default), `rds`, `csv`, `fst`, `json`.
+
+```r
+st_formats()
+#> e.g. [1] "csv" "fst" "json" "qs2" "rds"
+```
+
+### Register or override a format
+
+Keeps your project future-proof (e.g., add Parquet later).
+
+```r
+st_register_format(
+  name = "parquet",
+  read = function(path, ...) arrow::read_parquet(path, ...),
+  write = function(x, path, ...) arrow::write_parquet(x, path, ...)
+)
+```
+
+**Notes**
+
+* `qs2` is preferred; if not installed, the registry transparently falls back to `{qs}`.
+* CSV uses `{data.table}` for fast I/O if available.

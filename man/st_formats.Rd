@@ -2,8 +2,7 @@
 % Please edit documentation in R/format_registry.R
 \name{st_formats}
 \alias{st_formats}
-\title{Inspect available formats
-List available registered formats}
+\title{Inspect available formats}
 \usage{
 st_formats()
 }
@@ -15,5 +14,5 @@ Return a sorted character vector with the names of formats
 currently registered in the internal registry.
 }
 \examples{
-stamp::st_formats()
+st_formats()
 }
