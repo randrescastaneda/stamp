@@ -1,9 +1,40 @@
 url: https://randrescastaneda.github.io/stamp/
 template:
   bootstrap: 5
+  bootswatch: flatly   # pick any; or remove for default
+  bslib:
+    pkgdown-nav-height: 56px
 
 home:
-  title: An R package for putting a stamp to your data
-  description: Manage data from disk by adding hash stamps.
+  title: stamp
+  description: Simple, opinionated disk I/O that your functions can rely on.
+
+navbar:
+  structure:
+    left:  [reference, articles]
+    right: [search, github]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/your-org/stamp
+
+articles:
+  index:
+    title: "Articles"
+    contents:
+      - setup-and-options
+      - paths-and-formats
+      - saving-and-loading
+      - extending-stamp
 
 
+reference:
+  - title: "Core I/O"
+    contents:
+      - st_init
+      - st_opts
+      - st_path
+      - st_formats
+      - st_register_format
+      - st_save
+      - st_load

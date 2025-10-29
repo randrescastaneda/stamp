@@ -1,6 +1,5 @@
 # ---- format registry ---------------------------------------------------------
-
-# Internal registry lives in env; users can extend via st_register_format().
+# Internal registry lives in an rlang env; users can extend via st_register_format().
 # Each entry: list(read = function(path, ...), write = function(x, path, ...))
 
 #' Internal formats registry
@@ -12,10 +11,13 @@
 #' `st_register_format()`.
 #'
 #' @keywords internal
-.st_formats_env <- new.env(parent = emptyenv())
+.st_formats_env <- rlang::env()
 
+# small utility used here
+`%||%` <- function(a, b) if (is.null(a)) b else a
 
 # Prefer qs2::qsave/qread, else fallback to qs::qsave/qread, else error.
+
 #' Write using qs2/q (internal)
 #'
 #' Attempt to write `x` to `path` using `qs2::qsave()` when available,
@@ -24,11 +26,9 @@
 #'
 #' @param x R object to save.
 #' @param path Destination file path.
-#' @param preset Character preset passed to `qsave()`; defaults to
-#'   `"high"`.
+#' @param preset Character preset passed to `qsave()`; defaults to `"high"`.
 #' @param ... Additional arguments passed to the underlying writer.
-#' @return Invisibly returns what the underlying writer returns, or
-#'   throws an error when no writer is available.
+#' @return Invisibly returns what the underlying writer returns.
 #' @keywords internal
 #' @noRd
 .st_write_qs2 <- function(x, path, preset = "high", ...) {
@@ -40,7 +40,6 @@
     stop("Neither {qs2} nor {qs} is installed; cannot write qs2 format.")
   }
 }
-
 
 #' Read using qs2/q (internal)
 #'
@@ -63,7 +62,6 @@
   }
 }
 
-# Built-in formats
 # Seed built-ins
 rlang::env_bind(
   .st_formats_env,
@@ -110,8 +108,6 @@ rlang::env_bind(
   )
 )
 
-
-
 #' Register or override a format handler
 #'
 #' Public function that allows users to register a new format handler
@@ -119,78 +115,72 @@ rlang::env_bind(
 #' expected signatures documented below.
 #'
 #' @param name Character scalar: format name (e.g. `"qs2"`, `"rds"`).
-#' @param read Function with signature `function(path, ...)` returning
-#'   an R object read from `path`.
-#' @param write Function with signature `function(object, path,
-#'   ...)` that writes `object` to `path` and returns invisibly.
+#' @param read Function `function(path, ...)` returning an R object.
+#' @param write Function `function(object, path, ...)` that writes `object` to `path`.
 #' @return Invisibly returns `TRUE` on success.
 #' @export
 #' @examples
-#' # register a trivial format
-#' stamp:::st_register_format("txt", 
-#' read = function(p) readLines(p), 
-#' write = function(x, p) writeLines(x, p))
+#' st_register_format(
+#'   "txt",
+#'   read  = function(p, ...) readLines(p, ...),
+#'   write = function(x, p, ...) writeLines(x, p, ...)
+#' )
 st_register_format <- function(name, read, write) {
-  stopifnot(is.character(name), 
-  length(name) == 1L, 
-  is.function(read), 
-  is.function(write))
-  
+  stopifnot(
+    is.character(name), length(name) == 1L,
+    is.function(read),  is.function(write)
+  )
   rlang::env_poke(.st_formats_env, name, list(read = read, write = write))
-  
   cli::cli_inform(c("v" = paste0("Registered format '", name, "'")))
   invisible(TRUE)
 }
 
 #' Inspect available formats
-#' List available registered formats
 #'
 #' Return a sorted character vector with the names of formats
 #' currently registered in the internal registry.
 #'
 #' @return Character vector of format names.
 #' @examples
-#' stamp::st_formats()
+#' st_formats()
 #' @export
 st_formats <- function() {
-  sort(ls(.st_formats_env))
+  # names(as.list(env)) is robust for rlang envs
+  sort(names(as.list(.st_formats_env)))
 }
-
-
 
 # ---- sidecar metadata --------------------------------------------------------
 
- #' Compute sidecar metadata path (internal)
-#'
-#' Given a data file path, return the path used for its sidecar JSON
-#' metadata file (appends `.stmeta.json`).
-#'
-#' @param path Character scalar path of the data file.
-#' @return Character scalar path to corresponding sidecar metadata file.
+# NOTE: st_opts(meta_format=) is expected to be defined elsewhere in the package.
+
+# Sidecar path helpers (both variants supported).
+# e.g., "file.qs2" -> "file.qs2.stmeta.json" / "file.qs2.stmeta.qs2"
+# (Keep both to honor meta_format = "json" | "qs2" | "both")
+
 #' @keywords internal
 #' @noRd
-.st_sidecar_path <- function(path) {
-  # e.g., "file.qs2" -> "file.qs2.stmeta.json"
-  paste0(path, ".stmeta.json")
-}
+.st_sidecar_json_path <- function(path) paste0(path, ".stmeta.json")
+
+#' @keywords internal
+#' @noRd
+.st_sidecar_qs2_path  <- function(path) paste0(path, ".stmeta.qs2")
 
 #' Write sidecar metadata (internal)
 #'
-#' Write `meta` (a list) as JSON to the sidecar file for `path`. The
-#' JSON is first written to a temporary file in the same directory and
-#' then moved into place to reduce risk of partial writes.
+#' Write `meta` (a list) as sidecar(s) for `path`. The file(s) are first
+#' written to temp files in the same directory and then moved into place
+#' to reduce risk of partial writes.
 #'
-#' @param path Character path of the data file whose sidecar will be
-#'   written.
-#' @param meta List or other object convertible to JSON via
-#'   `jsonlite::write_json()`.
-#' @return Invisibly returns `NULL`.
-#' @name st_sidecar
+#' Respects `st_opts(meta_format = "json" | "qs2" | "both")`.
+#'
+#' @param path Character path of the data file whose sidecar will be written.
+#' @param meta List or object convertible to JSON / qs2.
 #' @keywords internal
+#' @noRd
 .st_write_sidecar <- function(path, meta) {
   fmt <- st_opts("meta_format", .get = TRUE) %||% "json"
 
-  if (fmt %in% c("json","both")) {
+  if (fmt %in% c("json", "both")) {
     scj <- .st_sidecar_json_path(path)
     tmp <- fs::file_temp(tmp_dir = fs::path_dir(scj), pattern = fs::path_file(scj))
     jsonlite::write_json(meta, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA)
@@ -198,10 +188,9 @@ st_formats <- function() {
     fs::file_move(tmp, scj)
   }
 
-  if (fmt %in% c("qs2","both")) {
+  if (fmt %in% c("qs2", "both")) {
     scq <- .st_sidecar_qs2_path(path)
     tmp <- fs::file_temp(tmp_dir = fs::path_dir(scq), pattern = fs::path_file(scq))
-    # Prefer qs2; fallback to qs just like artifact IO
     if (requireNamespace("qs2", quietly = TRUE)) {
       qs2::qsave(meta, tmp)
     } else if (requireNamespace("qs", quietly = TRUE)) {
@@ -212,22 +201,21 @@ st_formats <- function() {
     if (fs::file_exists(scq)) fs::file_delete(scq)
     fs::file_move(tmp, scq)
   }
+  invisible(NULL)
 }
 
 #' Read sidecar metadata (internal)
 #'
-#' Read the sidecar metadata for `path` if it exists, returning
-#' `NULL` when no sidecar file is present. Preference order is JSON
-#' first, then QS2. When a QS2 variant is encountered the function
-#' will attempt to use `qs2` then `qs`.
+#' Read the sidecar metadata for `path` if it exists, returning `NULL`
+#' when no sidecar file is present. Preference order is JSON first,
+#' then QS2. When a QS2 variant is encountered the function will use
+#' `qs2` or fall back to `qs`.
 #'
-#' @param path Character path of the data file whose sidecar will be
-#'   read.
-#' @return A list (parsed JSON) when the sidecar exists, otherwise
-#'   `NULL`.
-#' @rdname st_sidecar
+#' @param path Character path of the data file whose sidecar will be read.
+#' @return A list (parsed JSON / qs object) or `NULL` if not found.
+#' @keywords internal
+#' @noRd
 .st_read_sidecar <- function(path) {
-  # Preference order: JSON then QS2
   scj <- .st_sidecar_json_path(path)
   if (fs::file_exists(scj)) {
     return(jsonlite::read_json(scj, simplifyVector = TRUE))
