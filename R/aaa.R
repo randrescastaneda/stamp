@@ -1,1 +1,1 @@
-.stamp <-  new.env(parent = emptyenv())
+.stamp_state <- new.env(parent = emptyenv())
