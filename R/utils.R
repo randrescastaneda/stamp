@@ -1,8 +1,3 @@
-# package state (rlang env)
-.stamp_state <- rlang::env(
-  state_dir = ".stamp"  # default; overridden by st_init()
-)
-
 #' Package internal state environment
 #'
 #' An internal environment used by the package to store lightweight
@@ -15,11 +10,9 @@
 #' consumption.
 #'
 #' @keywords internal
-#' @noRd
-
-st_state_get <- function(name, default = NULL) {
-  if (rlang::env_has(.stamp_state, name)) rlang::env_get(.stamp_state, name) else default
-}
+.stamp_state <- rlang::env(
+  state_dir = ".stamp"  # default; overridden by st_init()
+)
 
 #' Get a value from the package state environment
 #'
@@ -39,10 +32,8 @@ st_state_get <- function(name, default = NULL) {
 #' stamp:::st_state_get("test")
 #'
 #' @keywords internal
-#' @noRd
-st_state_set <- function(...) {
-  rlang::env_bind(.stamp_state, ...)
-  invisible(NULL)
+st_state_get <- function(name, default = NULL) {
+  if (rlang::env_has(.stamp_state, name)) rlang::env_get(.stamp_state, name) else default
 }
 
 #' Set values in the package state environment
@@ -53,16 +44,12 @@ st_state_set <- function(...) {
 #'
 #' @param ... Named values to bind into the state environment.
 #' @return Invisibly returns `NULL`.
-#' @examples
-#' stamp:::st_state_set(foo = "bar")
-#' stamp:::st_state_get("foo")
-#'
-#' @keywords internal
-#' @noRd
-
-.st_now_utc <- function() {
-  as.character(as.POSIXct(Sys.time(), tz = "UTC"))
+#' @rdname st_state_get
+st_state_set <- function(...) {
+  rlang::env_bind(.stamp_state, ...)
+  invisible(NULL)
 }
+
 
 #' Current time as UTC character
 #'
@@ -72,11 +59,8 @@ st_state_set <- function(...) {
 #'
 #' @return Character scalar with the current time in UTC.
 #' @keywords internal
-#' @noRd
-
-# helper: ensure dir exists
-.st_dir_create <- function(path) {
-  if (!fs::dir_exists(path)) fs::dir_create(path, recurse = TRUE)
+.st_now_utc <- function() {
+  as.character(as.POSIXct(Sys.time(), tz = "UTC"))
 }
 
 #' Ensure directory exists
@@ -87,7 +71,9 @@ st_state_set <- function(...) {
 #' @param path Character scalar path to create.
 #' @return Invisibly returns `NULL`.
 #' @keywords internal
-#' @noRd
+.st_dir_create <- function(path) {
+  if (!fs::dir_exists(path)) fs::dir_create(path, recurse = TRUE)
+}
 
 
 #' Null-coalescing operator (internal)

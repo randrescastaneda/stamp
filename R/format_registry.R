@@ -3,8 +3,6 @@
 # Internal registry lives in env; users can extend via st_register_format().
 # Each entry: list(read = function(path, ...), write = function(x, path, ...))
 
-.st_formats_env <- new.env(parent = emptyenv())
-
 #' Internal formats registry
 #'
 #' An internal environment that stores available read/write handlers for
@@ -14,25 +12,25 @@
 #' `st_register_format()`.
 #'
 #' @keywords internal
-#' @noRd
+.st_formats_env <- new.env(parent = emptyenv())
+
 
 # Prefer qs2::qsave/qread, else fallback to qs::qsave/qread, else error.
-.# Prefer qs2::qsave/qread, else fallback to qs::qsave/qread, else error.
-.#' Write using qs2/q (internal)
-.#'
-.#' Attempt to write `x` to `path` using `qs2::qsave()` when available,
-.#' otherwise fall back to `qs::qsave()`. If neither package is
-.#' installed an error is raised.
-.#'
-.#' @param x R object to save.
-.#' @param path Destination file path.
-.#' @param preset Character preset passed to `qsave()`; defaults to
-.#'   `"high"`.
-.#' @param ... Additional arguments passed to the underlying writer.
-.#' @return Invisibly returns what the underlying writer returns, or
-.#'   throws an error when no writer is available.
-.#' @keywords internal
-.#' @noRd
+#' Write using qs2/q (internal)
+#'
+#' Attempt to write `x` to `path` using `qs2::qsave()` when available,
+#' otherwise fall back to `qs::qsave()`. If neither package is
+#' installed an error is raised.
+#'
+#' @param x R object to save.
+#' @param path Destination file path.
+#' @param preset Character preset passed to `qsave()`; defaults to
+#'   `"high"`.
+#' @param ... Additional arguments passed to the underlying writer.
+#' @return Invisibly returns what the underlying writer returns, or
+#'   throws an error when no writer is available.
+#' @keywords internal
+#' @noRd
 .st_write_qs2 <- function(x, path, preset = "high", ...) {
   if (requireNamespace("qs2", quietly = TRUE)) {
     qs2::qsave(x, path, preset = preset, ...)
@@ -44,17 +42,17 @@
 }
 
 
-.#' Read using qs2/q (internal)
-.#'
-.#' Read an object from `path` using `qs2::qread()` when available, or
-.#' fall back to `qs::qread()` if not. Throws an error when neither
-.#' package is installed.
-.#'
-.#' @param path File path to read from.
-.#' @param ... Additional args passed to the underlying reader.
-.#' @return The R object read from `path`.
-.#' @keywords internal
-.#' @noRd
+#' Read using qs2/q (internal)
+#'
+#' Read an object from `path` using `qs2::qread()` when available, or
+#' fall back to `qs::qread()` if not. Throws an error when neither
+#' package is installed.
+#'
+#' @param path File path to read from.
+#' @param ... Additional args passed to the underlying reader.
+#' @return The R object read from `path`.
+#' @keywords internal
+#' @noRd
 .st_read_qs2 <- function(path, ...) {
   if (requireNamespace("qs2", quietly = TRUE)) {
     qs2::qread(path, ...)
@@ -187,6 +185,7 @@ st_formats <- function() {
 #' @param meta List or other object convertible to JSON via
 #'   `jsonlite::write_json()`.
 #' @return Invisibly returns `NULL`.
+#' @name st_sidecar
 #' @keywords internal
 .st_write_sidecar <- function(path, meta) {
   fmt <- st_opts("meta_format", .get = TRUE) %||% "json"
@@ -226,8 +225,7 @@ st_formats <- function() {
 #'   read.
 #' @return A list (parsed JSON) when the sidecar exists, otherwise
 #'   `NULL`.
-#' @keywords internal
-#' @md .st_read_sidecar
+#' @rdname st_sidecar
 .st_read_sidecar <- function(path) {
   # Preference order: JSON then QS2
   scj <- .st_sidecar_json_path(path)

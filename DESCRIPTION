@@ -35,6 +35,6 @@ Suggests:
     highcharter (>= 0.9.4),
     covr
 Config/testthat/edition: 3
-RoxygenNote: 7.2.2
+RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr

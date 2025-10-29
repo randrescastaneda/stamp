@@ -44,6 +44,7 @@ st_path <- function(path, format = NULL, partition_key = NULL) {
   )
 }
 
+#' @export
 print.st_path <- function(x, ...) {
   cli::cli_inform(paste0("<st_path> ", x$path, " [format=", x$format, "]"))
   invisible(x)
