@@ -188,7 +188,6 @@ st_formats <- function() {
 #'   `jsonlite::write_json()`.
 #' @return Invisibly returns `NULL`.
 #' @keywords internal
-#' @noRd
 .st_write_sidecar <- function(path, meta) {
   fmt <- st_opts("meta_format", .get = TRUE) %||% "json"
 
@@ -216,6 +215,19 @@ st_formats <- function() {
   }
 }
 
+#' Read sidecar metadata (internal)
+#'
+#' Read the sidecar metadata for `path` if it exists, returning
+#' `NULL` when no sidecar file is present. Preference order is JSON
+#' first, then QS2. When a QS2 variant is encountered the function
+#' will attempt to use `qs2` then `qs`.
+#'
+#' @param path Character path of the data file whose sidecar will be
+#'   read.
+#' @return A list (parsed JSON) when the sidecar exists, otherwise
+#'   `NULL`.
+#' @keywords internal
+#' @md .st_read_sidecar
 .st_read_sidecar <- function(path) {
   # Preference order: JSON then QS2
   scj <- .st_sidecar_json_path(path)
@@ -234,16 +246,3 @@ st_formats <- function() {
   }
   NULL
 }
-
-#' Read sidecar metadata (internal)
-#'
-#' Read the sidecar JSON metadata for `path` if it exists, returning
-#' `NULL` when no sidecar file is present. When both JSON and QS2
-#' variants are present JSON is preferred.
-#'
-#' @param path Character path of the data file whose sidecar will be
-#'   read.
-#' @return A list (parsed JSON) when the sidecar exists, otherwise
-#'   `NULL`.
-#' @keywords internal
-#' @noRd
