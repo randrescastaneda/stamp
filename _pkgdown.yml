@@ -6,21 +6,4 @@ home:
   title: An R package for putting a stamp to your data
   description: Manage data from disk by adding hash stamps.
 
-reference:
-- title: "Stamp functions"
-  desc: >
-    Functions for getting, setting, confirming, and working in genaral
-    with stamps
-  contents:
-  - starts_with("stamp")
-- title: "Reading and Writing Data"
-  desc: "Functions for reading and writing files with stamp."
-  contents:
-  - starts_with("st_")
-- title: "Working with vintages"
-  desc: "Functions to manipulate vintages files"
-  contents:
-  - starts_with("vt_")
-
-
 
