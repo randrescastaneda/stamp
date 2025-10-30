@@ -2,18 +2,18 @@
 % Please edit documentation in R/utils.R
 \name{.st_dir_create}
 \alias{.st_dir_create}
-\title{Ensure directory exists}
+\title{Ensure directory exists (idempotent)}
 \usage{
 .st_dir_create(path)
 }
 \arguments{
-\item{path}{Character scalar path to create.}
+\item{path}{Character scalar path to a directory.}
 }
 \value{
 Invisibly returns \code{NULL}.
 }
 \description{
-Create \code{path} if it does not already exist. Uses the \code{fs} package
-and will create intermediate directories when required.
+Create \code{path} if it does not already exist. Intermediate directories
+are created as needed.
 }
 \keyword{internal}

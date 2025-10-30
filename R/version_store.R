@@ -1,31 +1,81 @@
 # ---- Version store & catalog -------------------------------------------------
 
-# Normalize path string for IDs
+#' Normalize a path for use as an identifier (internal)
+#'
+#' Convert a path to an absolute, canonical character representation
+#' suitable for deterministic hashing and use as an identifier.
+#'
+#' @param p Character path.
+#' @return Character scalar absolute path.
+#' @keywords internal
+#' @noRd
 .st_norm_path <- function(p) as.character(fs::path_abs(p))
 
-# Artifact ID derived ONLY from the normalized path using siphash13
+#' Compute artifact identifier (internal)
+#'
+#' Derive an artifact identifier from `path` using a stable SipHash
+#' of the normalized path. This identifier is used to group versions
+#' belonging to the same logical artifact.
+#'
+#' @param path Character path to the artifact.
+#' @return Character scalar identifier.
+#' @keywords internal
+#' @noRd
 .st_artifact_id <- function(path) {
   secretbase::siphash13(.st_norm_path(path))
 }
 
-# Versions root: <state_dir>/versions
+#' Versions root directory (internal)
+#'
+#' Return the path to the package-managed versions root directory
+#' (under the package state directory) and ensure it exists.
+#'
+#' @return Character scalar directory path.
+#' @keywords internal
+#' @noRd
 .st_versions_root <- function() {
   vs <- fs::path(st_state_get("state_dir", ".stamp"), "versions")
   .st_dir_create(vs)
   vs
 }
 
-# Version directory for an artifact path + version_id
+#' Version directory for an artifact (internal)
+#'
+#' Compute the path to the version directory for `artifact_path` and
+#' `version_id` under the versions root.
+#'
+#' @param artifact_path Path to the artifact file.
+#' @param version_id Version identifier (character).
+#' @return Character scalar path to the version directory.
+#' @keywords internal
+#' @noRd
 .st_version_dir <- function(artifact_path, version_id) {
   rel <- fs::path_rel(.st_norm_path(artifact_path), start = fs::path_abs("."))
   fs::path(.st_versions_root(), rel, version_id)
 }
 
 # Catalog paths & IO
+
+#' Catalog file path (internal)
+#'
+#' Return the path where the in-memory catalog is persisted.
+#'
+#' @return Character scalar path to the catalog file.
+#' @keywords internal
+#' @noRd
 .st_catalog_path <- function() {
   fs::path(st_state_get("state_dir", ".stamp"), "catalog.qs2")
 }
 
+#' Empty catalog template (internal)
+#'
+#' Return an empty catalog structure compatible with the package's
+#' catalog persistence format. The function prefers `data.table`
+#' objects when available, otherwise falls back to base `data.frame`.
+#'
+#' @return A list with `artifacts` and `versions` tables.
+#' @keywords internal
+#' @noRd
 .st_catalog_empty <- function() {
   if (requireNamespace("data.table", quietly = TRUE)) {
     list(
@@ -55,11 +105,28 @@
   }
 }
 
+#' Read catalog from disk (internal)
+#'
+#' Load the persisted catalog from disk if present, otherwise return an
+#' empty catalog structure.
+#'
+#' @return Catalog list with `artifacts` and `versions`.
+#' @keywords internal
+#' @noRd
 .st_catalog_read <- function() {
   p <- .st_catalog_path()
   if (fs::file_exists(p)) .st_read_qs2(p) else .st_catalog_empty()
 }
 
+#' Write catalog to disk (internal)
+#'
+#' Persist the in-memory `cat` to the catalog file location. Uses a
+#' temporary file + move strategy to reduce risk of partial writes.
+#'
+#' @param cat Catalog object (list with `artifacts` and `versions`).
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
 .st_catalog_write <- function(cat) {
   p <- .st_catalog_path()
   fs::dir_create(fs::path_dir(p), recurse = TRUE)
@@ -72,6 +139,16 @@
 # Public API -------------------------------------------------------------
 
 #' List versions for an artifact path
+#'
+#' Return the recorded versions for the artifact identified by
+#' `path`. The result is returned as a `data.frame` or `data.table`
+#' depending on available packages.
+#'
+#' @param path Character scalar path to the artifact file.
+#' @return Table (data.frame or data.table) with rows for each
+#'   recorded version, ordered by creation time (most recent first).
+#' @examples
+#' # st_versions("data/myfile.qs2")
 #' @export
 st_versions <- function(path) {
   aid <- .st_artifact_id(path)
@@ -87,6 +164,15 @@ st_versions <- function(path) {
 }
 
 #' Get the latest version_id for an artifact path
+#'
+#' Return the `version_id` for the most recently recorded version of
+#' the artifact identified by `path`, or `NA_character_` when no
+#' versions exist for that artifact.
+#'
+#' @param path Character scalar path to the artifact file.
+#' @return Character scalar `version_id` or `NA_character_`.
+#' @examples
+#' # st_latest("data/myfile.qs2")
 #' @export
 st_latest <- function(path) {
   aid <- .st_artifact_id(path)
@@ -97,9 +183,17 @@ st_latest <- function(path) {
 }
 
 #' Load a specific version of an artifact
-#' @param path File path of the artifact (used to infer format if needed)
-#' @param version_id Version identifier to load
-#' @param ... Passed to the registered reader
+#'
+#' Load the previously recorded version of an artifact from the
+#' versions store. The function will locate the version directory and
+#' dispatch to the appropriate format reader.
+#'
+#' @param path Character path of the artifact (used to infer format if needed).
+#' @param version_id Character version identifier to load.
+#' @param ... Additional arguments passed to the registered reader.
+#' @return The artifact object as returned by the registered format reader.
+#' @examples
+#' # st_load_version("data/myfile.qs2", "20250101T000000Z-abcdef01")
 #' @export
 st_load_version <- function(path, version_id, ...) {
   vdir <- .st_version_dir(path, version_id)
@@ -121,12 +215,20 @@ st_load_version <- function(path, version_id, ...) {
   h$read(art, ...)
 }
 
+## ---- Catalog update & version commit helpers ---------------------------------
 
-# ---- Catalog update & version commit helpers ---------------------------------
-
-# Construct a compact version_id:
-# - primary = UTC timestamp (sortable)
-# - optional suffix = first 8 chars of a hash (content_hash or code_hash) if present
+#' Construct a compact version id (internal)
+#'
+#' Build a sortable version identifier based on `created_at` and an
+#' optional short hash suffix derived from `content_hash` or
+#' `code_hash`.
+#'
+#' @param created_at Character scalar timestamp (UTC) used as primary key.
+#' @param content_hash Optional content hash (character).
+#' @param code_hash Optional code hash (character).
+#' @return Character scalar version id.
+#' @keywords internal
+#' @noRd
 .st_version_id <- function(created_at, content_hash = NA_character_, code_hash = NA_character_) {
   ts <- gsub("[-:]", "", created_at, fixed = FALSE)
   ts <- gsub("Z$", "Z", ts) # keep the trailing Z
@@ -135,16 +237,32 @@ st_load_version <- function(path, version_id, ...) {
   if (nzchar(h)) sprintf("%s-%s", ts, substr(h, 1L, 8L)) else ts
 }
 
-# Determine which sidecar formats currently exist for an artifact,
-# return a scalar string "json" | "qs2" | "both" | "none"
+#' Which sidecar formats exist for a path (internal)
+#'
+#' Check for the presence of sidecar metadata files for `path` and
+#' return one of `"json"`, `"qs2"`, `"both"`, or `"none"`.
+#'
+#' @param path Character path of the artifact.
+#' @return Character scalar indicating available sidecar formats.
+#' @keywords internal
+#' @noRd
 .st_sidecar_present <- function(path) {
   p_json <- fs::file_exists(.st_sidecar_path(path, "json"))
   p_qs2  <- fs::file_exists(.st_sidecar_path(path, "qs2"))
   if (p_json && p_qs2) "both" else if (p_json) "json" else if (p_qs2) "qs2" else "none"
 }
 
-# Copy the just-written artifact & its sidecars into a version directory.
-# Files are copied, not moved, so the working artifact remains in place.
+#' Copy artifact and sidecars into version directory (internal)
+#'
+#' Copy the main artifact and any present sidecars into the computed
+#' version directory. Files are copied (not moved) so the working
+#' artifact remains in place.
+#'
+#' @param artifact_path Character path to the artifact file.
+#' @param version_id Character version identifier.
+#' @return Invisibly returns the version directory path.
+#' @keywords internal
+#' @noRd
 .st_version_commit_files <- function(artifact_path, version_id) {
   vdir <- .st_version_dir(artifact_path, version_id)
   .st_dir_create(fs::path_dir(vdir))          # ensure parent tree exists
@@ -167,7 +285,19 @@ st_load_version <- function(path, version_id, ...) {
   invisible(vdir)
 }
 
-# Upsert artifacts row and bump counters
+#' Upsert artifact row in catalog (internal)
+#'
+#' Insert a new artifact row into the catalog or update the existing
+#' row's `latest_version_id` and increment `n_versions`.
+#'
+#' @param cat Catalog list.
+#' @param artifact_id Character artifact identifier.
+#' @param path Character artifact path.
+#' @param format Character format string.
+#' @param latest_version_id Character latest version id.
+#' @return Updated catalog list.
+#' @keywords internal
+#' @noRd
 .st_catalog_upsert_artifact <- function(cat, artifact_id, path, format, latest_version_id) {
   if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
     a <- data.table::as.data.table(cat$artifacts)
@@ -213,7 +343,15 @@ st_load_version <- function(path, version_id, ...) {
   cat
 }
 
-# Append one row into versions table
+#' Append a version row to the catalog (internal)
+#'
+#' Add a single version record to the catalog's versions table.
+#'
+#' @param cat Catalog list.
+#' @param row A data.frame or list representing the new versions row.
+#' @return Updated catalog list.
+#' @keywords internal
+#' @noRd
 .st_catalog_append_version <- function(cat, row) {
   if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
     v <- data.table::as.data.table(cat$versions)
@@ -227,8 +365,23 @@ st_load_version <- function(path, version_id, ...) {
   cat
 }
 
-# High-level: create & record a new version
-# Returns the chosen version_id (invisibly).
+#' Record a new version in the catalog (internal)
+#'
+#' High level helper that records a newly created version into the
+#' catalog: appends a versions row, upserts the artifact row, and
+#' persists the catalog.
+#'
+#' @param artifact_path Character path to the artifact file.
+#' @param format Character format name for the artifact.
+#' @param size_bytes Numeric size of the artifact in bytes.
+#' @param content_hash Optional character content hash.
+#' @param code_hash Optional character code hash.
+#' @param created_at Character timestamp used for the version id.
+#' @param sidecar_format Character indicating sidecar availability
+#'   ("json", "qs2", "both", or "none").
+#' @return Invisibly returns the chosen `version_id`.
+#' @keywords internal
+#' @noRd
 .st_catalog_record_version <- function(artifact_path,
                                        format,
                                        size_bytes,
@@ -257,3 +410,4 @@ st_load_version <- function(path, version_id, ...) {
 
   invisible(vid)
 }
+

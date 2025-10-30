@@ -2,16 +2,14 @@
 % Please edit documentation in R/utils.R
 \name{.st_now_utc}
 \alias{.st_now_utc}
-\title{Current time as UTC character}
+\title{Current time as UTC ISO-8601 (Z) string}
 \usage{
 .st_now_utc()
 }
 \value{
-Character scalar with the current time in UTC.
+Character scalar like "2025-10-30T15:42:07Z"
 }
 \description{
-Return the current system time converted to UTC and coerced to a
-character string. This helper is used when storing timestamps in the
-package state or in saved metadata.
+Current time as UTC ISO-8601 (Z) string
 }
 \keyword{internal}
