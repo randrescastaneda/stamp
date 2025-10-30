@@ -1,58 +1,49 @@
-# ---- Hashing (secretbase only) -----------------------------------------------
+# hashing.R — content/code/file hashing with secretbase only
 
-#' Stable object hash
+#' Stable SipHash-1-3 of an R object
 #'
-#' Compute a canonical, encoding-independent hash for any R object.
-#' The implementation serializes the object with `serialize(...,
-#' version = 3)` and computes a SipHash-13 via `secretbase::siphash13`.
-#' This yields a stable result across R sessions and independent of
-#' file encodings or serialization presets.
+#' Serializes the object with base::serialize(version = 3) and hashes the raw
+#' bytes via secretbase::siphash13(). This is stable across sessions (given the
+#' same R version and object structure) and suitable for change detection.
 #'
-#' @param x Any R object to hash.
-#' @return Character scalar containing the hex representation of the
-#'   SipHash-13 of the serialized object.
-#' @examples
-#' st_hash_obj(list(a = 1, b = "x"))
-#' @export
+#' @param x Any R object.
+#' @return Lowercase hex string (16 hex chars) from siphash13().
+#' @keywords internal
 st_hash_obj <- function(x) {
-  secretbase::siphash13(serialize(x, NULL, version = 3))
+  raw <- serialize(x, connection = NULL, version = 3)
+  secretbase::siphash13(raw)
 }
 
-#' File content hash
+#' Stable SipHash-1-3 of code
 #'
-#' Compute a SipHash-13 over the contents of a file. Intended for
-#' integrity and tamper checks. The function requires a single existing
-#' file path.
+#' Accepts a function, expression (language), or character. For functions,
+#' includes both formals and body. Whitespace is normalized conservatively.
 #'
-#' @param path Character scalar path to a file.
-#' @return Character scalar containing the hex hash of the file
-#'   contents.
-#' @examples
-#' # write a temp file and hash it
-#' tf <- tempfile(); writeLines("hello", tf); st_hash_file(tf)
-#' @export
+#' @param code A function, expression, or character vector.
+#' @return Lowercase hex string (16 hex chars).
+#' @keywords internal
+st_hash_code <- function(code) {
+  if (is.function(code)) {
+    txt <- c(
+      paste0("formals:", paste0(names(formals(code)), collapse = ",")),
+      paste(deparse(body(code)), collapse = "\n")
+    )
+  } else if (is.language(code)) {
+    txt <- paste(deparse(code), collapse = "\n")
+  } else {
+    txt <- paste(as.character(code), collapse = "\n")
+  }
+  # light normalization
+  txt <- gsub("[ \t]+", " ", txt)
+  txt <- gsub("\r\n?", "\n", txt, perl = TRUE)
+  secretbase::siphash13(txt)
+}
+
+#' SipHash-1-3 of a file (bytes on disk)
+#'
+#' @param path Path to a file.
+#' @return Lowercase hex string (16 hex chars).
+#' @keywords internal
 st_hash_file <- function(path) {
-  stopifnot(length(path) == 1L, fs::file_exists(path))
   secretbase::siphash13(file = path)
-}
-
-#' Hash R function code
-#'
-#' Compute a hash for a function's code by combining the textual
-#' representation of its formals and body. The function intentionally
-#' ignores the environment to avoid spurious differences coming from
-#' enclosing environments.
-#'
-#' @param fun A function object to hash.
-#' @return Character scalar with the SipHash-13 hex digest of the
-#'   combined formals and body.
-#' @examples
-#' f <- function(x, y = 1) x + y
-#' st_hash_code(f)
-#' @export
-st_hash_code <- function(fun) {
-  stopifnot(is.function(fun))
-  f <- paste0(deparse(formals(fun), width.cutoff = 500L), collapse = "\n")
-  b <- paste0(deparse(body(fun),    width.cutoff = 500L), collapse = "\n")
-  secretbase::siphash13(paste(f, b, sep = "\n\n"))
 }
