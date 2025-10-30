@@ -23,12 +23,10 @@ Invisibly returns what the underlying writer returns.
 The R object read from \code{path}.
 }
 \description{
-.st_write_qs2 attempts to write \code{x} to \code{path} using \code{qs2::qs_save()} when available,
-otherwise fall back to \code{qs::qsave()}. If neither package is
-installed an error is raised.
+Attempts to write \code{x} to \code{path} using \code{qs2::qs_save()} or \code{qs2::qsave()} when available,
+otherwise falls back to \code{qs::qsave()}. Errors if neither package is installed.
 
-.st_read_qs2 reads an object from \code{path} using \code{qs2::qs_read()} when available, or
-fall back to \code{qs::qread()} if not. Throws an error when neither
-package is installed.
+Reads an object from \code{path} using \code{qs2::qs_read()} or \code{qs2::qread()} when available,
+otherwise falls back to \code{qs::qread()}. Errors if neither package is installed.
 }
 \keyword{internal}

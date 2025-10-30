@@ -15,6 +15,6 @@ A list (parsed JSON / qs object) or \code{NULL} if not found.
 \description{
 Read the sidecar metadata for \code{path} if it exists, returning \code{NULL}
 when no sidecar file is present. Preference order is JSON first,
-then QS2. When a QS2 variant is encountered the function will use
-\code{qs2} or fall back to \code{qs}.
+then QS2. When a QS2 variant is encountered the function will try
+\code{qs2} and fall back to \code{qs}.
 }

@@ -17,16 +17,7 @@ Character scalar with the computed sidecar path.
 \description{
 Build the path to a sidecar metadata file for \code{path}. Sidecars live in
 a sibling directory named \code{stmeta} next to the file's directory. The
-returned filename has the original basename with a \verb{.stmeta.<ext>}
-suffix where \code{ext} is typically \code{"json"} or \code{"qs2"}.
-}
-\details{
-Examples:
-\itemize{
-\item \verb{path = "data/file.qs2", ext = "json"} ->
-\code{data/stmeta/file.qs2.stmeta.json}
-\item \verb{path = "dir/a.csv", ext = "qs2"} ->
-\code{dir/stmeta/a.csv.stmeta.qs2}
-}
+returned filename has the original basename with a \verb{.stmeta.<ext>} suffix
+where \code{ext} is typically \code{"json"} or \code{"qs2"}.
 }
 \keyword{internal}

@@ -12,6 +12,9 @@ st_register_format(name, read, write, extensions = NULL)
 \item{read}{Function \verb{function(path, ...)} returning an R object.}
 
 \item{write}{Function \verb{function(object, path, ...)} that writes \code{object} to \code{path}.}
+
+\item{extensions}{Optional character vector of file extensions (e.g. \code{c("qs","qs2")})
+to map to this format; case-insensitive; without dots.}
 }
 \value{
 Invisibly returns \code{TRUE} on success.
@@ -25,6 +28,7 @@ expected signatures documented below.
 st_register_format(
   "txt",
   read  = function(p, ...) readLines(p, ...),
-  write = function(x, p, ...) writeLines(x, p, ...)
+  write = function(x, p, ...) writeLines(x, p, ...),
+  extensions = "txt"
 )
 }
