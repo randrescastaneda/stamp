@@ -52,14 +52,41 @@ print.st_path <- function(x, ...) {
   invisible(x)
 }
 
+# map file extensions -> format keys (qs -> qs2, parquet -> parquet, etc.)
+.st_extmap_env <- rlang::env()
+
+# seed extension mappings for built-ins
+rlang::env_bind(
+  .st_extmap_env,
+  qs  = "qs2",  # treat .qs with the qs2/qs handler
+  qs2 = "qs2",
+  rds = "rds",
+  csv = "csv",
+  fst = "fst",
+  json = "json"
+)
+
+
 .st_guess_format <- function(path) {
-  fs::path_ext(path) |> 
-    tolower()
+  ext <- tolower(fs::path_ext(path))
+  if (!nzchar(ext)) return(NULL)
+
+  # 1) direct match: extension equals a registered format name
+  if (rlang::env_has(.st_formats_env, ext)) return(ext)
+
+  # 2) mapped extension (e.g., 'qs' -> 'qs2', 'parquet' -> 'parquet')
+  if (rlang::env_has(.st_extmap_env, ext)) {
+    return(rlang::env_get(.st_extmap_env, ext))
+  }
+
+  # 3) unknown
+  NULL
 }
 
 
 
-# ---- st_save (atomic) --------------------------------------------------------
+
+# ---- Load and Save --------------------------------------------------------
 
 #' Save an R object to disk with sidecar metadata (atomic move)
 #' @param x object to save
@@ -76,8 +103,9 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   }
 
   fmt <- format %||% sp$format %||% "qs2"
-  h   <- .st_formats_env[[fmt]] # it loads one of the functions. 
-  if (is.null(h)) stop("Unknown format '", fmt, "'. See st_formats() or st_register_format().")
+  h   <- rlang::env_get(.st_formats_env, fmt, default = NULL)
+  if (is.null(h)) cli::cli_abort("Unknown format {fmt}. See {.fn st_formats} or {.fn st_register_format}.")
+
 
   # ensure parent dir exists
   .st_dir_create(fs::path_dir(sp$path))
@@ -109,7 +137,6 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   invisible(list(path = sp$path, metadata = meta))
 }
 
-# ---- st_load -----------------------------------------------------------------
 
 #' Load an object from disk (format auto-detected by extension or explicit format)
 #' @param file path or st_path
@@ -118,11 +145,11 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
 #' @return the loaded object
 st_load <- function(file, format = NULL, ...) {
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
-  if (!fs::file_exists(sp$path)) stop("File does not exist: ", sp$path)
+  if (!fs::file_exists(sp$path)) cli::cli_abort("File does not exist: {sp$path}")
 
   fmt <- format %||% sp$format %||% .st_guess_format(sp$path) %||% "qs2"
-  h <- .st_formats_env[[fmt]]
-  if (is.null(h)) stop("Unknown format '", fmt, "'. See st_formats().")
+  h   <- rlang::env_get(.st_formats_env, fmt, default = NULL)
+  if (is.null(h)) cli::cli_abort("Unknown format '{fmt}'. See {.fn st_formats}.")
 
   res <- h$read(sp$path, ...)
   cli::cli_inform(c("v" = paste0("Loaded [", fmt, "] ← ", sp$path)))
@@ -148,7 +175,8 @@ st_opts <- function(..., .get = FALSE) {
       key <- args[[1]]
       return(rlang::env_get(.stamp_opts, key, default = NULL))
     } else {
-      stop("For getting, use st_opts(.get = TRUE) or st_opts('key', .get = TRUE).")
+      cli::cli_abort("For getting, use {.code st_opts(.get = TRUE)} or {.code st_opts('key', .get = TRUE)}.")
+
     }
   } else {
     dots <- rlang::list2(...)
