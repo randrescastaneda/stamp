@@ -13,53 +13,73 @@
 #' @keywords internal
 .st_formats_env <- rlang::env()
 
-# small utility used here
-`%||%` <- function(a, b) if (is.null(a)) b else a
-
-# Prefer qs2::qs_save/qread, else fallback to qs::qsave/qread, else error.
-
-#' Write using qs2/q (internal)
-#'
-#' Attempt to write `x` to `path` using `qs2::qs_save()` when available,
-#' otherwise fall back to `qs::qsave()`. If neither package is
-#' installed an error is raised.
-#'
+#' saving in qs2 format in stamps
+#' 
+#' .st_qs2_write and .st_qs2_read are internal helpers that attempt to write/read
+#' 
 #' @param x R object to save.
 #' @param path Destination file path.
 #' @param ... Additional arguments passed to the underlying writer.
-#' @return Invisibly returns what the underlying writer returns.
+#' @name st_qs
 #' @keywords internal
-#' @noRd
-.st_write_qs2 <- function(x, path, ...) {
+NULL
+#> NULL
+
+#' @return selected function
+#' @rdname st_qs
+.st_qs2_write <- function(x, path, ...) {
   if (requireNamespace("qs2", quietly = TRUE)) {
-    qs2::qs_save(x, path, ...)
-  } else if (requireNamespace("qs", quietly = TRUE)) {
-    qs::qsave(x, path, ...) # best-effort fallback
-  } else {
-    stop("Neither {qs2} nor {qs} is installed; cannot write qs2 format.")
+    ns <- asNamespace("qs2")
+    for (cand in c("qs_save", "qsave")) {
+      if (exists(cand, envir = ns, inherits = FALSE)) {
+        return(get(cand, envir = ns)(x, path, ...))
+      }
+    }
   }
+  if (requireNamespace("qs", quietly = TRUE)) {
+    return(qs::qsave(x, path, ...))
+  }
+  cli::cli_abort("Neither {.pkg qs2} nor {.pkg qs} is installed; cannot write qs2 format.")
 }
+
+#' @return selected function
+#' @rdname st_qs
+.st_qs2_read <- function(path, ...) {
+  if (requireNamespace("qs2", quietly = TRUE)) {
+    ns <- asNamespace("qs2")
+    for (cand in c("qs_read", "qread")) {
+      if (exists(cand, envir = ns, inherits = FALSE)) {
+        return(get(cand, envir = ns)(path, ...))
+      }
+    }
+  }
+  if (requireNamespace("qs", quietly = TRUE)) {
+    return(qs::qread(path, ...))
+  }
+  cli::cli_abort("Neither {.pkg qs2} nor {.pkg qs} is installed; cannot read qs2 format.")
+}
+
+
+
+#' Write using qs2/q (internal)
+#'
+#' .st_write_qs2 attempts to write `x` to `path` using `qs2::qs_save()` when available,
+#' otherwise fall back to `qs::qsave()`. If neither package is
+#' installed an error is raised.
+#'
+#' @return Invisibly returns what the underlying writer returns.
+#' @rdname st_qs
+.st_write_qs2 <-  function(x, path, ...) .st_qs2_write(x, path, ...)
 
 #' Read using qs2/q (internal)
 #'
-#' Read an object from `path` using `qs2::qs_read()` when available, or
+#' .st_read_qs2 reads an object from `path` using `qs2::qs_read()` when available, or
 #' fall back to `qs::qread()` if not. Throws an error when neither
 #' package is installed.
 #'
-#' @param path File path to read from.
-#' @param ... Additional args passed to the underlying reader.
 #' @return The R object read from `path`.
-#' @keywords internal
-#' @noRd
-.st_read_qs2 <- function(path, ...) {
-  if (requireNamespace("qs2", quietly = TRUE)) {
-    qs2::qs_read(path, ...)
-  } else if (requireNamespace("qs", quietly = TRUE)) {
-    qs::qread(path, ...)
-  } else {
-    stop("Neither {qs2} nor {qs} is installed; cannot read qs2 format.")
-  }
-}
+#' @rdname st_qs
+.st_read_qs2 <-  function(path, ...)    .st_qs2_read(path, ...)
 
 # Seed built-ins
 rlang::env_bind(
