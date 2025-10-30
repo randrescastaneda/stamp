@@ -33,7 +33,9 @@ st_init <- function(root = ".", state_dir = ".stamp") {
 #' @param partition_key optional partition key (not used in M1)
 #' @return list with class 'st_path'
 st_path <- function(path, format = NULL, partition_key = NULL) {
-  stopifnot(is.character(path), length(path) == 1L)
+  stopifnot(is.character(path), 
+  length(path) == 1L)
+  
   structure(
     list(
       path = path,
@@ -51,17 +53,8 @@ print.st_path <- function(x, ...) {
 }
 
 .st_guess_format <- function(path) {
-  ext <- fs::path_ext(path) |> 
+  fs::path_ext(path) |> 
     tolower()
-  switch(ext,
-    "qs2" = "qs2",
-    "qs"  = "qs2",   # treat .qs as qs2 default handler; adapter picks best available
-    "rds" = "rds",
-    "csv" = "csv",
-    "fst" = "fst",
-    "json"= "json",
-    NULL
-  )
 }
 
 
@@ -76,16 +69,23 @@ print.st_path <- function(x, ...) {
 #' @param ... forwarded to format writer
 #' @return invisibly, a list with path and metadata
 st_save <- function(x, file, format = NULL, metadata = list(), ...) {
-  sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
+  sp <- if (inherits(file, "st_path")) {
+    file
+  } else {
+    st_path(file, format = format)
+  }
+
   fmt <- format %||% sp$format %||% "qs2"
-  h <- .st_formats_env[[fmt]]
+  h   <- .st_formats_env[[fmt]] # it loads one of the functions. 
   if (is.null(h)) stop("Unknown format '", fmt, "'. See st_formats() or st_register_format().")
 
   # ensure parent dir exists
   .st_dir_create(fs::path_dir(sp$path))
 
   # write to temp in same dir, then move atomically
-  tmp <- fs::file_temp(tmp_dir = fs::path_dir(sp$path), pattern = fs::path_file(sp$path))
+  tmp <- fs::file_temp(tmp_dir = fs::path_dir(sp$path), 
+                       pattern = fs::path_file(sp$path))
+  
   h$write(x, tmp, ...)
 
   # move into place
@@ -161,7 +161,10 @@ st_opts <- function(..., .get = FALSE) {
       }
     }
     rlang::env_bind(.stamp_opts, !!!dots)
-    cli::cli_inform(c("v" = "stamp options updated", " " = paste(names(dots), dots, sep=" = ", collapse=", ")))
+    cli::cli_inform(c("v" = "stamp options updated", 
+                      " " = paste(names(dots), dots, sep=" = ", collapse=", ")
+                    )
+                  )
     invisible(NULL)
   }
 }

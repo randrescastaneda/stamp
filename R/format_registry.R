@@ -16,26 +16,25 @@
 # small utility used here
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-# Prefer qs2::qsave/qread, else fallback to qs::qsave/qread, else error.
+# Prefer qs2::qs_save/qread, else fallback to qs::qsave/qread, else error.
 
 #' Write using qs2/q (internal)
 #'
-#' Attempt to write `x` to `path` using `qs2::qsave()` when available,
+#' Attempt to write `x` to `path` using `qs2::qs_save()` when available,
 #' otherwise fall back to `qs::qsave()`. If neither package is
 #' installed an error is raised.
 #'
 #' @param x R object to save.
 #' @param path Destination file path.
-#' @param preset Character preset passed to `qsave()`; defaults to `"high"`.
 #' @param ... Additional arguments passed to the underlying writer.
 #' @return Invisibly returns what the underlying writer returns.
 #' @keywords internal
 #' @noRd
-.st_write_qs2 <- function(x, path, preset = "high", ...) {
+.st_write_qs2 <- function(x, path, ...) {
   if (requireNamespace("qs2", quietly = TRUE)) {
-    qs2::qsave(x, path, preset = preset, ...)
+    qs2::qs_save(x, path, ...)
   } else if (requireNamespace("qs", quietly = TRUE)) {
-    qs::qsave(x, path, preset = preset, ...) # best-effort fallback
+    qs::qsave(x, path, ...) # best-effort fallback
   } else {
     stop("Neither {qs2} nor {qs} is installed; cannot write qs2 format.")
   }
@@ -43,7 +42,7 @@
 
 #' Read using qs2/q (internal)
 #'
-#' Read an object from `path` using `qs2::qread()` when available, or
+#' Read an object from `path` using `qs2::qs_read()` when available, or
 #' fall back to `qs::qread()` if not. Throws an error when neither
 #' package is installed.
 #'
@@ -54,7 +53,7 @@
 #' @noRd
 .st_read_qs2 <- function(path, ...) {
   if (requireNamespace("qs2", quietly = TRUE)) {
-    qs2::qread(path, ...)
+    qs2::qs_read(path, ...)
   } else if (requireNamespace("qs", quietly = TRUE)) {
     qs::qread(path, ...)
   } else {
@@ -157,13 +156,33 @@ st_formats <- function() {
 # e.g., "file.qs2" -> "file.qs2.stmeta.json" / "file.qs2.stmeta.qs2"
 # (Keep both to honor meta_format = "json" | "qs2" | "both")
 
+#' Sidecar metadata path helper (internal)
+#'
+#' Build the path to a sidecar metadata file for `path`. Sidecars live in
+#' a sibling directory named `stmeta` next to the file's directory. The
+#' returned filename has the original basename with a `.stmeta.<ext>`
+#' suffix where `ext` is typically `"json"` or `"qs2"`.
+#'
+#' Examples:
+#' - `path = "data/file.qs2", ext = "json"` ->
+#'   `data/stmeta/file.qs2.stmeta.json`
+#' - `path = "dir/a.csv", ext = "qs2"` ->
+#'   `dir/stmeta/a.csv.stmeta.qs2`
+#'
+#' @param path Character scalar path to the main data file.
+#' @param ext Character scalar extension for the sidecar (e.g. "json" or "qs2").
+#' @return Character scalar with the computed sidecar path.
 #' @keywords internal
-#' @noRd
-.st_sidecar_json_path <- function(path) paste0(path, ".stmeta.json")
-
-#' @keywords internal
-#' @noRd
-.st_sidecar_qs2_path  <- function(path) paste0(path, ".stmeta.qs2")
+.st_sidecar_path <- function(path, ext = c("json", "qs2")) {
+  ext <- match.arg(ext)
+  # Directory and filename pieces
+  dir <- fs::path_dir(path)
+  base <- fs::path_file(path)
+  # stmeta folder placed next to the data file
+  sc_dir <- fs::path(dir, "stmeta")
+  fs::dir_create(sc_dir, recurse = TRUE)
+  fs::path(sc_dir, paste0(base, ".stmeta.", ext))
+}
 
 #' Write sidecar metadata (internal)
 #'
@@ -181,7 +200,7 @@ st_formats <- function() {
   fmt <- st_opts("meta_format", .get = TRUE) %||% "json"
 
   if (fmt %in% c("json", "both")) {
-    scj <- .st_sidecar_json_path(path)
+    scj <- .st_sidecar_path(path, ext = "json")
     tmp <- fs::file_temp(tmp_dir = fs::path_dir(scj), pattern = fs::path_file(scj))
     jsonlite::write_json(meta, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA)
     if (fs::file_exists(scj)) fs::file_delete(scj)
@@ -189,10 +208,10 @@ st_formats <- function() {
   }
 
   if (fmt %in% c("qs2", "both")) {
-    scq <- .st_sidecar_qs2_path(path)
+    scq <- .st_sidecar_path(path, ext = "qs2")
     tmp <- fs::file_temp(tmp_dir = fs::path_dir(scq), pattern = fs::path_file(scq))
     if (requireNamespace("qs2", quietly = TRUE)) {
-      qs2::qsave(meta, tmp)
+      qs2::qs_save(meta, tmp)
     } else if (requireNamespace("qs", quietly = TRUE)) {
       qs::qsave(meta, tmp)
     } else {
@@ -213,17 +232,16 @@ st_formats <- function() {
 #'
 #' @param path Character path of the data file whose sidecar will be read.
 #' @return A list (parsed JSON / qs object) or `NULL` if not found.
-#' @keywords internal
-#' @noRd
-.st_read_sidecar <- function(path) {
-  scj <- .st_sidecar_json_path(path)
+#' @export
+st_read_sidecar <- function(path) {
+  scj <- .st_sidecar_path(path, ext = "json")
   if (fs::file_exists(scj)) {
     return(jsonlite::read_json(scj, simplifyVector = TRUE))
   }
-  scq <- .st_sidecar_qs2_path(path)
+  scq <- .st_sidecar_path(path, ext = "qs2")
   if (fs::file_exists(scq)) {
     if (requireNamespace("qs2", quietly = TRUE)) {
-      return(qs2::qread(scq))
+      return(qs2::qs_read(scq))
     } else if (requireNamespace("qs", quietly = TRUE)) {
       return(qs::qread(scq))
     } else {
