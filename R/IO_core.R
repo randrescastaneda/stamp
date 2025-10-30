@@ -1,4 +1,4 @@
-#' stamp: Milestone 1 — I/O core (qs2-first), cli+fs only
+#' stamp: Milestone 1,  I/O core (qs2-first), cli+fs only
 #' Depends: cli, fs, jsonlite (and optionally qs2, qs, fst, data.table)
 #' Exports: st_init, st_path, st_register_format, st_formats, st_save, st_load
 
@@ -120,7 +120,7 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   if (fs::file_exists(sp$path)) fs::file_delete(sp$path)
   fs::file_move(tmp, sp$path)
 
-  # sidecar metadata (no hashes yet — Milestone 2)
+  # sidecar metadata (no hashes yet, Milestone 2)
   meta <- c(
     list(
       path        = as.character(sp$path),
@@ -133,7 +133,7 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   )
   .st_write_sidecar(sp$path, meta)
 
-  cli::cli_inform(c("v" = paste0("Saved [", fmt, "] → ", sp$path)))
+  cli::cli_inform(c("v" = paste0("Saved [", fmt, "] --> ", sp$path)))
   invisible(list(path = sp$path, metadata = meta))
 }
 
@@ -152,7 +152,7 @@ st_load <- function(file, format = NULL, ...) {
   if (is.null(h)) cli::cli_abort("Unknown format '{fmt}'. See {.fn st_formats}.")
 
   res <- h$read(sp$path, ...)
-  cli::cli_inform(c("v" = paste0("Loaded [", fmt, "] ← ", sp$path)))
+  cli::cli_inform(c("v" = paste0("Loaded [", fmt, "] <-- ", sp$path)))
   res
 }
 

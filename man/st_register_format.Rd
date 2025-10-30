@@ -4,7 +4,7 @@
 \alias{st_register_format}
 \title{Register or override a format handler}
 \usage{
-st_register_format(name, read, write)
+st_register_format(name, read, write, extensions = NULL)
 }
 \arguments{
 \item{name}{Character scalar: format name (e.g. \code{"qs2"}, \code{"rds"}).}
