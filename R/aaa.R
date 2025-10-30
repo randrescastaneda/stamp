@@ -1,6 +1,14 @@
 # aaa.R — foundational objects, loaded first (alphabetical order)
 
-# Tiny utility
+#' Null-coalescing operator (internal)
+#'
+#' Return `b` when `a` is `NULL`, otherwise return `a`.
+#'
+#' @param a Value to test for `NULL`.
+#' @param b Fallback value returned when `a` is `NULL`.
+#' @return Either `a` (when not `NULL`) or `b`.
+#' @keywords internal
+#' @noRd
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
 # ------------------------------------------------------------------------------
