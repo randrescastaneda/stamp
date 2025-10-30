@@ -2,5 +2,8 @@
 
 S3method(print,st_path)
 export(st_formats)
+export(st_hash_code)
+export(st_hash_file)
+export(st_hash_obj)
 export(st_read_sidecar)
 export(st_register_format)
