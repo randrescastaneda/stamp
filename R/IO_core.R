@@ -1,4 +1,4 @@
-#' stamp: Milestone 1,  I/O core (qs2-first), cli+fs only
+#' stamp: Milestone 1 — I/O core (qs2-first), cli+fs only
 #' Depends: cli, fs, jsonlite (and optionally qs2, qs, fst, data.table)
 #' Exports: st_init, st_path, st_register_format, st_formats, st_save, st_load
 
@@ -8,6 +8,7 @@
 #' @param root project root (default ".")
 #' @param state_dir directory name for internal state (default ".stamp")
 #' @return (invisibly) the absolute state dir
+#' @export
 st_init <- function(root = ".", state_dir = ".stamp") {
   root <- fs::path_abs(root)
   st_state_set(state_dir = state_dir)
@@ -19,8 +20,8 @@ st_init <- function(root = ".", state_dir = ".stamp") {
 
   cli::cli_inform(c(
     "v" = "stamp initialized",
-    " " = paste0("root: ", root),
-    " " = paste0("state: ", fs::path_abs(sd))
+    " " = paste0("root: {.field ", root, "}"),
+    " " = paste0("state: {.field ", fs::path_abs(sd), "}")
   ))
   invisible(fs::path_abs(sd))
 }
@@ -32,10 +33,10 @@ st_init <- function(root = ".", state_dir = ".stamp") {
 #' @param format optional explicit format ("qs2","rds","csv","fst","json")
 #' @param partition_key optional partition key (not used in M1)
 #' @return list with class 'st_path'
+#' @export
 st_path <- function(path, format = NULL, partition_key = NULL) {
-  stopifnot(is.character(path), 
-  length(path) == 1L)
-  
+  stopifnot(is.character(path), length(path) == 1L)
+
   structure(
     list(
       path = path,
@@ -48,24 +49,11 @@ st_path <- function(path, format = NULL, partition_key = NULL) {
 
 #' @export
 print.st_path <- function(x, ...) {
-  cli::cli_inform(paste0("<st_path> ", x$path, " [format=", x$format, "]"))
+  cli::cli_inform("<{.field st_path}> {.field {x$path}} [format={.field {x$format}}]")
   invisible(x)
 }
 
-# map file extensions -> format keys (qs -> qs2, parquet -> parquet, etc.)
-.st_extmap_env <- rlang::env()
-
-# seed extension mappings for built-ins
-rlang::env_bind(
-  .st_extmap_env,
-  qs  = "qs2",  # treat .qs with the qs2/qs handler
-  qs2 = "qs2",
-  rds = "rds",
-  csv = "csv",
-  fst = "fst",
-  json = "json"
-)
-
+# ---- format inference --------------------------------------------------------
 
 .st_guess_format <- function(path) {
   ext <- tolower(fs::path_ext(path))
@@ -74,7 +62,7 @@ rlang::env_bind(
   # 1) direct match: extension equals a registered format name
   if (rlang::env_has(.st_formats_env, ext)) return(ext)
 
-  # 2) mapped extension (e.g., 'qs' -> 'qs2', 'parquet' -> 'parquet')
+  # 2) mapped extension (e.g., 'qs' -> 'qs2'); seeded in zzz.R
   if (rlang::env_has(.st_extmap_env, ext)) {
     return(rlang::env_get(.st_extmap_env, ext))
   }
@@ -83,10 +71,7 @@ rlang::env_bind(
   NULL
 }
 
-
-
-
-# ---- Load and Save --------------------------------------------------------
+# ---- Load and Save -----------------------------------------------------------
 
 #' Save an R object to disk with sidecar metadata (atomic move)
 #' @param x object to save
@@ -95,32 +80,32 @@ rlang::env_bind(
 #' @param metadata named list of extra metadata (stored in sidecar)
 #' @param ... forwarded to format writer
 #' @return invisibly, a list with path and metadata
+#' @export
 st_save <- function(x, file, format = NULL, metadata = list(), ...) {
-  sp <- if (inherits(file, "st_path")) {
-    file
-  } else {
-    st_path(file, format = format)
+  sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
+
+  fmt <- format %||%
+    sp$format %||%
+    .st_guess_format(sp$path) %||%
+    st_opts("default_format", .get = TRUE)
+
+  h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
+  if (is.null(h)) {
+    cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats} or {.fn st_register_format}.")
   }
-
-  fmt <- format %||% sp$format %||% "qs2"
-  h   <- rlang::env_get(.st_formats_env, fmt, default = NULL)
-  if (is.null(h)) cli::cli_abort("Unknown format {fmt}. See {.fn st_formats} or {.fn st_register_format}.")
-
 
   # ensure parent dir exists
   .st_dir_create(fs::path_dir(sp$path))
 
   # write to temp in same dir, then move atomically
-  tmp <- fs::file_temp(tmp_dir = fs::path_dir(sp$path), 
-                       pattern = fs::path_file(sp$path))
-  
+  tmp <- fs::file_temp(tmp_dir = fs::path_dir(sp$path), pattern = fs::path_file(sp$path))
   h$write(x, tmp, ...)
 
   # move into place
   if (fs::file_exists(sp$path)) fs::file_delete(sp$path)
   fs::file_move(tmp, sp$path)
 
-  # sidecar metadata (no hashes yet, Milestone 2)
+  # sidecar metadata (no hashes yet — Milestone 2)
   meta <- c(
     list(
       path        = as.character(sp$path),
@@ -133,28 +118,33 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   )
   .st_write_sidecar(sp$path, meta)
 
-  cli::cli_inform(c("v" = paste0("Saved [", fmt, "] --> ", sp$path)))
+  cli::cli_inform(c("v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}}"))
   invisible(list(path = sp$path, metadata = meta))
 }
-
 
 #' Load an object from disk (format auto-detected by extension or explicit format)
 #' @param file path or st_path
 #' @param format optional format override
 #' @param ... forwarded to format reader
 #' @return the loaded object
+#' @export
 st_load <- function(file, format = NULL, ...) {
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
-  if (!fs::file_exists(sp$path)) cli::cli_abort("File does not exist: {sp$path}")
+  if (!fs::file_exists(sp$path)) {
+    cli::cli_abort("File does not exist: {.field {sp$path}}")
+  }
 
-  fmt <- format %||% sp$format %||% .st_guess_format(sp$path) %||% "qs2"
-  h   <- rlang::env_get(.st_formats_env, fmt, default = NULL)
-  if (is.null(h)) cli::cli_abort("Unknown format '{fmt}'. See {.fn st_formats}.")
+  fmt <- format %||%
+    sp$format %||%
+    .st_guess_format(sp$path) %||%
+    st_opts("default_format", .get = TRUE)
+
+  h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
+  if (is.null(h)) {
+    cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats}.")
+  }
 
   res <- h$read(sp$path, ...)
-  cli::cli_inform(c("v" = paste0("Loaded [", fmt, "] <-- ", sp$path)))
+  cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.field {sp$path}}"))
   res
 }
-
-
-
