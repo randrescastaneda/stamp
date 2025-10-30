@@ -2,16 +2,10 @@
 % Please edit documentation in R/format_registry.R
 \name{st_qs}
 \alias{st_qs}
-\alias{.st_qs2_write}
-\alias{.st_qs2_read}
 \alias{.st_write_qs2}
 \alias{.st_read_qs2}
 \title{saving in qs2 format in stamps}
 \usage{
-.st_qs2_write(x, path, ...)
-
-.st_qs2_read(path, ...)
-
 .st_write_qs2(x, path, ...)
 
 .st_read_qs2(path, ...)
@@ -24,17 +18,11 @@
 \item{...}{Additional arguments passed to the underlying writer.}
 }
 \value{
-selected function
-
-selected function
-
 Invisibly returns what the underlying writer returns.
 
 The R object read from \code{path}.
 }
 \description{
-.st_qs2_write and .st_qs2_read are internal helpers that attempt to write/read
-
 .st_write_qs2 attempts to write \code{x} to \code{path} using \code{qs2::qs_save()} when available,
 otherwise fall back to \code{qs::qsave()}. If neither package is
 installed an error is raised.

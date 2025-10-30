@@ -15,7 +15,6 @@
 
 #' saving in qs2 format in stamps
 #' 
-#' .st_qs2_write and .st_qs2_read are internal helpers that attempt to write/read
 #' 
 #' @param x R object to save.
 #' @param path Destination file path.
@@ -24,41 +23,6 @@
 #' @keywords internal
 NULL
 #> NULL
-
-#' @return selected function
-#' @rdname st_qs
-.st_qs2_write <- function(x, path, ...) {
-  if (requireNamespace("qs2", quietly = TRUE)) {
-    ns <- asNamespace("qs2")
-    for (cand in c("qs_save", "qsave")) {
-      if (exists(cand, envir = ns, inherits = FALSE)) {
-        return(get(cand, envir = ns)(x, path, ...))
-      }
-    }
-  }
-  if (requireNamespace("qs", quietly = TRUE)) {
-    return(qs::qsave(x, path, ...))
-  }
-  cli::cli_abort("Neither {.pkg qs2} nor {.pkg qs} is installed; cannot write qs2 format.")
-}
-
-#' @return selected function
-#' @rdname st_qs
-.st_qs2_read <- function(path, ...) {
-  if (requireNamespace("qs2", quietly = TRUE)) {
-    ns <- asNamespace("qs2")
-    for (cand in c("qs_read", "qread")) {
-      if (exists(cand, envir = ns, inherits = FALSE)) {
-        return(get(cand, envir = ns)(path, ...))
-      }
-    }
-  }
-  if (requireNamespace("qs", quietly = TRUE)) {
-    return(qs::qread(path, ...))
-  }
-  cli::cli_abort("Neither {.pkg qs2} nor {.pkg qs} is installed; cannot read qs2 format.")
-}
-
 
 
 #' Write using qs2/q (internal)
@@ -69,7 +33,18 @@ NULL
 #'
 #' @return Invisibly returns what the underlying writer returns.
 #' @rdname st_qs
-.st_write_qs2 <-  function(x, path, ...) .st_qs2_write(x, path, ...)
+.st_write_qs2 <-  function(x, path, ...) {
+  if (requireNamespace("qs2", quietly = TRUE)) {
+    ns <- asNamespace("qs2")
+    for (cand in c("qs_save", "qsave")) {
+      if (exists(cand, envir = ns, inherits = FALSE)) {
+        return(get(cand, envir = ns)(x, path, ...))
+      }
+    }
+  }
+  if (requireNamespace("qs", quietly = TRUE)) return(qs::qsave(x, path, ...))
+  cli::cli_abort("Neither {.pkg qs2} nor {.pkg qs} is installed; cannot write qs2 format.")
+}
 
 #' Read using qs2/q (internal)
 #'
@@ -79,7 +54,18 @@ NULL
 #'
 #' @return The R object read from `path`.
 #' @rdname st_qs
-.st_read_qs2 <-  function(path, ...)    .st_qs2_read(path, ...)
+.st_read_qs2 <-  function(path, ...) {
+  if (requireNamespace("qs2", quietly = TRUE)) {
+    ns <- asNamespace("qs2")
+    for (cand in c("qs_read", "qread")) {
+      if (exists(cand, envir = ns, inherits = FALSE)) {
+        return(get(cand, envir = ns)(path, ...))
+      }
+    }
+  }
+  if (requireNamespace("qs", quietly = TRUE)) return(qs::qread(path, ...))
+  cli::cli_abort("Neither {.pkg qs2} nor {.pkg qs} is installed; cannot read qs2 format.")
+}
 
 # Seed built-ins
 rlang::env_bind(
@@ -200,7 +186,6 @@ st_formats <- function() {
   base <- fs::path_file(path)
   # stmeta folder placed next to the data file
   sc_dir <- fs::path(dir, "stmeta")
-  fs::dir_create(sc_dir, recurse = TRUE)
   fs::path(sc_dir, paste0(base, ".stmeta.", ext))
 }
 
@@ -221,22 +206,23 @@ st_formats <- function() {
 
   if (fmt %in% c("json", "both")) {
     scj <- .st_sidecar_path(path, ext = "json")
+    # create if does not exist
+    fs::dir_create(fs::path_dir(scj), recurse = TRUE)
+    
+    
     tmp <- fs::file_temp(tmp_dir = fs::path_dir(scj), pattern = fs::path_file(scj))
     jsonlite::write_json(meta, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA)
     if (fs::file_exists(scj)) fs::file_delete(scj)
-    fs::file_move(tmp, scj)
-  }
-
+      fs::file_move(tmp, scj)
+    }
+    
   if (fmt %in% c("qs2", "both")) {
     scq <- .st_sidecar_path(path, ext = "qs2")
+    # create if does not exist
+    fs::dir_create(fs::path_dir(scq), recurse = TRUE)
+
     tmp <- fs::file_temp(tmp_dir = fs::path_dir(scq), pattern = fs::path_file(scq))
-    if (requireNamespace("qs2", quietly = TRUE)) {
-      qs2::qs_save(meta, tmp)
-    } else if (requireNamespace("qs", quietly = TRUE)) {
-      qs::qsave(meta, tmp)
-    } else {
-      stop("meta_format includes 'qs2' but neither {qs2} nor {qs} is installed.")
-    }
+    .st_write_qs2(meta, tmp)
     if (fs::file_exists(scq)) fs::file_delete(scq)
     fs::file_move(tmp, scq)
   }
@@ -260,13 +246,9 @@ st_read_sidecar <- function(path) {
   }
   scq <- .st_sidecar_path(path, ext = "qs2")
   if (fs::file_exists(scq)) {
-    if (requireNamespace("qs2", quietly = TRUE)) {
-      return(qs2::qs_read(scq))
-    } else if (requireNamespace("qs", quietly = TRUE)) {
-      return(qs::qread(scq))
-    } else {
-      stop("Found QS2 sidecar but neither {qs2} nor {qs} is installed.")
-    }
-  }
-  NULL
+    return(.st_read_qs2(scq))
+  } 
+  
+  cli::cli_alert("sidecar metadata not found for {path}. Returning NULL.")
+  invisible(NULL)
 }
