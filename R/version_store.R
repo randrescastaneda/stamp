@@ -34,10 +34,15 @@
 #' @keywords internal
 #' @noRd
 .st_versions_root <- function() {
-  vs <- fs::path(st_state_get("state_dir", ".stamp"), "versions")
+  state_dir  <- st_state_get("state_dir", ".stamp")
+  state_root <- st_state_get("state_root", fs::path_abs("."))
+
+  state_base <- if (fs::is_absolute_path(state_dir)) state_dir else fs::path(state_root, state_dir)
+  vs <- fs::path(state_base, "versions")
   .st_dir_create(vs)
   vs
 }
+
 
 #' Version directory for an artifact (internal)
 #'
@@ -64,8 +69,15 @@
 #' @keywords internal
 #' @noRd
 .st_catalog_path <- function() {
-  fs::path(st_state_get("state_dir", ".stamp"), "catalog.qs2")
+  state_dir  <- st_state_get("state_dir", ".stamp")
+  state_root <- st_state_get("state_root", fs::path_abs("."))
+
+  # If state_dir is not absolute, resolve it under state_root
+  state_base <- if (fs::is_absolute_path(state_dir)) state_dir else fs::path(state_root, state_dir)
+
+  fs::path(state_base, "catalog.qs2")
 }
+
 
 #' Empty catalog template (internal)
 #'

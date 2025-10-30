@@ -1,0 +1,123 @@
+---
+title: "Hashing, Change Detection & Versions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Hashing, Change Detection & Versions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup}
+# If knitting outside the package, uncomment:
+devtools::load_all()
+# library(stamp)
+```
+
+Milestone 2 adds **stable hashing**, **skip-on-equal** saves, and a lightweight **versions** catalog.
+
+* Object hashes: `st_hash_obj(x)` — stable (serialize, then SipHash-1-3 via `{secretbase}`)
+* Code hashes: `st_hash_code(code)` — function/expr/character, normalized
+* File hashes (optional): `st_hash_file(path)`
+* Change detection helpers: `st_changed()`, `st_changed_reason()`, `st_should_save()`
+* Versions catalog: `st_versions()`, `st_latest()`, `st_load_version()`
+
+## Recommended options
+
+```{r}
+st_opts_reset()
+st_opts(
+  versioning      = "content",  # skip write when content unchanged
+  code_hash       = TRUE,       # store code hash when 'code=' is provided to st_save()
+  store_file_hash = TRUE,       # compute and store file hash after write
+  verify_on_load  = TRUE,       # optionally verify file hash on load
+  meta_format     = "both"      # write JSON + QS2 sidecars
+)
+```
+
+## Save with hashes (and skip if content identical)
+
+```{r}
+root <- tempdir()
+st_init(root)
+
+p <- fs::path(root, "demo.qs")
+x <- data.frame(a = 1:3)
+
+# First write: creates artifact + sidecars + catalog entry
+st_save(x, p, code = function(z) z)
+
+# Second write, same content: skipped (no new version)
+st_save(x, p, code = function(z) z)
+nrow(st_versions(p))  # should be 1
+```
+
+If you **change content**, a new version is recorded:
+
+```{r}
+x2 <- transform(x, a = a + 1L)
+st_save(x2, p, code = function(z) z)
+nrow(st_versions(p))  # now 2
+st_latest(p)          # latest version id (string)
+```
+
+## Inspect sidecars & metadata
+
+```{r}
+meta <- st_read_sidecar(p)
+meta[c("format", "created_at", "size_bytes", "content_hash", "code_hash", "file_hash")]
+```
+
+* `content_hash` is derived from `st_hash_obj(x)`
+* `code_hash` is derived from `st_hash_code(code)` if you supplied `code=`
+* `file_hash` is optional (post-write) and used for `verify_on_load`
+
+## Change detection (without writing)
+
+Call this **before** expensive work to decide whether a recompute is necessary.
+
+```{r}
+x_same <- x2
+x_new  <- transform(x2, a = a + 10L)
+
+st_changed(p, x = x_same, code = function(z) z)
+st_changed_reason(p, x = x_same, code = function(z) z)   # "no_change"
+
+st_changed(p, x = x_new, code = function(z) z)
+st_changed_reason(p, x = x_new, code = function(z) z)    # "content"
+
+st_should_save(p, x = x_same, code = function(z) z)      # recommends skip
+st_should_save(p, x = x_new,  code = function(z) z)      # recommends save
+```
+
+> Current policy: **content** changes drive new versions. Changing `code=` alone won’t force a new version unless content also changes (we still record the new `code_hash` when we do write). If you want code-only changes to force writes, you can add a package option for that later.
+
+## Loading specific versions
+
+```{r}
+vids <- st_versions(p)
+head(vids)
+
+vid_latest <- st_latest(p)
+obj_latest <- st_load_version(p, vid_latest)
+
+# Load an older version by id
+if (nrow(vids) > 1L) {
+  vid_old <- vids$version_id[[nrow(vids)]]
+  obj_old <- st_load_version(p, vid_old)
+}
+```
+
+## Integrity checks on load (optional)
+
+If `verify_on_load = TRUE` and a `file_hash` exists in the sidecar, `st_load()` will recompute the file’s hash and warn if it differs (indicating the file changed outside **stamp**).
+
+```{r}
+invisible(st_load(p))  # triggers optional verify; warns on mismatch
+```
+
+## Tips & conventions
+
+* Keep `versioning = "content"` for reproducible artifacts; switch to `"off"` if you need to force a new version every save (e.g., for timestamped snapshots).
+* Use `st_changed()`/`st_should_save()` to gate expensive computation in your own functions.
+* Sidecars: prefer `meta_format = "json"` for readability, `qs2` for compactness, or `"both"` if you want belt & suspenders.
