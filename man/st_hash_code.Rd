@@ -2,24 +2,18 @@
 % Please edit documentation in R/hashing.R
 \name{st_hash_code}
 \alias{st_hash_code}
-\title{Hash R function code}
+\title{Stable SipHash-1-3 of code}
 \usage{
-st_hash_code(fun)
+st_hash_code(code)
 }
 \arguments{
-\item{fun}{A function object to hash.}
+\item{code}{A function, expression, or character vector.}
 }
 \value{
-Character scalar with the SipHash-13 hex digest of the
-combined formals and body.
+Lowercase hex string (16 hex chars).
 }
 \description{
-Compute a hash for a function's code by combining the textual
-representation of its formals and body. The function intentionally
-ignores the environment to avoid spurious differences coming from
-enclosing environments.
+Accepts a function, expression (language), or character. For functions,
+includes both formals and body. Whitespace is normalized conservatively.
 }
-\examples{
-f <- function(x, y = 1) x + y
-st_hash_code(f)
-}
+\keyword{internal}

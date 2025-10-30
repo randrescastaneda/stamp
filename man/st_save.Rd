@@ -2,9 +2,9 @@
 % Please edit documentation in R/IO_core.R
 \name{st_save}
 \alias{st_save}
-\title{Save an R object to disk with sidecar metadata (atomic move)}
+\title{Save an R object to disk with metadata & versioning (atomic move)}
 \usage{
-st_save(x, file, format = NULL, metadata = list(), ...)
+st_save(x, file, format = NULL, metadata = list(), code = NULL, ...)
 }
 \arguments{
 \item{x}{object to save}
@@ -13,13 +13,15 @@ st_save(x, file, format = NULL, metadata = list(), ...)
 
 \item{format}{optional format override ("qs2" | "rds" | "csv" | "fst" | "json")}
 
-\item{metadata}{named list of extra metadata (stored in sidecar)}
+\item{metadata}{named list of extra metadata (merged into sidecar)}
+
+\item{code}{Optional function/expression/character whose hash is stored as \code{code_hash}.}
 
 \item{...}{forwarded to format writer}
 }
 \value{
-invisibly, a list with path and metadata
+invisibly, a list with path, metadata, and version_id
 }
 \description{
-Save an R object to disk with sidecar metadata (atomic move)
+Save an R object to disk with metadata & versioning (atomic move)
 }

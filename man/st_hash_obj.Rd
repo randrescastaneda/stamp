@@ -2,23 +2,19 @@
 % Please edit documentation in R/hashing.R
 \name{st_hash_obj}
 \alias{st_hash_obj}
-\title{Stable object hash}
+\title{Stable SipHash-1-3 of an R object}
 \usage{
 st_hash_obj(x)
 }
 \arguments{
-\item{x}{Any R object to hash.}
+\item{x}{Any R object.}
 }
 \value{
-Character scalar containing the hex representation of the
-SipHash-13 of the serialized object.
+Lowercase hex string (16 hex chars) from siphash13().
 }
 \description{
-Compute a canonical, encoding-independent hash for any R object.
-The implementation serializes the object with \code{serialize(..., version = 3)} and computes a SipHash-13 via \code{secretbase::siphash13}.
-This yields a stable result across R sessions and independent of
-file encodings or serialization presets.
+Serializes the object with base::serialize(version = 3) and hashes the raw
+bytes via secretbase::siphash13(). This is stable across sessions (given the
+same R version and object structure) and suitable for change detection.
 }
-\examples{
-st_hash_obj(list(a = 1, b = "x"))
-}
+\keyword{internal}

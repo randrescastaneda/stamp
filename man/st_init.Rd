@@ -2,8 +2,8 @@
 % Please edit documentation in R/IO_core.R
 \name{st_init}
 \alias{st_init}
-\title{stamp: Milestone 1 — I/O core (qs2-first), cli+fs only
-Depends: cli, fs, jsonlite (and optionally qs2, qs, fst, data.table)
+\title{stamp: Milestone 2 — I/O + hashing (qs2-first), cli+fs only
+Depends: cli, fs, jsonlite, secretbase (and optionally qs2, qs, fst, data.table)
 Exports: st_init, st_path, st_register_format, st_formats, st_save, st_load
 Initialize stamp project structure}
 \usage{
@@ -18,8 +18,8 @@ st_init(root = ".", state_dir = ".stamp")
 (invisibly) the absolute state dir
 }
 \description{
-stamp: Milestone 1 — I/O core (qs2-first), cli+fs only
-Depends: cli, fs, jsonlite (and optionally qs2, qs, fst, data.table)
+stamp: Milestone 2 — I/O + hashing (qs2-first), cli+fs only
+Depends: cli, fs, jsonlite, secretbase (and optionally qs2, qs, fst, data.table)
 Exports: st_init, st_path, st_register_format, st_formats, st_save, st_load
 Initialize stamp project structure
 }

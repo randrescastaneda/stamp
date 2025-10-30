@@ -193,3 +193,34 @@ st_load <- function(file, format = NULL, ...) {
   cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.field {sp$path}}"))
   res
 }
+
+
+# -------- Helpers --------------
+#' Explain why an artifact would change
+#' @inheritParams st_changed
+#' @return Character scalar: "no_change", "missing_artifact", "missing_meta", or e.g. "content+code"
+#' @export
+st_changed_reason <- function(path, x = NULL, code = NULL, mode = c("any","content","code","file")) {
+  mode <- match.arg(mode)
+  res <- st_changed(path, x = x, code = code, mode = mode)
+  res$reason
+}
+
+#' Decide if a save should proceed given current st_opts()
+#' Uses versioning policy ("content"/"off") to gate writes.
+#' @inheritParams st_changed
+#' @return list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)
+#' @export
+st_should_save <- function(path, x = NULL, code = NULL) {
+  ver <- st_opts("versioning", .get = TRUE)
+  if (identical(ver, "off")) {
+    return(list(save = TRUE, reason = "versioning_off", latest_version_id = st_latest(path)))
+  }
+  # default: treat anything not "off" as content-aware
+  res <- st_changed(path, x = x, code = code, mode = "any")
+  if (!res$changed) {
+    list(save = FALSE, reason = "no_change", latest_version_id = st_latest(path))
+  } else {
+    list(save = TRUE,  reason = res$reason, latest_version_id = st_latest(path))
+  }
+}

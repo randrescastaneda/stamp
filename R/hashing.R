@@ -47,3 +47,77 @@ st_hash_code <- function(code) {
 st_hash_file <- function(path) {
   secretbase::siphash13(file = path)
 }
+
+
+# -------- Change detection via hashing --------------------------------
+
+#' Check whether an artifact would change if saved now
+#'
+#' Compares the *current* object/code/file to the latest saved metadata
+#' (from the sidecar) and reports if a change is detected.
+#'
+#' @param path Artifact path on disk.
+#' @param x    Current in-memory object (for content comparison).
+#' @param code Optional function/expression/character (for code comparison).
+#' @param mode Which changes to check: "content", "code", "file", or "any".
+#' @return A list: list(changed = <lgl>, reason = <chr>, detail = <named list>)
+#' @export
+st_changed <- function(path, x = NULL, code = NULL,
+                       mode = c("any", "content", "code", "file")) {
+  mode <- match.arg(mode)
+  if (!fs::file_exists(path)) {
+    return(list(changed = TRUE, reason = "missing_artifact", detail = list()))
+  }
+
+  meta <- st_read_sidecar(path)
+  if (is.null(meta) || !is.list(meta)) {
+    return(list(changed = TRUE, reason = "missing_meta", detail = list()))
+  }
+
+  checks <- list()
+
+  # content check (object vs. last saved content_hash)
+  if (mode %in% c("any", "content")) {
+    if (is.null(x)) {
+      checks$content <- NA
+    } else {
+      want <- meta$content_hash %||% NA_character_
+      have <- st_hash_obj(x)
+      checks$content <- !identical(want, have)
+    }
+  }
+
+  # code check (code vs. last saved code_hash)
+  if (mode %in% c("any", "code")) {
+    if (is.null(code)) {
+      checks$code <- NA
+    } else {
+      want <- meta$code_hash %||% NA_character_
+      have <- st_hash_code(code)
+      checks$code <- !identical(want, have)
+    }
+  }
+
+  # file check (bytes on disk vs. last saved file_hash, if present)
+  if (mode %in% c("any", "file")) {
+    want <- meta$file_hash %||% NA_character_
+    if (is.na(want) || !nzchar(want)) {
+      checks$file <- NA
+    } else {
+      have <- st_hash_file(path)
+      checks$file <- !identical(want, have)
+    }
+  }
+
+  # decide
+  flags <- unlist(checks, use.names = TRUE)
+  # consider only non-NA checks
+  eff <- flags[!is.na(flags)]
+  changed <- if (!length(eff)) FALSE else any(eff)
+
+  reason <- if (!length(eff)) "no_checks"
+            else if (changed) paste(names(eff)[as.logical(eff)], collapse = "+")
+            else "no_change"
+
+  list(changed = changed, reason = reason, detail = checks)
+}

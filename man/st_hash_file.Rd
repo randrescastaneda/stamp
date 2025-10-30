@@ -2,23 +2,17 @@
 % Please edit documentation in R/hashing.R
 \name{st_hash_file}
 \alias{st_hash_file}
-\title{File content hash}
+\title{SipHash-1-3 of a file (bytes on disk)}
 \usage{
 st_hash_file(path)
 }
 \arguments{
-\item{path}{Character scalar path to a file.}
+\item{path}{Path to a file.}
 }
 \value{
-Character scalar containing the hex hash of the file
-contents.
+Lowercase hex string (16 hex chars).
 }
 \description{
-Compute a SipHash-13 over the contents of a file. Intended for
-integrity and tamper checks. The function requires a single existing
-file path.
+SipHash-1-3 of a file (bytes on disk)
 }
-\examples{
-# write a temp file and hash it
-tf <- tempfile(); writeLines("hello", tf); st_hash_file(tf)
-}
+\keyword{internal}

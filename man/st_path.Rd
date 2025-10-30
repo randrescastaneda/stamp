@@ -11,7 +11,7 @@ st_path(path, format = NULL, partition_key = NULL)
 
 \item{format}{optional explicit format ("qs2","rds","csv","fst","json")}
 
-\item{partition_key}{optional partition key (not used in M1)}
+\item{partition_key}{optional partition key (not used in M2)}
 }
 \value{
 list with class 'st_path'
