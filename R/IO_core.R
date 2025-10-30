@@ -1,5 +1,5 @@
-#' stamp: Milestone 1 — I/O core (qs2-first), cli+fs only
-#' Depends: cli, fs, jsonlite (and optionally qs2, qs, fst, data.table)
+#' stamp: Milestone 2 — I/O + hashing (qs2-first), cli+fs only
+#' Depends: cli, fs, jsonlite, secretbase (and optionally qs2, qs, fst, data.table)
 #' Exports: st_init, st_path, st_register_format, st_formats, st_save, st_load
 
 # ---- st_init -----------------------------------------------------------------
@@ -31,7 +31,7 @@ st_init <- function(root = ".", state_dir = ".stamp") {
 #' Declare a path (with optional format & partition hint)
 #' @param path file or directory path
 #' @param format optional explicit format ("qs2","rds","csv","fst","json")
-#' @param partition_key optional partition key (not used in M1)
+#' @param partition_key optional partition key (not used in M2)
 #' @return list with class 'st_path'
 #' @export
 st_path <- function(path, format = NULL, partition_key = NULL) {
@@ -58,30 +58,23 @@ print.st_path <- function(x, ...) {
 .st_guess_format <- function(path) {
   ext <- tolower(fs::path_ext(path))
   if (!nzchar(ext)) return(NULL)
-
-  # 1) direct match: extension equals a registered format name
   if (rlang::env_has(.st_formats_env, ext)) return(ext)
-
-  # 2) mapped extension (e.g., 'qs' -> 'qs2'); seeded in zzz.R
-  if (rlang::env_has(.st_extmap_env, ext)) {
-    return(rlang::env_get(.st_extmap_env, ext))
-  }
-
-  # 3) unknown
+  if (rlang::env_has(.st_extmap_env, ext)) return(rlang::env_get(.st_extmap_env, ext))
   NULL
 }
 
 # ---- Load and Save -----------------------------------------------------------
 
-#' Save an R object to disk with sidecar metadata (atomic move)
+#' Save an R object to disk with metadata & versioning (atomic move)
 #' @param x object to save
 #' @param file destination path (character or st_path)
 #' @param format optional format override ("qs2" | "rds" | "csv" | "fst" | "json")
-#' @param metadata named list of extra metadata (stored in sidecar)
+#' @param metadata named list of extra metadata (merged into sidecar)
+#' @param code Optional function/expression/character whose hash is stored as `code_hash`.
 #' @param ... forwarded to format writer
-#' @return invisibly, a list with path and metadata
+#' @return invisibly, a list with path, metadata, and version_id
 #' @export
-st_save <- function(x, file, format = NULL, metadata = list(), ...) {
+st_save <- function(x, file, format = NULL, metadata = list(), code = NULL, ...) {
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
   fmt <- format %||%
@@ -92,6 +85,29 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
     cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats} or {.fn st_register_format}.")
+  }
+
+  # ---- Hashes (Milestone 2) --------------------------------------------------
+  versioning      <- st_opts("versioning", .get = TRUE)
+  do_code_hash    <- isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
+  do_file_hash    <- isTRUE(st_opts("store_file_hash", .get = TRUE)) # computed AFTER write
+
+  content_hash <- st_hash_obj(x) # cheap enough; we use it for change detection
+  code_hash    <- if (do_code_hash) st_hash_code(code) else NA_character_
+
+  # If versioning == "content", skip writing when content didn't change
+  if (identical(versioning, "content")) {
+    last <- .st_catalog_latest_version_row(sp$path)
+    last_ch <- if (!is.null(last)) as.character(last$content_hash[[1L]]) else NA_character_
+    if (!is.na(last_ch) && nzchar(last_ch) && identical(last_ch, content_hash)) {
+      cli::cli_alert_info("No content change for {.field {sp$path}}; keeping latest version {.field {last$version_id[[1L]]}}.")
+      # Still return a structured result
+      return(invisible(list(
+        path = sp$path,
+        metadata = st_read_sidecar(sp$path),
+        version_id = last$version_id[[1L]]
+      )))
+    }
   }
 
   # ensure parent dir exists
@@ -105,30 +121,33 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   if (fs::file_exists(sp$path)) fs::file_delete(sp$path)
   fs::file_move(tmp, sp$path)
 
-    # sidecar metadata (no hashing yet — will extend in Milestone 2)
+  # optional file hash (post-write)
+  file_hash <- if (do_file_hash) st_hash_file(sp$path) else NA_character_
+
+  # sidecar metadata
   meta <- c(
     list(
       path        = as.character(sp$path),
       format      = fmt,
       created_at  = .st_now_utc(),
       size_bytes  = unname(fs::file_info(sp$path)$size),
+      content_hash = content_hash,
+      code_hash    = code_hash,
+      file_hash    = file_hash,
       attrs       = list()  # reserved for stamp internals
     ),
     metadata
   )
   .st_write_sidecar(sp$path, meta)
 
-  # --- NEW: record a version + commit files to versions/ ---
-  created_at <- meta$created_at
-  size_bytes <- meta$size_bytes
-  # For now (Milestone 1) we don't compute hashes; pass NA.
+  # Record catalog version + snapshot
   vid <- .st_catalog_record_version(
     artifact_path  = sp$path,
     format         = fmt,
-    size_bytes     = size_bytes,
-    content_hash   = NA_character_,
-    code_hash      = NA_character_,
-    created_at     = created_at,
+    size_bytes     = meta$size_bytes,
+    content_hash   = meta$content_hash,
+    code_hash      = meta$code_hash,
+    created_at     = meta$created_at,
     sidecar_format = .st_sidecar_present(sp$path)
   )
   .st_version_commit_files(sp$path, vid)
@@ -157,6 +176,17 @@ st_load <- function(file, format = NULL, ...) {
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
     cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats}.")
+  }
+
+  # Optional verify-on-load: compare stored file hash (if any) with current file
+  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
+    meta <- st_read_sidecar(sp$path)
+    if (is.list(meta) && is.character(meta$file_hash) && nzchar(meta$file_hash)) {
+      now <- st_hash_file(sp$path)
+      if (!identical(now, meta$file_hash)) {
+        cli::cli_warn("File hash mismatch for {.field {sp$path}} (sidecar vs. disk). The file may have changed outside stamp.")
+      }
+    }
   }
 
   res <- h$read(sp$path, ...)
