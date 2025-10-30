@@ -411,3 +411,16 @@ st_load_version <- function(path, version_id, ...) {
   invisible(vid)
 }
 
+# Return the latest version row (or NULL) for an artifact path
+.st_catalog_latest_version_row <- function(path) {
+  aid <- .st_artifact_id(path)
+  cat <- .st_catalog_read()
+  a   <- cat$artifacts
+  hit <- a[a$artifact_id == aid, , drop = FALSE]
+  if (nrow(hit) == 0L || is.na(hit$latest_version_id[[1L]])) return(NULL)
+  vid <- hit$latest_version_id[[1L]]
+  v   <- cat$versions
+  row <- v[v$version_id == vid & v$artifact_id == aid, , drop = FALSE]
+  if (nrow(row) == 0L) return(NULL)
+  row[1L, , drop = FALSE]
+}
