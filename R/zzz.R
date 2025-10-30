@@ -1,66 +1,34 @@
+# zzz.R — run-time hooks (safe, minimal side effects)
 
-
-stamp_default_options <- list(
-
-  # interactive
-  stamp.verbose          = TRUE,
-  stamp.vintage          = TRUE,
-  stamp.completestamp    = TRUE,
-  stamp.digest.algo      = "spookyhash",
-  stamp.seed             = NULL,
-
-  # time stamp management
-  stamp.timezone         = Sys.timezone(),
-  stamp.timeformat       = "%Y%m%d%H%M%S",
-  stamp.usetz            = FALSE,
-
-  # file management
-  stamp.dir_stamp        = "_stamp",
-  stamp.dir_vintage      = "_vintage",
-  stamp.stamp_prefix     = "st_",
-  stamp.default.ext      = "qs",
-
-  # Others
-  stamp.waldo            = TRUE
+# Optional: small CLI theme you can extend later (no long-lived divs)
+.st_cli_theme <- list(
+  span.red  = list(color = "red"),
+  span.blue = list(color = "dodgerblue2")
 )
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# On Load   ---------
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 .onLoad <- function(libname, pkgname) {
+  # 1) Ensure internal options have defaults available to st_opts()
+  st_opts_init_defaults()
 
-# https://cli.r-lib.org/reference/inline-markup.html#classes
+  # 2) Seed common extension -> format mappings (idempotent)
+  #    Built-ins will bind their format handlers elsewhere; this just maps extensions.
+  if (!rlang::env_has(.st_extmap_env, "qs"))   rlang::env_poke(.st_extmap_env, "qs",   "qs2")
+  if (!rlang::env_has(.st_extmap_env, "qs2"))  rlang::env_poke(.st_extmap_env, "qs2",  "qs2")
+  if (!rlang::env_has(.st_extmap_env, "rds"))  rlang::env_poke(.st_extmap_env, "rds",  "rds")
+  if (!rlang::env_has(.st_extmap_env, "csv"))  rlang::env_poke(.st_extmap_env, "csv",  "csv")
+  if (!rlang::env_has(.st_extmap_env, "fst"))  rlang::env_poke(.st_extmap_env, "fst",  "fst")
+  if (!rlang::env_has(.st_extmap_env, "json")) rlang::env_poke(.st_extmap_env, "json", "json")
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## cli --------
-
-  cli_red <- cli::cli_div(theme = list(span.red = list(color = "red")),
-               .auto_close = FALSE)
-  cli_blue <- cli::cli_div(theme = list(span.blue = list(color = "blue")),
-               .auto_close = FALSE)
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Options --------
-
-  op    <- options()
-  toset <- !(names(stamp_default_options) %in% names(op))
-  if (any(toset)) options(stamp_default_options[toset])
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## defined values --------
+  # 3) Apply a tiny CLI theme (safe + additive, idempotent)
+  if (requireNamespace("cli", quietly = TRUE)) {
+    old <- getOption("cli.user_theme")
+    options(cli.user_theme = utils::modifyList(old %||% list(), .st_cli_theme))
+  }
 
   invisible()
 }
 
-test_cli <- function() {
-  cli::cli_text("This is {.red text in red} and this is not.")
+.onUnload <- function(libpath) {
+  # Nothing persistent to undo. If you later save/restore themes, revert here.
+  invisible()
 }
-#
-# .onUnload <- function(libpath) {
-#   cli::cli_end(cli_red)
-# }
-
-
