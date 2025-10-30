@@ -6,6 +6,7 @@
 
 # ---- Validation helpers ------------------------------------------------------
 
+#' @keywords internal
 .st_opts_validate <- function(dots) {
   if (!length(dots)) return(invisible(NULL))
 
@@ -74,10 +75,15 @@ st_opts <- function(..., .get = FALSE) {
   .st_opts_validate(args)
   rlang::env_bind(.stamp_opts, !!!args)
 
-  cli::cli_inform(c(
-    "v" = "stamp options updated",
-    " " = paste(names(args), vapply(args, function(x) paste0(x, collapse = " "), ""), sep = " = ", collapse = ", ")
-  ))
+  # Pretty-print changes
+  kv <- paste(
+    names(args),
+    vapply(args, function(x) cli::format_inline("{.val {paste0(x, collapse = ' ')}}"), ""),
+    sep = " = ",
+    collapse = ", "
+  )
+
+  cli::cli_inform(c("v" = "stamp options updated", " " = kv))
   invisible(NULL)
 }
 
