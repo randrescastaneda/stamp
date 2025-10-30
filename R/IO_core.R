@@ -105,7 +105,7 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   if (fs::file_exists(sp$path)) fs::file_delete(sp$path)
   fs::file_move(tmp, sp$path)
 
-  # sidecar metadata (no hashes yet — Milestone 2)
+    # sidecar metadata (no hashing yet — will extend in Milestone 2)
   meta <- c(
     list(
       path        = as.character(sp$path),
@@ -118,8 +118,23 @@ st_save <- function(x, file, format = NULL, metadata = list(), ...) {
   )
   .st_write_sidecar(sp$path, meta)
 
-  cli::cli_inform(c("v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}}"))
-  invisible(list(path = sp$path, metadata = meta))
+  # --- NEW: record a version + commit files to versions/ ---
+  created_at <- meta$created_at
+  size_bytes <- meta$size_bytes
+  # For now (Milestone 1) we don't compute hashes; pass NA.
+  vid <- .st_catalog_record_version(
+    artifact_path  = sp$path,
+    format         = fmt,
+    size_bytes     = size_bytes,
+    content_hash   = NA_character_,
+    code_hash      = NA_character_,
+    created_at     = created_at,
+    sidecar_format = .st_sidecar_present(sp$path)
+  )
+  .st_version_commit_files(sp$path, vid)
+
+  cli::cli_inform(c("v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}} @ version {.field {vid}}"))
+  invisible(list(path = sp$path, metadata = meta, version_id = vid))
 }
 
 #' Load an object from disk (format auto-detected by extension or explicit format)
