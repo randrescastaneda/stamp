@@ -54,7 +54,7 @@ st_state_get <- function(key, default = NULL) {
   # Usability / misc (mirrors; used as we adopt them)
   default_format  = "qs2",        # resolved writer key for auto-inference
   verbose         = TRUE,         # future-use for chatty messages
-  timezone        = Sys.timezone(),
+  timezone        = (Sys.timezone() %||% "UTC"),
   timeformat      = "%Y%m%d%H%M%S",
   usetz           = FALSE
 )
