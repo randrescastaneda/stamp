@@ -130,15 +130,37 @@ rlang::env_bind(
 #'   read  = function(p, ...) readLines(p, ...),
 #'   write = function(x, p, ...) writeLines(x, p, ...)
 #' )
-st_register_format <- function(name, read, write) {
+st_register_format <- function(name, read, write, extensions = NULL) {
   stopifnot(
     is.character(name), length(name) == 1L,
-    is.function(read),  is.function(write)
+    is.function(read),  is.function(write),
+    is.null(extensions) || is.character(extensions)
   )
+
+  replacing <- rlang::env_has(.st_formats_env, name)
   rlang::env_poke(.st_formats_env, name, list(read = read, write = write))
-  cli::cli_inform(c("v" = paste0("Registered format '", name, "'")))
+
+  if (!is.null(extensions)) .st_extmap_set(extensions, name)
+
+  cli::cli_inform(c(
+    "v" = if (replacing) paste0("Replaced format '", name, "'")
+          else           paste0("Registered format '", name, "'"),
+    " " = if (!is.null(extensions) && length(extensions)) {
+      uext <- unique(tolower(extensions[nzchar(extensions)]))
+      paste0("extensions: .", paste(uext,collapse = ", ."))
+    } else {
+      "extensions: (none)"
+    }
+  ))
   invisible(TRUE)
 }
+
+# helper (place near your registry envs)
+.st_extmap_set <- function(extensions, format) {
+  exts <- unique(tolower(extensions[nzchar(extensions)]))
+  for (ext in exts) rlang::env_poke(.st_extmap_env, ext, format)
+}
+
 
 #' Inspect available formats
 #'
