@@ -171,3 +171,55 @@ dec2 <- st_should_save(p_chk, x2, function(z) z)
 ok(dec2$save, "st_should_save() should recommend save on content change")
 
 message("== stamp smoke test finished OK ==")
+
+
+
+
+devtools::load_all()
+
+st_opts_reset()
+st_opts(versioning = "content", code_hash = TRUE, store_file_hash = TRUE, verify_on_load = TRUE)
+
+root <- tempdir(); st_init(root)
+
+pA <- fs::path(root, "A.qs"); xA <- data.frame(a=1:3); st_save(xA, pA, code=function(z) z)
+pB <- fs::path(root, "B.qs"); xB <- transform(xA, b=a*2)
+st_save(xB, pB, code=function(z) z, parents=list(list(path=pA, version_id=st_latest(pA))))
+pC <- fs::path(root, "C.qs"); xC <- transform(xB, c=b+1L)
+st_save(xC, pC, code=function(z) z, parents=list(list(path=pB, version_id=st_latest(pB))))
+
+stopifnot(nrow(st_children(pA, depth=1)) == 1L)
+stopifnot(nrow(st_lineage(pC, depth=Inf)) >= 1L)
+
+# Change A -> only B is strictly stale
+xA2 <- transform(xA, a=a+10L); st_save(xA2, pA, code=function(z) z)
+stopifnot(st_is_stale(pB), !st_is_stale(pC))
+
+# Plan propagate: B then C
+plan <- st_plan_rebuild(pA, depth=Inf, mode="propagate")
+stopifnot(nrow(plan) == 2L)
+stopifnot(any(plan$path == pB & plan$level == 1L))
+stopifnot(any(plan$path == pC & plan$level == 2L))
+
+# Builders
+st_clear_builders()
+st_register_builder(pB, function(path, parents) {
+  A <- st_load_version(parents[[1]]$path, parents[[1]]$version_id)
+  list(x = transform(A, b = a*2), code=function(z) z, code_label="B <- A*2")
+})
+st_register_builder(pC, function(path, parents) {
+  B <- st_load_version(parents[[1]]$path, parents[[1]]$version_id)
+  list(x = transform(B, c = b+1L), code=function(z) z, code_label="C <- B+1")
+})
+
+# Dry run then real
+st_rebuild(plan, rebuild_fun = st_builder_for, dry_run = TRUE)
+out <- st_rebuild(plan, rebuild_fun = st_builder_for, dry_run = FALSE)
+stopifnot(all(out$status %in% c("built")))
+
+# Postconditions
+stopifnot(!st_is_stale(pB))
+# C may or may not be stale (depends on further upstream changes); it should exist & be loadable:
+invisible(st_load(pC))
+
+message("Milestone 3 smoke test: OK")
