@@ -211,6 +211,56 @@ st_load_version <- function(path, version_id, ...) {
   h$read(art, ...)
 }
 
+#' Show immediate or recursive parents for an artifact
+#' @param path Artifact path (child)
+#' @param depth Integer depth >= 1. Use Inf to walk recursively.
+#' @return data.frame with columns: level, child_path, child_version, parent_path, parent_version
+#' @export
+st_lineage <- function(path, depth = 1L) {
+  stopifnot(is.numeric(depth), depth >= 1)
+  visited <- list()
+  rows <- list()
+
+  walk <- function(child_path, child_vid, level) {
+    if (level > depth) return(invisible(NULL))
+    vdir <- .st_version_dir(child_path, child_vid)
+    parents <- .st_version_read_parents(vdir)
+    if (!length(parents)) return(invisible(NULL))
+    for (p in parents) {
+      rows[[length(rows) + 1L]] <<- data.frame(
+        level = level,
+        child_path = .st_norm_path(child_path),
+        child_version = child_vid,
+        parent_path = .st_norm_path(p$path),
+        parent_version = p$version_id,
+        stringsAsFactors = FALSE
+      )
+      key <- paste(p$path, p$version_id, sep = "@")
+      if (!isTRUE(visited[[key]])) {
+        visited[[key]] <<- TRUE
+        walk(p$path, p$version_id, level + 1L)
+      }
+    }
+  }
+
+  vid <- st_latest(path)
+  if (is.na(vid)) return(data.frame(
+    level = integer(), child_path = character(), child_version = character(),
+    parent_path = character(), parent_version = character(), stringsAsFactors = FALSE
+  ))
+
+  walk(path, vid, 1L)
+  if (!length(rows)) {
+    return(data.frame(
+      level = integer(), child_path = character(), child_version = character(),
+      parent_path = character(), parent_version = character(), stringsAsFactors = FALSE
+    ))
+  }
+  out <- do.call(rbind, rows)
+  out[order(out$level), , drop = FALSE]
+}
+
+
 # ---- Catalog update & version commit helpers ---------------------------------
 
 #' Construct a compact version id (internal)
