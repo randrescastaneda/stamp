@@ -360,3 +360,27 @@ st_load_version <- function(path, version_id, ...) {
   if (!nrow(ver)) return(NULL)
   ver[1L, , drop = FALSE]
 }
+
+
+# --- Provenance snapshot files inside each version dir ------------------------
+
+# parents is a list of parent descriptors:
+#   list(list(path = "<abs-or-rel>", version_id = "<id>"), ...)
+# We'll store it as JSON for readability + diffs.
+.st_version_write_parents <- function(version_dir, parents) {
+  if (is.null(parents) || !length(parents)) return(invisible(NULL))
+  fs::dir_create(version_dir, recurse = TRUE)
+  pfile <- fs::path(version_dir, "parents.json")
+  tmp   <- fs::file_temp(tmp_dir = fs::path_dir(pfile), pattern = fs::path_file(pfile))
+  jsonlite::write_json(parents, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA)
+  if (fs::file_exists(pfile)) fs::file_delete(pfile)
+  fs::file_move(tmp, pfile)
+  invisible(NULL)
+}
+
+.st_version_read_parents <- function(version_dir) {
+  pfile <- fs::path(version_dir, "parents.json")
+  if (!fs::file_exists(pfile)) return(list())
+  jsonlite::read_json(pfile, simplifyVector = TRUE)
+}
+
