@@ -174,6 +174,19 @@ st_load <- function(file, format = NULL, ...) {
   }
 
   res <- h$read(sp$path, ...)
+  # inside st_load(), after `res <- h$read(sp$path, ...)`:
+  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
+    meta <- tryCatch(st_read_sidecar(sp$path), 
+                    error = function(e) NULL)
+    
+    if (!is.null(meta) && !is.null(meta$content_hash)) {
+      h_now <- st_hash_obj(res)
+      if (!identical(h_now, meta$content_hash)) {
+        cli::cli_warn("Loaded object hash mismatch for {.field {sp$path}} (sidecar/content disagree).")
+      }
+    }
+  }
+
   cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.field {sp$path}}"))
   res
 }

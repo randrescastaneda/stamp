@@ -227,7 +227,7 @@ st_load_version <- function(path, version_id, ...) {
   h$read(art, ...)
 }
 
-## ---- Catalog update & version commit helpers ---------------------------------
+# ---- Catalog update & version commit helpers ---------------------------------
 
 #' Construct a compact version id (internal)
 #'
@@ -259,10 +259,16 @@ st_load_version <- function(path, version_id, ...) {
 #' @keywords internal
 #' @noRd
 .st_sidecar_present <- function(path) {
-  p_json <- fs::file_exists(.st_sidecar_path(path, "json"))
-  p_qs2  <- fs::file_exists(.st_sidecar_path(path, "qs2"))
-  if (p_json && p_qs2) "both" else if (p_json) "json" else if (p_qs2) "qs2" else "none"
+  scj <- .st_sidecar_path(path, "json")
+  scq <- .st_sidecar_path(path, "qs2")
+  has_j <- fs::file_exists(scj)
+  has_q <- fs::file_exists(scq)
+  if (has_j && has_q) return("both")
+  if (has_j)          return("json")
+  if (has_q)          return("qs2")
+  "none"
 }
+
 
 #' Copy artifact and sidecars into version directory (internal)
 #'
@@ -276,26 +282,24 @@ st_load_version <- function(path, version_id, ...) {
 #' @keywords internal
 #' @noRd
 .st_version_commit_files <- function(artifact_path, version_id) {
-  vdir <- .st_version_dir(artifact_path, version_id)
-  .st_dir_create(fs::path_dir(vdir))          # ensure parent tree exists
+  # Copy artifact + available sidecars into: .stamp/versions/<rel-path>/<vid>/
+  rel   <- fs::path_rel(fs::path_abs(artifact_path), start = fs::path_abs("."))
+  vdir  <- fs::path(.st_versions_root(), rel, version_id)
+  .st_dir_create(fs::path_dir(vdir))
   .st_dir_create(vdir)
 
-  # Copy main artifact to "<vdir>/artifact"
-  dst_art <- fs::path(vdir, "artifact")
-  fs::file_copy(artifact_path, dst_art, overwrite = TRUE)
+  # write artifact copy
+  fs::file_copy(artifact_path, fs::path(vdir, "artifact"), overwrite = TRUE)
 
-  # Copy any present sidecars into "<vdir>/sidecar.*"
-  sc_json <- .st_sidecar_path(artifact_path, "json")
-  sc_qs2  <- .st_sidecar_path(artifact_path, "qs2")
-  if (fs::file_exists(sc_json)) {
-    fs::file_copy(sc_json, fs::path(vdir, "sidecar.json"), overwrite = TRUE)
-  }
-  if (fs::file_exists(sc_qs2)) {
-    fs::file_copy(sc_qs2,  fs::path(vdir, "sidecar.qs2"),  overwrite = TRUE)
-  }
+  # copy sidecars if present
+  scj <- .st_sidecar_path(artifact_path, "json")
+  scq <- .st_sidecar_path(artifact_path, "qs2")
+  if (fs::file_exists(scj)) fs::file_copy(scj, fs::path(vdir, "sidecar.json"), overwrite = TRUE)
+  if (fs::file_exists(scq)) fs::file_copy(scq, fs::path(vdir, "sidecar.qs2"),  overwrite = TRUE)
 
   invisible(vdir)
 }
+
 
 #' Upsert artifact row in catalog (internal)
 #'
@@ -394,45 +398,67 @@ st_load_version <- function(path, version_id, ...) {
 #' @return Invisibly returns the chosen `version_id`.
 #' @keywords internal
 #' @noRd
+# Create/append a version row and update artifact row; return version_id
 .st_catalog_record_version <- function(artifact_path,
                                        format,
                                        size_bytes,
-                                       content_hash = NA_character_,
-                                       code_hash    = NA_character_,
-                                       created_at   = .st_now_utc(),
-                                       sidecar_format = .st_sidecar_present(artifact_path)) {
+                                       content_hash,
+                                       code_hash,
+                                       created_at,
+                                       sidecar_format) {
   aid <- .st_artifact_id(artifact_path)
-  vid <- .st_version_id(created_at, content_hash, code_hash)
+  vid <- secretbase::siphash13(
+    paste(aid, content_hash %||% "", code_hash %||% "", created_at %||% "", sep = "|")
+  )
 
-  # Read, update, write catalog
   cat <- .st_catalog_read()
-  row <- data.frame(
-    version_id     = vid,
-    artifact_id    = aid,
-    content_hash   = as.character(ifelse(is.na(content_hash), "", content_hash)),
-    code_hash      = as.character(ifelse(is.na(code_hash),    "", code_hash)),
-    size_bytes     = as.numeric(size_bytes),
-    created_at     = created_at,
+
+  # upsert artifact
+  idx_a <- which(cat$artifacts$artifact_id == aid)
+  if (length(idx_a)) {
+    cat$artifacts$path[idx_a]              <- .st_norm_path(artifact_path)
+    cat$artifacts$format[idx_a]            <- format
+    cat$artifacts$latest_version_id[idx_a] <- vid
+    cat$artifacts$n_versions[idx_a]        <- cat$artifacts$n_versions[idx_a] + 1L
+  } else {
+    new_a <- data.frame(
+      artifact_id = aid,
+      path = .st_norm_path(artifact_path),
+      format = format,
+      latest_version_id = vid,
+      n_versions = 1L,
+      stringsAsFactors = FALSE
+    )
+    cat$artifacts <- rbind(cat$artifacts, new_a)
+  }
+
+  # append version
+  new_v <- data.frame(
+    version_id = vid,
+    artifact_id = aid,
+    content_hash = content_hash %||% NA_character_,
+    code_hash    = code_hash %||% NA_character_,
+    size_bytes   = as.numeric(size_bytes),
+    created_at   = created_at,
     sidecar_format = sidecar_format,
     stringsAsFactors = FALSE
   )
-  cat <- .st_catalog_append_version(cat, row)
-  cat <- .st_catalog_upsert_artifact(cat, aid, artifact_path, format, vid)
-  .st_catalog_write(cat)
+  cat$versions <- rbind(cat$versions, new_v)
 
-  invisible(vid)
+  .st_catalog_write(cat)
+  vid
 }
+
 
 # Return the latest version row (or NULL) for an artifact path
 .st_catalog_latest_version_row <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
-  a   <- cat$artifacts
-  hit <- a[a$artifact_id == aid, , drop = FALSE]
-  if (nrow(hit) == 0L || is.na(hit$latest_version_id[[1L]])) return(NULL)
-  vid <- hit$latest_version_id[[1L]]
-  v   <- cat$versions
-  row <- v[v$version_id == vid & v$artifact_id == aid, , drop = FALSE]
-  if (nrow(row) == 0L) return(NULL)
-  row[1L, , drop = FALSE]
+  art <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
+  if (!nrow(art)) return(NULL)
+  vid <- art$latest_version_id[[1L]]
+  ver <- cat$versions[cat$versions$version_id == vid, , drop = FALSE]
+  if (!nrow(ver)) return(NULL)
+  ver[1L, , drop = FALSE]
 }
+
