@@ -7,10 +7,21 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+
+
+
 ```{r setup}
-# If knitting outside the package, uncomment:
-devtools::load_all()
-# library(stamp)
+# ---- setup, include=FALSE ----------------------------------------------------
+# Use development build when interactive *and* explicitly enabled via env var.
+dev_mode <- interactive() && (Sys.getenv("DEV_VIGNETTES", "false") == "true")
+
+if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+} else {
+  # fall back to the installed package (the path CRAN, CI, and pkgdown take)
+  library(stamp)
+}
+
 ```
 
 In this article we cover **stable hashing**, **skip-on-equal** saves, and the lightweight **versions** catalog.
