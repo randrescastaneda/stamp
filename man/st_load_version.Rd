@@ -6,21 +6,6 @@
 \usage{
 st_load_version(path, version_id, ...)
 }
-\arguments{
-\item{path}{Character path of the artifact (used to infer format if needed).}
-
-\item{version_id}{Character version identifier to load.}
-
-\item{...}{Additional arguments passed to the registered reader.}
-}
-\value{
-The artifact object as returned by the registered format reader.
-}
 \description{
-Load the previously recorded version of an artifact from the
-versions store. The function will locate the version directory and
-dispatch to the appropriate format reader.
-}
-\examples{
-# st_load_version("data/myfile.qs2", "20250101T000000Z-abcdef01")
+Load a specific version of an artifact
 }

@@ -8,7 +8,6 @@
 #' @param p Character path.
 #' @return Character scalar absolute path.
 #' @keywords internal
-#' @noRd
 .st_norm_path <- function(p) as.character(fs::path_abs(p))
 
 #' Compute artifact identifier (internal)
@@ -20,28 +19,44 @@
 #' @param path Character path to the artifact.
 #' @return Character scalar identifier.
 #' @keywords internal
-#' @noRd
 .st_artifact_id <- function(path) {
   secretbase::siphash13(.st_norm_path(path))
 }
 
 # Root/state helpers -----------------------------------------------------------
 
-# Absolute project root recorded by st_init()
+#' Project root directory recorded by st_init() (internal)
+#'
+#' Return the absolute project root directory previously recorded by
+#' `st_init()`. If not set, defaults to the current working directory.
+#'
+#' @return Character scalar absolute path to project root.
+#' @keywords internal
 .st_root_dir <- function() {
   st_state_get("root_dir", fs::path_abs("."))
 }
 
 # Absolute state dir: <root>/<state_dir>
+#' Absolute state directory path (internal)
+#'
+#' Compute the absolute path to the package state directory. This is
+#' constructed as <root>/<state_dir> where `root` is from
+#' `st_init()` and `state_dir` is an option stored in the package state.
+#'
+#' @return Character scalar absolute path to the state directory.
+#' @keywords internal
 .st_state_dir_abs <- function() {
   fs::path(.st_root_dir(), st_state_get("state_dir", ".stamp"))
 }
 
 #' Versions root directory (internal)
 #'
-#' <root>/<state_dir>/versions (created if missing)
+#' Return the versions root directory under the package state directory
+#' (i.e. <root>/<state_dir>/versions). The directory is created if it
+#' does not already exist.
+#'
+#' @return Character scalar path to the versions root directory.
 #' @keywords internal
-#' @noRd
 .st_versions_root <- function() {
   vs <- fs::path(.st_state_dir_abs(), "versions")
   .st_dir_create(vs)
@@ -57,8 +72,8 @@
 #'
 #' @param artifact_path Path to the artifact file.
 #' @param version_id Version identifier (character).
+#' @return Character scalar path to the version directory.
 #' @keywords internal
-#' @noRd
 .st_version_dir <- function(artifact_path, version_id) {
   ap_abs <- .st_norm_path(artifact_path)
   rd     <- .st_root_dir()
@@ -75,16 +90,23 @@
 
 #' Catalog file path (internal)
 #'
-#' <root>/<state_dir>/catalog.qs2
+#' Return the path to the on-disk catalog file under the package state
+#' directory: <root>/<state_dir>/catalog.qs2
+#'
+#' @return Character scalar path to the catalog file.
 #' @keywords internal
-#' @noRd
 .st_catalog_path <- function() {
   fs::path(.st_state_dir_abs(), "catalog.qs2")
 }
 
 #' Empty catalog template (internal)
+#'
+#' Create an empty catalog structure used when no catalog file exists on
+#' disk. The structure contains `artifacts` and `versions` tables and will
+#' use `data.table` if available, otherwise base `data.frame`.
+#'
+#' @return A list with elements `artifacts` and `versions` (data.frame or data.table).
 #' @keywords internal
-#' @noRd
 .st_catalog_empty <- function() {
   if (requireNamespace("data.table", quietly = TRUE)) {
     list(
@@ -115,16 +137,26 @@
 }
 
 #' Read catalog from disk (internal)
+#'
+#' Read the persisted catalog from the on-disk catalog file. If the file
+#' does not exist, an empty catalog template is returned.
+#'
+#' @return A list with elements `artifacts` and `versions`.
 #' @keywords internal
-#' @noRd
 .st_catalog_read <- function() {
   p <- .st_catalog_path()
   if (fs::file_exists(p)) .st_read_qs2(p) else .st_catalog_empty()
 }
 
 #' Write catalog to disk (internal)
+#'
+#' Persist the catalog list to disk using a QS2-backed format. The write
+#' is performed atomically by writing to a temporary file in the same
+#' directory and then moving it into place.
+#'
+#' @param cat Catalog list to persist (with `artifacts` and `versions`).
+#' @return Invisible path to the catalog file.
 #' @keywords internal
-#' @noRd
 .st_catalog_write <- function(cat) {
   p <- .st_catalog_path()
   fs::dir_create(fs::path_dir(p), recurse = TRUE)
@@ -350,6 +382,15 @@ st_load_version <- function(path, version_id, ...) {
 }
 
 # Return the latest version row (or NULL) for an artifact path
+#' Retrieve the latest version row for an artifact (internal)
+#'
+#' Return the latest version record (a single-row data.frame or data.table)
+#' for the artifact identified by `path`. If no artifact or version exists,
+#' `NULL` is returned.
+#'
+#' @param path Path to the artifact.
+#' @return A single-row `data.frame`/`data.table` with the version metadata, or `NULL`.
+#' @keywords internal
 .st_catalog_latest_version_row <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
@@ -367,6 +408,16 @@ st_load_version <- function(path, version_id, ...) {
 # parents is a list of parent descriptors:
 #   list(list(path = "<abs-or-rel>", version_id = "<id>"), ...)
 # We'll store it as JSON for readability + diffs.
+#' Write parents metadata for a version (internal)
+#'
+#' Persist the list of parent descriptors for a version as JSON inside the
+#' version directory. The function performs an atomic write to avoid
+#' partial files on disk.
+#'
+#' @param version_dir Path to the version directory where parents.json will be written.
+#' @param parents List of parent descriptors (each a list with `path` and `version_id`).
+#' @return Invisibly `NULL`.
+#' @keywords internal
 .st_version_write_parents <- function(version_dir, parents) {
   if (is.null(parents) || !length(parents)) return(invisible(NULL))
   fs::dir_create(version_dir, recurse = TRUE)
@@ -378,6 +429,14 @@ st_load_version <- function(path, version_id, ...) {
   invisible(NULL)
 }
 
+#' Read parents metadata for a version (internal)
+#'
+#' Read and return the parents metadata stored in `parents.json` inside the
+#' given `version_dir`. If no parents file exists an empty list is returned.
+#'
+#' @param version_dir Path to the version directory.
+#' @return List of parent descriptors, or an empty list.
+#' @keywords internal
 .st_version_read_parents <- function(version_dir) {
   pfile <- fs::path(version_dir, "parents.json")
   if (!fs::file_exists(pfile)) return(list())

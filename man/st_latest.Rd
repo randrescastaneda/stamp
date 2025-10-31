@@ -6,17 +6,6 @@
 \usage{
 st_latest(path)
 }
-\arguments{
-\item{path}{Character scalar path to the artifact file.}
-}
-\value{
-Character scalar \code{version_id} or \code{NA_character_}.
-}
 \description{
-Return the \code{version_id} for the most recently recorded version of
-the artifact identified by \code{path}, or \code{NA_character_} when no
-versions exist for that artifact.
-}
-\examples{
-# st_latest("data/myfile.qs2")
+Get the latest version_id for an artifact path
 }

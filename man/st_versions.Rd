@@ -6,18 +6,6 @@
 \usage{
 st_versions(path)
 }
-\arguments{
-\item{path}{Character scalar path to the artifact file.}
-}
-\value{
-Table (data.frame or data.table) with rows for each
-recorded version, ordered by creation time (most recent first).
-}
 \description{
-Return the recorded versions for the artifact identified by
-\code{path}. The result is returned as a \code{data.frame} or \code{data.table}
-depending on available packages.
-}
-\examples{
-# st_versions("data/myfile.qs2")
+List versions for an artifact path
 }
