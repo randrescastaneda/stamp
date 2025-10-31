@@ -251,7 +251,7 @@ st_lineage <- function(path, depth = 1L) {
         parent_version = p$version_id,
         stringsAsFactors = FALSE
       )
-      key <- paste(p$path, p$version_id, sep = "@")
+      key <- paste(.st_norm_path(p$path), p$version_id, sep = "@")
       if (!isTRUE(visited[[key]])) {
         visited[[key]] <<- TRUE
         walk(p$path, p$version_id, level + 1L)
