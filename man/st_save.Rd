@@ -4,7 +4,16 @@
 \alias{st_save}
 \title{Save an R object to disk with metadata & versioning (atomic move)}
 \usage{
-st_save(x, file, format = NULL, metadata = list(), code = NULL, ...)
+st_save(
+  x,
+  file,
+  format = NULL,
+  metadata = list(),
+  code = NULL,
+  parents = NULL,
+  code_label = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{object to save}
@@ -16,6 +25,12 @@ st_save(x, file, format = NULL, metadata = list(), code = NULL, ...)
 \item{metadata}{named list of extra metadata (merged into sidecar)}
 
 \item{code}{Optional function/expression/character whose hash is stored as \code{code_hash}.}
+
+\item{parents}{Optional list of parent descriptors:
+list(list(path = "\if{html}{\out{<path>}}", version_id = "\if{html}{\out{<id>}}"), ...).
+You can obtain version ids with \code{st_latest(parent_path)}.}
+
+\item{code_label}{Optional short label/description of the producing code (for humans).}
 
 \item{...}{forwarded to format writer}
 }

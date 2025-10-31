@@ -209,6 +209,33 @@ st_load <- function(file, format = NULL, ...) {
   res
 }
 
+#' Inspect an artifact's current status (sidecar + catalog + snapshot location)
+#' @param path Artifact path
+#' @return A named list with fields:
+#'   - sidecar: sidecar list (or NULL)
+#'   - catalog: list(latest_version_id, n_versions)
+#'   - snapshot_dir: absolute path to latest version dir (or NA)
+#'   - parents: list(...) parsed from latest version's parents.json (if any)
+#' @export
+st_info <- function(path) {
+  sc  <- st_read_sidecar(path)
+  cat <- stamp:::.st_catalog_read()
+  aid <- stamp:::.st_artifact_id(path)
+
+  latest <- st_latest(path)
+  artrow <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
+  nvers  <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
+
+  vdir   <- .st_version_dir_latest(path)
+  parents <- if (is.na(vdir)) list() else .st_version_read_parents(vdir)
+
+  list(
+    sidecar      = sc,
+    catalog      = list(latest_version_id = latest, n_versions = nvers),
+    snapshot_dir = vdir,
+    parents      = parents
+  )
+}
 
 
 # -------- Helpers --------------

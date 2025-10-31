@@ -2,7 +2,7 @@
 % Please edit documentation in R/IO_core.R
 \name{st_load}
 \alias{st_load}
-\title{Load an object from disk (format auto-detected by extension or explicit format)}
+\title{Load an object from disk (format auto-detected; optional integrity checks)}
 \usage{
 st_load(file, format = NULL, ...)
 }
@@ -17,5 +17,5 @@ st_load(file, format = NULL, ...)
 the loaded object
 }
 \description{
-Load an object from disk (format auto-detected by extension or explicit format)
+Load an object from disk (format auto-detected; optional integrity checks)
 }
