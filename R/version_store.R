@@ -517,14 +517,17 @@ st_lineage <- function(path, depth = 1L) {
   if (is.na(version_dir) || !nzchar(version_dir)) return(list())
   pfile <- fs::path(version_dir, "parents.json")
   if (!fs::file_exists(pfile)) return(list())
-  tryCatch(
-    jsonlite::read_json(pfile, simplifyVector = TRUE),
+  obj <- tryCatch(
+    jsonlite::read_json(pfile, simplifyVector = FALSE),
     error = function(e) {
       cli::cli_warn("Could not parse parents.json at {.field {pfile}}: {conditionMessage(e)}")
-      list()
+      NULL
     }
   )
+  if (is.null(obj)) return(list())
+  .st_parents_normalize(obj)
 }
+
 
 # Normalize "parents" into list(list(path=..., version_id=...))
 .st_parents_normalize <- function(parents) {
