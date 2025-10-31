@@ -29,6 +29,10 @@
   state_dir = ".stamp"  # default; can be overridden via st_state_set()
 )
 
+# Builder registry (used by st_register_builder / st_rebuild)
+.st_builders_env <- rlang::env()
+
+
 # ------------------------------------------------------------------------------
 # State helpers (no side effects)
 # ------------------------------------------------------------------------------
