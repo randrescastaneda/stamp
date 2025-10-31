@@ -157,7 +157,7 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
 
 
 
-#' Load an object from disk (format auto-detected by extension or explicit format)
+#' Load an object from disk (format auto-detected; optional integrity checks)
 #' @param file path or st_path
 #' @param format optional format override
 #' @param ... forwarded to format reader
@@ -179,34 +179,36 @@ st_load <- function(file, format = NULL, ...) {
     cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats}.")
   }
 
-  # Optional verify-on-load: compare stored file hash (if any) with current file
-  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
-    meta <- st_read_sidecar(sp$path)
-    if (is.list(meta) && is.character(meta$file_hash) && nzchar(meta$file_hash)) {
-      now <- st_hash_file(sp$path)
-      if (!identical(now, meta$file_hash)) {
-        cli::cli_warn("File hash mismatch for {.field {sp$path}} (sidecar vs. disk). The file may have changed outside stamp.")
-      }
+  do_verify <- isTRUE(st_opts("verify_on_load", .get = TRUE))
+
+  # Read sidecar once if we might verify anything
+  meta <- if (do_verify) {
+    tryCatch(st_read_sidecar(sp$path), error = function(e) NULL)
+  } else NULL
+
+  # 1) Optional FILE integrity check (sidecar file hash vs current file)
+  if (do_verify && is.list(meta) && is.character(meta$file_hash) && nzchar(meta$file_hash)) {
+    now <- tryCatch(st_hash_file(sp$path), error = function(e) NA_character_)
+    if (!is.na(now) && !identical(now, meta$file_hash)) {
+      cli::cli_warn("File hash mismatch for {.field {sp$path}} (sidecar vs disk). The file may have changed outside {.pkg stamp}.")
     }
   }
 
+  # Read the artifact
   res <- h$read(sp$path, ...)
-  # inside st_load(), after `res <- h$read(sp$path, ...)`:
-  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
-    meta <- tryCatch(st_read_sidecar(sp$path), 
-                    error = function(e) NULL)
-    
-    if (!is.null(meta) && !is.null(meta$content_hash)) {
-      h_now <- st_hash_obj(res)
-      if (!identical(h_now, meta$content_hash)) {
-        cli::cli_warn("Loaded object hash mismatch for {.field {sp$path}} (sidecar/content disagree).")
-      }
+
+  # 2) Optional CONTENT integrity check (rehash loaded object vs sidecar content_hash)
+  if (do_verify && is.list(meta) && is.character(meta$content_hash) && nzchar(meta$content_hash)) {
+    h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
+    if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
+      cli::cli_warn("Loaded object hash mismatch for {.field {sp$path}} (content hash differs from sidecar).")
     }
   }
 
   cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.field {sp$path}}"))
   res
 }
+
 
 
 # -------- Helpers --------------
