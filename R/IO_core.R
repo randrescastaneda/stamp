@@ -120,6 +120,8 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
   # Optional file hash (post-write)
   file_hash <- if (do_file_hash) st_hash_file(sp$path) else NA_character_
 
+  parents <- .st_parents_normalize(parents)
+
   # Sidecar metadata (augment with provenance hints)
   meta <- c(
     list(
@@ -131,8 +133,8 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
       code_hash    = code_hash,
       file_hash    = file_hash,
       code_label   = code_label %||% NA_character_,
-      parents      = parents %||% list(),   # for quick inspection
-      attrs        = list()                 # reserved for internal use
+      parents      = parents,          # now normalized
+      attrs        = list()
     ),
     metadata
   )

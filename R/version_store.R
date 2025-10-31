@@ -481,6 +481,9 @@ st_lineage <- function(path, depth = 1L) {
 # parents is a list of parent descriptors:
 #   list(list(path = "<abs-or-rel>", version_id = "<id>"), ...)
 # We'll store it as JSON for readability + diffs.
+
+
+
 #' Write parents metadata for a version (internal)
 #'
 #' Persist the list of parent descriptors for a version as JSON inside the
@@ -523,3 +526,15 @@ st_lineage <- function(path, depth = 1L) {
   )
 }
 
+# Normalize 'parents' into list(list(path=<abs>, version_id=<chr>), ...)
+.st_parents_normalize <- function(parents) {
+  if (is.null(parents) || !length(parents)) return(list())
+  if (is.data.frame(parents)) {
+    if (!all(c("path","version_id") %in% names(parents))) return(list())
+    parents <- lapply(seq_len(nrow(parents)), function(i) as.list(parents[i, , drop = FALSE]))
+  }
+  # Ensure absolute paths for consistency
+  lapply(parents, function(p) {
+    list(path = .st_norm_path(p$path), version_id = as.character(p$version_id))
+  })
+}
