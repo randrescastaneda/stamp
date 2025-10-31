@@ -79,70 +79,50 @@ print.st_path <- function(x, ...) {
 st_save <- function(x, file, format = NULL, metadata = list(), code = NULL, ...) {
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
-  fmt <- format %||%
-    sp$format %||%
-    .st_guess_format(sp$path) %||%
-    st_opts("default_format", .get = TRUE)
-
+  fmt <- format %||% sp$format %||% .st_guess_format(sp$path) %||% st_opts("default_format", .get = TRUE)
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
     cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats} or {.fn st_register_format}.")
   }
 
-  # ---- Hashes (Milestone 2) --------------------------------------------------
-  versioning      <- st_opts("versioning", .get = TRUE)
-  do_code_hash    <- isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
-  do_file_hash    <- isTRUE(st_opts("store_file_hash", .get = TRUE)) # computed AFTER write
-
-  content_hash <- st_hash_obj(x) # cheap enough; we use it for change detection
-  code_hash    <- if (do_code_hash) st_hash_code(code) else NA_character_
-
-  # If versioning == "content", skip writing when content didn't change
-  if (identical(versioning, "content")) {
-    last <- .st_catalog_latest_version_row(sp$path)
-    last_ch <- if (!is.null(last)) as.character(last$content_hash[[1L]]) else NA_character_
-    if (!is.na(last_ch) && nzchar(last_ch) && identical(last_ch, content_hash)) {
-      cli::cli_alert_info("No content change for {.field {sp$path}}; keeping latest version {.field {last$version_id[[1L]]}}.")
-      # Still return a structured result
-      return(invisible(list(
-        path = sp$path,
-        metadata = st_read_sidecar(sp$path),
-        version_id = last$version_id[[1L]]
-      )))
-    }
+  dec <- st_should_save(sp$path, x = x, code = code)
+  if (!dec$save) {
+    cli::cli_inform(c("v" = "Skip save (reason: {.field {dec$reason}}) for {.field {sp$path}}"))
+    return(invisible(list(path = sp$path, skipped = TRUE, reason = dec$reason)))
   }
 
-  # ensure parent dir exists
+  # Hashes (content always; code optional; file optional post-write)
+  do_code_hash <- isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
+  do_file_hash <- isTRUE(st_opts("store_file_hash", .get = TRUE))
+  content_hash <- st_hash_obj(x)
+  code_hash    <- if (do_code_hash) st_hash_code(code) else NA_character_
+
   .st_dir_create(fs::path_dir(sp$path))
 
-  # write to temp in same dir, then move atomically
   tmp <- fs::file_temp(tmp_dir = fs::path_dir(sp$path), pattern = fs::path_file(sp$path))
-  h$write(x, tmp, ...)
+  ok <- FALSE
+  on.exit({ if (!ok && fs::file_exists(tmp)) fs::file_delete(tmp) }, add = TRUE)
 
-  # move into place
+  h$write(x, tmp, ...)
   if (fs::file_exists(sp$path)) fs::file_delete(sp$path)
   fs::file_move(tmp, sp$path)
+  ok <- TRUE
 
-  # optional file hash (post-write)
   file_hash <- if (do_file_hash) st_hash_file(sp$path) else NA_character_
 
-  # sidecar metadata
-  meta <- c(
-    list(
-      path        = as.character(sp$path),
-      format      = fmt,
-      created_at  = .st_now_utc(),
-      size_bytes  = unname(fs::file_info(sp$path)$size),
-      content_hash = content_hash,
-      code_hash    = code_hash,
-      file_hash    = file_hash,
-      attrs       = list()  # reserved for stamp internals
-    ),
-    metadata
+  base_meta <- list(
+    path         = as.character(sp$path),
+    format       = fmt,
+    created_at   = .st_now_utc(),
+    size_bytes   = unname(fs::file_info(sp$path)$size),
+    content_hash = content_hash,
+    code_hash    = code_hash,
+    file_hash    = file_hash,
+    attrs        = list()
   )
+  meta <- utils::modifyList(base_meta, metadata, keep.null = TRUE)
   .st_write_sidecar(sp$path, meta)
 
-  # Record catalog version + snapshot
   vid <- .st_catalog_record_version(
     artifact_path  = sp$path,
     format         = fmt,
@@ -154,9 +134,11 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL, ...)
   )
   .st_version_commit_files(sp$path, vid)
 
-  cli::cli_inform(c("v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}} @ version {.field {vid}}"))
+  cli::cli_inform(c("v" = "Saved [{.field {fmt}}] → {.field {sp$path}} @ version {.field {vid}}"))
   invisible(list(path = sp$path, metadata = meta, version_id = vid))
 }
+
+
 
 #' Load an object from disk (format auto-detected by extension or explicit format)
 #' @param file path or st_path
@@ -209,7 +191,7 @@ st_changed_reason <- function(path, x = NULL, code = NULL, mode = c("any","conte
 }
 
 #' Decide if a save should proceed given current st_opts()
-#' Uses versioning policy ("content"/"off") to gate writes.
+#' Uses versioning policy and code-change rule.
 #' @inheritParams st_changed
 #' @return list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)
 #' @export
@@ -218,11 +200,28 @@ st_should_save <- function(path, x = NULL, code = NULL) {
   if (identical(ver, "off")) {
     return(list(save = TRUE, reason = "versioning_off", latest_version_id = st_latest(path)))
   }
-  # default: treat anything not "off" as content-aware
+
   res <- st_changed(path, x = x, code = code, mode = "any")
   if (!res$changed) {
-    list(save = FALSE, reason = "no_change", latest_version_id = st_latest(path))
-  } else {
-    list(save = TRUE,  reason = res$reason, latest_version_id = st_latest(path))
+    return(list(save = FALSE, reason = "no_change", latest_version_id = st_latest(path)))
   }
+
+  # Resolved policy:
+  # - If content changed -> save.
+  # - Else if only code changed -> save IFF force_on_code_change = TRUE.
+  foc <- isTRUE(st_opts("force_on_code_change", .get = TRUE))
+  reasons <- (res$detail %||% list())
+  content_changed <- isTRUE(reasons$content)
+  code_changed    <- isTRUE(reasons$code)
+
+  if (content_changed) {
+    return(list(save = TRUE, reason = res$reason, latest_version_id = st_latest(path)))
+  }
+
+  if (code_changed && foc) {
+    return(list(save = TRUE, reason = res$reason, latest_version_id = st_latest(path)))
+  }
+
+  list(save = FALSE, reason = "no_change_policy", latest_version_id = st_latest(path))
 }
+
