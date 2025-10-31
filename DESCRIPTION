@@ -1,22 +1,22 @@
 Package: stamp
 Type: Package
-Title: Read and Write R Objects with Data Hash
+Title: Disk I/O with Content Hashing for R Objects
 Version: 0.0.0.9016
-Authors@R: person(
-  "R.Andres", "Castaneda", 
-  email = "acastanedaa@worldbank.org",
-  role = c("aut", "cre"), 
-  comment = c(ORCID = "0000-0003-1154-1374")
-  )
-Description: A system to manage the reading and writing R objects in disk 
-    by creating and saving data signatures (hash). 
+Authors@R: person("R.Andres", "Castaneda",
+    email = "acastanedaa@worldbank.org",
+    role = c("aut", "cre"),
+    comment = c(ORCID = "0000-0003-1154-1374"))
+Description: Lightweight tools to read from and write to disk with atomic
+    I/O, sidecar metadata, stable content/code hashing, and a minimal
+    versions catalog. Prefer 'qs2' format with graceful fallback to 'qs'.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 URL: https://github.com/randrescastaneda/stamp,
     https://randrescastaneda.github.io/stamp/
 BugReports: https://github.com/randrescastaneda/stamp/issues
-Imports: 
+Depends:
+    R (>= 4.1)
+Imports:
     cli (>= 3.4.1),
     fs (>= 1.5.2),
     qs2,
@@ -24,7 +24,7 @@ Imports:
     secretbase,
     jsonlite,
     utils
-Suggests: 
+Suggests:
     data.table (>= 1.14.6),
     qs (>= 0.25.4),
     arrow (>= 10.0.0),
@@ -38,6 +38,6 @@ Suggests:
     covr,
     waldo
 Config/testthat/edition: 3
-RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr
