@@ -224,7 +224,23 @@ st_lineage <- function(path, depth = 1L) {
   walk <- function(child_path, child_vid, level) {
     if (level > depth) return(invisible(NULL))
     vdir <- .st_version_dir(child_path, child_vid)
+    # Prefer committed parents.json in the version snapshot. If not present
+    # and we're at the first level, fall back to the artifact sidecar parents
+    # for convenience. Recursive walking beyond level 1 will only use
+    # snapshot-backed parents to preserve reproducible lineage traversal.
     parents <- .st_version_read_parents(vdir)
+    if (!length(parents) && level == 1L) {
+      sc <- tryCatch(st_read_sidecar(child_path), error = function(e) NULL)
+      if (is.list(sc) && length(sc$parents)) {
+        parents <- sc$parents
+        # normalize data.frame -> list(list(path=..., version_id=...))
+        if (is.data.frame(parents) && nrow(parents) > 0L) {
+          parents <- lapply(seq_len(nrow(parents)), function(i) {
+            as.list(parents[i, , drop = FALSE])
+          })
+        }
+      }
+    }
     if (!length(parents)) return(invisible(NULL))
     for (p in parents) {
       rows[[length(rows) + 1L]] <<- data.frame(
@@ -314,8 +330,9 @@ st_lineage <- function(path, depth = 1L) {
 
 .st_version_dir_latest <- function(path) {
   vid <- st_latest(path)
-  if (is.na(vid)) return(NA_character_)
-  .st_version_dir(path, vid)
+  if (is.na(vid) || !nzchar(vid)) return(NA_character_)
+  vdir <- .st_version_dir(path, vid)
+  if (fs::dir_exists(vdir)) vdir else NA_character_
 }
 
 
@@ -493,8 +510,15 @@ st_lineage <- function(path, depth = 1L) {
 #' @return List of parent descriptors, or an empty list.
 #' @keywords internal
 .st_version_read_parents <- function(version_dir) {
+  if (is.na(version_dir) || !nzchar(version_dir)) return(list())
   pfile <- fs::path(version_dir, "parents.json")
   if (!fs::file_exists(pfile)) return(list())
-  jsonlite::read_json(pfile, simplifyVector = TRUE)
+  tryCatch(
+    jsonlite::read_json(pfile, simplifyVector = TRUE),
+    error = function(e) {
+      cli::cli_warn("Could not parse parents.json at {.field {pfile}}: {conditionMessage(e)}")
+      list()
+    }
+  )
 }
 

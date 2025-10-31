@@ -219,15 +219,18 @@ st_load <- function(file, format = NULL, ...) {
 #' @export
 st_info <- function(path) {
   sc  <- st_read_sidecar(path)
-  cat <- stamp:::.st_catalog_read()
-  aid <- stamp:::.st_artifact_id(path)
+  cat <- .st_catalog_read()
+  aid <- .st_artifact_id(path)
 
   latest <- st_latest(path)
   artrow <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
   nvers  <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
 
   vdir   <- .st_version_dir_latest(path)
-  parents <- if (is.na(vdir)) list() else .st_version_read_parents(vdir)
+  # Prefer committed snapshot parents (parents.json) when available.
+  # If no snapshot exists, fall back to the artifact sidecar's quick parents
+  # metadata so users can still inspect lineage even when a snapshot was not created.
+  parents <- if (is.na(vdir)) sc$parents %||% list() else .st_version_read_parents(vdir)
 
   list(
     sidecar      = sc,
