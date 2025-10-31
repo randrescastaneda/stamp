@@ -4,7 +4,12 @@
 \alias{st_plan_rebuild}
 \title{Plan a rebuild of descendants when parents changed}
 \usage{
-st_plan_rebuild(targets, depth = Inf, include_targets = FALSE)
+st_plan_rebuild(
+  targets,
+  depth = Inf,
+  include_targets = FALSE,
+  mode = c("propagate", "strict")
+)
 }
 \arguments{
 \item{targets}{Character vector of artifact paths (parents whose changes
@@ -28,4 +33,11 @@ data.frame with columns:
 Walks the lineage starting from one or more target artifacts and returns
 the set of \emph{stale descendants} whose recorded parent versions no longer
 match their parents' current latest versions.
+}
+\details{
+Plan rebuilds for descendants of one or more targets.
+mode = "propagate" (default): simulate that targets (and any node added) will change,
+so their children are scheduled in BFS layers (1,2,3,...).
+mode = "strict": only include nodes already stale vs parents' \emph{current} latest.
+include_targets: if TRUE, add target rows at level 0.
 }

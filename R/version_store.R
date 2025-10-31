@@ -711,32 +711,44 @@ st_is_stale <- function(path) {
 #'   - path   (artifact path to rebuild)
 #'   - reason ("parent_changed")
 #'   - latest_version_before (child's current latest version id)
+#' @details
+#' Plan rebuilds for descendants of one or more targets.
+#' mode = "propagate" (default): simulate that targets (and any node added) will change,
+#'   so their children are scheduled in BFS layers (1,2,3,...).
+#' mode = "strict": only include nodes already stale vs parents' *current* latest.
+#' include_targets: if TRUE, add target rows at level 0.
 #' @export
-st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE) {
-  stopifnot(length(targets) >= 1L, is.numeric(depth), depth >= 1 || is.infinite(depth))
+st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE,
+                            mode = c("propagate","strict")) {
+  mode <- match.arg(mode)
+  stopifnot(length(targets) >= 1L, 
+            is.numeric(depth), (depth >= 1) || is.infinite(depth))
   targets <- unique(as.character(targets))
 
-  # Helper to get immediate children (unique paths) using your existing API
+  norm <- function(p) .st_norm_path(p)
+
+  # Helper: immediate children from committed lineage
   children_of <- function(p) {
-    # st_children(p, depth=1) returns rows with child_path/child_version etc.
     ch <- tryCatch(st_children(p, depth = 1L), error = function(e) NULL)
-    if (is.null(ch) || !nrow(ch)) character(0)
-    else unique(as.character(ch$child_path))
+    if (is.null(ch) || !nrow(ch)) character(0) else unique(as.character(ch$child_path))
   }
 
-  # Accumulators
-  planned_paths <- character(0)  # to de-dup while preserving order
+  planned_paths <- character(0)
   planned_rows  <- list()
 
-  # Optionally include stale targets at level 0
+  # --- Seed for propagate mode: targets are considered "will change"
+  will_change <- if (mode == "propagate") norm(targets) else character(0)
+
+  # Optionally include targets at level 0
   if (isTRUE(include_targets)) {
     for (p in targets) {
-      if (st_is_stale(p)) {
+      add_it <- if (mode == "propagate") TRUE else st_is_stale(p)
+      if (add_it) {
         planned_paths <- c(planned_paths, p)
         planned_rows[[length(planned_rows) + 1L]] <- data.frame(
           level = 0L,
           path  = p,
-          reason = "parent_changed",
+          reason = if (mode == "propagate") "upstream_changed" else "parent_changed",
           latest_version_before = st_latest(p),
           stringsAsFactors = FALSE
         )
@@ -744,42 +756,70 @@ st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE) {
     }
   }
 
-  # BFS by levels: 1, 2, ... depth
   frontier <- unique(targets)
   level <- 1L
-  while (length(frontier) && (level <= depth || is.infinite(depth))) {
-    # Next frontier = unique children of current frontier
+
+  while (length(frontier) && (is.infinite(depth) || level <= depth)) {
+    # collect unique immediate children of all frontier nodes
     next_candidates <- unique(unlist(lapply(frontier, children_of), use.names = FALSE))
     if (!length(next_candidates)) break
 
-    # Only retain those not already planned, and that are currently stale
-    # (i.e., any parent advanced).
-    new_stale <- next_candidates[!next_candidates %in% planned_paths]
-    new_stale <- new_stale[vapply(new_stale, st_is_stale, logical(1))]
-
-    if (!length(new_stale)) {
-      # Even if no stale ones this layer, still continue traversal from children,
-      # because grandchildren might depend on some other stale branch. So we
-      # advance the frontier to children regardless.
+    if (mode == "strict") {
+      new_stale <- setdiff(next_candidates, planned_paths)
+      new_stale <- new_stale[vapply(new_stale, st_is_stale, logical(1))]
+      if (length(new_stale)) {
+        for (p in new_stale) {
+          planned_paths <- c(planned_paths, p)
+          planned_rows[[length(planned_rows) + 1L]] <- data.frame(
+            level = level,
+            path  = p,
+            reason = "parent_changed",
+            latest_version_before = st_latest(p),
+            stringsAsFactors = FALSE
+          )
+        }
+      }
       frontier <- unique(next_candidates)
       level <- level + 1L
       next
     }
 
-    # Record this layer (topological by layers: parents before children)
-    for (p in new_stale) {
-      planned_paths <- c(planned_paths, p)
-      planned_rows[[length(planned_rows) + 1L]] <- data.frame(
-        level = level,
-        path  = p,
-        reason = "parent_changed",
-        latest_version_before = st_latest(p),
-        stringsAsFactors = FALSE
-      )
+    # --- mode == "propagate"
+    to_consider <- setdiff(next_candidates, planned_paths)
+    if (length(to_consider)) {
+      keep <- vapply(to_consider, function(child) {
+        vdir <- .st_version_dir_latest(child)
+        # Prefer committed parents.json; if missing, fall back to sidecar$parents (level 1 convenience)
+        pars <- if (!is.na(vdir) && nzchar(vdir)) .st_version_read_parents(vdir) else list()
+        if (!length(pars)) {
+          sc <- tryCatch(st_read_sidecar(child), error = function(e) NULL)
+          if (is.list(sc) && length(sc$parents)) pars <- sc$parents
+        }
+        if (!length(pars)) return(FALSE)
+        # normalize to list(list(path=..., version_id=...))
+        if (is.data.frame(pars) && nrow(pars) > 0L) {
+          pars <- lapply(seq_len(nrow(pars)), function(i) as.list(pars[i, , drop = FALSE]))
+        }
+        any(vapply(pars, function(pp) norm(pp$path) %in% will_change, logical(1)))
+      }, logical(1))
+
+      new_take <- to_consider[keep]
+      if (length(new_take)) {
+        for (p in new_take) {
+          planned_paths <- c(planned_paths, p)
+          planned_rows[[length(planned_rows) + 1L]] <- data.frame(
+            level = level,
+            path  = p,
+            reason = "upstream_changed",
+            latest_version_before = st_latest(p),
+            stringsAsFactors = FALSE
+          )
+        }
+        # Newly scheduled children are assumed to change → seed their children next
+        will_change <- unique(c(will_change, norm(new_take)))
+      }
     }
 
-    # Advance the frontier to *all* children (not only stale),
-    # so deeper descendants are examined as well.
     frontier <- unique(next_candidates)
     level <- level + 1L
   }
@@ -790,6 +830,5 @@ st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE) {
       latest_version_before = character(), stringsAsFactors = FALSE
     ))
   }
-
   do.call(rbind, planned_rows)
 }
