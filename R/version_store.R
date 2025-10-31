@@ -308,8 +308,8 @@ st_lineage <- function(path, depth = 1L) {
 #' @keywords internal
 #' @noRd
 .st_version_commit_files <- function(artifact_path, version_id, parents = NULL) {
-  rel   <- fs::path_rel(fs::path_abs(artifact_path), start = fs::path_abs("."))
-  vdir  <- fs::path(.st_versions_root(), rel, version_id)
+  # Use the *same* path logic as consumers:
+  vdir <- .st_version_dir(artifact_path, version_id)
   .st_dir_create(fs::path_dir(vdir))
   .st_dir_create(vdir)
 
@@ -327,6 +327,7 @@ st_lineage <- function(path, depth = 1L) {
 
   invisible(vdir)
 }
+
 
 .st_version_dir_latest <- function(path) {
   vid <- st_latest(path)
