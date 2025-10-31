@@ -7,19 +7,18 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-
 ```{r setup}
 # If knitting outside the package, uncomment:
 devtools::load_all()
 # library(stamp)
 ```
 
-In this article we talk about **stable hashing**, **skip-on-equal** saves, and a lightweight **versions** catalog.
+In this article we cover **stable hashing**, **skip-on-equal** saves, and the lightweight **versions** catalog.
 
 * Object hashes: `st_hash_obj(x)` — stable (serialize, then SipHash-1-3 via `{secretbase}`)
 * Code hashes: `st_hash_code(code)` — function/expr/character, normalized
 * File hashes (optional): `st_hash_file(path)`
-* Change detection helpers: `st_changed()`, `st_changed_reason()`, `st_should_save()`
+* Change detection: `st_changed()`, `st_changed_reason()`, `st_should_save()`
 * Versions catalog: `st_versions()`, `st_latest()`, `st_load_version()`
 
 ## Recommended options
@@ -29,8 +28,8 @@ st_opts_reset()
 st_opts(
   versioning      = "content",  # skip write when content unchanged
   code_hash       = TRUE,       # store code hash when 'code=' is provided to st_save()
-  store_file_hash = TRUE,       # compute and store file hash after write
-  verify_on_load  = TRUE,       # optionally verify file hash on load
+  store_file_hash = TRUE,       # compute & store file hash after write
+  verify_on_load  = TRUE,       # verify content on load (warn on mismatch)
   meta_format     = "both"      # write JSON + QS2 sidecars
 )
 ```
@@ -47,12 +46,12 @@ x <- data.frame(a = 1:3)
 # First write: creates artifact + sidecars + catalog entry
 st_save(x, p, code = function(z) z)
 
-# Second write, same content: skipped (no new version)
+# Second write, same content & same code: skipped (no new version)
 st_save(x, p, code = function(z) z)
 nrow(st_versions(p))  # should be 1
 ```
 
-If you **change content**, a new version is recorded:
+If you **change content** (or **change the code**), a new version is recorded:
 
 ```{r}
 x2 <- transform(x, a = a + 1L)
@@ -61,6 +60,8 @@ nrow(st_versions(p))  # now 2
 st_latest(p)          # latest version id (string)
 ```
 
+> **Policy:** By design, changing the `code=` you pass to `st_save()` creates a new version even if `x` is identical. This makes code provenance explicit.
+
 ## Inspect sidecars & metadata
 
 ```{r}
@@ -68,13 +69,13 @@ meta <- st_read_sidecar(p)
 meta[c("format", "created_at", "size_bytes", "content_hash", "code_hash", "file_hash")]
 ```
 
-* `content_hash` is derived from `st_hash_obj(x)`
-* `code_hash` is derived from `st_hash_code(code)` if you supplied `code=`
-* `file_hash` is optional (post-write) and used for `verify_on_load`
+* `content_hash` comes from `st_hash_obj(x)`
+* `code_hash` comes from `st_hash_code(code)` if you supplied `code=`
+* `file_hash` is optional (post-write) and is used to verify on load
 
 ## Change detection (without writing)
 
-Call this **before** expensive work to decide whether a recompute is necessary.
+Use these **before** doing expensive work, to decide whether to recompute.
 
 ```{r}
 x_same <- x2
@@ -89,8 +90,6 @@ st_changed_reason(p, x = x_new, code = function(z) z)    # "content"
 st_should_save(p, x = x_same, code = function(z) z)      # recommends skip
 st_should_save(p, x = x_new,  code = function(z) z)      # recommends save
 ```
-
-> Policy: By default, changing the code= you pass to st_save() will write a new version even if the object is identical (force_on_code_change = TRUE). Set st_opts(force_on_code_change = FALSE) to make code-only edits skip writing. 
 
 ## Loading specific versions
 
@@ -108,16 +107,66 @@ if (nrow(vids) > 1L) {
 }
 ```
 
+### Where are versions stored?
+
+Snapshots live under `.stamp/versions/<relative-path>/<version_id>/`.
+
+```{r}
+p <- fs::path(root, "demo.qs")
+x <- data.frame(a = 1:5)
+
+# Write once to create a version snapshot
+st_save(x, p, code = function(z) z)
+
+# Now list the versions tree
+vroot <- stamp:::.st_versions_root()
+fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+
+
+```
+
+Each snapshot dir contains:
+
+* `artifact` — a copy of the saved file
+* `sidecar.json` and/or `sidecar.qs2` — depending on `meta_format`
+
 ## Integrity checks on load (optional)
 
-If `verify_on_load = TRUE` and a `file_hash` exists in the sidecar, `st_load()` will recompute the file’s hash and warn if it differs (indicating the file changed outside **stamp**).
+If `verify_on_load = TRUE` and a `content_hash` exists in the sidecar, `st_load()` recomputes the object’s hash and warns if it differs (indicating the file changed outside **stamp**).
 
 ```{r}
 invisible(st_load(p))  # triggers optional verify; warns on mismatch
 ```
 
+## Troubleshooting
+
+**Q: The first `st_save()` was skipped and `st_versions(p)` is 0.**
+A: The first write should **never** be skipped. Ensure you’re using the current `st_should_save()` which returns `save = TRUE` when the artifact is missing or the sidecar is missing.
+
+**Q: `st_changed_reason()` says `"missing_meta"`.**
+A: The artifact exists but the sidecar was removed or is unreadable. Call `st_save(x, p, code = ...)` once; it will re-materialize metadata and record a version.
+
+**Q: Changing only `code=` didn’t create a new version.**
+A: By design, a code change **does** create a new version. Confirm `st_opts("code_hash", .get = TRUE)` is `TRUE` and you passed `code=` consistently (e.g., a function literal, not different object pointers to identical functions in rare cases).
+
+**Q: CSV round-trips aren’t byte-identical.**
+A: `data.table::fread/fwrite` may coerce types (e.g., integers vs doubles). Compare with relaxed checks or coerce types before comparison.
+
+**Q: I see a warning on load about hash mismatch.**
+A: With `verify_on_load = TRUE`, **stamp** recomputes the object hash and warns if it differs from the sidecar’s `content_hash`. This indicates the file was modified outside **stamp** or the sidecar is stale. Re-save to repair.
+
+**Q: `qs2` isn’t installed.**
+A: `qs2` is preferred. If unavailable, **stamp** falls back to `{qs}` for read/write under the `"qs2"` handler. Install `{qs2}` for best performance.
+
+**Q: Sidecars not appearing.**
+A: Check `st_opts("meta_format", .get = TRUE)` — set to `"json"`, `"qs2"`, or `"both"`. Sidecars are written to `stmeta/` next to the artifact.
+
+**Q: Versions aren’t where I expect.**
+A: Version snapshots live under `.stamp/versions/<relative-path>/<version_id>/`. Use the code snippet above to explore the tree.
+
 ## Tips & conventions
 
-* Keep `versioning = "content"` for reproducible artifacts; switch to `"off"` if you need to force a new version every save (e.g., for timestamped snapshots).
-* Use `st_changed()`/`st_should_save()` to gate expensive computation in your own functions.
-* Sidecars: prefer `meta_format = "json"` for readability, `qs2` for compactness, or `"both"` if you want belt & suspenders.
+* Keep `versioning = "content"` for reproducible artifacts; use `"timestamp"` if you want a new version on every save; `"off"` to skip versioning entirely.
+* Use `st_changed()` / `st_should_save()` to gate expensive computation inside your own functions.
+* Sidecars: prefer `meta_format = "json"` for readability, `"qs2"` for compactness, or `"both"` for redundancy.
+

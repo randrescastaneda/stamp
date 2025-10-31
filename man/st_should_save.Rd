@@ -3,7 +3,7 @@
 \name{st_should_save}
 \alias{st_should_save}
 \title{Decide if a save should proceed given current st_opts()
-Uses versioning policy ("content"/"off") to gate writes.}
+Uses versioning policy and code-change rule.}
 \usage{
 st_should_save(path, x = NULL, code = NULL)
 }
@@ -19,5 +19,5 @@ list(save = \if{html}{\out{<lgl>}}, reason = \if{html}{\out{<chr>}}, latest_vers
 }
 \description{
 Decide if a save should proceed given current st_opts()
-Uses versioning policy ("content"/"off") to gate writes.
+Uses versioning policy and code-change rule.
 }

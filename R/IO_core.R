@@ -11,22 +11,21 @@
 #' @export
 st_init <- function(root = ".", state_dir = ".stamp") {
   root_abs <- fs::path_abs(root)
-  sd_abs   <- fs::path(root_abs, state_dir)
+  st_state_set(root_dir = root_abs, state_dir = state_dir)
 
-  # persist both for later lookups
-  st_state_set(state_root = root_abs, state_dir = state_dir)
-
-  .st_dir_create(sd_abs)
-  .st_dir_create(fs::path(sd_abs, "temp"))
-  .st_dir_create(fs::path(sd_abs, "logs"))
+  sd <- fs::path(root_abs, state_dir)
+  .st_dir_create(sd)
+  .st_dir_create(fs::path(sd, "temp"))
+  .st_dir_create(fs::path(sd, "logs"))
 
   cli::cli_inform(c(
     "v" = "stamp initialized",
     " " = paste0("root: ", root_abs),
-    " " = paste0("state: ", fs::path_abs(sd_abs))
+    " " = paste0("state: ", fs::path_abs(sd))
   ))
-  invisible(fs::path_abs(sd_abs))
+  invisible(fs::path_abs(sd))
 }
+
 
 # ---- st_path (S3-ish lightweight) -------------------------------------------
 
