@@ -232,15 +232,10 @@ st_lineage <- function(path, depth = 1L) {
     if (!length(parents) && level == 1L) {
       sc <- tryCatch(st_read_sidecar(child_path), error = function(e) NULL)
       if (is.list(sc) && length(sc$parents)) {
-        parents <- sc$parents
-        # normalize data.frame -> list(list(path=..., version_id=...))
-        if (is.data.frame(parents) && nrow(parents) > 0L) {
-          parents <- lapply(seq_len(nrow(parents)), function(i) {
-            as.list(parents[i, , drop = FALSE])
-          })
-        }
+        parents <- .st_parents_normalize(sc$parents)
       }
     }
+
     if (!length(parents)) return(invisible(NULL))
     for (p in parents) {
       rows[[length(rows) + 1L]] <<- data.frame(
