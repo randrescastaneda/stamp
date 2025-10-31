@@ -72,56 +72,73 @@ print.st_path <- function(x, ...) {
 #' @param format optional format override ("qs2" | "rds" | "csv" | "fst" | "json")
 #' @param metadata named list of extra metadata (merged into sidecar)
 #' @param code Optional function/expression/character whose hash is stored as `code_hash`.
+#' @param parents Optional list of parent descriptors:
+#'   list(list(path = "<path>", version_id = "<id>"), ...).
+#'   You can obtain version ids with `st_latest(parent_path)`.
+#' @param code_label Optional short label/description of the producing code (for humans).
 #' @param ... forwarded to format writer
 #' @return invisibly, a list with path, metadata, and version_id
 #' @export
-st_save <- function(x, file, format = NULL, metadata = list(), code = NULL, ...) {
+st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
+                    parents = NULL, code_label = NULL, ...) {
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
-  fmt <- format %||% sp$format %||% .st_guess_format(sp$path) %||% st_opts("default_format", .get = TRUE)
+  fmt <- format %||%
+    sp$format %||%
+    .st_guess_format(sp$path) %||%
+    st_opts("default_format", .get = TRUE)
+
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
     cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats} or {.fn st_register_format}.")
   }
 
+  # Should we write at all?
   dec <- st_should_save(sp$path, x = x, code = code)
   if (!dec$save) {
     cli::cli_inform(c("v" = "Skip save (reason: {.field {dec$reason}}) for {.field {sp$path}}"))
     return(invisible(list(path = sp$path, skipped = TRUE, reason = dec$reason)))
   }
 
-  # Hashes (content always; code optional; file optional post-write)
-  do_code_hash <- isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
-  do_file_hash <- isTRUE(st_opts("store_file_hash", .get = TRUE))
+  # Hashes
+  versioning      <- st_opts("versioning", .get = TRUE)
+  do_code_hash    <- isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
+  do_file_hash    <- isTRUE(st_opts("store_file_hash", .get = TRUE))
+
   content_hash <- st_hash_obj(x)
   code_hash    <- if (do_code_hash) st_hash_code(code) else NA_character_
 
+  # Ensure parent dir
   .st_dir_create(fs::path_dir(sp$path))
 
+  # Write temp -> move
   tmp <- fs::file_temp(tmp_dir = fs::path_dir(sp$path), pattern = fs::path_file(sp$path))
-  ok <- FALSE
-  on.exit({ if (!ok && fs::file_exists(tmp)) fs::file_delete(tmp) }, add = TRUE)
-
   h$write(x, tmp, ...)
   if (fs::file_exists(sp$path)) fs::file_delete(sp$path)
   fs::file_move(tmp, sp$path)
-  ok <- TRUE
 
+  # Optional file hash (post-write)
   file_hash <- if (do_file_hash) st_hash_file(sp$path) else NA_character_
 
-  base_meta <- list(
-    path         = as.character(sp$path),
-    format       = fmt,
-    created_at   = .st_now_utc(),
-    size_bytes   = unname(fs::file_info(sp$path)$size),
-    content_hash = content_hash,
-    code_hash    = code_hash,
-    file_hash    = file_hash,
-    attrs        = list()
+  # Sidecar metadata (augment with provenance hints)
+  meta <- c(
+    list(
+      path         = as.character(sp$path),
+      format       = fmt,
+      created_at   = .st_now_utc(),
+      size_bytes   = unname(fs::file_info(sp$path)$size),
+      content_hash = content_hash,
+      code_hash    = code_hash,
+      file_hash    = file_hash,
+      code_label   = code_label %||% NA_character_,
+      parents      = parents %||% list(),   # for quick inspection
+      attrs        = list()                 # reserved for internal use
+    ),
+    metadata
   )
-  meta <- utils::modifyList(base_meta, metadata, keep.null = TRUE)
   .st_write_sidecar(sp$path, meta)
 
+  # Record catalog version + snapshot (includes copying sidecars)
   vid <- .st_catalog_record_version(
     artifact_path  = sp$path,
     format         = fmt,
@@ -131,9 +148,10 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL, ...)
     created_at     = meta$created_at,
     sidecar_format = .st_sidecar_present(sp$path)
   )
-  .st_version_commit_files(sp$path, vid)
+  # Commit files AND parents
+  .st_version_commit_files(sp$path, vid, parents = parents)
 
-  cli::cli_inform(c("v" = "Saved [{.field {fmt}}] → {.field {sp$path}} @ version {.field {vid}}"))
+  cli::cli_inform(c("v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}} @ version {.field {vid}}"))
   invisible(list(path = sp$path, metadata = meta, version_id = vid))
 }
 
