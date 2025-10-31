@@ -526,15 +526,155 @@ st_lineage <- function(path, depth = 1L) {
   )
 }
 
-# Normalize 'parents' into list(list(path=<abs>, version_id=<chr>), ...)
+# Normalize "parents" into list(list(path=..., version_id=...))
 .st_parents_normalize <- function(parents) {
   if (is.null(parents) || !length(parents)) return(list())
+
+  # Case: data.frame with columns path, version_id
   if (is.data.frame(parents)) {
     if (!all(c("path","version_id") %in% names(parents))) return(list())
-    parents <- lapply(seq_len(nrow(parents)), function(i) as.list(parents[i, , drop = FALSE]))
+    return(lapply(seq_len(nrow(parents)), function(i) as.list(parents[i, , drop = FALSE])))
   }
-  # Ensure absolute paths for consistency
-  lapply(parents, function(p) {
-    list(path = .st_norm_path(p$path), version_id = as.character(p$version_id))
-  })
+
+  # Case: singleton object with fields
+  if (is.list(parents) && !is.null(parents$path) && !is.null(parents$version_id)) {
+    return(list(list(path = parents$path, version_id = parents$version_id)))
+  }
+
+  # Case: list-of-lists already
+  if (is.list(parents) && length(parents) && is.list(parents[[1]])) {
+    # Be defensive: keep only entries that have both fields
+    keep <- vapply(parents, function(z) is.list(z) && !is.null(z$path) && !is.null(z$version_id), logical(1))
+    return(parents[keep])
+  }
+
+  list()
+}
+
+
+# ---- Reverse lineage (children) ----------------------------------------------
+
+# Map artifact_id -> current canonical path (from catalog)
+.st_artifact_path_from_id <- function(aid, cat = NULL) {
+  if (is.null(cat)) cat <- .st_catalog_read()
+  i <- which(cat$artifacts$artifact_id == aid)
+  if (!length(i)) return(NA_character_)
+  as.character(cat$artifacts$path[[i[1L]]])
+}
+
+# Return immediate children (artifacts that list `path` as a parent)
+# If `version_id` is provided, match only that parent version.
+# Otherwise, accept any version of `path` appearing as a parent.
+# Result columns: child_path, child_version, parent_path, parent_version
+.st_children_once <- function(path, version_id = NULL) {
+  cat <- .st_catalog_read()
+  if (NROW(cat$versions) == 0L) {
+    return(data.frame(
+      child_path=character(), child_version=character(),
+      parent_path=character(), parent_version=character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  target_path_abs <- .st_norm_path(path)
+
+  rows <- list()
+  # Iterate all recorded versions; check their committed parents.json
+  for (k in seq_len(NROW(cat$versions))) {
+    vrow <- cat$versions[k, , drop = FALSE]
+    aid  <- vrow$artifact_id[[1L]]
+    cvid <- vrow$version_id[[1L]]
+    cpth <- .st_artifact_path_from_id(aid, cat = cat)
+    if (!nzchar(cpth)) next
+
+    vdir <- .st_version_dir(cpth, cvid)
+    parents <- .st_version_read_parents(vdir)
+    if (!length(parents)) next
+
+    for (p in parents) {
+      p_path_abs <- .st_norm_path(p$path)
+      if (!identical(p_path_abs, target_path_abs)) next
+      if (!is.null(version_id) && nzchar(version_id)) {
+        if (!identical(as.character(p$version_id), as.character(version_id))) next
+      }
+      rows[[length(rows)+1L]] <- data.frame(
+        child_path     = cpth,
+        child_version  = cvid,
+        parent_path    = p_path_abs,
+        parent_version = as.character(p$version_id),
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  if (!length(rows)) {
+    return(data.frame(
+      child_path=character(), child_version=character(),
+      parent_path=character(), parent_version=character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+#' List children (reverse lineage) of an artifact
+#'
+#' Finds artifacts that depend on \code{path} (i.e., that record it in their
+#' \code{parents.json} snapshots). If \code{version_id} is given, matches only
+#' that specific parent version; otherwise, any parent version of \code{path}.
+#'
+#' @param path Character path to the parent artifact.
+#' @param version_id Optional version id of \code{path} to match. Default: any.
+#' @param depth Integer depth >= 1. Use \code{Inf} to recurse fully.
+#' @return \code{data.frame} with columns:
+#'   \code{level}, \code{child_path}, \code{child_version},
+#'   \code{parent_path}, \code{parent_version}.
+#' @export
+st_children <- function(path, version_id = NULL, depth = 1L) {
+  stopifnot(is.numeric(depth), depth >= 1)
+  target_path_abs <- .st_norm_path(path)
+
+  out_rows <- list()
+  seen     <- new.env(parent = emptyenv())  # to avoid cycles
+
+  add_rows <- function(df, level) {
+    if (!NROW(df)) return()
+    df$level <- level
+    # de-dup at row level (child_path@child_version)
+    for (i in seq_len(NROW(df))) {
+      key <- paste(df$child_path[[i]], df$child_version[[i]], sep = "@")
+      if (!isTRUE(rlang::env_has(seen, key))) {
+        rlang::env_poke(seen, key, TRUE)
+        out_rows[[length(out_rows)+1L]] <<- df[i, , drop = FALSE]
+      }
+    }
+  }
+
+  recurse <- function(p_path_abs, p_vid, level) {
+    if (level > depth) return(invisible(NULL))
+    kids <- .st_children_once(p_path_abs, version_id = p_vid)
+    if (!NROW(kids)) return(invisible(NULL))
+    add_rows(kids, level)
+    if (is.infinite(depth) || level < depth) {
+      # Recurse from each child as the new parent (by its latest version)
+      for (i in seq_len(NROW(kids))) {
+        cp <- kids$child_path[[i]]
+        cv <- st_latest(cp)  # recurse from current latest of the child
+        if (is.na(cv) || !nzchar(cv)) next
+        recurse(.st_norm_path(cp), cv, level + 1L)
+      }
+    }
+  }
+
+  # If version_id not provided, accept any parent version at level 1
+  recurse(target_path_abs, version_id %||% NULL, 1L)
+
+  if (!length(out_rows)) {
+    return(data.frame(
+      level=integer(),
+      child_path=character(), child_version=character(),
+      parent_path=character(), parent_version=character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  out <- do.call(rbind, out_rows)
+  out[order(out$level), , drop = FALSE]
 }

@@ -3,6 +3,7 @@
 S3method(print,st_path)
 export(st_changed)
 export(st_changed_reason)
+export(st_children)
 export(st_formats)
 export(st_info)
 export(st_init)
