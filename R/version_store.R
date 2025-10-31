@@ -241,28 +241,33 @@ st_load_version <- function(path, version_id, ...) {
 #' Copy artifact and sidecars into version directory (internal)
 #' @keywords internal
 #' @noRd
-.st_version_commit_files <- function(artifact_path, version_id) {
-  ap_abs <- .st_norm_path(artifact_path)
-  rd     <- .st_root_dir()
-
-  rel <- tryCatch(
-    fs::path_rel(ap_abs, start = rd),
-    error = function(e) fs::path_file(ap_abs)
-  )
-
-  vdir <- fs::path(.st_versions_root(), rel, version_id)
+.st_version_commit_files <- function(artifact_path, version_id, parents = NULL) {
+  rel   <- fs::path_rel(fs::path_abs(artifact_path), start = fs::path_abs("."))
+  vdir  <- fs::path(.st_versions_root(), rel, version_id)
   .st_dir_create(fs::path_dir(vdir))
   .st_dir_create(vdir)
 
+  # artifact copy
   fs::file_copy(artifact_path, fs::path(vdir, "artifact"), overwrite = TRUE)
 
+  # sidecars (if present)
   scj <- .st_sidecar_path(artifact_path, "json")
   scq <- .st_sidecar_path(artifact_path, "qs2")
   if (fs::file_exists(scj)) fs::file_copy(scj, fs::path(vdir, "sidecar.json"), overwrite = TRUE)
   if (fs::file_exists(scq)) fs::file_copy(scq, fs::path(vdir, "sidecar.qs2"),  overwrite = TRUE)
 
+  # parents snapshot
+  .st_version_write_parents(vdir, parents)
+
   invisible(vdir)
 }
+
+.st_version_dir_latest <- function(path) {
+  vid <- st_latest(path)
+  if (is.na(vid)) return(NA_character_)
+  .st_version_dir(path, vid)
+}
+
 
 #' Upsert artifact row in catalog (internal)
 #' @keywords internal
