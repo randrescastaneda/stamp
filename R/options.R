@@ -36,6 +36,12 @@
       cli::cli_abort("Option {.field default_format} must be a single character value.")
     }
   }
+  if ("force_on_code_change" %in% names(dots)) {
+    foc <- dots$force_on_code_change
+    if (!is.logical(foc) || length(foc) != 1L || is.na(foc)) {
+      cli::cli_abort("Option {.field force_on_code_change} must be TRUE or FALSE.")
+    }
+  }
 
   invisible(NULL)
 }

@@ -49,10 +49,12 @@ st_state_get <- function(key, default = NULL) {
 
 .stamp_default_opts <- list(
   # Sidecar & metadata
-  meta_format     = "json",       # "json" | "qs2" | "both"
+  meta_format          = "json",       # "json" | "qs2" | "both"
 
   # Versioning
-  versioning      = "content",    # "content" | "timestamp" | "off"
+  versioning           = "content",    # "content" | "timestamp" | "off"
+  force_on_code_change = TRUE,  # if code hash differs, write a new version
+
 
   # Hashing toggles
   code_hash       = TRUE,         # compute code hash when code= is supplied

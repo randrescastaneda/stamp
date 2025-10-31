@@ -195,33 +195,32 @@ st_changed_reason <- function(path, x = NULL, code = NULL, mode = c("any","conte
 #' @inheritParams st_changed
 #' @return list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)
 #' @export
+# Returns list(save, reason)
 st_should_save <- function(path, x = NULL, code = NULL) {
-  ver <- st_opts("versioning", .get = TRUE)
-  if (identical(ver, "off")) {
-    return(list(save = TRUE, reason = "versioning_off", latest_version_id = st_latest(path)))
+  # First write always allowed
+  if (!fs::file_exists(path)) {
+    return(list(save = TRUE, reason = "missing_artifact"))
+  }
+  # No sidecar? write to re-materialize metadata
+  meta <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
+  if (is.null(meta)) {
+    return(list(save = TRUE, reason = "missing_meta"))
   }
 
+  # Policy: by default write when content OR code changed
+  # (per earlier decision; no extra option needed)
   res <- st_changed(path, x = x, code = code, mode = "any")
-  if (!res$changed) {
-    return(list(save = FALSE, reason = "no_change", latest_version_id = st_latest(path)))
+  if (res$changed) {
+    return(list(save = TRUE, reason = res$reason))
   }
 
-  # Resolved policy:
-  # - If content changed -> save.
-  # - Else if only code changed -> save IFF force_on_code_change = TRUE.
-  foc <- isTRUE(st_opts("force_on_code_change", .get = TRUE))
-  reasons <- (res$detail %||% list())
-  content_changed <- isTRUE(reasons$content)
-  code_changed    <- isTRUE(reasons$code)
+  # Respect versioning = "timestamp" (always write), "off" (never write)
+  vers <- st_opts("versioning", .get = TRUE) %||% "content"
+  if (identical(vers, "timestamp")) return(list(save = TRUE,  reason = "policy_timestamp"))
+  if (identical(vers, "off"))       return(list(save = FALSE, reason = "no_change_policy"))
 
-  if (content_changed) {
-    return(list(save = TRUE, reason = res$reason, latest_version_id = st_latest(path)))
-  }
-
-  if (code_changed && foc) {
-    return(list(save = TRUE, reason = res$reason, latest_version_id = st_latest(path)))
-  }
-
-  list(save = FALSE, reason = "no_change_policy", latest_version_id = st_latest(path))
+  # default: no change → skip
+  list(save = FALSE, reason = "no_change_policy")
 }
+
 

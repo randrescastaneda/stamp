@@ -62,62 +62,66 @@ st_hash_file <- function(path) {
 #' @param mode Which changes to check: "content", "code", "file", or "any".
 #' @return A list: list(changed = <lgl>, reason = <chr>, detail = <named list>)
 #' @export
-st_changed <- function(path, x = NULL, code = NULL,
-                       mode = c("any", "content", "code", "file")) {
+# Returns list(changed, reason, details)
+st_changed <- function(path, 
+                       x = NULL, 
+                       code = NULL, 
+                       mode = c("any","content","code","file")) {
   mode <- match.arg(mode)
+
+  # --- base cases
   if (!fs::file_exists(path)) {
-    return(list(changed = TRUE, reason = "missing_artifact", detail = list()))
+    return(list(changed = TRUE, reason = "missing_artifact",
+                details = list(missing_artifact = TRUE)))
   }
 
-  meta <- st_read_sidecar(path)
-  if (is.null(meta) || !is.list(meta)) {
-    return(list(changed = TRUE, reason = "missing_meta", detail = list()))
+  meta <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
+  if (is.null(meta)) {
+    return(list(changed = TRUE, reason = "missing_meta",
+                details = list(missing_meta = TRUE)))
   }
 
-  checks <- list()
+  # --- compute components (only what we can)
+  det <- list(content_changed = NA, code_changed = NA, file_changed = NA)
 
-  # content check (object vs. last saved content_hash)
-  if (mode %in% c("any", "content")) {
-    if (is.null(x)) {
-      checks$content <- NA
-    } else {
-      want <- meta$content_hash %||% NA_character_
-      have <- st_hash_obj(x)
-      checks$content <- !identical(want, have)
-    }
+  if (!is.null(x)) {
+    ch_old <- meta$content_hash %||% NA_character_
+    ch_new <- st_hash_obj(x)
+    det$content_changed <- !identical(ch_old, ch_new)
+  } else {
+    det$content_changed <- NA
   }
 
-  # code check (code vs. last saved code_hash)
-  if (mode %in% c("any", "code")) {
-    if (is.null(code)) {
-      checks$code <- NA
-    } else {
-      want <- meta$code_hash %||% NA_character_
-      have <- st_hash_code(code)
-      checks$code <- !identical(want, have)
-    }
+  if (!is.null(code) && isTRUE(st_opts("code_hash", .get = TRUE))) {
+    co_old <- meta$code_hash %||% NA_character_
+    co_new <- st_hash_code(code)
+    det$code_changed <- !identical(co_old, co_new)
+  } else {
+    det$code_changed <- NA
   }
 
-  # file check (bytes on disk vs. last saved file_hash, if present)
-  if (mode %in% c("any", "file")) {
-    want <- meta$file_hash %||% NA_character_
-    if (is.na(want) || !nzchar(want)) {
-      checks$file <- NA
-    } else {
-      have <- st_hash_file(path)
-      checks$file <- !identical(want, have)
-    }
+  if (isTRUE(st_opts("store_file_hash", .get = TRUE)) && !is.null(meta$file_hash)) {
+    fh_old <- meta$file_hash %||% NA_character_
+    fh_new <- st_hash_file(path)
+    det$file_changed <- !identical(fh_old, fh_new)
+  } else {
+    det$file_changed <- NA
   }
 
-  # decide
-  flags <- unlist(checks, use.names = TRUE)
-  # consider only non-NA checks
-  eff <- flags[!is.na(flags)]
-  changed <- if (!length(eff)) FALSE else any(eff)
+  # --- collapse reason per mode
+  picks <- switch(mode,
+    content = isTRUE(det$content_changed),
+    code    = isTRUE(det$code_changed),
+    file    = isTRUE(det$file_changed),
+    any     = any(isTRUE(det$content_changed), isTRUE(det$code_changed), isTRUE(det$file_changed))
+  )
 
-  reason <- if (!length(eff)) "no_checks"
-            else if (changed) paste(names(eff)[as.logical(eff)], collapse = "+")
-            else "no_change"
+  # build reason string like "content+code", or "no_change"
+  parts <- c(if (isTRUE(det$content_changed)) "content",
+             if (isTRUE(det$code_changed))    "code",
+             if (isTRUE(det$file_changed))    "file")
+  reason <- if (length(parts)) paste(parts, collapse = "+") else "no_change"
 
-  list(changed = changed, reason = reason, detail = checks)
+  list(changed = isTRUE(picks), reason = reason, details = det)
 }
+

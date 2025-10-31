@@ -1,5 +1,5 @@
 ---
-title: "Hashing, Change Detection & Versions"
+title: "02.Hashing, Change Detection & Versions"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Hashing, Change Detection & Versions}
@@ -14,7 +14,7 @@ devtools::load_all()
 # library(stamp)
 ```
 
-Milestone 2 adds **stable hashing**, **skip-on-equal** saves, and a lightweight **versions** catalog.
+In this article we talk about **stable hashing**, **skip-on-equal** saves, and a lightweight **versions** catalog.
 
 * Object hashes: `st_hash_obj(x)` — stable (serialize, then SipHash-1-3 via `{secretbase}`)
 * Code hashes: `st_hash_code(code)` — function/expr/character, normalized
@@ -90,7 +90,7 @@ st_should_save(p, x = x_same, code = function(z) z)      # recommends skip
 st_should_save(p, x = x_new,  code = function(z) z)      # recommends save
 ```
 
-> Current policy: **content** changes drive new versions. Changing `code=` alone won’t force a new version unless content also changes (we still record the new `code_hash` when we do write). If you want code-only changes to force writes, you can add a package option for that later.
+> Policy: By default, changing the code= you pass to st_save() will write a new version even if the object is identical (force_on_code_change = TRUE). Set st_opts(force_on_code_change = FALSE) to make code-only edits skip writing. 
 
 ## Loading specific versions
 
