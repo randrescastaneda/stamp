@@ -299,9 +299,16 @@ st_lineage <- function(path, depth = 1L) {
   "none"
 }
 
-#' Copy artifact and sidecars into version directory (internal)
+#' Commit artifact and sidecars into a version snapshot (internal)
+#'
+#' Copy the artifact file, any sidecars, and write the parents snapshot into
+#' the version directory for the given `version_id`.
+#'
+#' @param artifact_path Path to the artifact file on disk.
+#' @param version_id Version identifier for the snapshot.
+#' @param parents Optional list of parent descriptors to write into parents.json.
+#' @return Invisibly returns the version directory path.
 #' @keywords internal
-#' @noRd
 .st_version_commit_files <- function(artifact_path, version_id, parents = NULL) {
   # Use the *same* path logic as consumers:
   vdir <- .st_version_dir(artifact_path, version_id)
@@ -560,6 +567,17 @@ st_lineage <- function(path, depth = 1L) {
   as.character(cat$artifacts$path[[i[1L]]])
 }
 
+#' Normalize parents structure (internal)
+#'
+#' Ensure the `parents` object has the canonical shape: a list of lists
+#' each containing `path` and `version_id`. Accepts data.frames, singleton
+#' lists, or list-of-lists.
+#'
+#' @param parents Object representing parents (data.frame, list, etc.)
+#' @return A list of parent descriptors (each a list with `path` and `version_id`).
+#' @keywords internal
+.st_parents_normalize <- .st_parents_normalize
+
 # Return immediate children (artifacts that list `path` as a parent)
 # If `version_id` is provided, match only that parent version.
 # Otherwise, accept any version of `path` appearing as a parent.
@@ -612,6 +630,19 @@ st_lineage <- function(path, depth = 1L) {
   }
   do.call(rbind, rows)
 }
+
+#' List children (reverse lineage) of an artifact (internal helper)
+#'
+#' Internal helper that finds immediate children that list `path` as a parent
+#' in their committed parents.json snapshots. Returned columns: child_path,
+#' child_version, parent_path, parent_version.
+#'
+#' @param path Character path to the parent artifact.
+#' @param version_id Optional version id to match; if provided, only children
+#'   listing that exact parent version are returned.
+#' @return A data.frame of matching children (may be empty).
+#' @keywords internal
+.st_children_once <- .st_children_once
 
 #' List children (reverse lineage) of an artifact
 #'
@@ -680,6 +711,14 @@ st_children <- function(path, version_id = NULL, depth = 1L) {
 # Is a child stale because one (or more) of its parents advanced?
 # Looks only at committed parents.json of the child's latest snapshot.
 # If no parents are recorded, returns FALSE (nothing to compare).
+#' Is a child artifact stale because its parents advanced?
+#'
+#' Inspect the committed parents.json for the latest snapshot of `path` and
+#' determine whether any parent now has a different latest version id.
+#'
+#' @param path Character path to the artifact to inspect.
+#' @return Logical scalar. `TRUE` if any parent advanced, otherwise `FALSE`.
+#' @export
 st_is_stale <- function(path) {
   vdir <- .st_version_dir_latest(path)
   if (is.na(vdir) || !nzchar(vdir)) return(FALSE)

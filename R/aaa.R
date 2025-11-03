@@ -58,6 +58,7 @@ st_state_get <- function(key, default = NULL) {
   # Versioning
   versioning           = "content",    # "content" | "timestamp" | "off"
   force_on_code_change = TRUE,  # if code hash differs, write a new version
+  retain_versions      = Inf,    # keep all versions by default
 
 
   # Hashing toggles

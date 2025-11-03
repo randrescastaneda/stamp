@@ -152,6 +152,13 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
   )
   # Commit files AND parents
   .st_version_commit_files(sp$path, vid, parents = parents)
+  # Auto-prune if retain_versions is finite
+  retain <- st_opts("retain_versions", .get = TRUE) %||% Inf
+  if (is.finite(retain)) {
+    # best-effort prune; don't fail the save if pruning errors
+    try(st_prune_versions(sp$path, keep = retain), silent = TRUE)
+  }
+
 
   cli::cli_inform(c("v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}} @ version {.field {vid}}"))
   invisible(list(path = sp$path, metadata = meta, version_id = vid))
