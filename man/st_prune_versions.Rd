@@ -2,21 +2,35 @@
 % Please edit documentation in R/retention.R
 \name{st_prune_versions}
 \alias{st_prune_versions}
-\title{Prune stored versions for an artifact}
+\title{Prune stored versions according to a retention policy}
 \usage{
-st_prune_versions(path, keep = NULL)
+st_prune_versions(
+  path = NULL,
+  policy = st_opts("retain_versions", .get = TRUE) \%||\% Inf,
+  dry_run = FALSE
+)
 }
 \arguments{
-\item{path}{Artifact path.}
+\item{path}{Character path to a single artifact to prune.
+If \code{NULL} (default), all artifacts in the catalog are considered.}
 
-\item{keep}{Integer number of most-recent versions to retain. Defaults to
-\code{st_opts("retain_versions")}. Use \code{Inf} to keep everything.}
+\item{policy}{Retention policy. One of:
+\itemize{
+\item \code{Inf} (default): keep everything (no-op)
+\item single integer \code{n}: keep the \strong{n} most recent versions
+\item list with any of \code{n} (integer) and/or \code{days} (numeric):
+keep the union of the \strong{n} most recent versions and
+all versions whose \code{created_at} is within the last \code{days}.
+}}
+
+\item{dry_run}{Logical; if \code{TRUE}, prints what would be removed but
+does not delete anything.}
 }
 \value{
-Invisibly, a data.frame of versions that were deleted (may be empty).
+Invisibly, a data.frame with columns:
+artifact_path, version_id, created_at, action ("keep"|"delete")
 }
 \description{
-Keep only the \code{keep} most-recent versions for \code{path}, deleting older
-snapshot directories and removing their catalog rows. Updates the
-artifact row (latest_version_id, n_versions) accordingly.
+Delete older version snapshots from the versions store and update the
+catalog accordingly. The latest version of each artifact is always protected.
 }

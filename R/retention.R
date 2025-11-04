@@ -116,6 +116,13 @@ st_prune_versions <- function(path = NULL,
 
 # ---- Internals ---------------------------------------------------------------
 
+#' Empty prune report template (internal)
+#'
+#' Return an empty data.frame with the columns used by prune reporting:
+#' artifact_path, version_id, created_at, action.
+#'
+#' @return A zero-row data.frame with standard prune report columns.
+#' @keywords internal
 .st_empty_prune_report <- function() {
   data.frame(
     artifact_path = character(),
@@ -126,6 +133,15 @@ st_prune_versions <- function(path = NULL,
   )
 }
 
+#' Normalize retention policy object (internal)
+#'
+#' Converts a user-provided retention policy specification into a normalized
+#' internal list representation. Recognizes `Inf` (keep all), a single integer
+#' (keep n most recent), or a list with `n` and/or `days`.
+#'
+#' @param policy Retention policy specification (Inf, integer, or list).
+#' @return A list with `kind` and relevant fields (`n`, `days`).
+#' @keywords internal
 # Normalize policy object
 #  - Inf                -> kind="all"
 #  - numeric scalar     -> kind="n",     n = as.integer(value)
@@ -156,6 +172,15 @@ st_prune_versions <- function(path = NULL,
   cli::cli_abort("Unsupported retention policy type. Use Inf, integer n, or list(n=..., days=...).")
 }
 
+#' Compute version IDs to keep under a retention policy (internal)
+#'
+#' Given a version table (sorted newest -> oldest) and a normalized retention
+#' policy, return the character vector of version IDs to keep.
+#'
+#' @param vtab Data.frame of versions sorted by created_at descending.
+#' @param pol Normalized policy list (from `.st_normalize_policy`).
+#' @return Character vector of version IDs to keep.
+#' @keywords internal
 # Return the set of version_ids to KEEP under policy
 .st_policy_keep_ids <- function(vtab, pol) {
   # vtab is newest -> oldest
@@ -181,11 +206,28 @@ st_prune_versions <- function(path = NULL,
   keep
 }
 
+#' Parse UTC timestamp strings (internal)
+#'
+#' Parse character timestamps returned by `.st_now_utc()` into POSIXct objects
+#' with UTC timezone. Warnings are suppressed.
+#'
+#' @param chr Character vector of ISO-like UTC timestamps.
+#' @return POSIXct vector (UTC timezone).
+#' @keywords internal
 .st_parse_utc_times <- function(chr) {
   # Accepts ISO-like strings from .st_now_utc()
   suppressWarnings(as.POSIXct(chr, tz = "UTC"))
 }
 
+#' Safely delete a version directory (internal)
+#'
+#' Delete the version directory if it exists. If the directory is already
+#' missing, issue a warning but do not fail (the catalog entry will be
+#' removed regardless).
+#'
+#' @param vdir Character path to the version directory.
+#' @return NULL (invisibly).
+#' @keywords internal
 .st_delete_version_dir_safe <- function(vdir) {
   if (fs::dir_exists(vdir)) {
     fs::dir_delete(vdir)
@@ -195,6 +237,15 @@ st_prune_versions <- function(path = NULL,
   }
 }
 
+#' Apply retention policy for a single artifact (internal)
+#'
+## Optionally invoked after `st_save()` to prune older versions of the given
+#' artifact according to the current `retain_versions` option. If the option
+#' is `Inf` (keep all), this is a no-op.
+#'
+#' @param artifact_path Character path to the artifact.
+#' @return NULL (invisibly).
+#' @keywords internal
 # Optionally invoked after st_save()
 .st_apply_retention <- function(artifact_path) {
   pol <- st_opts("retain_versions", .get = TRUE) %||% Inf
