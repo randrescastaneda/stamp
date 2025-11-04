@@ -2,35 +2,28 @@
 % Please edit documentation in R/retention.R
 \name{st_prune_versions}
 \alias{st_prune_versions}
-\title{Prune stored versions according to a retention policy}
+\title{Prune stored versions according to a simple retention policy}
 \usage{
-st_prune_versions(
-  path = NULL,
-  policy = st_opts("retain_versions", .get = TRUE) \%||\% Inf,
-  dry_run = FALSE
-)
+st_prune_versions(policy = Inf, dry_run = TRUE)
 }
 \arguments{
-\item{path}{Character path to a single artifact to prune.
-If \code{NULL} (default), all artifacts in the catalog are considered.}
-
-\item{policy}{Retention policy. One of:
+\item{policy}{Either:
 \itemize{
-\item \code{Inf} (default): keep everything (no-op)
-\item single integer \code{n}: keep the \strong{n} most recent versions
-\item list with any of \code{n} (integer) and/or \code{days} (numeric):
-keep the union of the \strong{n} most recent versions and
-all versions whose \code{created_at} is within the last \code{days}.
+\item Inf (default): keep everything
+\item numeric scalar (days): prune versions older than N days
+\item list with optional fields:
+\itemize{
+\item days: numeric days threshold
+\item keep_latest: integer, always keep the K most recent per artifact
+\item min_keep: integer, never drop below M kept per artifact (default 1)
+}
 }}
 
-\item{dry_run}{Logical; if \code{TRUE}, prints what would be removed but
-does not delete anything.}
+\item{dry_run}{logical; if TRUE, only report what would be pruned}
 }
 \value{
-Invisibly, a data.frame with columns:
-artifact_path, version_id, created_at, action ("keep"|"delete")
+Invisibly, a data.frame of pruned (or would-prune) versions
 }
 \description{
-Delete older version snapshots from the versions store and update the
-catalog accordingly. The latest version of each artifact is always protected.
+Prune stored versions according to a simple retention policy
 }

@@ -1,118 +1,196 @@
 # ---- Version retention / pruning --------------------------------------------
 
-#' Prune stored versions according to a retention policy
+#' Prune stored versions according to a simple retention policy
 #'
-#' Delete older version snapshots from the versions store and update the
-#' catalog accordingly. The latest version of each artifact is always protected.
-#'
-#' @param path Character path to a single artifact to prune.
-#'   If `NULL` (default), all artifacts in the catalog are considered.
-#' @param policy Retention policy. One of:
-#'   - `Inf` (default): keep everything (no-op)
-#'   - single integer `n`: keep the **n** most recent versions
-#'   - list with any of `n` (integer) and/or `days` (numeric):
-#'       keep the union of the **n** most recent versions and
-#'       all versions whose `created_at` is within the last `days`.
-#' @param dry_run Logical; if `TRUE`, prints what would be removed but
-#'   does not delete anything.
-#' @return Invisibly, a data.frame with columns:
-#'   artifact_path, version_id, created_at, action ("keep"|"delete")
+#' @param policy Either:
+#'   - Inf (default): keep everything
+#'   - numeric scalar (days): prune versions older than N days
+#'   - list with optional fields:
+#'       * days: numeric days threshold
+#'       * keep_latest: integer, always keep the K most recent per artifact
+#'       * min_keep: integer, never drop below M kept per artifact (default 1)
+#' @param dry_run logical; if TRUE, only report what would be pruned
+#' @return Invisibly, a data.frame of pruned (or would-prune) versions
 #' @export
-st_prune_versions <- function(path = NULL,
-                              policy = st_opts("retain_versions", .get = TRUE) %||% Inf,
-                              dry_run = FALSE) {
-  cat <- .st_catalog_read()
+st_prune_versions <- function(policy = Inf, dry_run = TRUE) {
+  # ---- normalize policy -------------------------------------------------------
+  stopifnot(is.logical(dry_run), length(dry_run) == 1L)
 
-  # Resolve target artifact paths
-  targets <- if (is.null(path)) {
-    if (!nrow(cat$artifacts)) {
-      cli::cli_inform(c("v" = "No artifacts in catalog; nothing to prune."))
-      return(invisible(.st_empty_prune_report()))
-    }
-    as.character(cat$artifacts$path)
+  if (identical(policy, Inf)) {
+    cli::cli_inform(c(
+      "v" = "Retention policy is {.field Inf}: no pruning performed."
+    ))
+    return(invisible(data.frame()))
+  }
+
+  if (is.numeric(policy) && length(policy) == 1L) {
+    policy <- list(days = as.numeric(policy), keep_latest = 0L, min_keep = 1L)
+  } else if (is.list(policy)) {
+    # fill defaults
+    policy$days <- policy$days %||% Inf
+    policy$keep_latest <- as.integer(policy$keep_latest %||% 0L)
+    policy$min_keep <- as.integer(policy$min_keep %||% 1L)
   } else {
-    as.character(.st_norm_path(path))
+    cli::cli_abort("`policy` must be Inf, a numeric (days), or a list().")
   }
 
-  # Normalize policy
-  pol <- .st_normalize_policy(policy)
-  if (identical(pol$kind, "all")) {
-    cli::cli_inform(c("v" = "Retention policy keeps all versions (no-op)."))
-    return(invisible(.st_empty_prune_report()))
+  if (!is.numeric(policy$days) || length(policy$days) != 1L) {
+    cli::cli_abort("`policy$days` must be a single numeric or Inf.")
   }
-  
-
-  rows <- list()
-
-  for (ap in unique(targets)) {
-    aid <- .st_artifact_id(ap)
-    # Versions for this artifact (most recent first)
-    vtab <- if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
-      data.table::as.data.table(cat$versions)
-    } else {
-      cat$versions
-    }
-    vtab <- vtab[vtab$artifact_id == aid, , drop = FALSE]
-    if (!nrow(vtab)) next
-
-    # Order newest -> oldest
-    ord <- order(vtab$created_at, decreasing = TRUE)
-    vtab <- vtab[ord, , drop = FALSE]
-
-    # Protect latest row
-    latest_vid <- st_latest(ap)
-    keep_latest <- if (!is.na(latest_vid)) latest_vid else vtab$version_id[[1L]]
-
-    # Evaluate keep set from policy
-    keep_ids <- .st_policy_keep_ids(vtab, pol)
-    # Always include latest
-    keep_ids <- unique(c(keep_ids, keep_latest))
-
-    # Partition keep/delete
-    vtab$action <- ifelse(vtab$version_id %in% keep_ids, "keep", "delete")
-
-    # Apply deletions
-    del <- vtab[vtab$action == "delete", , drop = FALSE]
-    if (nrow(del)) {
-      cli::cli_inform(c("v" = "Pruning {.field {nrow(del)}} version{?s} for {.field {ap}}"))
-      for (i in seq_len(nrow(del))) {
-        vid  <- del$version_id[[i]]
-        vdir <- .st_version_dir(ap, vid)
-        if (isTRUE(dry_run)) {
-          cli::cli_inform(c(" " = "• would remove {.file {vdir}}"))
-        } else {
-          .st_delete_version_dir_safe(vdir)
-          # remove from catalog
-          cat$versions <- cat$versions[cat$versions$version_id != vid, , drop = FALSE]
-        }
-      }
-    }
-
-    # Recompute artifact row (n_versions & latest_version_id)
-    kept <- vtab[vtab$action == "keep", , drop = FALSE]
-    new_latest <- if (nrow(kept)) kept$version_id[[1L]] else NA_character_
-
-    idx_a <- which(cat$artifacts$artifact_id == aid)
-    if (length(idx_a)) {
-      if (!isTRUE(dry_run)) {
-        cat$artifacts$n_versions[idx_a]        <- nrow(kept)
-        cat$artifacts$latest_version_id[idx_a] <- new_latest
-      }
-    }
-
-    rows[[length(rows) + 1L]] <- data.frame(
-      artifact_path = ap,
-      version_id    = vtab$version_id,
-      created_at    = vtab$created_at,
-      action        = vtab$action,
-      stringsAsFactors = FALSE
+  if (!is.finite(policy$days)) {
+    cutoff_time <- as.POSIXct(NA) # effectively no age filter
+  } else {
+    cutoff_time <- as.POSIXct(
+      Sys.time() - as.difftime(policy$days, units = "days"),
+      tz = "UTC"
     )
   }
 
-  report <- if (length(rows)) do.call(rbind, rows) else .st_empty_prune_report()
-  if (!isTRUE(dry_run)) .st_catalog_write(cat)
-  invisible(report)
+  keep_latest <- max(0L, policy$keep_latest)
+  min_keep <- max(1L, policy$min_keep)
+
+  # ---- load catalog -----------------------------------------------------------
+  cat <- .st_catalog_read()
+  if (!nrow(cat$versions)) {
+    cli::cli_inform(c("v" = "No versions recorded; nothing to prune."))
+    return(invisible(data.frame()))
+  }
+
+  # attach artifact paths to versions
+  arts <- cat$artifacts[, c("artifact_id", "path"), drop = FALSE]
+  vers <- merge(
+    cat$versions,
+    arts,
+    by = "artifact_id",
+    all.x = TRUE,
+    sort = FALSE
+  )
+
+  # parse timestamps
+  created <- tryCatch(
+    as.POSIXct(vers$created_at, tz = "UTC"),
+    error = function(e) rep(as.POSIXct(NA, tz = "UTC"), length(vers$created_at))
+  )
+  vers$`__created_time__` <- created
+
+  # group by artifact and decide which versions to prune
+  split_idx <- split(seq_len(nrow(vers)), vers$artifact_id)
+  to_prune <- integer(0)
+
+  for (aid in names(split_idx)) {
+    idx <- split_idx[[aid]]
+    block <- vers[idx, , drop = FALSE]
+
+    # order newest first by created_at (fall back to row order if NA)
+    ord <- order(block$`__created_time__`, decreasing = TRUE, na.last = TRUE)
+    block <- block[ord, , drop = FALSE]
+    idx <- idx[ord]
+
+    n <- nrow(block)
+    if (!n) {
+      next
+    }
+
+    # Always keep the latest K
+    keep_idx <- seq_len(min(keep_latest, n))
+
+    # Keep newer than cutoff (if cutoff is not NA)
+    if (!is.na(cutoff_time[1])) {
+      keep_idx <- union(
+        keep_idx,
+        which(block$`__created_time__` >= cutoff_time)
+      )
+    }
+
+    # Enforce min_keep (pad with newest)
+    if (length(keep_idx) < min_keep) {
+      keep_idx <- union(keep_idx, seq_len(min(n, min_keep)))
+    }
+
+    prune_idx <- setdiff(seq_len(n), keep_idx)
+    if (length(prune_idx)) {
+      to_prune <- c(to_prune, idx[prune_idx])
+    }
+  }
+
+  if (!length(to_prune)) {
+    cli::cli_inform(c(
+      "v" = "Retention policy matched zero versions; nothing to prune."
+    ))
+    return(invisible(data.frame()))
+  }
+
+  candidates <- vers[
+    to_prune,
+    c("artifact_id", "path", "version_id", "created_at", "size_bytes"),
+    drop = FALSE
+  ]
+  names(candidates)[names(candidates) == "path"] <- "artifact_path"
+  candidates <- candidates[
+    order(candidates$artifact_path, candidates$created_at),
+    ,
+    drop = FALSE
+  ]
+
+  if (isTRUE(dry_run)) {
+    total_bytes <- sum(candidates$size_bytes %||% 0, na.rm = TRUE)
+    cli::cli_inform(c(
+      "v" = "DRY RUN: {nrow(candidates)} version{?s} would be pruned across {length(unique(candidates$artifact_id))} artifact{?s}.",
+      " " = sprintf(
+        "Estimated space reclaimed: ~%s",
+        format(structure(total_bytes, class = "object_size"))
+      )
+    ))
+    return(invisible(candidates))
+  }
+
+  # ---- destructive path (delete snapshots + update catalog) -------------------
+  # Build a quick lookup: artifact_id -> artifact_path (absolute)
+  aid2path <- stats::setNames(arts$path, arts$artifact_id)
+
+  # delete snapshot dirs and remove rows from catalog
+  for (i in seq_len(nrow(candidates))) {
+    a_path <- candidates$artifact_path[[i]]
+    vid <- candidates$version_id[[i]]
+    vdir <- .st_version_dir(a_path, vid)
+    if (fs::dir_exists(vdir)) {
+      fs::dir_delete(vdir)
+    }
+  }
+
+  # remove from versions table
+  keep_mask <- !(cat$versions$version_id %in% candidates$version_id)
+  cat$versions <- cat$versions[keep_mask, , drop = FALSE]
+
+  # update artifacts table (n_versions and latest_version_id)
+  for (aid in unique(candidates$artifact_id)) {
+    v_rows <- cat$versions[cat$versions$artifact_id == aid, , drop = FALSE]
+    a_idx <- which(cat$artifacts$artifact_id == aid)
+    if (!nrow(v_rows)) {
+      # No versions left → drop artifact row
+      cat$artifacts <- cat$artifacts[-a_idx, , drop = FALSE]
+    } else {
+      # latest = newest by created_at
+      ord <- order(v_rows$created_at, decreasing = TRUE)
+      latest_vid <- v_rows$version_id[[ord[1L]]]
+      cat$artifacts$latest_version_id[a_idx] <- latest_vid
+      cat$artifacts$n_versions[a_idx] <- nrow(v_rows)
+    }
+  }
+
+  .st_catalog_write(cat)
+
+  total_bytes <- sum(candidates$size_bytes %||% 0, na.rm = TRUE)
+  cli::cli_inform(c(
+    "v" = "Pruned {nrow(candidates)} version{?s} across {length(unique(candidates$artifact_id))} artifact{?s}.",
+    " " = sprintf(
+      "Space reclaimed (est.): ~%s",
+      format(structure(total_bytes, class = "object_size"))
+    )
+  ))
+  invisible(candidates)
 }
+
 
 # ---- Internals ---------------------------------------------------------------
 
@@ -126,9 +204,9 @@ st_prune_versions <- function(path = NULL,
 .st_empty_prune_report <- function() {
   data.frame(
     artifact_path = character(),
-    version_id    = character(),
-    created_at    = character(),
-    action        = character(),
+    version_id = character(),
+    created_at = character(),
+    action = character(),
     stringsAsFactors = FALSE
   )
 }
@@ -147,29 +225,39 @@ st_prune_versions <- function(path = NULL,
 #  - numeric scalar     -> kind="n",     n = as.integer(value)
 #  - list(n=?, days=?)  -> kind="combo", n=?, days=? (NULLs allowed)
 .st_normalize_policy <- function(policy) {
-  if (is.infinite(policy)) return(list(kind = "all"))
+  if (is.infinite(policy)) {
+    return(list(kind = "all"))
+  }
   if (is.numeric(policy) && length(policy) == 1L) {
     n <- as.integer(policy)
-    if (is.na(n) || n < 0L) cli::cli_abort("Retention 'n' must be a non-negative integer.")
+    if (is.na(n) || n < 0L) {
+      cli::cli_abort("Retention 'n' must be a non-negative integer.")
+    }
     return(list(kind = "n", n = n))
   }
   if (is.list(policy)) {
-    n    <- policy$n    %||% NULL
+    n <- policy$n %||% NULL
     days <- policy$days %||% NULL
     if (!is.null(n)) {
       n <- as.integer(n)
-      if (is.na(n) || n < 0L) cli::cli_abort("Retention 'n' must be a non-negative integer.")
+      if (is.na(n) || n < 0L) {
+        cli::cli_abort("Retention 'n' must be a non-negative integer.")
+      }
     }
     if (!is.null(days)) {
       days <- as.numeric(days)
-      if (is.na(days) || days < 0) cli::cli_abort("Retention 'days' must be a non-negative number.")
+      if (is.na(days) || days < 0) {
+        cli::cli_abort("Retention 'days' must be a non-negative number.")
+      }
     }
     if (is.null(n) && is.null(days)) {
       cli::cli_abort("Retention list must include at least one of: n, days.")
     }
     return(list(kind = "combo", n = n, days = days))
   }
-  cli::cli_abort("Unsupported retention policy type. Use Inf, integer n, or list(n=..., days=...).")
+  cli::cli_abort(
+    "Unsupported retention policy type. Use Inf, integer n, or list(n=..., days=...)."
+  )
 }
 
 #' Compute version IDs to keep under a retention policy (internal)
@@ -187,7 +275,9 @@ st_prune_versions <- function(path = NULL,
   keep <- character(0)
 
   if (identical(pol$kind, "n")) {
-    if (pol$n == 0L) return(character(0))
+    if (pol$n == 0L) {
+      return(character(0))
+    }
     take <- seq_len(min(pol$n, nrow(vtab)))
     keep <- unique(c(keep, vtab$version_id[take]))
   } else if (identical(pol$kind, "combo")) {
@@ -196,10 +286,10 @@ st_prune_versions <- function(path = NULL,
       keep <- unique(c(keep, vtab$version_id[take]))
     }
     if (!is.null(pol$days) && pol$days >= 0) {
-      now  <- as.POSIXct(Sys.time(), tz = "UTC")
-      cut  <- now - as.difftime(pol$days, units = "days")
-      ts   <- .st_parse_utc_times(vtab$created_at)
-      idx  <- which(!is.na(ts) & ts >= cut)
+      now <- as.POSIXct(Sys.time(), tz = "UTC")
+      cut <- now - as.difftime(pol$days, units = "days")
+      ts <- .st_parse_utc_times(vtab$created_at)
+      idx <- which(!is.na(ts) & ts >= cut)
       if (length(idx)) keep <- unique(c(keep, vtab$version_id[idx]))
     }
   }
@@ -233,7 +323,9 @@ st_prune_versions <- function(path = NULL,
     fs::dir_delete(vdir)
   } else {
     # Not fatal; catalog entry will be removed already
-    cli::cli_warn("Version dir missing at {.file {vdir}}; updating catalog anyway.")
+    cli::cli_warn(
+      "Version dir missing at {.file {vdir}}; updating catalog anyway."
+    )
   }
 }
 
@@ -249,7 +341,9 @@ st_prune_versions <- function(path = NULL,
 # Optionally invoked after st_save()
 .st_apply_retention <- function(artifact_path) {
   pol <- st_opts("retain_versions", .get = TRUE) %||% Inf
-  if (is.infinite(pol)) return(invisible(NULL))
+  if (is.infinite(pol)) {
+    return(invisible(NULL))
+  }
   # Not a dry run; apply for this artifact only
   st_prune_versions(path = artifact_path, policy = pol, dry_run = FALSE)
   invisible(NULL)
