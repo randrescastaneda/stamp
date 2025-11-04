@@ -27,6 +27,51 @@ columns: artifact_path, version_id, created_at, size_bytes.
 \description{
 Prune stored versions according to a retention policy
 }
+\details{
+\strong{Retention policy semantics}
+\itemize{
+\item \code{policy = Inf} — keep \emph{all} versions (no pruning).
+\item \verb{policy = <numeric>} — interpreted as “keep the \strong{n} most recent versions
+per artifact.” For example, \code{policy = 2} keeps the latest two and prunes older ones.
+\item \code{policy = list(...)} — a combined policy where multiple conditions are
+UNIONed (kept if \strong{any} condition keeps it):
+\itemize{
+\item \code{n}: keep the latest \strong{n} per artifact.
+\item \code{days}: keep versions whose \code{created_at} is within the last \strong{days} days.
+\item \code{keep_latest} / \code{min_keep} (internal fields in some flows) ensure at least
+a floor of versions are preserved; typical use is covered by \code{n} + \code{days}.
+}
+}
+
+\strong{Grouping & order.} Pruning decisions are made per artifact, after sorting
+each artifact’s versions by \code{created_at} (newest → oldest). The “latest n”
+condition is applied on this order.
+
+\strong{Dry runs vs destructive mode.} With \code{dry_run = TRUE}, the function only
+reports what \emph{would} be pruned (and estimates reclaimed space). With
+\code{dry_run = FALSE}, it deletes the snapshot directories under
+\verb{<state_dir>/versions/...} and updates the catalog accordingly:
+\itemize{
+\item removes rows from the \code{versions} table,
+\item adjusts each artifact’s \code{n_versions} and \code{latest_version_id}
+(to the newest remaining version), or drops the artifact row if none remain.
+}
+
+\strong{Scope.} If supported in your build (e.g., you added a \code{path = NULL}
+parameter), you can restrict pruning to a single artifact by passing its path.
+Otherwise, pruning considers all artifacts recorded in the catalog.
+
+\strong{Integration with writes.} If you set a default policy via
+\verb{st_opts(retain_versions = <policy>)}, internal helpers may apply pruning
+right after \code{st_save()} for the just-written artifact (keep-all is the default).
+
+\strong{Safety notes.}
+\itemize{
+\item Pruning never touches the \strong{live artifact files} (\code{A.qs}, etc.) — only the
+stored version snapshots and catalog entries.
+\item Use \code{dry_run = TRUE} first to verify what would be removed.
+}
+}
 \examples{
 \donttest{
 # Minimal setup: temp project with three artifacts and multiple versions

@@ -12,6 +12,43 @@
 #' @param dry_run logical; if TRUE, only report what would be pruned.
 #' @return Invisibly, a data.frame of pruned (or would-prune) versions with
 #'   columns: artifact_path, version_id, created_at, size_bytes.
+#' @details
+#' **Retention policy semantics**
+#'
+#' * `policy = Inf` — keep *all* versions (no pruning).
+#' * `policy = <numeric>` — interpreted as “keep the **n** most recent versions
+#'   per artifact.” For example, `policy = 2` keeps the latest two and prunes older ones.
+#' * `policy = list(...)` — a combined policy where multiple conditions are
+#'   UNIONed (kept if **any** condition keeps it):
+#'   - `n`: keep the latest **n** per artifact.
+#'   - `days`: keep versions whose `created_at` is within the last **days** days.
+#'   - `keep_latest` / `min_keep` (internal fields in some flows) ensure at least
+#'     a floor of versions are preserved; typical use is covered by `n` + `days`.
+#'
+#' **Grouping & order.** Pruning decisions are made per artifact, after sorting
+#' each artifact’s versions by `created_at` (newest → oldest). The “latest n”
+#' condition is applied on this order.
+#'
+#' **Dry runs vs destructive mode.** With `dry_run = TRUE`, the function only
+#' reports what *would* be pruned (and estimates reclaimed space). With
+#' `dry_run = FALSE`, it deletes the snapshot directories under
+#' `<state_dir>/versions/...` and updates the catalog accordingly:
+#'   - removes rows from the `versions` table,
+#'   - adjusts each artifact’s `n_versions` and `latest_version_id`
+#'     (to the newest remaining version), or drops the artifact row if none remain.
+#'
+#' **Scope.** If supported in your build (e.g., you added a `path = NULL`
+#' parameter), you can restrict pruning to a single artifact by passing its path.
+#' Otherwise, pruning considers all artifacts recorded in the catalog.
+#'
+#' **Integration with writes.** If you set a default policy via
+#' `st_opts(retain_versions = <policy>)`, internal helpers may apply pruning
+#' right after `st_save()` for the just-written artifact (keep-all is the default).
+#'
+#' **Safety notes.**
+#' * Pruning never touches the **live artifact files** (`A.qs`, etc.) — only the
+#'   stored version snapshots and catalog entries.
+#' * Use `dry_run = TRUE` first to verify what would be removed.
 #' @examples
 #' \donttest{
 #' # Minimal setup: temp project with three artifacts and multiple versions
@@ -226,18 +263,17 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 
 # ---- Internals ---------------------------------------------------------------
 
-#' Normalize retention policy object (internal)
-#'
-#' Interpretation:
-#'  - Inf                -> kind = "all"   (keep everything)
-#'  - numeric scalar n   -> kind = "n"     (keep n most recent per artifact)
-#'  - list(n=?, days=?)  -> kind = "combo" (union of "keep n" and "newer than days")
-#'
-#' @keywords internal
+# Normalize retention policy object (internal)
+# Interpretation:
+#  - Inf                -> kind = "all"   (keep everything)
+#  - numeric scalar n   -> kind = "n"     (keep n most recent per artifact)
+#  - list(n=?, days=?)  -> kind = "combo" (union of "keep n" and "newer than days")
 .st_normalize_policy <- function(policy) {
-  if (is.infinite(policy)) {
+  # handle Inf without calling is.infinite() on non-numeric inputs
+  if (identical(policy, Inf)) {
     return(list(kind = "all"))
   }
+
   if (is.numeric(policy) && length(policy) == 1L) {
     n <- as.integer(policy)
     if (is.na(n) || n < 0L) {
@@ -245,29 +281,47 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     }
     return(list(kind = "n", n = n))
   }
+
   if (is.list(policy)) {
     n <- policy$n %||% NULL
     days <- policy$days %||% NULL
+
     if (!is.null(n)) {
       n <- as.integer(n)
       if (is.na(n) || n < 0L) {
         cli::cli_abort("Retention 'n' must be a non-negative integer.")
       }
     }
+
     if (!is.null(days)) {
       days <- as.numeric(days)
       if (is.na(days) || days < 0) {
         cli::cli_abort("Retention 'days' must be a non-negative number.")
       }
     }
+
     if (is.null(n) && is.null(days)) {
       cli::cli_abort("Retention list must include at least one of: n, days.")
     }
+
     return(list(kind = "combo", n = n, days = days))
   }
+
   cli::cli_abort(
     "Unsupported retention policy type. Use Inf, integer n, or list(n=..., days=...)."
   )
+}
+
+# Optionally invoked after st_save() to apply retention for a single artifact
+.st_apply_retention <- function(artifact_path) {
+  pol <- st_opts("retain_versions", .get = TRUE) %||% Inf
+  # Avoid is.infinite() here because `pol` may be a list
+  if (identical(pol, Inf)) {
+    return(invisible(NULL))
+  }
+  # Apply to just this artifact
+  st_prune_versions(path = artifact_path, policy = pol, dry_run = FALSE)
+  invisible(NULL)
 }
 
 #' Compute version IDs to keep under a retention policy (internal)
