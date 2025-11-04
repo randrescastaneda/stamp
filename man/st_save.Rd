@@ -12,6 +12,9 @@ st_save(
   code = NULL,
   parents = NULL,
   code_label = NULL,
+  pk = NULL,
+  domain = NULL,
+  unique = TRUE,
   ...
 )
 }
@@ -31,6 +34,12 @@ list(list(path = "\if{html}{\out{<path>}}", version_id = "\if{html}{\out{<id>}}"
 You can obtain version ids with \code{st_latest(parent_path)}.}
 
 \item{code_label}{Optional short label/description of the producing code (for humans).}
+
+\item{pk}{optional character vector of primary-key columns (for tables)}
+
+\item{domain}{optional character scalar or vector label(s) for the dataset}
+
+\item{unique}{logical; enforce uniqueness of pk at save time (default TRUE)}
 
 \item{...}{forwarded to format writer}
 }
