@@ -12,7 +12,11 @@ vignette: >
 dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 
 if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
-  pkgload::load_all(export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  pkgload::load_all(
+    export_all = FALSE,
+    helpers = FALSE,
+    attach_testthat = FALSE
+  )
 } else {
   # fall back to the installed package (the path CRAN, CI, and pkgdown take)
   library(stamp)
