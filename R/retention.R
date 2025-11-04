@@ -12,6 +12,57 @@
 #' @param dry_run logical; if TRUE, only report what would be pruned.
 #' @return Invisibly, a data.frame of pruned (or would-prune) versions with
 #'   columns: artifact_path, version_id, created_at, size_bytes.
+#' @examples
+#' \donttest{
+#' # Minimal setup: temp project with three artifacts and multiple versions
+#' st_opts_reset()
+#' st_opts(versioning = "content", meta_format = "json")
+#'
+#' root <- tempdir()
+#' st_init(root)
+#'
+#' # A, B, C
+#' pA <- fs::path(root, "A.qs"); xA <- data.frame(a = 1:3)
+#' pB <- fs::path(root, "B.qs"); pC <- fs::path(root, "C.qs")
+#'
+#' # First versions
+#' st_save(xA, pA, code = function(z) z)
+#' st_save(transform(xA, b = a * 2), pB, code = function(z) z,
+#'         parents = list(list(path = pA, version_id = st_latest(pA))))
+#' st_save(transform(st_load(pB), c = b + 1L), pC, code = function(z) z,
+#'         parents = list(list(path = pB, version_id = st_latest(pB))))
+#'
+#' # Create a couple of extra versions for A to have data to prune
+#' st_save(transform(xA, a = a + 10L), pA, code = function(z) z)
+#' st_save(transform(xA, a = a + 20L), pA, code = function(z) z)
+#'
+#' # Inspect versions for A
+#' st_versions(pA)
+#'
+#' # 1) Keep everything (no-op)
+#' st_prune_versions(policy = Inf, dry_run = TRUE)
+#'
+#' # 2) Keep only the latest 1 per artifact (dry run)
+#' st_prune_versions(policy = 1, dry_run = TRUE)
+#'
+#' # 3) Combined policy:
+#' #    - keep the latest 2 per artifact
+#' #    - and also keep any versions newer than 7 days (union of both)
+#' st_prune_versions(policy = list(n = 2, days = 7), dry_run = TRUE)
+#'
+#' # 4) Restrict pruning to a single artifact path
+#' st_prune_versions(path = pA, policy = 1, dry_run = TRUE)
+#'
+#' # 5) Apply pruning (destructive): keep latest 1 everywhere
+#' #    (Uncomment to run for real)
+#' # st_prune_versions(policy = 1, dry_run = FALSE)
+#'
+#' # Optional: set a default retention policy and have st_save() apply it
+#' # after each write via .st_apply_retention() (internal helper).
+#' # For example, keep last 2 versions going forward:
+#' st_opts(retain_versions = 2)
+#' # Next saves will write a new version and then prune older ones for that artifact.
+#' }
 #' @export
 st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
   stopifnot(is.logical(dry_run), length(dry_run) == 1L)
