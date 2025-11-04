@@ -6,15 +6,12 @@
 \usage{
 .st_normalize_policy(policy)
 }
-\arguments{
-\item{policy}{Retention policy specification (Inf, integer, or list).}
-}
-\value{
-A list with \code{kind} and relevant fields (\code{n}, \code{days}).
-}
 \description{
-Converts a user-provided retention policy specification into a normalized
-internal list representation. Recognizes \code{Inf} (keep all), a single integer
-(keep n most recent), or a list with \code{n} and/or \code{days}.
+Interpretation:
+\itemize{
+\item Inf                -> kind = "all"   (keep everything)
+\item numeric scalar n   -> kind = "n"     (keep n most recent per artifact)
+\item list(n=?, days=?)  -> kind = "combo" (union of "keep n" and "newer than days")
+}
 }
 \keyword{internal}

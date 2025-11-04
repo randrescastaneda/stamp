@@ -2,28 +2,28 @@
 % Please edit documentation in R/retention.R
 \name{st_prune_versions}
 \alias{st_prune_versions}
-\title{Prune stored versions according to a simple retention policy}
+\title{Prune stored versions according to a retention policy}
 \usage{
-st_prune_versions(policy = Inf, dry_run = TRUE)
+st_prune_versions(path = NULL, policy = Inf, dry_run = TRUE)
 }
 \arguments{
-\item{policy}{Either:
+\item{path}{Optional character vector of artifact paths to restrict pruning.
+If NULL (default), applies the policy to all artifacts in the catalog.}
+
+\item{policy}{One of:
 \itemize{
-\item Inf (default): keep everything
-\item numeric scalar (days): prune versions older than N days
-\item list with optional fields:
-\itemize{
-\item days: numeric days threshold
-\item keep_latest: integer, always keep the K most recent per artifact
-\item min_keep: integer, never drop below M kept per artifact (default 1)
-}
+\item \code{Inf} (keep everything)
+\item numeric scalar \code{n} (keep the \emph{n} most recent per artifact)
+\item \verb{list(n = <int>, days = <num>)} (keep most recent \emph{n} and/or those
+newer than \emph{days}; union of the two conditions)
 }}
 
-\item{dry_run}{logical; if TRUE, only report what would be pruned}
+\item{dry_run}{logical; if TRUE, only report what would be pruned.}
 }
 \value{
-Invisibly, a data.frame of pruned (or would-prune) versions
+Invisibly, a data.frame of pruned (or would-prune) versions with
+columns: artifact_path, version_id, created_at, size_bytes.
 }
 \description{
-Prune stored versions according to a simple retention policy
+Prune stored versions according to a retention policy
 }

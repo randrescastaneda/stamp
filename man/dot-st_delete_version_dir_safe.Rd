@@ -6,15 +6,7 @@
 \usage{
 .st_delete_version_dir_safe(vdir)
 }
-\arguments{
-\item{vdir}{Character path to the version directory.}
-}
-\value{
-NULL (invisibly).
-}
 \description{
-Delete the version directory if it exists. If the directory is already
-missing, issue a warning but do not fail (the catalog entry will be
-removed regardless).
+Safely delete a version directory (internal)
 }
 \keyword{internal}

@@ -6,14 +6,7 @@
 \usage{
 .st_parse_utc_times(chr)
 }
-\arguments{
-\item{chr}{Character vector of ISO-like UTC timestamps.}
-}
-\value{
-POSIXct vector (UTC timezone).
-}
 \description{
-Parse character timestamps returned by \code{.st_now_utc()} into POSIXct objects
-with UTC timezone. Warnings are suppressed.
+Parse UTC timestamp strings (internal)
 }
 \keyword{internal}

@@ -7,15 +7,11 @@
 .st_policy_keep_ids(vtab, pol)
 }
 \arguments{
-\item{vtab}{Data.frame of versions sorted by created_at descending.}
+\item{vtab}{data.frame of versions \strong{sorted newest → oldest}}
 
-\item{pol}{Normalized policy list (from \code{.st_normalize_policy}).}
-}
-\value{
-Character vector of version IDs to keep.
+\item{pol}{normalized policy from \code{.st_normalize_policy()}}
 }
 \description{
-Given a version table (sorted newest -> oldest) and a normalized retention
-policy, return the character vector of version IDs to keep.
+Compute version IDs to keep under a retention policy (internal)
 }
 \keyword{internal}

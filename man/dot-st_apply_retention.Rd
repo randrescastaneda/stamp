@@ -2,18 +2,11 @@
 % Please edit documentation in R/retention.R
 \name{.st_apply_retention}
 \alias{.st_apply_retention}
-\title{Apply retention policy for a single artifact (internal)}
+\title{Optionally invoked after st_save() to apply retention for a single artifact}
 \usage{
 .st_apply_retention(artifact_path)
 }
-\arguments{
-\item{artifact_path}{Character path to the artifact.}
-}
-\value{
-NULL (invisibly).
-}
 \description{
-artifact according to the current \code{retain_versions} option. If the option
-is \code{Inf} (keep all), this is a no-op.
+Optionally invoked after st_save() to apply retention for a single artifact
 }
 \keyword{internal}
