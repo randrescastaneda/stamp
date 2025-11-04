@@ -485,7 +485,6 @@ st_lineage <- function(path, depth = 1L) {
 
 #' Record a new version in the catalog (internal)
 #' @keywords internal
-#' @noRd
 .st_catalog_record_version <- function(
   artifact_path,
   format,
@@ -543,6 +542,7 @@ st_lineage <- function(path, depth = 1L) {
   .st_catalog_write(cat)
   vid
 }
+
 
 # Return the latest version row (or NULL) for an artifact path
 #' Retrieve the latest version row for an artifact (internal)

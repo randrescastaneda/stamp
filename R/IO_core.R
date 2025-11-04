@@ -166,7 +166,9 @@ st_save <- function(
   )
   .st_write_sidecar(sp$path, meta)
 
-  # Record catalog version + snapshot (includes copying sidecars)
+  # Commit files AND parents
+  .st_version_commit_files(sp$path, vid, parents = parents)
+  # Record catalog version + snapshot ...
   vid <- .st_catalog_record_version(
     artifact_path = sp$path,
     format = fmt,
@@ -176,17 +178,13 @@ st_save <- function(
     created_at = meta$created_at,
     sidecar_format = .st_sidecar_present(sp$path)
   )
-  # Commit files AND parents
-  .st_version_commit_files(sp$path, vid, parents = parents)
-  # Record catalog version + snapshot ...
-  vid <- .st_catalog_record_version(...)
   .st_version_commit_files(sp$path, vid, parents = parents)
 
   # apply retention policy for this artifact (no-op if policy == Inf)
   .st_apply_retention(sp$path)
 
   cli::cli_inform(c(
-    "v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}} @ version {.field {vid}}"
+    "v" = "Saved [{.field {fmt}}] --> {.field {sp$path}} @ version {.field {vid}}"
   ))
   invisible(list(path = sp$path, metadata = meta, version_id = vid))
 }
