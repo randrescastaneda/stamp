@@ -166,8 +166,6 @@ st_save <- function(
   )
   .st_write_sidecar(sp$path, meta)
 
-  # Commit files AND parents
-  .st_version_commit_files(sp$path, vid, parents = parents)
   # Record catalog version + snapshot ...
   vid <- .st_catalog_record_version(
     artifact_path = sp$path,
@@ -178,6 +176,7 @@ st_save <- function(
     created_at = meta$created_at,
     sidecar_format = .st_sidecar_present(sp$path)
   )
+  # Commit files AND parents
   .st_version_commit_files(sp$path, vid, parents = parents)
 
   # apply retention policy for this artifact (no-op if policy == Inf)

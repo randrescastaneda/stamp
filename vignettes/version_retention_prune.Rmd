@@ -1,0 +1,172 @@
+---
+title: "04. Version Retention & Pruning"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Version Retention & Pruning}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, message=FALSE}
+# Use development build when interactive *and* explicitly enabled via env var.
+dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
+
+if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+} else {
+  # fall back to the installed package (the path CRAN, CI, and pkgdown take)
+  library(stamp)
+}
+```
+
+This vignette shows how to **prune old versions** from the versions store and keep the catalog tidy—either **automatically after each save** or with an **ad-hoc pruning pass**.
+
+Key pieces:
+
+* Global option: `st_opts(retain_versions = policy)`
+* On-demand: `st_prune_versions(path = NULL, policy = ..., dry_run = FALSE)`
+* Latest version is **always protected**.
+
+Retention **policy** can be:
+
+* `Inf` (default): keep everything.
+* An integer `n`: keep **n latest** versions.
+* A list like `list(n = 5, days = 14)`: keep the **union** of “5 latest” and “last 14 days”.
+
+> Note: This vignette assumes your package defines `retain_versions = Inf` as a default in `st_opts()` initialization, and that `st_save()` calls an internal `.st_apply_retention()` which reads that option. If you prefer only manual pruning, skip the automatic hook and use `st_prune_versions()` explicitly.
+
+## Setup a temporary project
+
+```{r}
+root <- tempdir()
+st_init(root)
+```
+
+We’ll make three artifacts and a few versions for each.
+
+```{r}
+pA <- fs::path(root, "A.qs")
+pB <- fs::path(root, "B.qs")
+pC <- fs::path(root, "C.qs")
+
+xA1 <- data.frame(a = 1:3)
+xA2 <- data.frame(a = 2:4)
+xA3 <- data.frame(a = 3:5)
+
+xB1 <- data.frame(b = letters[1:3])
+xB2 <- data.frame(b = letters[2:4])
+
+xC1 <- data.frame(c = 10:12)
+
+# Keep retention OFF initially so we can create multiple versions
+st_opts(retain_versions = Inf)
+
+st_save(xA1, pA, code = function(z) z)
+st_save(xA2, pA, code = function(z) z)
+st_save(xA3, pA, code = function(z) z)
+
+st_save(xB1, pB, code = function(z) z)
+st_save(xB2, pB, code = function(z) z)
+
+st_save(xC1, pC, code = function(z) z)
+
+# How many versions recorded?
+nrow(st_versions(pA))
+nrow(st_versions(pB))
+nrow(st_versions(pC))
+```
+
+You can inspect the versions directory (may be large, so we only list the top-level):
+
+```{r}
+vroot <- stamp:::.st_versions_root()
+fs::dir_tree(vroot, recurse = FALSE, all = TRUE)
+```
+
+And the catalog entries:
+
+```{r}
+st_versions(pA)
+st_versions(pB)
+st_versions(pC)
+```
+
+## Ad-hoc pruning (no automatic retention)
+
+### Keep **n latest** (e.g., 2) for a single artifact
+
+```{r}
+# Preview only (no deletion):
+st_prune_versions(path = pA, policy = 2, dry_run = TRUE)
+
+# Apply:
+repA <- st_prune_versions(path = pA, policy = 2, dry_run = FALSE)
+repA
+nrow(st_versions(pA)) # should be <= 2 (latest always kept)
+```
+
+### Keep by **recency window** (e.g., last 14 days) for the whole catalog
+
+```{r}
+# Preview:
+st_prune_versions(policy = list(days = 14), dry_run = TRUE)
+
+# Apply:
+repAll <- st_prune_versions(policy = list(days = 14))
+head(repAll)
+```
+
+> The report returns `artifact_path`, `version_id`, `created_at`, and `action` (`keep`/`delete`).
+
+### Combine **n + days** (union)
+
+```{r}
+# Keep last 2 versions OR any version within 7 days
+st_prune_versions(policy = list(n = 2, days = 7))
+```
+
+After pruning, verify the catalog:
+
+```{r}
+st_versions(pA)
+st_versions(pB)
+st_versions(pC)
+```
+
+Latest version remains present by design.
+
+## Automatic pruning after each save
+
+If your package calls `.st_apply_retention()` at the end of `st_save()`, you can set a global policy and forget about it:
+
+```{r}
+# Keep only the latest 2 versions per artifact going forward
+st_opts(retain_versions = 2)
+
+# New save will write a new version and immediately prune older ones
+xA4 <- data.frame(a = 4:6)
+st_save(xA4, pA, code = function(z) z)
+
+nrow(st_versions(pA)) # should be <= 2
+```
+
+You can disable auto-pruning by restoring:
+
+```{r}
+st_opts(retain_versions = Inf) # keep all (no-op on save)
+```
+
+## Notes & Recommendations
+
+* **Latest is protected** regardless of policy.
+* Use `dry_run = TRUE` first when pruning a big catalog.
+* Policies are **per artifact** when called with `path=...`; otherwise they apply across all artifacts.
+* For reproducibility, you may want to **pin** or log a prune report (`st_prune_versions(..., dry_run = TRUE)`) before applying a destructive prune on shared machines.
+
+```{r}
+# Example: capture a plan before applying it
+plan <- st_prune_versions(policy = list(n = 3, days = 30), dry_run = TRUE)
+head(plan)
+```
+
+That’s it—your versions store should now remain lean without losing the most recent (and most useful) snapshots.
