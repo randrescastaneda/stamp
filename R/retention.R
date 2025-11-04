@@ -264,12 +264,24 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 # ---- Internals ---------------------------------------------------------------
 
 # Normalize retention policy object (internal)
-# Interpretation:
-#  - Inf                -> kind = "all"   (keep everything)
-#  - numeric scalar n   -> kind = "n"     (keep n most recent per artifact)
-#  - list(n=?, days=?)  -> kind = "combo" (union of "keep n" and "newer than days")
+#  - Inf                -> kind="all"
+#  - numeric scalar n   -> kind="n"
+#  - list(n=?, days=?)  -> kind="combo"
+#  - character like "2 7" -> parsed as list(n=2, days=7) or "2" -> n=2
 .st_normalize_policy <- function(policy) {
-  # handle Inf without calling is.infinite() on non-numeric inputs
+  if (is.character(policy)) {
+    nums <- suppressWarnings(as.numeric(strsplit(
+      paste(policy, collapse = " "),
+      "\\s+"
+    )[[1]]))
+    nums <- nums[!is.na(nums)]
+    if (length(nums) == 1L) {
+      policy <- as.integer(nums[1L])
+    } else if (length(nums) >= 2L) {
+      policy <- list(n = as.integer(nums[1L]), days = as.numeric(nums[2L]))
+    }
+  }
+
   if (identical(policy, Inf)) {
     return(list(kind = "all"))
   }
@@ -285,25 +297,21 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
   if (is.list(policy)) {
     n <- policy$n %||% NULL
     days <- policy$days %||% NULL
-
     if (!is.null(n)) {
       n <- as.integer(n)
       if (is.na(n) || n < 0L) {
         cli::cli_abort("Retention 'n' must be a non-negative integer.")
       }
     }
-
     if (!is.null(days)) {
       days <- as.numeric(days)
       if (is.na(days) || days < 0) {
         cli::cli_abort("Retention 'days' must be a non-negative number.")
       }
     }
-
     if (is.null(n) && is.null(days)) {
       cli::cli_abort("Retention list must include at least one of: n, days.")
     }
-
     return(list(kind = "combo", n = n, days = days))
   }
 
@@ -312,17 +320,20 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
   )
 }
 
+
 # Optionally invoked after st_save() to apply retention for a single artifact
+# (safe: no is.infinite() on lists; normalize first)
 .st_apply_retention <- function(artifact_path) {
-  pol <- st_opts("retain_versions", .get = TRUE) %||% Inf
-  # Avoid is.infinite() here because `pol` may be a list
-  if (identical(pol, Inf)) {
-    return(invisible(NULL))
+  pol_raw <- st_opts("retain_versions", .get = TRUE) %||% Inf
+  pol <- .st_normalize_policy(pol_raw)
+  if (identical(pol$kind, "all")) {
+    return(invisible(NULL)) # keep-everything → no-op
   }
-  # Apply to just this artifact
-  st_prune_versions(path = artifact_path, policy = pol, dry_run = FALSE)
+  # Apply to just this artifact; st_prune_versions will also normalize internally
+  st_prune_versions(path = artifact_path, policy = pol_raw, dry_run = FALSE)
   invisible(NULL)
 }
+
 
 #' Compute version IDs to keep under a retention policy (internal)
 #'
@@ -370,16 +381,4 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
       "Version dir missing at {.file {vdir}}; updating catalog anyway."
     )
   }
-}
-
-#' Optionally invoked after st_save() to apply retention for a single artifact
-#' @keywords internal
-.st_apply_retention <- function(artifact_path) {
-  pol <- st_opts("retain_versions", .get = TRUE) %||% Inf
-  if (is.infinite(pol)) {
-    return(invisible(NULL))
-  }
-  # Apply to just this artifact
-  st_prune_versions(path = artifact_path, policy = pol, dry_run = FALSE)
-  invisible(NULL)
 }
