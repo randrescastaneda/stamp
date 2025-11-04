@@ -19,14 +19,14 @@
 .st_formats_env <- rlang::env()
 
 # Extension map: file extension -> format name (e.g., "qs" -> "qs2")
-.st_extmap_env  <- rlang::env()
+.st_extmap_env <- rlang::env()
 
 # Options store used by st_opts() (values populated at load time)
-.stamp_opts     <- rlang::env()
+.stamp_opts <- rlang::env()
 
 # Lightweight package state (keeps paths, etc.)
-.stamp_state    <- rlang::env(
-  state_dir = ".stamp"  # default; can be overridden via st_state_set()
+.stamp_state <- rlang::env(
+  state_dir = ".stamp" # default; can be overridden via st_state_set()
 )
 
 # Builder registry (used by st_register_builder / st_rebuild)
@@ -53,25 +53,24 @@ st_state_get <- function(key, default = NULL) {
 
 .stamp_default_opts <- list(
   # Sidecar & metadata
-  meta_format          = "json",       # "json" | "qs2" | "both"
+  meta_format = "json", # "json" | "qs2" | "both"
 
   # Versioning
-  versioning           = "content",    # "content" | "timestamp" | "off"
-  force_on_code_change = TRUE,  # if code hash differs, write a new version
-  retain_versions      = Inf,    # keep all versions by default
-
+  versioning = "content", # "content" | "timestamp" | "off"
+  force_on_code_change = TRUE, # if code hash differs, write a new version
+  retain_versions = Inf, # keep all versions by default
 
   # Hashing toggles
-  code_hash       = TRUE,         # compute code hash when code= is supplied
-  store_file_hash = FALSE,        # compute file hash at save (extra I/O)
-  verify_on_load  = FALSE,        # verify file hash on load if available
+  code_hash = TRUE, # compute code hash when code= is supplied
+  store_file_hash = FALSE, # compute file hash at save (extra I/O)
+  verify_on_load = FALSE, # verify file hash on load if available
 
   # Usability / misc (mirrors; used as we adopt them)
-  default_format  = "qs2",        # resolved writer key for auto-inference
-  verbose         = TRUE,         # future-use for chatty messages
-  timezone        = (Sys.timezone() %||% "UTC"),
-  timeformat      = "%Y%m%d%H%M%S",
-  usetz           = FALSE
+  default_format = "qs2", # resolved writer key for auto-inference
+  verbose = TRUE, # future-use for chatty messages
+  timezone = (Sys.timezone() %||% "UTC"),
+  timeformat = "%Y%m%d%H%M%S",
+  usetz = FALSE
 )
 
 # Initialize defaults into .stamp_opts if missing (idempotent; invoked in .onLoad)

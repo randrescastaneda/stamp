@@ -39,11 +39,11 @@ You’ll use:
 ```{r}
 st_opts_reset()
 st_opts(
-  versioning      = "content",
-  code_hash       = TRUE,
+  versioning = "content",
+  code_hash = TRUE,
   store_file_hash = TRUE,
-  verify_on_load  = TRUE,
-  meta_format     = "both"
+  verify_on_load = TRUE,
+  meta_format = "both"
 )
 
 root <- tempdir()
@@ -57,16 +57,22 @@ st_save(xA, pA, code = function(z) z)
 # B depends on A
 pB <- fs::path(root, "B.qs")
 xB <- transform(xA, b = a * 2)
-st_save(xB, pB,
-        code    = function(z) z,
-        parents = list(list(path = pA, version_id = st_latest(pA))))
+st_save(
+  xB,
+  pB,
+  code = function(z) z,
+  parents = list(list(path = pA, version_id = st_latest(pA)))
+)
 
 # C depends on B
 pC <- fs::path(root, "C.qs")
 xC <- transform(xB, c = b + 1L)
-st_save(xC, pC,
-        code    = function(z) z,
-        parents = list(list(path = pB, version_id = st_latest(pB))))
+st_save(
+  xC,
+  pC,
+  code = function(z) z,
+  parents = list(list(path = pB, version_id = st_latest(pB)))
+)
 ```
 
 ## Inspect lineage
@@ -87,8 +93,8 @@ xA2 <- transform(xA, a = a + 10L)
 st_save(xA2, pA, code = function(z) z)
 
 # Strict staleness
-st_is_stale(pB)         # TRUE (B's recorded A version is now old)
-st_is_stale(pC)         # FALSE (C points to B, which hasn't changed yet)
+st_is_stale(pB) # TRUE (B's recorded A version is now old)
+st_is_stale(pC) # FALSE (C points to B, which hasn't changed yet)
 ```
 
 ## Plan rebuilds
@@ -122,8 +128,8 @@ st_register_builder(pB, function(path, parents) {
   # parents is list(list(path=..., version_id=...))
   A <- st_load_version(parents[[1]]$path, parents[[1]]$version_id)
   list(
-    x          = transform(A, b = a * 2),
-    code       = function(z) z,
+    x = transform(A, b = a * 2),
+    code = function(z) z,
     code_label = "B <- A * 2"
   )
 })
@@ -132,8 +138,8 @@ st_register_builder(pB, function(path, parents) {
 st_register_builder(pC, function(path, parents) {
   B <- st_load_version(parents[[1]]$path, parents[[1]]$version_id)
   list(
-    x          = transform(B, c = b + 1L),
-    code       = function(z) z,
+    x = transform(B, c = b + 1L),
+    code = function(z) z,
     code_label = "C <- B + 1"
   )
 })
@@ -150,7 +156,8 @@ After rebuilding B, **C** becomes strictly stale if **B** changes again later.
 You can re-plan from B to keep propagating:
 
 ```{r}
-st_is_stale(pB); st_is_stale(pC)
+st_is_stale(pB)
+st_is_stale(pC)
 st_plan_rebuild(pB, depth = Inf, mode = "propagate")
 ```
 

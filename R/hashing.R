@@ -63,22 +63,30 @@ st_hash_file <- function(path) {
 #' @return A list: list(changed = <lgl>, reason = <chr>, detail = <named list>)
 #' @export
 # Returns list(changed, reason, details)
-st_changed <- function(path, 
-                       x = NULL, 
-                       code = NULL, 
-                       mode = c("any","content","code","file")) {
+st_changed <- function(
+  path,
+  x = NULL,
+  code = NULL,
+  mode = c("any", "content", "code", "file")
+) {
   mode <- match.arg(mode)
 
   # --- base cases
   if (!fs::file_exists(path)) {
-    return(list(changed = TRUE, reason = "missing_artifact",
-                details = list(missing_artifact = TRUE)))
+    return(list(
+      changed = TRUE,
+      reason = "missing_artifact",
+      details = list(missing_artifact = TRUE)
+    ))
   }
 
   meta <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
   if (is.null(meta)) {
-    return(list(changed = TRUE, reason = "missing_meta",
-                details = list(missing_meta = TRUE)))
+    return(list(
+      changed = TRUE,
+      reason = "missing_meta",
+      details = list(missing_meta = TRUE)
+    ))
   }
 
   # --- compute components (only what we can)
@@ -100,7 +108,9 @@ st_changed <- function(path,
     det$code_changed <- NA
   }
 
-  if (isTRUE(st_opts("store_file_hash", .get = TRUE)) && !is.null(meta$file_hash)) {
+  if (
+    isTRUE(st_opts("store_file_hash", .get = TRUE)) && !is.null(meta$file_hash)
+  ) {
     fh_old <- meta$file_hash %||% NA_character_
     fh_new <- st_hash_file(path)
     det$file_changed <- !identical(fh_old, fh_new)
@@ -109,19 +119,25 @@ st_changed <- function(path,
   }
 
   # --- collapse reason per mode
-  picks <- switch(mode,
+  picks <- switch(
+    mode,
     content = isTRUE(det$content_changed),
-    code    = isTRUE(det$code_changed),
-    file    = isTRUE(det$file_changed),
-    any     = any(isTRUE(det$content_changed), isTRUE(det$code_changed), isTRUE(det$file_changed))
+    code = isTRUE(det$code_changed),
+    file = isTRUE(det$file_changed),
+    any = any(
+      isTRUE(det$content_changed),
+      isTRUE(det$code_changed),
+      isTRUE(det$file_changed)
+    )
   )
 
   # build reason string like "content+code", or "no_change"
-  parts <- c(if (isTRUE(det$content_changed)) "content",
-             if (isTRUE(det$code_changed))    "code",
-             if (isTRUE(det$file_changed))    "file")
+  parts <- c(
+    if (isTRUE(det$content_changed)) "content",
+    if (isTRUE(det$code_changed)) "code",
+    if (isTRUE(det$file_changed)) "file"
+  )
   reason <- if (length(parts)) paste(parts, collapse = "+") else "no_change"
 
   list(changed = isTRUE(picks), reason = reason, details = det)
 }
-

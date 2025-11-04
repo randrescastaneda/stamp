@@ -50,7 +50,9 @@ st_path <- function(path, format = NULL, partition_key = NULL) {
 
 #' @export
 print.st_path <- function(x, ...) {
-  cli::cli_inform("<{.field st_path}> {.field {x$path}} [format={.field {x$format}}]")
+  cli::cli_inform(
+    "<{.field st_path}> {.field {x$path}} [format={.field {x$format}}]"
+  )
   invisible(x)
 }
 
@@ -58,11 +60,18 @@ print.st_path <- function(x, ...) {
 
 .st_guess_format <- function(path) {
   ext <- tolower(fs::path_ext(path))
-  if (!nzchar(ext)) return(NULL)
-  if (rlang::env_has(.st_formats_env, ext)) return(ext)
-  if (rlang::env_has(.st_extmap_env, ext)) return(rlang::env_get(.st_extmap_env, ext))
+  if (!nzchar(ext)) {
+    return(NULL)
+  }
+  if (rlang::env_has(.st_formats_env, ext)) {
+    return(ext)
+  }
+  if (rlang::env_has(.st_extmap_env, ext)) {
+    return(rlang::env_get(.st_extmap_env, ext))
+  }
   NULL
 }
+
 
 # ---- Load and Save -----------------------------------------------------------
 
@@ -79,8 +88,16 @@ print.st_path <- function(x, ...) {
 #' @param ... forwarded to format writer
 #' @return invisibly, a list with path, metadata, and version_id
 #' @export
-st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
-                    parents = NULL, code_label = NULL, ...) {
+st_save <- function(
+  x,
+  file,
+  format = NULL,
+  metadata = list(),
+  code = NULL,
+  parents = NULL,
+  code_label = NULL,
+  ...
+) {
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
   fmt <- format %||%
@@ -90,31 +107,40 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
 
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
-    cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats} or {.fn st_register_format}.")
+    cli::cli_abort(
+      "Unknown format {.field {fmt}}. See {.fn st_formats} or {.fn st_register_format}."
+    )
   }
 
   # Should we write at all?
   dec <- st_should_save(sp$path, x = x, code = code)
   if (!dec$save) {
-    cli::cli_inform(c("v" = "Skip save (reason: {.field {dec$reason}}) for {.field {sp$path}}"))
+    cli::cli_inform(c(
+      "v" = "Skip save (reason: {.field {dec$reason}}) for {.field {sp$path}}"
+    ))
     return(invisible(list(path = sp$path, skipped = TRUE, reason = dec$reason)))
   }
 
   # Hashes
-  versioning      <- st_opts("versioning", .get = TRUE)
-  do_code_hash    <- isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
-  do_file_hash    <- isTRUE(st_opts("store_file_hash", .get = TRUE))
+  versioning <- st_opts("versioning", .get = TRUE)
+  do_code_hash <- isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
+  do_file_hash <- isTRUE(st_opts("store_file_hash", .get = TRUE))
 
   content_hash <- st_hash_obj(x)
-  code_hash    <- if (do_code_hash) st_hash_code(code) else NA_character_
+  code_hash <- if (do_code_hash) st_hash_code(code) else NA_character_
 
   # Ensure parent dir
   .st_dir_create(fs::path_dir(sp$path))
 
   # Write temp -> move
-  tmp <- fs::file_temp(tmp_dir = fs::path_dir(sp$path), pattern = fs::path_file(sp$path))
+  tmp <- fs::file_temp(
+    tmp_dir = fs::path_dir(sp$path),
+    pattern = fs::path_file(sp$path)
+  )
   h$write(x, tmp, ...)
-  if (fs::file_exists(sp$path)) fs::file_delete(sp$path)
+  if (fs::file_exists(sp$path)) {
+    fs::file_delete(sp$path)
+  }
   fs::file_move(tmp, sp$path)
 
   # Optional file hash (post-write)
@@ -125,16 +151,16 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
   # Sidecar metadata (augment with provenance hints)
   meta <- c(
     list(
-      path         = as.character(sp$path),
-      format       = fmt,
-      created_at   = .st_now_utc(),
-      size_bytes   = unname(fs::file_info(sp$path)$size),
+      path = as.character(sp$path),
+      format = fmt,
+      created_at = .st_now_utc(),
+      size_bytes = unname(fs::file_info(sp$path)$size),
       content_hash = content_hash,
-      code_hash    = code_hash,
-      file_hash    = file_hash,
-      code_label   = code_label %||% NA_character_,
-      parents      = parents,          # now normalized
-      attrs        = list()
+      code_hash = code_hash,
+      file_hash = file_hash,
+      code_label = code_label %||% NA_character_,
+      parents = parents, # now normalized
+      attrs = list()
     ),
     metadata
   )
@@ -142,12 +168,12 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
 
   # Record catalog version + snapshot (includes copying sidecars)
   vid <- .st_catalog_record_version(
-    artifact_path  = sp$path,
-    format         = fmt,
-    size_bytes     = meta$size_bytes,
-    content_hash   = meta$content_hash,
-    code_hash      = meta$code_hash,
-    created_at     = meta$created_at,
+    artifact_path = sp$path,
+    format = fmt,
+    size_bytes = meta$size_bytes,
+    content_hash = meta$content_hash,
+    code_hash = meta$code_hash,
+    created_at = meta$created_at,
     sidecar_format = .st_sidecar_present(sp$path)
   )
   # Commit files AND parents
@@ -159,11 +185,11 @@ st_save <- function(x, file, format = NULL, metadata = list(), code = NULL,
     try(st_prune_versions(sp$path, keep = retain), silent = TRUE)
   }
 
-
-  cli::cli_inform(c("v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}} @ version {.field {vid}}"))
+  cli::cli_inform(c(
+    "v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}} @ version {.field {vid}}"
+  ))
   invisible(list(path = sp$path, metadata = meta, version_id = vid))
 }
-
 
 
 #' Load an object from disk (format auto-detected; optional integrity checks)
@@ -193,13 +219,22 @@ st_load <- function(file, format = NULL, ...) {
   # Read sidecar once if we might verify anything
   meta <- if (do_verify) {
     tryCatch(st_read_sidecar(sp$path), error = function(e) NULL)
-  } else NULL
+  } else {
+    NULL
+  }
 
   # 1) Optional FILE integrity check (sidecar file hash vs current file)
-  if (do_verify && is.list(meta) && is.character(meta$file_hash) && nzchar(meta$file_hash)) {
+  if (
+    do_verify &&
+      is.list(meta) &&
+      is.character(meta$file_hash) &&
+      nzchar(meta$file_hash)
+  ) {
     now <- tryCatch(st_hash_file(sp$path), error = function(e) NA_character_)
     if (!is.na(now) && !identical(now, meta$file_hash)) {
-      cli::cli_warn("File hash mismatch for {.field {sp$path}} (sidecar vs disk). The file may have changed outside {.pkg stamp}.")
+      cli::cli_warn(
+        "File hash mismatch for {.field {sp$path}} (sidecar vs disk). The file may have changed outside {.pkg stamp}."
+      )
     }
   }
 
@@ -207,10 +242,17 @@ st_load <- function(file, format = NULL, ...) {
   res <- h$read(sp$path, ...)
 
   # 2) Optional CONTENT integrity check (rehash loaded object vs sidecar content_hash)
-  if (do_verify && is.list(meta) && is.character(meta$content_hash) && nzchar(meta$content_hash)) {
+  if (
+    do_verify &&
+      is.list(meta) &&
+      is.character(meta$content_hash) &&
+      nzchar(meta$content_hash)
+  ) {
     h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
     if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
-      cli::cli_warn("Loaded object hash mismatch for {.field {sp$path}} (content hash differs from sidecar).")
+      cli::cli_warn(
+        "Loaded object hash mismatch for {.field {sp$path}} (content hash differs from sidecar)."
+      )
     }
   }
 
@@ -227,25 +269,29 @@ st_load <- function(file, format = NULL, ...) {
 #'   - parents: list(...) parsed from latest version's parents.json (if any)
 #' @export
 st_info <- function(path) {
-  sc  <- st_read_sidecar(path)
+  sc <- st_read_sidecar(path)
   cat <- .st_catalog_read()
   aid <- .st_artifact_id(path)
 
   latest <- st_latest(path)
   artrow <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
-  nvers  <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
+  nvers <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
 
-  vdir   <- .st_version_dir_latest(path)
+  vdir <- .st_version_dir_latest(path)
   # Prefer committed snapshot parents (parents.json) when available.
   # If no snapshot exists, fall back to the artifact sidecar's quick parents
   # metadata so users can still inspect lineage even when a snapshot was not created.
-  parents <- if (is.na(vdir)) sc$parents %||% list() else .st_version_read_parents(vdir)
+  parents <- if (is.na(vdir)) {
+    sc$parents %||% list()
+  } else {
+    .st_version_read_parents(vdir)
+  }
 
   list(
-    sidecar      = sc,
-    catalog      = list(latest_version_id = latest, n_versions = nvers),
+    sidecar = sc,
+    catalog = list(latest_version_id = latest, n_versions = nvers),
     snapshot_dir = vdir,
-    parents      = parents
+    parents = parents
   )
 }
 
@@ -255,7 +301,12 @@ st_info <- function(path) {
 #' @inheritParams st_changed
 #' @return Character scalar: "no_change", "missing_artifact", "missing_meta", or e.g. "content+code"
 #' @export
-st_changed_reason <- function(path, x = NULL, code = NULL, mode = c("any","content","code","file")) {
+st_changed_reason <- function(
+  path,
+  x = NULL,
+  code = NULL,
+  mode = c("any", "content", "code", "file")
+) {
   mode <- match.arg(mode)
   res <- st_changed(path, x = x, code = code, mode = mode)
   res$reason
@@ -287,11 +338,13 @@ st_should_save <- function(path, x = NULL, code = NULL) {
 
   # Respect versioning = "timestamp" (always write), "off" (never write)
   vers <- st_opts("versioning", .get = TRUE) %||% "content"
-  if (identical(vers, "timestamp")) return(list(save = TRUE,  reason = "policy_timestamp"))
-  if (identical(vers, "off"))       return(list(save = FALSE, reason = "no_change_policy"))
+  if (identical(vers, "timestamp")) {
+    return(list(save = TRUE, reason = "policy_timestamp"))
+  }
+  if (identical(vers, "off")) {
+    return(list(save = FALSE, reason = "no_change_policy"))
+  }
 
   # default: no change → skip
   list(save = FALSE, reason = "no_change_policy")
 }
-
-

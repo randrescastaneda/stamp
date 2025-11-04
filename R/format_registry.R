@@ -27,8 +27,12 @@ NULL
       }
     }
   }
-  if (requireNamespace("qs", quietly = TRUE)) return(qs::qsave(x, path, ...))
-  cli::cli_abort("Neither {.pkg qs2} nor {.pkg qs} is installed; cannot write {.field qs2} format.")
+  if (requireNamespace("qs", quietly = TRUE)) {
+    return(qs::qsave(x, path, ...))
+  }
+  cli::cli_abort(
+    "Neither {.pkg qs2} nor {.pkg qs} is installed; cannot write {.field qs2} format."
+  )
 }
 
 #' Read using qs2/q (internal)
@@ -47,51 +51,61 @@ NULL
       }
     }
   }
-  if (requireNamespace("qs", quietly = TRUE)) return(qs::qread(path, ...))
-  cli::cli_abort("Neither {.pkg qs2} nor {.pkg qs} is installed; cannot read {.field qs2} format.")
+  if (requireNamespace("qs", quietly = TRUE)) {
+    return(qs::qread(path, ...))
+  }
+  cli::cli_abort(
+    "Neither {.pkg qs2} nor {.pkg qs} is installed; cannot read {.field qs2} format."
+  )
 }
 
 # Seed built-ins
 rlang::env_bind(
   .st_formats_env,
-  qs2  = list(read = .st_read_qs2, write = .st_write_qs2),
-  rds  = list(
-    read  = function(path, ...) readRDS(path, ...),
+  qs2 = list(read = .st_read_qs2, write = .st_write_qs2),
+  rds = list(
+    read = function(path, ...) readRDS(path, ...),
     write = function(x, path, ...) saveRDS(x, path, ...)
   ),
-  csv  = list(
-    read  = function(path, ...) {
-      if (!requireNamespace("data.table", quietly = TRUE))
+  csv = list(
+    read = function(path, ...) {
+      if (!requireNamespace("data.table", quietly = TRUE)) {
         cli::cli_abort("{.pkg data.table} is required for CSV read.")
+      }
       data.table::fread(path, ...)
     },
     write = function(x, path, ...) {
-      if (!requireNamespace("data.table", quietly = TRUE))
+      if (!requireNamespace("data.table", quietly = TRUE)) {
         cli::cli_abort("{.pkg data.table} is required for CSV write.")
+      }
       data.table::fwrite(x, path, ...)
     }
   ),
-  fst  = list(
-    read  = function(path, ...) {
-      if (!requireNamespace("fst", quietly = TRUE))
+  fst = list(
+    read = function(path, ...) {
+      if (!requireNamespace("fst", quietly = TRUE)) {
         cli::cli_abort("{.pkg fst} is required for FST read.")
+      }
       fst::read_fst(path, ...)
     },
     write = function(x, path, ...) {
-      if (!requireNamespace("fst", quietly = TRUE))
+      if (!requireNamespace("fst", quietly = TRUE)) {
         cli::cli_abort("{.pkg fst} is required for FST write.")
+      }
       fst::write_fst(x, path, ...)
     }
   ),
   json = list(
-    read  = function(path, ...) {
-      if (!requireNamespace("jsonlite", quietly = TRUE))
+    read = function(path, ...) {
+      if (!requireNamespace("jsonlite", quietly = TRUE)) {
         cli::cli_abort("{.pkg jsonlite} is required for JSON read.")
+      }
       jsonlite::read_json(path, simplifyVector = TRUE, ...)
     },
     write = function(x, path, ...) {
-      if (!requireNamespace("jsonlite", quietly = TRUE))
+      if (!requireNamespace("jsonlite", quietly = TRUE)) {
         cli::cli_abort("{.pkg jsonlite} is required for JSON write.")
+      }
       jsonlite::write_json(x, path, auto_unbox = TRUE, digits = NA, ...)
     }
   )
@@ -119,19 +133,26 @@ rlang::env_bind(
 #' )
 st_register_format <- function(name, read, write, extensions = NULL) {
   stopifnot(
-    is.character(name), length(name) == 1L,
-    is.function(read),  is.function(write),
+    is.character(name),
+    length(name) == 1L,
+    is.function(read),
+    is.function(write),
     is.null(extensions) || is.character(extensions)
   )
 
   replacing <- rlang::env_has(.st_formats_env, name)
   rlang::env_poke(.st_formats_env, name, list(read = read, write = write))
 
-  if (!is.null(extensions)) .st_extmap_set(extensions, name)
+  if (!is.null(extensions)) {
+    .st_extmap_set(extensions, name)
+  }
 
   cli::cli_inform(c(
-    "v" = if (replacing) paste0("Replaced format {.field ", name, "}")
-          else           paste0("Registered format {.field ", name, "}"),
+    "v" = if (replacing) {
+      paste0("Replaced format {.field ", name, "}")
+    } else {
+      paste0("Registered format {.field ", name, "}")
+    },
     " " = if (!is.null(extensions) && length(extensions)) {
       uext <- unique(tolower(extensions[nzchar(extensions)]))
       paste0("extensions: .", paste(uext, collapse = ", ."))
@@ -145,7 +166,9 @@ st_register_format <- function(name, read, write, extensions = NULL) {
 # Map extensions -> format (helper)
 .st_extmap_set <- function(extensions, format) {
   exts <- unique(tolower(extensions[nzchar(extensions)]))
-  for (ext in exts) rlang::env_poke(.st_extmap_env, ext, format)
+  for (ext in exts) {
+    rlang::env_poke(.st_extmap_env, ext, format)
+  }
 }
 
 #' Inspect available formats
@@ -179,8 +202,8 @@ st_formats <- function() {
 #' @return Character scalar with the computed sidecar path.
 #' @keywords internal
 .st_sidecar_path <- function(path, ext = c("json", "qs2")) {
-  ext  <- match.arg(ext)
-  dir  <- fs::path_dir(path)
+  ext <- match.arg(ext)
+  dir <- fs::path_dir(path)
   base <- fs::path_file(path)
   sc_dir <- fs::path(dir, "stmeta")
   fs::path(sc_dir, paste0(base, ".stmeta.", ext))
@@ -204,18 +227,34 @@ st_formats <- function() {
   if (fmt %in% c("json", "both")) {
     scj <- .st_sidecar_path(path, ext = "json")
     fs::dir_create(fs::path_dir(scj), recurse = TRUE)
-    tmp <- fs::file_temp(tmp_dir = fs::path_dir(scj), pattern = fs::path_file(scj))
-    jsonlite::write_json(meta, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA)
-    if (fs::file_exists(scj)) fs::file_delete(scj)
+    tmp <- fs::file_temp(
+      tmp_dir = fs::path_dir(scj),
+      pattern = fs::path_file(scj)
+    )
+    jsonlite::write_json(
+      meta,
+      tmp,
+      auto_unbox = TRUE,
+      pretty = TRUE,
+      digits = NA
+    )
+    if (fs::file_exists(scj)) {
+      fs::file_delete(scj)
+    }
     fs::file_move(tmp, scj)
   }
 
   if (fmt %in% c("qs2", "both")) {
     scq <- .st_sidecar_path(path, ext = "qs2")
     fs::dir_create(fs::path_dir(scq), recurse = TRUE)
-    tmp <- fs::file_temp(tmp_dir = fs::path_dir(scq), pattern = fs::path_file(scq))
+    tmp <- fs::file_temp(
+      tmp_dir = fs::path_dir(scq),
+      pattern = fs::path_file(scq)
+    )
     .st_write_qs2(meta, tmp)
-    if (fs::file_exists(scq)) fs::file_delete(scq)
+    if (fs::file_exists(scq)) {
+      fs::file_delete(scq)
+    }
     fs::file_move(tmp, scq)
   }
   invisible(NULL)
@@ -241,6 +280,8 @@ st_read_sidecar <- function(path) {
     return(.st_read_qs2(scq))
   }
 
-  cli::cli_alert_info("Sidecar metadata not found for {.field {path}}. Returning NULL.")
+  cli::cli_alert_info(
+    "Sidecar metadata not found for {.field {path}}. Returning NULL."
+  )
   invisible(NULL)
 }

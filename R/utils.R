@@ -18,6 +18,8 @@
 #' @return Invisibly returns `NULL`.
 #' @keywords internal
 .st_dir_create <- function(path) {
-  if (!fs::dir_exists(path)) fs::dir_create(path, recurse = TRUE)
+  if (!fs::dir_exists(path)) {
+    fs::dir_create(path, recurse = TRUE)
+  }
   invisible(NULL)
 }

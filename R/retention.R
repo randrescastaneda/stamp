@@ -10,12 +10,18 @@
 #' @return Invisibly, a data.frame of versions that were deleted (may be empty).
 #' @export
 st_prune_versions <- function(path, keep = NULL) {
-  if (is.null(keep)) keep <- st_opts("retain_versions", .get = TRUE) %||% Inf
-  if (!is.finite(keep)) return(invisible(
-    data.frame(version_id = character(), stringsAsFactors = FALSE)
-  ))
+  if (is.null(keep)) {
+    keep <- st_opts("retain_versions", .get = TRUE) %||% Inf
+  }
+  if (!is.finite(keep)) {
+    return(invisible(
+      data.frame(version_id = character(), stringsAsFactors = FALSE)
+    ))
+  }
   keep <- as.integer(keep)
-  if (keep < 0L) keep <- 0L
+  if (keep < 0L) {
+    keep <- 0L
+  }
 
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
@@ -23,13 +29,19 @@ st_prune_versions <- function(path, keep = NULL) {
   # All versions for this artifact, newest first
   ver <- cat$versions[cat$versions$artifact_id == aid, , drop = FALSE]
   if (!nrow(ver)) {
-    return(invisible(data.frame(version_id = character(), stringsAsFactors = FALSE)))
+    return(invisible(data.frame(
+      version_id = character(),
+      stringsAsFactors = FALSE
+    )))
   }
   ver <- ver[order(ver$created_at, decreasing = TRUE), , drop = FALSE]
 
   # Nothing to prune?
   if (nrow(ver) <= keep) {
-    return(invisible(data.frame(version_id = character(), stringsAsFactors = FALSE)))
+    return(invisible(data.frame(
+      version_id = character(),
+      stringsAsFactors = FALSE
+    )))
   }
 
   # Split keep / drop
@@ -45,13 +57,17 @@ st_prune_versions <- function(path, keep = NULL) {
   }
 
   # Remove dropped versions from catalog
-  cat$versions <- cat$versions[!(cat$versions$version_id %in% to_drop), , drop = FALSE]
+  cat$versions <- cat$versions[
+    !(cat$versions$version_id %in% to_drop),
+    ,
+    drop = FALSE
+  ]
 
   # Update artifact row
   aidx <- which(cat$artifacts$artifact_id == aid)
   if (length(aidx)) {
     cat$artifacts$latest_version_id[aidx] <- to_keep[[1L]]
-    cat$artifacts$n_versions[aidx]        <- length(to_keep)
+    cat$artifacts$n_versions[aidx] <- length(to_keep)
   }
 
   .st_catalog_write(cat)

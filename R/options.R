@@ -8,38 +8,56 @@
 
 #' @keywords internal
 .st_opts_validate <- function(dots) {
-  if (!length(dots)) return(invisible(NULL))
+  if (!length(dots)) {
+    return(invisible(NULL))
+  }
 
   known <- names(.stamp_default_opts)
   unknown <- setdiff(names(dots), known)
   if (length(unknown)) {
-    cli::cli_abort("Unknown option key(s): {.field {paste(unknown, collapse = ', ')}}")
+    cli::cli_abort(
+      "Unknown option key(s): {.field {paste(unknown, collapse = ', ')}}"
+    )
   }
 
   if ("meta_format" %in% names(dots)) {
     mf <- dots$meta_format
-    if (!is.character(mf) || length(mf) != 1L || !mf %in% c("json", "qs2", "both")) {
-      cli::cli_abort("Option {.field meta_format} must be one of {.val json}, {.val qs2}, {.val both}.")
+    if (
+      !is.character(mf) || length(mf) != 1L || !mf %in% c("json", "qs2", "both")
+    ) {
+      cli::cli_abort(
+        "Option {.field meta_format} must be one of {.val json}, {.val qs2}, {.val both}."
+      )
     }
   }
 
   if ("versioning" %in% names(dots)) {
     vm <- dots$versioning
-    if (!is.character(vm) || length(vm) != 1L || !vm %in% c("content", "timestamp", "off")) {
-      cli::cli_abort("Option {.field versioning} must be one of {.val content}, {.val timestamp}, {.val off}.")
+    if (
+      !is.character(vm) ||
+        length(vm) != 1L ||
+        !vm %in% c("content", "timestamp", "off")
+    ) {
+      cli::cli_abort(
+        "Option {.field versioning} must be one of {.val content}, {.val timestamp}, {.val off}."
+      )
     }
   }
 
   if ("default_format" %in% names(dots)) {
     df <- dots$default_format
     if (!is.character(df) || length(df) != 1L) {
-      cli::cli_abort("Option {.field default_format} must be a single character value.")
+      cli::cli_abort(
+        "Option {.field default_format} must be a single character value."
+      )
     }
   }
   if ("force_on_code_change" %in% names(dots)) {
     foc <- dots$force_on_code_change
     if (!is.logical(foc) || length(foc) != 1L || is.na(foc)) {
-      cli::cli_abort("Option {.field force_on_code_change} must be TRUE or FALSE.")
+      cli::cli_abort(
+        "Option {.field force_on_code_change} must be TRUE or FALSE."
+      )
     }
   }
 
@@ -69,14 +87,20 @@ st_opts <- function(..., .get = FALSE) {
     if (!length(args)) {
       return(as.list(.stamp_opts))
     }
-    if (length(args) == 1L && is.character(args[[1]]) && length(args[[1]]) == 1L) {
+    if (
+      length(args) == 1L && is.character(args[[1]]) && length(args[[1]]) == 1L
+    ) {
       key <- args[[1]]
       return(rlang::env_get(.stamp_opts, key, default = NULL))
     }
-    cli::cli_abort("For getting, use {.code st_opts(.get = TRUE)} or {.code st_opts('key', .get = TRUE)}.")
+    cli::cli_abort(
+      "For getting, use {.code st_opts(.get = TRUE)} or {.code st_opts('key', .get = TRUE)}."
+    )
   }
 
-  if (!length(args)) return(invisible(NULL))
+  if (!length(args)) {
+    return(invisible(NULL))
+  }
 
   .st_opts_validate(args)
   rlang::env_bind(.stamp_opts, !!!args)
@@ -84,7 +108,11 @@ st_opts <- function(..., .get = FALSE) {
   # Pretty-print changes
   kv <- paste(
     names(args),
-    vapply(args, function(x) cli::format_inline("{.val {paste0(x, collapse = ' ')}}"), ""),
+    vapply(
+      args,
+      function(x) cli::format_inline("{.val {paste0(x, collapse = ' ')}}"),
+      ""
+    ),
     sep = " = ",
     collapse = ", "
   )
@@ -106,6 +134,8 @@ st_opts_reset <- function() {
 #' @return Value or list of all values
 #' @export
 st_opts_get <- function(key = NULL) {
-  if (is.null(key)) return(as.list(.stamp_opts))
+  if (is.null(key)) {
+    return(as.list(.stamp_opts))
+  }
   rlang::env_get(.stamp_opts, key, default = NULL)
 }

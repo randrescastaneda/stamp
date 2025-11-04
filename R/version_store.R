@@ -76,7 +76,7 @@
 #' @keywords internal
 .st_version_dir <- function(artifact_path, version_id) {
   ap_abs <- .st_norm_path(artifact_path)
-  rd     <- .st_root_dir()
+  rd <- .st_root_dir()
 
   rel <- tryCatch(
     fs::path_rel(ap_abs, start = rd),
@@ -111,25 +111,40 @@
   if (requireNamespace("data.table", quietly = TRUE)) {
     list(
       artifacts = data.table::data.table(
-        artifact_id = character(), path = character(), format = character(),
-        latest_version_id = character(), n_versions = integer()
+        artifact_id = character(),
+        path = character(),
+        format = character(),
+        latest_version_id = character(),
+        n_versions = integer()
       ),
       versions = data.table::data.table(
-        version_id = character(), artifact_id = character(),
-        content_hash = character(), code_hash = character(),
-        size_bytes = numeric(), created_at = character(), sidecar_format = character()
+        version_id = character(),
+        artifact_id = character(),
+        content_hash = character(),
+        code_hash = character(),
+        size_bytes = numeric(),
+        created_at = character(),
+        sidecar_format = character()
       )
     )
   } else {
     list(
       artifacts = data.frame(
-        artifact_id = character(), path = character(), format = character(),
-        latest_version_id = character(), n_versions = integer(), stringsAsFactors = FALSE
+        artifact_id = character(),
+        path = character(),
+        format = character(),
+        latest_version_id = character(),
+        n_versions = integer(),
+        stringsAsFactors = FALSE
       ),
       versions = data.frame(
-        version_id = character(), artifact_id = character(),
-        content_hash = character(), code_hash = character(),
-        size_bytes = numeric(), created_at = character(), sidecar_format = character(),
+        version_id = character(),
+        artifact_id = character(),
+        content_hash = character(),
+        code_hash = character(),
+        size_bytes = numeric(),
+        created_at = character(),
+        sidecar_format = character(),
         stringsAsFactors = FALSE
       )
     )
@@ -162,7 +177,9 @@
   fs::dir_create(fs::path_dir(p), recurse = TRUE)
   tmp <- fs::file_temp(tmp_dir = fs::path_dir(p), pattern = fs::path_file(p))
   .st_write_qs2(cat, tmp)
-  if (fs::file_exists(p)) fs::file_delete(p)
+  if (fs::file_exists(p)) {
+    fs::file_delete(p)
+  }
   fs::file_move(tmp, p)
 }
 
@@ -175,10 +192,14 @@ st_versions <- function(path) {
   cat <- .st_catalog_read()
   ver <- if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
     data.table::as.data.table(cat$versions)
-  } else cat$versions
+  } else {
+    cat$versions
+  }
 
   out <- ver[ver$artifact_id == aid, , drop = FALSE]
-  if (nrow(out) == 0L) return(out)
+  if (nrow(out) == 0L) {
+    return(out)
+  }
   out[order(out$created_at, decreasing = TRUE), , drop = FALSE]
 }
 
@@ -188,7 +209,9 @@ st_latest <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
   art <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
-  if (nrow(art) == 0L) return(NA_character_)
+  if (nrow(art) == 0L) {
+    return(NA_character_)
+  }
   art$latest_version_id[[1L]]
 }
 
@@ -196,18 +219,22 @@ st_latest <- function(path) {
 #' @export
 st_load_version <- function(path, version_id, ...) {
   vdir <- .st_version_dir(path, version_id)
-  art  <- fs::path(vdir, "artifact")
+  art <- fs::path(vdir, "artifact")
   if (!fs::file_exists(art)) {
-    cli::cli_abort("Version {.field {version_id}} not found for {.field {path}}.")
+    cli::cli_abort(
+      "Version {.field {version_id}} not found for {.field {path}}."
+    )
   }
 
   fmt <- .st_guess_format(path) %||% st_opts("default_format", .get = TRUE)
-  h   <- rlang::env_get(.st_formats_env, fmt, default = NULL)
+  h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
     cli::cli_abort("Unknown format {.field {fmt}} for version load.")
   }
 
-  cli::cli_inform(c("v" = "Loaded \u2190 {.field {path}} @ {.field {version_id}} [{.field {fmt}}]"))
+  cli::cli_inform(c(
+    "v" = "Loaded \u2190 {.field {path}} @ {.field {version_id}} [{.field {fmt}}]"
+  ))
   h$read(art, ...)
 }
 
@@ -222,7 +249,9 @@ st_lineage <- function(path, depth = 1L) {
   rows <- list()
 
   walk <- function(child_path, child_vid, level) {
-    if (level > depth) return(invisible(NULL))
+    if (level > depth) {
+      return(invisible(NULL))
+    }
     vdir <- .st_version_dir(child_path, child_vid)
     # Prefer committed parents.json in the version snapshot. If not present
     # and we're at the first level, fall back to the artifact sidecar parents
@@ -236,7 +265,9 @@ st_lineage <- function(path, depth = 1L) {
       }
     }
 
-    if (!length(parents)) return(invisible(NULL))
+    if (!length(parents)) {
+      return(invisible(NULL))
+    }
     for (p in parents) {
       rows[[length(rows) + 1L]] <<- data.frame(
         level = level,
@@ -255,16 +286,26 @@ st_lineage <- function(path, depth = 1L) {
   }
 
   vid <- st_latest(path)
-  if (is.na(vid)) return(data.frame(
-    level = integer(), child_path = character(), child_version = character(),
-    parent_path = character(), parent_version = character(), stringsAsFactors = FALSE
-  ))
+  if (is.na(vid)) {
+    return(data.frame(
+      level = integer(),
+      child_path = character(),
+      child_version = character(),
+      parent_path = character(),
+      parent_version = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
 
   walk(path, vid, 1L)
   if (!length(rows)) {
     return(data.frame(
-      level = integer(), child_path = character(), child_version = character(),
-      parent_path = character(), parent_version = character(), stringsAsFactors = FALSE
+      level = integer(),
+      child_path = character(),
+      child_version = character(),
+      parent_path = character(),
+      parent_version = character(),
+      stringsAsFactors = FALSE
     ))
   }
   out <- do.call(rbind, rows)
@@ -277,11 +318,20 @@ st_lineage <- function(path, depth = 1L) {
 #' Construct a compact version id (internal)
 #' @keywords internal
 #' @noRd
-.st_version_id <- function(created_at, content_hash = NA_character_, code_hash = NA_character_) {
+.st_version_id <- function(
+  created_at,
+  content_hash = NA_character_,
+  code_hash = NA_character_
+) {
   ts <- gsub("[-:]", "", created_at, fixed = FALSE)
   ts <- gsub("Z$", "Z", ts)
-  h  <- if (!is.na(content_hash) && nzchar(content_hash)) content_hash else
-        if (!is.na(code_hash)    && nzchar(code_hash))    code_hash    else ""
+  h <- if (!is.na(content_hash) && nzchar(content_hash)) {
+    content_hash
+  } else if (!is.na(code_hash) && nzchar(code_hash)) {
+    code_hash
+  } else {
+    ""
+  }
   if (nzchar(h)) sprintf("%s-%s", ts, substr(h, 1L, 8L)) else ts
 }
 
@@ -293,9 +343,15 @@ st_lineage <- function(path, depth = 1L) {
   scq <- .st_sidecar_path(path, "qs2")
   has_j <- fs::file_exists(scj)
   has_q <- fs::file_exists(scq)
-  if (has_j && has_q) return("both")
-  if (has_j)          return("json")
-  if (has_q)          return("qs2")
+  if (has_j && has_q) {
+    return("both")
+  }
+  if (has_j) {
+    return("json")
+  }
+  if (has_q) {
+    return("qs2")
+  }
   "none"
 }
 
@@ -309,7 +365,11 @@ st_lineage <- function(path, depth = 1L) {
 #' @param parents Optional list of parent descriptors to write into parents.json.
 #' @return Invisibly returns the version directory path.
 #' @keywords internal
-.st_version_commit_files <- function(artifact_path, version_id, parents = NULL) {
+.st_version_commit_files <- function(
+  artifact_path,
+  version_id,
+  parents = NULL
+) {
   # Use the *same* path logic as consumers:
   vdir <- .st_version_dir(artifact_path, version_id)
   .st_dir_create(fs::path_dir(vdir))
@@ -321,8 +381,12 @@ st_lineage <- function(path, depth = 1L) {
   # sidecars (if present)
   scj <- .st_sidecar_path(artifact_path, "json")
   scq <- .st_sidecar_path(artifact_path, "qs2")
-  if (fs::file_exists(scj)) fs::file_copy(scj, fs::path(vdir, "sidecar.json"), overwrite = TRUE)
-  if (fs::file_exists(scq)) fs::file_copy(scq, fs::path(vdir, "sidecar.qs2"),  overwrite = TRUE)
+  if (fs::file_exists(scj)) {
+    fs::file_copy(scj, fs::path(vdir, "sidecar.json"), overwrite = TRUE)
+  }
+  if (fs::file_exists(scq)) {
+    fs::file_copy(scq, fs::path(vdir, "sidecar.qs2"), overwrite = TRUE)
+  }
 
   # parents snapshot
   .st_version_write_parents(vdir, parents)
@@ -333,7 +397,9 @@ st_lineage <- function(path, depth = 1L) {
 
 .st_version_dir_latest <- function(path) {
   vid <- st_latest(path)
-  if (is.na(vid) || !nzchar(vid)) return(NA_character_)
+  if (is.na(vid) || !nzchar(vid)) {
+    return(NA_character_)
+  }
   vdir <- .st_version_dir(path, vid)
   if (fs::dir_exists(vdir)) vdir else NA_character_
 }
@@ -342,24 +408,34 @@ st_lineage <- function(path, depth = 1L) {
 #' Upsert artifact row in catalog (internal)
 #' @keywords internal
 #' @noRd
-.st_catalog_upsert_artifact <- function(cat, artifact_id, path, format, latest_version_id) {
+.st_catalog_upsert_artifact <- function(
+  cat,
+  artifact_id,
+  path,
+  format,
+  latest_version_id
+) {
   if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
     a <- data.table::as.data.table(cat$artifacts)
     idx <- which(a$artifact_id == artifact_id)
     if (length(idx) == 0L) {
-      a <- data.table::rbindlist(list(
-        a,
-        data.table::data.table(
-          artifact_id = artifact_id,
-          path = as.character(path),
-          format = format,
-          latest_version_id = latest_version_id,
-          n_versions = 1L
-        )
-      ), use.names = TRUE, fill = TRUE)
+      a <- data.table::rbindlist(
+        list(
+          a,
+          data.table::data.table(
+            artifact_id = artifact_id,
+            path = as.character(path),
+            format = format,
+            latest_version_id = latest_version_id,
+            n_versions = 1L
+          )
+        ),
+        use.names = TRUE,
+        fill = TRUE
+      )
     } else {
       a$latest_version_id[idx] <- latest_version_id
-      a$n_versions[idx]        <- a$n_versions[idx] + 1L
+      a$n_versions[idx] <- a$n_versions[idx] + 1L
     }
     cat$artifacts <- a[]
   } else {
@@ -380,7 +456,7 @@ st_lineage <- function(path, depth = 1L) {
       )
     } else {
       a$latest_version_id[idx] <- latest_version_id
-      a$n_versions[idx]        <- a$n_versions[idx] + 1L
+      a$n_versions[idx] <- a$n_versions[idx] + 1L
     }
     cat$artifacts <- a
   }
@@ -393,7 +469,11 @@ st_lineage <- function(path, depth = 1L) {
 .st_catalog_append_version <- function(cat, row) {
   if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
     v <- data.table::as.data.table(cat$versions)
-    v <- data.table::rbindlist(list(v, data.table::as.data.table(row)), use.names = TRUE, fill = TRUE)
+    v <- data.table::rbindlist(
+      list(v, data.table::as.data.table(row)),
+      use.names = TRUE,
+      fill = TRUE
+    )
     cat$versions <- v[]
   } else {
     v <- cat$versions
@@ -406,16 +486,24 @@ st_lineage <- function(path, depth = 1L) {
 #' Record a new version in the catalog (internal)
 #' @keywords internal
 #' @noRd
-.st_catalog_record_version <- function(artifact_path,
-                                       format,
-                                       size_bytes,
-                                       content_hash,
-                                       code_hash,
-                                       created_at,
-                                       sidecar_format) {
+.st_catalog_record_version <- function(
+  artifact_path,
+  format,
+  size_bytes,
+  content_hash,
+  code_hash,
+  created_at,
+  sidecar_format
+) {
   aid <- .st_artifact_id(artifact_path)
   vid <- secretbase::siphash13(
-    paste(aid, content_hash %||% "", code_hash %||% "", created_at %||% "", sep = "|")
+    paste(
+      aid,
+      content_hash %||% "",
+      code_hash %||% "",
+      created_at %||% "",
+      sep = "|"
+    )
   )
 
   cat <- .st_catalog_read()
@@ -423,17 +511,17 @@ st_lineage <- function(path, depth = 1L) {
   # upsert artifact row
   idx_a <- which(cat$artifacts$artifact_id == aid)
   if (length(idx_a)) {
-    cat$artifacts$path[idx_a]              <- .st_norm_path(artifact_path)
-    cat$artifacts$format[idx_a]            <- format
+    cat$artifacts$path[idx_a] <- .st_norm_path(artifact_path)
+    cat$artifacts$format[idx_a] <- format
     cat$artifacts$latest_version_id[idx_a] <- vid
-    cat$artifacts$n_versions[idx_a]        <- cat$artifacts$n_versions[idx_a] + 1L
+    cat$artifacts$n_versions[idx_a] <- cat$artifacts$n_versions[idx_a] + 1L
   } else {
     new_a <- data.frame(
-      artifact_id      = aid,
-      path             = .st_norm_path(artifact_path),
-      format           = format,
-      latest_version_id= vid,
-      n_versions       = 1L,
+      artifact_id = aid,
+      path = .st_norm_path(artifact_path),
+      format = format,
+      latest_version_id = vid,
+      n_versions = 1L,
       stringsAsFactors = FALSE
     )
     cat$artifacts <- rbind(cat$artifacts, new_a)
@@ -441,12 +529,12 @@ st_lineage <- function(path, depth = 1L) {
 
   # append version row
   new_v <- data.frame(
-    version_id     = vid,
-    artifact_id    = aid,
-    content_hash   = content_hash %||% NA_character_,
-    code_hash      = code_hash %||% NA_character_,
-    size_bytes     = as.numeric(size_bytes),
-    created_at     = created_at,
+    version_id = vid,
+    artifact_id = aid,
+    content_hash = content_hash %||% NA_character_,
+    code_hash = code_hash %||% NA_character_,
+    size_bytes = as.numeric(size_bytes),
+    created_at = created_at,
     sidecar_format = sidecar_format,
     stringsAsFactors = FALSE
   )
@@ -470,10 +558,14 @@ st_lineage <- function(path, depth = 1L) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
   art <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
-  if (!nrow(art)) return(NULL)
+  if (!nrow(art)) {
+    return(NULL)
+  }
   vid <- art$latest_version_id[[1L]]
   ver <- cat$versions[cat$versions$version_id == vid, , drop = FALSE]
-  if (!nrow(ver)) return(NULL)
+  if (!nrow(ver)) {
+    return(NULL)
+  }
   ver[1L, , drop = FALSE]
 }
 
@@ -483,8 +575,6 @@ st_lineage <- function(path, depth = 1L) {
 # parents is a list of parent descriptors:
 #   list(list(path = "<abs-or-rel>", version_id = "<id>"), ...)
 # We'll store it as JSON for readability + diffs.
-
-
 
 #' Write parents metadata for a version (internal)
 #'
@@ -497,12 +587,25 @@ st_lineage <- function(path, depth = 1L) {
 #' @return Invisibly `NULL`.
 #' @keywords internal
 .st_version_write_parents <- function(version_dir, parents) {
-  if (is.null(parents) || !length(parents)) return(invisible(NULL))
+  if (is.null(parents) || !length(parents)) {
+    return(invisible(NULL))
+  }
   fs::dir_create(version_dir, recurse = TRUE)
   pfile <- fs::path(version_dir, "parents.json")
-  tmp   <- fs::file_temp(tmp_dir = fs::path_dir(pfile), pattern = fs::path_file(pfile))
-  jsonlite::write_json(parents, tmp, auto_unbox = TRUE, pretty = TRUE, digits = NA)
-  if (fs::file_exists(pfile)) fs::file_delete(pfile)
+  tmp <- fs::file_temp(
+    tmp_dir = fs::path_dir(pfile),
+    pattern = fs::path_file(pfile)
+  )
+  jsonlite::write_json(
+    parents,
+    tmp,
+    auto_unbox = TRUE,
+    pretty = TRUE,
+    digits = NA
+  )
+  if (fs::file_exists(pfile)) {
+    fs::file_delete(pfile)
+  }
   fs::file_move(tmp, pfile)
   invisible(NULL)
 }
@@ -516,40 +619,60 @@ st_lineage <- function(path, depth = 1L) {
 #' @return List of parent descriptors, or an empty list.
 #' @keywords internal
 .st_version_read_parents <- function(version_dir) {
-  if (is.na(version_dir) || !nzchar(version_dir)) return(list())
+  if (is.na(version_dir) || !nzchar(version_dir)) {
+    return(list())
+  }
   pfile <- fs::path(version_dir, "parents.json")
-  if (!fs::file_exists(pfile)) return(list())
+  if (!fs::file_exists(pfile)) {
+    return(list())
+  }
   obj <- tryCatch(
     jsonlite::read_json(pfile, simplifyVector = FALSE),
     error = function(e) {
-      cli::cli_warn("Could not parse parents.json at {.field {pfile}}: {conditionMessage(e)}")
+      cli::cli_warn(
+        "Could not parse parents.json at {.field {pfile}}: {conditionMessage(e)}"
+      )
       NULL
     }
   )
-  if (is.null(obj)) return(list())
+  if (is.null(obj)) {
+    return(list())
+  }
   .st_parents_normalize(obj)
 }
 
 
 # Normalize "parents" into list(list(path=..., version_id=...))
 .st_parents_normalize <- function(parents) {
-  if (is.null(parents) || !length(parents)) return(list())
+  if (is.null(parents) || !length(parents)) {
+    return(list())
+  }
 
   # Case: data.frame with columns path, version_id
   if (is.data.frame(parents)) {
-    if (!all(c("path","version_id") %in% names(parents))) return(list())
-    return(lapply(seq_len(nrow(parents)), function(i) as.list(parents[i, , drop = FALSE])))
+    if (!all(c("path", "version_id") %in% names(parents))) {
+      return(list())
+    }
+    return(lapply(seq_len(nrow(parents)), function(i) {
+      as.list(parents[i, , drop = FALSE])
+    }))
   }
 
   # Case: singleton object with fields
-  if (is.list(parents) && !is.null(parents$path) && !is.null(parents$version_id)) {
+  if (
+    is.list(parents) && !is.null(parents$path) && !is.null(parents$version_id)
+  ) {
     return(list(list(path = parents$path, version_id = parents$version_id)))
   }
 
   # Case: list-of-lists already
   if (is.list(parents) && length(parents) && is.list(parents[[1]])) {
     # Be defensive: keep only entries that have both fields
-    keep <- vapply(parents, function(z) is.list(z) && !is.null(z$path) && !is.null(z$version_id), logical(1))
+    keep <- vapply(
+      parents,
+      function(z) is.list(z) && !is.null(z$path) && !is.null(z$version_id),
+      logical(1)
+    )
     return(parents[keep])
   }
 
@@ -561,9 +684,13 @@ st_lineage <- function(path, depth = 1L) {
 
 # Map artifact_id -> current canonical path (from catalog)
 .st_artifact_path_from_id <- function(aid, cat = NULL) {
-  if (is.null(cat)) cat <- .st_catalog_read()
+  if (is.null(cat)) {
+    cat <- .st_catalog_read()
+  }
   i <- which(cat$artifacts$artifact_id == aid)
-  if (!length(i)) return(NA_character_)
+  if (!length(i)) {
+    return(NA_character_)
+  }
   as.character(cat$artifacts$path[[i[1L]]])
 }
 
@@ -586,8 +713,10 @@ st_lineage <- function(path, depth = 1L) {
   cat <- .st_catalog_read()
   if (NROW(cat$versions) == 0L) {
     return(data.frame(
-      child_path=character(), child_version=character(),
-      parent_path=character(), parent_version=character(),
+      child_path = character(),
+      child_version = character(),
+      parent_path = character(),
+      parent_version = character(),
       stringsAsFactors = FALSE
     ))
   }
@@ -597,25 +726,33 @@ st_lineage <- function(path, depth = 1L) {
   # Iterate all recorded versions; check their committed parents.json
   for (k in seq_len(NROW(cat$versions))) {
     vrow <- cat$versions[k, , drop = FALSE]
-    aid  <- vrow$artifact_id[[1L]]
+    aid <- vrow$artifact_id[[1L]]
     cvid <- vrow$version_id[[1L]]
     cpth <- .st_artifact_path_from_id(aid, cat = cat)
-    if (!nzchar(cpth)) next
+    if (!nzchar(cpth)) {
+      next
+    }
 
     vdir <- .st_version_dir(cpth, cvid)
     parents <- .st_version_read_parents(vdir)
-    if (!length(parents)) next
+    if (!length(parents)) {
+      next
+    }
 
     for (p in parents) {
       p_path_abs <- .st_norm_path(p$path)
-      if (!identical(p_path_abs, target_path_abs)) next
-      if (!is.null(version_id) && nzchar(version_id)) {
-        if (!identical(as.character(p$version_id), as.character(version_id))) next
+      if (!identical(p_path_abs, target_path_abs)) {
+        next
       }
-      rows[[length(rows)+1L]] <- data.frame(
-        child_path     = cpth,
-        child_version  = cvid,
-        parent_path    = p_path_abs,
+      if (!is.null(version_id) && nzchar(version_id)) {
+        if (!identical(as.character(p$version_id), as.character(version_id))) {
+          next
+        }
+      }
+      rows[[length(rows) + 1L]] <- data.frame(
+        child_path = cpth,
+        child_version = cvid,
+        parent_path = p_path_abs,
         parent_version = as.character(p$version_id),
         stringsAsFactors = FALSE
       )
@@ -623,8 +760,10 @@ st_lineage <- function(path, depth = 1L) {
   }
   if (!length(rows)) {
     return(data.frame(
-      child_path=character(), child_version=character(),
-      parent_path=character(), parent_version=character(),
+      child_path = character(),
+      child_version = character(),
+      parent_path = character(),
+      parent_version = character(),
       stringsAsFactors = FALSE
     ))
   }
@@ -662,32 +801,40 @@ st_children <- function(path, version_id = NULL, depth = 1L) {
   target_path_abs <- .st_norm_path(path)
 
   out_rows <- list()
-  seen     <- new.env(parent = emptyenv())  # to avoid cycles
+  seen <- new.env(parent = emptyenv()) # to avoid cycles
 
   add_rows <- function(df, level) {
-    if (!NROW(df)) return()
+    if (!NROW(df)) {
+      return()
+    }
     df$level <- level
     # de-dup at row level (child_path@child_version)
     for (i in seq_len(NROW(df))) {
       key <- paste(df$child_path[[i]], df$child_version[[i]], sep = "@")
       if (!isTRUE(rlang::env_has(seen, key))) {
         rlang::env_poke(seen, key, TRUE)
-        out_rows[[length(out_rows)+1L]] <<- df[i, , drop = FALSE]
+        out_rows[[length(out_rows) + 1L]] <<- df[i, , drop = FALSE]
       }
     }
   }
 
   recurse <- function(p_path_abs, p_vid, level) {
-    if (level > depth) return(invisible(NULL))
+    if (level > depth) {
+      return(invisible(NULL))
+    }
     kids <- .st_children_once(p_path_abs, version_id = p_vid)
-    if (!NROW(kids)) return(invisible(NULL))
+    if (!NROW(kids)) {
+      return(invisible(NULL))
+    }
     add_rows(kids, level)
     if (is.infinite(depth) || level < depth) {
       # Recurse from each child as the new parent (by its latest version)
       for (i in seq_len(NROW(kids))) {
         cp <- kids$child_path[[i]]
-        cv <- st_latest(cp)  # recurse from current latest of the child
-        if (is.na(cv) || !nzchar(cv)) next
+        cv <- st_latest(cp) # recurse from current latest of the child
+        if (is.na(cv) || !nzchar(cv)) {
+          next
+        }
         recurse(.st_norm_path(cp), cv, level + 1L)
       }
     }
@@ -698,9 +845,11 @@ st_children <- function(path, version_id = NULL, depth = 1L) {
 
   if (!length(out_rows)) {
     return(data.frame(
-      level=integer(),
-      child_path=character(), child_version=character(),
-      parent_path=character(), parent_version=character(),
+      level = integer(),
+      child_path = character(),
+      child_version = character(),
+      parent_path = character(),
+      parent_version = character(),
       stringsAsFactors = FALSE
     ))
   }
@@ -721,9 +870,13 @@ st_children <- function(path, version_id = NULL, depth = 1L) {
 #' @export
 st_is_stale <- function(path) {
   vdir <- .st_version_dir_latest(path)
-  if (is.na(vdir) || !nzchar(vdir)) return(FALSE)
+  if (is.na(vdir) || !nzchar(vdir)) {
+    return(FALSE)
+  }
   parents <- .st_version_read_parents(vdir)
-  if (!length(parents)) return(FALSE)
+  if (!length(parents)) {
+    return(FALSE)
+  }
 
   for (p in parents) {
     cur <- st_latest(p$path)
@@ -732,4 +885,3 @@ st_is_stale <- function(path) {
   }
   FALSE
 }
-

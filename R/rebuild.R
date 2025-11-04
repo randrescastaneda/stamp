@@ -2,8 +2,12 @@
 
 # Stable, short key for builder registry (uses secretbase only)
 .st_builder_key <- function(path, name = NULL) {
-  base <- paste0(.st_norm_path(path), "|", if (is.null(name)) "default" else as.character(name))
-  secretbase::siphash13(base)  # 16-hex, fast, stable
+  base <- paste0(
+    .st_norm_path(path),
+    "|",
+    if (is.null(name)) "default" else as.character(name)
+  )
+  secretbase::siphash13(base) # 16-hex, fast, stable
 }
 
 #' Register a builder for an artifact path
@@ -30,9 +34,15 @@ st_register_builder <- function(path, fun, name = NULL) {
   rlang::env_poke(
     .st_builders_env,
     key,
-    list(path = .st_norm_path(path), name = if (is.null(name)) "default" else as.character(name), fun = fun)
+    list(
+      path = .st_norm_path(path),
+      name = if (is.null(name)) "default" else as.character(name),
+      fun = fun
+    )
   )
-  cli::cli_inform(c("v" = "Registered builder for {.field {path}} ({.field {if (is.null(name)) 'default' else name}})"))
+  cli::cli_inform(c(
+    "v" = "Registered builder for {.field {path}} ({.field {if (is.null(name)) 'default' else name}})"
+  ))
   invisible(TRUE)
 }
 
@@ -42,11 +52,18 @@ st_register_builder <- function(path, fun, name = NULL) {
 st_builders <- function() {
   ee <- as.list(.st_builders_env)
   if (!length(ee)) {
-    return(data.frame(path = character(), name = character(), stringsAsFactors = FALSE))
+    return(data.frame(
+      path = character(),
+      name = character(),
+      stringsAsFactors = FALSE
+    ))
   }
-  out <- do.call(rbind, lapply(ee, function(rec) {
-    data.frame(path = rec$path, name = rec$name, stringsAsFactors = FALSE)
-  }))
+  out <- do.call(
+    rbind,
+    lapply(ee, function(rec) {
+      data.frame(path = rec$path, name = rec$name, stringsAsFactors = FALSE)
+    })
+  )
   out[order(out$path, out$name), , drop = FALSE]
 }
 
@@ -77,11 +94,15 @@ st_clear_builders <- function(path = NULL) {
 # a first-level convenience, caller may choose to fall back to sidecar parents.
 .st_committed_parents_latest <- function(path) {
   vdir <- .st_version_dir_latest(path)
-  if (is.na(vdir) || !nzchar(vdir)) return(list())
+  if (is.na(vdir) || !nzchar(vdir)) {
+    return(list())
+  }
   pars <- .st_version_read_parents(vdir)
   # normalize data.frame -> list(list(path=..., version_id=...))
   if (is.data.frame(pars) && nrow(pars) > 0L) {
-    pars <- lapply(seq_len(nrow(pars)), function(i) as.list(pars[i, , drop = FALSE]))
+    pars <- lapply(seq_len(nrow(pars)), function(i) {
+      as.list(pars[i, , drop = FALSE])
+    })
   }
   pars
 }
@@ -89,10 +110,14 @@ st_clear_builders <- function(path = NULL) {
 # Sidecar parents (quick, non-committed), normalized to list(list(...))
 .st_sidecar_parents <- function(path) {
   sc <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
-  if (!is.list(sc) || !length(sc$parents)) return(list())
+  if (!is.list(sc) || !length(sc$parents)) {
+    return(list())
+  }
   pars <- sc$parents
   if (is.data.frame(pars) && nrow(pars) > 0L) {
-    pars <- lapply(seq_len(nrow(pars)), function(i) as.list(pars[i, , drop = FALSE]))
+    pars <- lapply(seq_len(nrow(pars)), function(i) {
+      as.list(pars[i, , drop = FALSE])
+    })
   }
   pars
 }
@@ -100,7 +125,11 @@ st_clear_builders <- function(path = NULL) {
 # Get immediate children from committed lineage
 .children_of <- function(p) {
   ch <- tryCatch(st_children(p, depth = 1L), error = function(e) NULL)
-  if (is.null(ch) || !nrow(ch)) character(0) else unique(as.character(ch$child_path))
+  if (is.null(ch) || !nrow(ch)) {
+    character(0)
+  } else {
+    unique(as.character(ch$child_path))
+  }
 }
 
 # ---- Rebuild -----------------------------------------------------------------
@@ -120,7 +149,12 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
   stopifnot(is.data.frame(plan))
   if (!nrow(plan)) {
     cli::cli_inform(c("v" = "Nothing to rebuild (empty plan)."))
-    return(invisible(transform(plan, status = character(), version_id = character(), msg = character())))
+    return(invisible(transform(
+      plan,
+      status = character(),
+      version_id = character(),
+      msg = character()
+    )))
   }
 
   # deterministic order
@@ -132,7 +166,9 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
     if (!length(pars) && isTRUE(allow_sidecar_fallback)) {
       pars <- .st_sidecar_parents(path)
     }
-    if (!length(pars)) return(list())
+    if (!length(pars)) {
+      return(list())
+    }
     # normalize & refresh version ids to latest of those parents
     lapply(pars, function(p) {
       list(path = .st_norm_path(p$path), version_id = st_latest(p$path))
@@ -141,14 +177,22 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
 
   # Try to resolve a builder for a given path when rebuild_fun is not provided
   resolve_builder <- function(p) {
-    if (is.function(rebuild_fun)) return(rebuild_fun)
+    if (is.function(rebuild_fun)) {
+      return(rebuild_fun)
+    }
     # Search any registered key with exact path
     env_list <- as.list(.st_builders_env)
     for (nm in names(env_list)) {
       rec <- env_list[[nm]]
       if (identical(rec$path, .st_norm_path(p))) return(rec$fun)
     }
-    stop(sprintf("No builder registered for path: %s and no rebuild_fun provided.", p), call. = FALSE)
+    stop(
+      sprintf(
+        "No builder registered for path: %s and no rebuild_fun provided.",
+        p
+      ),
+      call. = FALSE
+    )
   }
 
   results <- vector("list", nrow(plan))
@@ -156,7 +200,9 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
 
   for (lvl in sort(as.integer(names(by_level)))) {
     idxs <- by_level[[as.character(lvl)]]
-    cli::cli_inform(c("v" = "Rebuild level {.field {lvl}}: {length(idxs)} artifact{?s}"))
+    cli::cli_inform(c(
+      "v" = "Rebuild level {.field {lvl}}: {length(idxs)} artifact{?s}"
+    ))
 
     for (i in idxs) {
       p <- plan$path[[i]]
@@ -168,8 +214,12 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
       if (isTRUE(dry_run)) {
         cli::cli_inform(c(" " = "  ↳ DRY RUN"))
         results[[i]] <- data.frame(
-          level = plan$level[[i]], path = p, reason = reason,
-          status = "dry_run", version_id = NA_character_, msg = "",
+          level = plan$level[[i]],
+          path = p,
+          reason = reason,
+          status = "dry_run",
+          version_id = NA_character_,
+          msg = "",
           stringsAsFactors = FALSE
         )
         next
@@ -181,26 +231,48 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
       vid <- NA_character_
 
       # Resolve builder function
-      fun <- tryCatch(resolve_builder(p), error = function(e) { err <<- e; NULL })
+      fun <- tryCatch(resolve_builder(p), error = function(e) {
+        err <<- e
+        NULL
+      })
       if (is.null(fun)) {
-        msg <- if (is.null(err)) "No builder available" else conditionMessage(err)
+        msg <- if (is.null(err)) {
+          "No builder available"
+        } else {
+          conditionMessage(err)
+        }
         cli::cli_warn("  ↳ FAILED: {msg}")
         results[[i]] <- data.frame(
-          level = plan$level[[i]], path = p, reason = reason,
-          status = "failed", version_id = NA_character_, msg = msg,
+          level = plan$level[[i]],
+          path = p,
+          reason = reason,
+          status = "failed",
+          version_id = NA_character_,
+          msg = msg,
           stringsAsFactors = FALSE
         )
         next
       }
 
       # Execute builder
-      built <- tryCatch(fun(p, pars), error = function(e) { err <<- e; NULL })
+      built <- tryCatch(fun(p, pars), error = function(e) {
+        err <<- e
+        NULL
+      })
       if (is.null(built) || !is.list(built) || is.null(built$x)) {
-        msg <- if (is.null(err)) "builder must return list(x=..., ...)" else conditionMessage(err)
+        msg <- if (is.null(err)) {
+          "builder must return list(x=..., ...)"
+        } else {
+          conditionMessage(err)
+        }
         cli::cli_warn("  ↳ FAILED: {msg}")
         results[[i]] <- data.frame(
-          level = plan$level[[i]], path = p, reason = reason,
-          status = "failed", version_id = NA_character_, msg = msg,
+          level = plan$level[[i]],
+          path = p,
+          reason = reason,
+          status = "failed",
+          version_id = NA_character_,
+          msg = msg,
           stringsAsFactors = FALSE
         )
         next
@@ -208,18 +280,33 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
 
       # Assemble st_save() args without relying on %||%
       save_args <- list(x = built$x, file = p, parents = pars)
-      if (!is.null(built$format))     save_args$format     <- built$format
-      if (!is.null(built$metadata))   save_args$metadata   <- built$metadata
-      if (!is.null(built$code))       save_args$code       <- built$code
-      if (!is.null(built$code_label)) save_args$code_label <- built$code_label
+      if (!is.null(built$format)) {
+        save_args$format <- built$format
+      }
+      if (!is.null(built$metadata)) {
+        save_args$metadata <- built$metadata
+      }
+      if (!is.null(built$code)) {
+        save_args$code <- built$code
+      }
+      if (!is.null(built$code_label)) {
+        save_args$code_label <- built$code_label
+      }
 
-      res <- tryCatch(do.call(st_save, save_args), error = function(e) { err <<- e; NULL })
+      res <- tryCatch(do.call(st_save, save_args), error = function(e) {
+        err <<- e
+        NULL
+      })
       if (is.null(res) || is.null(res$version_id)) {
         msg <- if (is.null(err)) "st_save() failed" else conditionMessage(err)
         cli::cli_warn("  ↳ FAILED: {msg}")
         results[[i]] <- data.frame(
-          level = plan$level[[i]], path = p, reason = reason,
-          status = "failed", version_id = NA_character_, msg = msg,
+          level = plan$level[[i]],
+          path = p,
+          reason = reason,
+          status = "failed",
+          version_id = NA_character_,
+          msg = msg,
           stringsAsFactors = FALSE
         )
         next
@@ -228,8 +315,12 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
       vid <- res$version_id
       cli::cli_inform("  ↳ OK @ version {.field {vid}}")
       results[[i]] <- data.frame(
-        level = plan$level[[i]], path = p, reason = reason,
-        status = "built", version_id = vid, msg = "",
+        level = plan$level[[i]],
+        path = p,
+        reason = reason,
+        status = "built",
+        version_id = vid,
+        msg = "",
         stringsAsFactors = FALSE
       )
     }
@@ -239,7 +330,10 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
   # Summary
   if (nrow(out)) {
     tb <- table(out$status)
-    cli::cli_inform(c("v" = "Rebuild summary", " " = paste(names(tb), unname(tb), collapse = " | ")))
+    cli::cli_inform(c(
+      "v" = "Rebuild summary",
+      " " = paste(names(tb), unname(tb), collapse = " | ")
+    ))
   }
   invisible(out)
 }
@@ -266,16 +360,24 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
 #' @return data.frame with columns:
 #'   level, path, reason, latest_version_before
 #' @export
-st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE,
-                            mode = c("propagate", "strict")) {
+st_plan_rebuild <- function(
+  targets,
+  depth = Inf,
+  include_targets = FALSE,
+  mode = c("propagate", "strict")
+) {
   mode <- match.arg(mode)
-  stopifnot(length(targets) >= 1L, is.numeric(depth), (depth >= 1) || is.infinite(depth))
+  stopifnot(
+    length(targets) >= 1L,
+    is.numeric(depth),
+    (depth >= 1) || is.infinite(depth)
+  )
   targets <- unique(as.character(targets))
 
   norm <- function(p) .st_norm_path(p)
 
   planned_paths <- character(0)
-  planned_rows  <- list()
+  planned_rows <- list()
 
   # Seed for propagate mode: targets are considered "will change"
   will_change <- if (mode == "propagate") norm(targets) else character(0)
@@ -288,8 +390,12 @@ st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE,
         planned_paths <- c(planned_paths, p)
         planned_rows[[length(planned_rows) + 1L]] <- data.frame(
           level = 0L,
-          path  = p,
-          reason = if (mode == "propagate") "upstream_changed" else "parent_changed",
+          path = p,
+          reason = if (mode == "propagate") {
+            "upstream_changed"
+          } else {
+            "parent_changed"
+          },
           latest_version_before = st_latest(p),
           stringsAsFactors = FALSE
         )
@@ -302,8 +408,13 @@ st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE,
 
   while (length(frontier) && (is.infinite(depth) || level <= depth)) {
     # Collect unique immediate children of all frontier nodes
-    next_candidates <- unique(unlist(lapply(frontier, .children_of), use.names = FALSE))
-    if (!length(next_candidates)) break
+    next_candidates <- unique(unlist(
+      lapply(frontier, .children_of),
+      use.names = FALSE
+    ))
+    if (!length(next_candidates)) {
+      break
+    }
 
     if (mode == "strict") {
       new_stale <- setdiff(next_candidates, planned_paths)
@@ -313,7 +424,7 @@ st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE,
           planned_paths <- c(planned_paths, p)
           planned_rows[[length(planned_rows) + 1L]] <- data.frame(
             level = level,
-            path  = p,
+            path = p,
             reason = "parent_changed",
             latest_version_before = st_latest(p),
             stringsAsFactors = FALSE
@@ -328,16 +439,34 @@ st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE,
     # mode == "propagate"
     to_consider <- setdiff(next_candidates, planned_paths)
     if (length(to_consider)) {
-      keep <- vapply(to_consider, function(child) {
-        vdir <- .st_version_dir_latest(child)
-        pars <- if (!is.na(vdir) && nzchar(vdir)) .st_version_read_parents(vdir) else list()
-        if (!length(pars)) pars <- .st_sidecar_parents(child)  # first-level convenience
-        if (!length(pars)) return(FALSE)
-        if (is.data.frame(pars) && nrow(pars) > 0L) {
-          pars <- lapply(seq_len(nrow(pars)), function(i) as.list(pars[i, , drop = FALSE]))
-        }
-        any(vapply(pars, function(pp) norm(pp$path) %in% will_change, logical(1)))
-      }, logical(1))
+      keep <- vapply(
+        to_consider,
+        function(child) {
+          vdir <- .st_version_dir_latest(child)
+          pars <- if (!is.na(vdir) && nzchar(vdir)) {
+            .st_version_read_parents(vdir)
+          } else {
+            list()
+          }
+          if (!length(pars)) {
+            pars <- .st_sidecar_parents(child)
+          } # first-level convenience
+          if (!length(pars)) {
+            return(FALSE)
+          }
+          if (is.data.frame(pars) && nrow(pars) > 0L) {
+            pars <- lapply(seq_len(nrow(pars)), function(i) {
+              as.list(pars[i, , drop = FALSE])
+            })
+          }
+          any(vapply(
+            pars,
+            function(pp) norm(pp$path) %in% will_change,
+            logical(1)
+          ))
+        },
+        logical(1)
+      )
 
       new_take <- to_consider[keep]
       if (length(new_take)) {
@@ -345,7 +474,7 @@ st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE,
           planned_paths <- c(planned_paths, p)
           planned_rows[[length(planned_rows) + 1L]] <- data.frame(
             level = level,
-            path  = p,
+            path = p,
             reason = "upstream_changed",
             latest_version_before = st_latest(p),
             stringsAsFactors = FALSE
@@ -362,8 +491,11 @@ st_plan_rebuild <- function(targets, depth = Inf, include_targets = FALSE,
 
   if (!length(planned_rows)) {
     return(data.frame(
-      level = integer(), path = character(), reason = character(),
-      latest_version_before = character(), stringsAsFactors = FALSE
+      level = integer(),
+      path = character(),
+      reason = character(),
+      latest_version_before = character(),
+      stringsAsFactors = FALSE
     ))
   }
   do.call(rbind, planned_rows)
