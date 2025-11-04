@@ -40,6 +40,7 @@ st_prune_versions <- function(path = NULL,
     cli::cli_inform(c("v" = "Retention policy keeps all versions (no-op)."))
     return(invisible(.st_empty_prune_report()))
   }
+  
 
   rows <- list()
 
