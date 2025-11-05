@@ -208,7 +208,7 @@ st_load <- function(file, format = NULL, ...) {
 
   # Existence check
   if (!fs::file_exists(sp$path)) {
-    cli::cli_abort("File does not exist: {.field {sp$path}}")
+    cli::cli_abort("File does not exist: {.file {sp$path}}")
   }
 
   # Resolve format
@@ -223,53 +223,71 @@ st_load <- function(file, format = NULL, ...) {
     cli::cli_abort("Unknown format {.field {fmt}}. See {.fn st_formats}.")
   }
 
-  # Load sidecar if we may verify anything (lazy otherwise)
-  do_verify <- isTRUE(st_opts("verify_on_load", .get = TRUE))
-  meta <- if (do_verify) {
-    tryCatch(st_read_sidecar(sp$path), error = function(e) NULL)
-  } else {
-    NULL
-  }
+  # Read sidecar once (we'll reuse it for verify, pk/schema, etc.)
+  meta <- tryCatch(st_read_sidecar(sp$path), error = function(e) NULL)
 
   # (1) Optional FILE integrity check: sidecar$file_hash vs current file hash
-  if (
-    do_verify &&
-      is.list(meta) &&
-      is.character(meta$file_hash) &&
-      nzchar(meta$file_hash)
-  ) {
-    now <- tryCatch(st_hash_file(sp$path), error = function(e) NA_character_)
-    if (!is.na(now) && !identical(now, meta$file_hash)) {
-      cli::cli_warn(
-        "File hash mismatch for {.field {sp$path}} (sidecar vs disk). The file may have changed outside {.pkg stamp}."
-      )
+  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
+    if (
+      is.list(meta) && is.character(meta$file_hash) && nzchar(meta$file_hash)
+    ) {
+      now <- tryCatch(st_hash_file(sp$path), error = function(e) NA_character_)
+      if (!is.na(now) && !identical(now, meta$file_hash)) {
+        cli::cli_warn(c(
+          "File hash mismatch for {.file {sp$path}} (sidecar vs disk).",
+          "i" = "The file may have changed outside {.pkg stamp}."
+        ))
+      }
     }
   }
 
   # Read the artifact with the registered reader
   res <- h$read(sp$path, ...)
 
+  # ---- pk presence check on load (warn or error depending on options) --------
+  pk_keys <- character(0)
+  if (is.list(meta) && !is.null(meta$pk)) {
+    # expect meta$pk$keys
+    if (!is.null(meta$pk$keys)) {
+      pk_keys <- as.character(meta$pk$keys)
+    }
+    pk_keys <- pk_keys[nzchar(pk_keys)]
+  }
+
+  if (!length(pk_keys)) {
+    if (isTRUE(st_opts("require_pk_on_load", .get = TRUE))) {
+      cli::cli_abort(c(
+        "No primary key recorded for {.file {sp$path}}.",
+        "i" = "Record it with {.code st_add_pk({.file {sp$path}}, keys = c('...'))}."
+      ))
+    } else if (isTRUE(st_opts("warn_missing_pk_on_load", .get = TRUE))) {
+      cli::cli_warn(c(
+        "No primary key recorded for {.file {sp$path}}.",
+        "i" = "You can add one with {.fn st_add_pk}."
+      ))
+    }
+  } else if (is.data.frame(res)) {
+    # Attach pk keys as a convenience attribute
+    attr(res, "stamp_pk") <- list(keys = pk_keys)
+  }
+
   # (2) Optional CONTENT integrity check: sidecar$content_hash vs rehash of loaded object
-  if (
-    do_verify &&
+  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
+    if (
       is.list(meta) &&
-      is.character(meta$content_hash) &&
-      nzchar(meta$content_hash)
-  ) {
-    h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
-    if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
-      cli::cli_warn(
-        "Loaded object hash mismatch for {.field {sp$path}} (content hash differs from sidecar)."
-      )
+        is.character(meta$content_hash) &&
+        nzchar(meta$content_hash)
+    ) {
+      h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
+      if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
+        cli::cli_warn(
+          "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
+        )
+      }
     }
   }
 
-  # Ensure we have sidecar metadata (for schema reattachment), even if verify_on_load = FALSE
-  if (is.null(meta)) {
-    meta <- tryCatch(st_read_sidecar(sp$path), error = function(e) NULL)
-  }
-
-  # If sidecar carries a schema and the loaded object is a data.frame without one, attach it
+  # Reattach schema if present and not already attached
   if (
     !is.null(meta$schema) &&
       is.data.frame(res) &&
@@ -278,7 +296,7 @@ st_load <- function(file, format = NULL, ...) {
     attr(res, "stamp_schema") <- meta$schema
   }
 
-  cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.field {sp$path}}"))
+  cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.file {sp$path}}"))
   res
 }
 
