@@ -155,3 +155,30 @@ st_filter <- function(df, filters = list(), strict = TRUE) {
   }
   out
 }
+
+# ---- Tiny helpers used by st_save() ------------------------------------------
+
+# Validate & attach pk (and optional domain) to a data.frame
+# unique=TRUE -> check uniqueness; errors if violated
+st_set_pk <- function(x, pk, domain = NULL, unique = TRUE) {
+  stopifnot(is.data.frame(x))
+  # Validate existence (+ uniqueness if requested)
+  invisible(st_pk(x, keys = pk, validate = TRUE, check_unique = isTRUE(unique)))
+  attr(x, "stamp_pk") <- list(keys = unique(as.character(pk)))
+  if (!is.null(domain)) {
+    attr(x, "stamp_domain") <- as.character(domain)
+  }
+  x
+}
+
+# If a pk attr exists, verify columns still exist; otherwise no-op
+st_assert_pk <- function(x) {
+  stopifnot(is.data.frame(x))
+  pk <- attr(x, "stamp_pk", exact = TRUE)
+  if (is.null(pk) || !length(pk$keys)) return(invisible(TRUE))
+  missing <- setdiff(pk$keys, names(x))
+  if (length(missing)) {
+    cli::cli_abort("Recorded pk refers to missing columns: {paste(missing, collapse=', ')}")
+  }
+  invisible(TRUE)
+}
