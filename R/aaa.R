@@ -70,7 +70,11 @@ st_state_get <- function(key, default = NULL) {
   verbose = TRUE, # future-use for chatty messages
   timezone = (Sys.timezone() %||% "UTC"),
   timeformat = "%Y%m%d%H%M%S",
-  usetz = FALSE
+  usetz = FALSE,
+
+  # primary key enforcement
+  require_pk_on_load = FALSE,
+  warn_missing_pk_on_load = TRUE
 )
 
 # Initialize defaults into .stamp_opts if missing (idempotent; invoked in .onLoad)

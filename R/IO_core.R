@@ -83,7 +83,6 @@ print.st_path <- function(x, ...) {
 #' @param code Optional function/expression/character whose hash is stored as `code_hash`.
 #' @param parents Optional list of parent descriptors:
 #'   list(list(path = "<path>", version_id = "<id>"), ...).
-#'   You can obtain version ids with `st_latest(parent_path)`.
 #' @param code_label Optional short label/description of the producing code (for humans).
 #' @param pk optional character vector of primary-key columns (for tables)
 #' @param domain optional character scalar or vector label(s) for the dataset
@@ -106,14 +105,14 @@ st_save <- function(
 ) {
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
-  # If pk provided (table use-case), attach schema attribute (and validate)
+  # If pk provided (table use-case), attach pk (and validate/uniqueness)
   if (!is.null(pk)) {
     if (!is.data.frame(x)) {
       cli::cli_abort("{.arg pk} supplied but object is not a data.frame.")
     }
     x <- st_set_pk(x, pk = pk, domain = domain, unique = unique)
   } else {
-    # If object already has schema, validate (defensive)
+    # If object already carries a pk attribute, sanity-check columns exist
     if (is.data.frame(x)) st_assert_pk(x)
   }
 
@@ -121,6 +120,7 @@ st_save <- function(
     sp$format %||%
     .st_guess_format(sp$path) %||%
     st_opts("default_format", .get = TRUE)
+
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
     cli::cli_abort(
@@ -128,18 +128,35 @@ st_save <- function(
     )
   }
 
+  # Decide whether to write a new version
   dec <- st_should_save(sp$path, x = x, code = code)
   if (!dec$save) {
     cli::cli_inform(c(
-      "v" = "Skip save (reason: {.field {dec$reason}}) for {.field {sp$path}}"
+      "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {sp$path}}"
     ))
     return(invisible(list(path = sp$path, skipped = TRUE, reason = dec$reason)))
   }
 
-  # Hashes, write temp->move (unchanged from your current implementation) ...
-  # -- snip: your existing write logic here --
+  # Ensure destination directory exists
+  fs::dir_create(fs::path_dir(sp$path), recurse = TRUE)
 
-  # Sidecar metadata; mirror schema (if any)
+  # Atomic write: write to a temp file in the same directory, then move
+  tmp <- fs::file_temp(
+    tmp_dir = fs::path_dir(sp$path),
+    pattern = paste0(fs::path_file(sp$path), ".tmp-")
+  )
+  on.exit(try(fs::file_delete(tmp), silent = TRUE), add = TRUE)
+
+  # Write artifact
+  h$write(x, tmp, ...)
+
+  # Move into place (replace existing if present)
+  if (fs::file_exists(sp$path)) {
+    fs::file_delete(sp$path)
+  }
+  fs::file_move(tmp, sp$path)
+
+  # Assemble sidecar metadata
   meta <- c(
     list(
       path = as.character(sp$path),
@@ -166,15 +183,19 @@ st_save <- function(
     metadata
   )
 
-  # If a schema attribute exists on x, copy it into sidecar meta$schema
-  sch <- if (is.data.frame(x)) st_get_pk(x) else NULL
-  if (!is.null(sch)) {
-    meta$schema <- sch
+  # Mirror pk & (optional) domain into sidecar if present on x
+  if (is.data.frame(x)) {
+    pk_keys <- st_get_pk(x)
+    if (length(pk_keys)) {
+      meta$pk <- list(keys = pk_keys)
+    }
+    dom <- attr(x, "stamp_domain", exact = TRUE)
+    if (!is.null(dom)) meta$domain <- as.character(dom)
   }
 
   .st_write_sidecar(sp$path, meta)
 
-  # Catalog record + snapshot copy (unchanged)
+  # Catalog + snapshot
   vid <- .st_catalog_record_version(
     artifact_path = sp$path,
     format = fmt,
@@ -186,11 +207,11 @@ st_save <- function(
   )
   .st_version_commit_files(sp$path, vid, parents = parents)
 
-  # Optional per-artifact retention
+  # Optional retention just for this artifact
   .st_apply_retention(sp$path)
 
   cli::cli_inform(c(
-    "v" = "Saved [{.field {fmt}}] \u2192 {.field {sp$path}} @ version {.field {vid}}"
+    "v" = "Saved [{.field {fmt}}] \u2192 {.file {sp$path}} @ version {.field {vid}}"
   ))
   invisible(list(path = sp$path, metadata = meta, version_id = vid))
 }
