@@ -30,8 +30,7 @@ st_save(
 \item{code}{Optional function/expression/character whose hash is stored as \code{code_hash}.}
 
 \item{parents}{Optional list of parent descriptors:
-list(list(path = "\if{html}{\out{<path>}}", version_id = "\if{html}{\out{<id>}}"), ...).
-You can obtain version ids with \code{st_latest(parent_path)}.}
+list(list(path = "\if{html}{\out{<path>}}", version_id = "\if{html}{\out{<id>}}"), ...).}
 
 \item{code_label}{Optional short label/description of the producing code (for humans).}
 

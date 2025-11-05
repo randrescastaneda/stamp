@@ -279,9 +279,5 @@ st_read_sidecar <- function(path) {
   if (fs::file_exists(scq)) {
     return(.st_read_qs2(scq))
   }
-
-  cli::cli_alert_info(
-    "Sidecar metadata not found for {.field {path}}. Returning NULL."
-  )
   invisible(NULL)
 }

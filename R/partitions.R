@@ -43,12 +43,14 @@
 }
 
 .st_known_exts <- function() {
-  # keys registered via st_register_format + ext map
+  # Real file extensions we know how to read (ext -> format map),
+  # plus any formats that happen to equal an extension name (rds, csv, json, fst, qs2)
   c(
-    names(as.list(environment()$.st_formats_env)),
-    names(as.list(environment()$.st_extmap_env))
+    names(as.list(.st_extmap_env)),
+    names(as.list(.st_formats_env))
   )
 }
+
 
 .st_guess_or_default_format <- function(path = NULL, format = NULL) {
   fmt <- format %||%
