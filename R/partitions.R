@@ -172,12 +172,10 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   )
   files <- unique(files)
 
-  # >>> NEW: exclude sidecar files/directories <<<
   sep <- .Platform$file.sep
   inside_stmeta <- grepl(paste0(sep, "stmeta", sep), files, fixed = TRUE)
   is_sidecar <- grepl("\\.stmeta\\.(json|qs2)$", files)
   files <- files[!(inside_stmeta | is_sidecar)]
-  # <<<
 
   if (!length(files)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
@@ -224,9 +222,13 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   mode <- match.arg(as)
   listing <- st_list_parts(base, filter = filter, recursive = TRUE)
   if (!nrow(listing)) {
-    return(if (mode == "dt" && requireNamespace("data.table", quietly = TRUE))
-             data.table::data.table()[, `:=`()]
-           else data.frame())
+    return(
+      if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
+        data.table::data.table()[, `:=`()]
+      } else {
+        data.frame()
+      }
+    )
   }
 
   objs <- vector("list", nrow(listing))
@@ -235,38 +237,49 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   for (i in seq_len(nrow(listing))) {
     p <- listing$path[[i]]
     obj <- tryCatch(st_load(p), error = function(e) NULL)
-    if (is.null(obj)) next
+    if (is.null(obj)) {
+      next
+    }
 
     if (inherits(obj, "data.frame")) {
       # table case: just tack on key columns
-      for (k in key_cols) obj[[k]] <- listing[[k]][[i]]
+      for (k in key_cols) {
+        obj[[k]] <- listing[[k]][[i]]
+      }
     } else {
-      # >>> NEW: build a 1-row df with a list-col from the start <<<
       tmp <- data.frame(.object = I(list(obj)), stringsAsFactors = FALSE)
-      for (k in key_cols) tmp[[k]] <- listing[[k]][[i]]
+      for (k in key_cols) {
+        tmp[[k]] <- listing[[k]][[i]]
+      }
       obj <- tmp
-      # <<<
     }
     objs[[i]] <- obj
   }
 
   objs <- Filter(Negate(is.null), objs)
   if (!length(objs)) {
-    return(if (mode == "dt" && requireNamespace("data.table", quietly = TRUE))
-             data.table::data.table()[, `:=`()]
-           else data.frame())
+    return(
+      if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
+        data.table::data.table()[, `:=`()]
+      } else {
+        data.frame()
+      }
+    )
   }
 
   if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
     return(data.table::rbindlist(objs, use.names = TRUE, fill = TRUE))
   }
 
-  Reduce(function(a, b) {
-    cols <- union(names(a), names(b))
-    a[setdiff(cols, names(a))] <- NA
-    b[setdiff(cols, names(b))] <- NA
-    a <- a[, cols, drop = FALSE]
-    b <- b[, cols, drop = FALSE]
-    rbind(a, b)
-  }, objs)
+  Reduce(
+    function(a, b) {
+      cols <- union(names(a), names(b))
+      a[setdiff(cols, names(a))] <- NA
+      b[setdiff(cols, names(b))] <- NA
+      a <- a[, cols, drop = FALSE]
+      b <- b[, cols, drop = FALSE]
+      rbind(a, b)
+    },
+    objs
+  )
 }
