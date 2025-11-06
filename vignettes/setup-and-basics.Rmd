@@ -21,138 +21,197 @@ if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
 }
 
 ```
+Let’s initialize a lightweight project and walk through the most common
+workflows: formats, saving/loading, sidecars, versions/lineage, primary-key
+helpers, and retention. The examples use temporary directories so you can run
+them locally without touching your real project.
 
-Let’s initialize a project and configure global behavior for **stamp**. These knobs are meant to stay stable.
+## 1. Initialize a project
 
-## Initialize a project
+`st_init()` prepares a small internal state directory (by default `.stamp/`) to
+hold temporary files, logs, sidecars, and version snapshots. Use a temporary
+directory for vignette examples so saves and snapshots are isolated.
 
-```{r}
-# By default, st_init() uses the current working directory.
-# For the vignette we’ll use a temp dir:
-tdir <- tempdir()
-st_init(tdir)  # creates .stamp/, .stamp/temp/, .stamp/logs/ under tdir
+```{r init-example}
+# Use a private temp dir so the vignette is reproducible locally
+tdir <- fs::path_temp("stamp-vignette")
+fs::dir_create(tdir)
+st_init(tdir)
 
+# Inspect created structure
 fs::path(tdir, ".stamp") |>
   fs::dir_tree(recurse = TRUE, all = TRUE)
 ```
 
-* Default internal directory is `.stamp/`.
-* You can change it: `st_init(state_dir = "_stamp")`.
+Notes
+- Default state dir: `.stamp/` (you can override via `st_init(state_dir = "_stamp")`).
 
-## Options: `st_opts()`
 
-`st_opts()` stores lightweight package options.
+## 2. Options (`st_opts()`)
 
-* `meta_format` controls how sidecar metadata is written/read:
+Global behavior is controlled via `st_opts()`. Typical options you will use:
 
-  * `"json"` (default) — human-readable
-  * `"qs2"` — compact, binary
-  * `"both"` — write both; the reader prefers JSON when present
+- `meta_format`: how sidecars are written. Allowed: `"json"`, `"qs2"`, or `"both"`.
+- `default_format`: which format to use when none is inferred from a path.
+- `versioning`: controls whether saves create version snapshots (`"content"` vs `"timestamp"` vs `"off").
 
-```{r}
-# View current options
+Example:
+
+```{r opts-example}
+# show defaults
 st_opts(.get = TRUE)
 
-# Set sidecar format to JSON + QS2
+# write both JSON and QS2 sidecars
 st_opts(meta_format = "both")
-
-# Read a single option
 st_opts("meta_format", .get = TRUE)
 ```
 
-## `st_path()`
+Use `versioning` to control when a version snapshot is recorded. The default
+`"content"` mode records a new version only when content/code changed;
+`"timestamp"` forces a version on every save (useful for audit trails).
 
-Declare a path with an optional format hint. You can pass either a plain string
-or an `st_path()` object to `st_save()` / `st_load()`.
 
-```{r}
-p1 <- st_path("data/iris.qs2")              # format inferred (qs2)
+## 3. Paths and format registry
+
+`st_path()` wraps a path string and optionally carries an explicit `format`
+hint. Format inference also maps known extensions (via an internal registry).
+
+```{r path-format}
+p1 <- st_path("data/iris.qs2")
 p2 <- st_path("data/mtcars.fst", format = "fst")
 p1
+st_formats()  # built-in handlers: qs2, rds, csv, fst, json
 ```
 
-## Format registry
+You can extend the registry with `st_register_format()` to add a new
+format (e.g. Parquet). The registry will also map file extensions if you
+provide them.
 
-Built-ins: `qs2` (default), `rds`, `csv`, `fst`, `json`.
 
-```{r}
-st_formats()
-```
+## 4. Save & load (atomic, with sidecar metadata)
 
-### Register or override a format
+Use `st_save()` and `st_load()` for robust writes. `st_save()` performs an
+atomic write (temp file then move), writes sidecar metadata, and — depending
+on `versioning` — records a version snapshot.
 
-Keeps your project future-proof (e.g., add Parquet later).
-
-```{r, eval=FALSE}
-st_register_format(
-  name = "parquet",
-  read  = function(path, ...) arrow::read_parquet(path, ...),
-  write = function(x, path, ...) arrow::write_parquet(x, path, ...)
-)
-st_formats()
-```
-
-Notes:
-
-* `qs2` is preferred; if not installed, the registry transparently falls back to `{qs}`.
-* CSV uses `{data.table}` for fast I/O if available.
-
-## Saving & Loading Objects
-
-Use `st_save()` and `st_load()` for atomic writes and reliable reads.
-
-```{r}
+```{r save-load}
 x <- data.frame(a = 1:3, b = letters[1:3])
-derdir <- fs::path_temp("derived")
+outdir <- fs::path_temp("stamp-output")
+fs::dir_create(outdir)
 
-st_save(
-  x,
-  fs::path(derdir, "example.qs2"),
-  metadata = list(description = "toy")
-)
+res <- st_save(x, fs::path(outdir, "example.qs2"), metadata = list(description = "toy"))
+res$path
 
-# Load (format auto-detected)
-y <- st_load(fs::path(derdir, "example.qs2"))
+# load back (format auto-detected)
+y <- st_load(res$path)
 identical(x, y)
 ```
 
-### Sidecar metadata
+`st_save()` accepts additional arguments useful for provenance:
 
-Each time you save a file with **stamp**, it creates a sidecar in a sibling directory `stmeta` next to the artifact:
+- `code`: a function/expression whose hash is recorded (via `st_hash_code`).
+- `parents`: optional list of parent descriptors (list(list(path=..., version_id=...), ...)) to record provenance.
+- `code_label`: a short human label for the producing code.
 
-* JSON: `stmeta/<file.ext>.stmeta.json`
-* QS2:  `stmeta/<file.ext>.stmeta.qs2`
-* Both if `st_opts(meta_format = "both")`
 
-Contents include: `path`, `format`, `created_at` (UTC), `size_bytes`, `attrs` (reserved), plus any user `metadata`.
+## 5. Sidecars (quick metadata)
 
-Read sidecars with `st_read_sidecar()`:
+Sidecars live in an `stmeta/` sibling directory next to the artifact and
+contain metadata such as `path`, `format`, `created_at` (UTC), `size_bytes`,
+`content_hash`, `code_hash`, `code_label`, and `parents` (a quick view).
 
-```{r}
-st_read_sidecar(fs::path(derdir, "example.qs2"))
-
-# Or inspect manually:
-# jsonlite::read_json(fs::path(derdir, "stmeta/example.qs2.stmeta.json"), simplifyVector = TRUE)
-# qs2::qs_read(fs::path(derdir, "stmeta/example.qs2.stmeta.qs2"))
+```{r sidecar}
+sc <- st_read_sidecar(res$path)
+str(sc)
 ```
 
-### CSV & friends
+The sidecar is intended for quick inspection and for storing metadata even
+when a version snapshot may not be recorded (e.g., when `versioning = "content"` and
+nothing changed). For reproducible lineage and rebuilds, `st_save()` writes
+a snapshot under `.stamp/versions/` that includes committed copies of the
+artifact and its parents.json.
 
-```{r}
-if (requireNamespace("data.table", quietly = TRUE)) {
-  d <- data.table::data.table(id = 1:3, v = c(10, 20, 30))
-  tabdir <- fs::path_temp("tables")
-  tfile  <- fs::path(tabdir, "d.csv")
 
-  st_save(d, tfile)        # uses data.table::fwrite()
-  d2 <- st_load(tfile)     # uses data.table::fread()
-  identical(as.data.frame(d), as.data.frame(d2))
-}
+## 6. Versions, lineage, and inspection
+
+The package maintains a simple catalog of versions. Useful functions:
+
+- `st_versions(path)` — list recorded versions for an artifact.
+- `st_latest(path)` — get the latest version id.
+- `st_load_version(path, version_id)` — load a specific recorded version.
+- `st_info(path)` — quick inspection: returns current sidecar, catalog info,
+  snapshot dir (if present), and parents (from snapshot or sidecar fallback).
+- `st_lineage(path, depth=1)` — walk immediate or recursive parents.
+
+Example that demonstrates parents and lineage (parents passed to `st_save`):
+
+```{r lineage-example}
+# upstream artifact
+in_path <- fs::path(outdir, "upstream.qs")
+st_save(data.frame(id=1:3), in_path)
+in_vid <- st_latest(in_path)
+
+# derived artifact recording parent info
+out_path <- fs::path(outdir, "derived.qs")
+parents <- list(list(path = in_path, version_id = in_vid))
+st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply")
+
+st_info(out_path)$sidecar
+st_lineage(out_path, depth = 1)
 ```
 
-## Project-level conventions
+Notes on behavior
+- The sidecar always contains `parents` for quick inspection. However, in
+  the default `versioning = "content"` mode a new committed snapshot (and
+  its `parents.json`) will only be created when content or code changed. The
+  vignette code above deliberately saves upstream and derived artifacts so
+  a snapshot is recorded.
 
-* Prefer **qs2** for artifacts (speed + compactness).
-* Keep sidecars as **JSON** unless you prefer binary (set `st_opts(meta_format = "qs2")` or `"both"`).
-* Use `st_path()` when you want code to be explicit about formats.
-* Keep file layouts simple (e.g., `data/`, `derived/`, and `.stamp/`).
+
+## 7. Primary-key helpers (optional)
+
+You can record a primary-key (pk) for an artifact in its sidecar to make
+it easier to identify rows later. Helpers:
+
+- `st_pk()` — normalize/validate a pk spec.
+- `st_add_pk(path, keys)` — record a pk in the artifact sidecar (optionally validate against on-disk content).
+- `st_inspect_pk(path)` — read pk from sidecar.
+- `st_with_pk(df, keys)` and `st_get_pk()` — in-memory helpers.
+
+Example:
+
+```{r pk-example}
+st_add_pk(out_path, keys = c("id"))
+st_inspect_pk(out_path)
+
+# load and filter by pk using st_filter
+df <- st_load(out_path)
+st_filter(df, list(id = 1))
+```
+
+
+## 8. Retention / pruning
+
+To control disk usage, `st_prune_versions()` prunes older version snapshots
+according to a retention policy. The simplest call applies the default
+project policy; you can also pass `policy` or use `dry_run = TRUE` to preview.
+
+```{r retention-example, eval=FALSE}
+# dry-run to preview deletions for this artifact
+st_prune_versions(path = out_path, policy = 5, dry_run = TRUE)
+
+# apply retention (non-dry)
+st_prune_versions(path = out_path, policy = list(n = 5, days = 30), dry_run = FALSE)
+```
+
+
+## 9. Tips and conventions
+
+- Prefer `qs2` for artifact storage for speed/space, use JSON sidecars for
+  readability during development.
+- Use `st_path()` when you want explicit format hints in code.
+- Use `st_info()` and `st_lineage()` to inspect provenance; use `st_versions()`
+  and `st_load_version()` to access historical snapshots.
+
+If you'd like, I can similarly update the other vignettes in `vignettes/` to
+reflect the current implementation and add small unit-test-like examples.
