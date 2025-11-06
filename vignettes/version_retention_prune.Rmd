@@ -120,8 +120,6 @@ repAll <- st_prune_versions(policy = list(days = 14))
 head(repAll)
 ```
 
-> The report returns `artifact_path`, `version_id`, `created_at`, and `action` (`keep`/`delete`).
-
 ### Combine **n + days** (union)
 
 ```{r}
@@ -160,17 +158,134 @@ You can disable auto-pruning by restoring:
 st_opts(retain_versions = Inf) # keep all (no-op on save)
 ```
 
+
+## Primary-key metadata & load-time checks
+
+Milestone 4 adds **primary-key (PK) metadata** so tables carry their identity and consumers can reason about joins/subsets without out-of-band documentation.
+
+### Recording PK at save time
+
+```{r}
+pop <- data.frame(
+  country = c("PER", "PER", "COL"),
+  year = c(2023, 2024, 2023),
+  reporting_level = c("national", "urban", "national"),
+  pop = c(34e6, 12e6, 52e6)
+)
+
+p_pop <- fs::path(root, "inputs/population.qs")
+
+# Save and record PK columns (uniqueness is enforced by default)
+st_save(pop, p_pop, pk = c("country", "year", "reporting_level"))
+```
+
+What this does:
+
+* Validates that PK columns exist (and are unique when `unique = TRUE`, the default).
+* Persists `pk` into the **sidecar** (see below).
+* Attaches `attr(x, "stamp_pk")` in memory for immediate reuse.
+
+### Inspecting/adding PK later
+
+```{r}
+# Read PK from sidecar
+st_inspect_pk(p_pop)
+
+# If you saved earlier without PK, you can repair the sidecar:
+st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
+```
+
+### Load-time behavior
+
+```{r}
+obj <- st_load(p_pop)
+attr(obj, "stamp_pk") # keys attached on load for convenience
+```
+
+If a table is loaded **without** a recorded PK:
+
+* If `st_opts(require_pk_on_load = TRUE)`: error.
+* Else if `st_opts(warn_missing_pk_on_load = TRUE)`: warning.
+* Else: silent.
+
+Defaults (for now): `require_pk_on_load = FALSE`, `warn_missing_pk_on_load = TRUE`.
+
+```{r}
+# Example: enforce PK presence globally
+st_opts(require_pk_on_load = TRUE)
+# st_load("some_table_without_pk.qs")  # would error
+st_opts(require_pk_on_load = FALSE) # restore default
+```
+
+### Convenience filter
+
+For small, explicit slices you can filter by named values:
+
+```{r}
+per_nat <- st_filter(obj, list(country = "PER", reporting_level = "national"))
+per_nat
+```
+
+## Sidecar metadata (quick reference)
+
+Each artifact can have a **sidecar** stored under a sibling `stmeta/` directory. It records:
+
+* `format`, `created_at`, `size_bytes`
+* hashes: `content_hash`, `code_hash`, optional `file_hash`
+* `parents` (provenance), `code_label`
+* `pk` and optional `domain` (when saving data.frames with PK)
+
+You can inspect it:
+
+```{r}
+side <- st_read_sidecar(p_pop)
+names(side)
+side$pk
+```
+
+When `st_opts(verify_on_load = TRUE)`, `st_load()` will warn on:
+
+* Mismatch between `content_hash` and the hash of the loaded object.
+* Mismatch between `file_hash` (if stored) and the on-disk file bytes.
+
+
+## Partitioned datasets (Hive-style)
+
+When you want one file **per key combo** without materializing a single huge table, you can use the partition helpers. Layout:
+
+```
+<base>/<k1>=<v1>/<k2>=<v2>/part.<ext>
+```
+
+### Save a partition
+
+```{r}
+base <- fs::path(root, "inputs/country_year")
+st_save_part(
+  x = data.frame(value = 1L),
+  base = base,
+  key = list(country = "PER", year = 2023),
+  code = function(z) z
+)
+```
+
+### List and load partitions
+
+```{r}
+st_list_parts(base)
+st_list_parts(base, filter = list(country = "PER"))
+
+# Row-bind all partitions (adds the key columns as regular columns)
+all_parts <- st_load_parts(base, as = "rbind")
+all_parts
+```
+
+> Under the hood, `st_save_part()` and friends reuse `st_save()`/`st_load()` and inherit all sidecar/PK behaviors.
+
+
 ## Notes & Recommendations
 
 * **Latest is protected** regardless of policy.
-* Use `dry_run = TRUE` first when pruning a big catalog.
-* Policies are **per artifact** when called with `path=...`; otherwise they apply across all artifacts.
-* For reproducibility, you may want to **pin** or log a prune report (`st_prune_versions(..., dry_run = TRUE)`) before applying a destructive prune on shared machines.
-
-```{r}
-# Example: capture a plan before applying it
-plan <- st_prune_versions(policy = list(n = 3, days = 30), dry_run = TRUE)
-head(plan)
-```
-
-That’s it—your versions store should now remain lean without losing the most recent (and most useful) snapshots.
+* Use `dry_run = TRUE` before pruning a big catalog.
+* Prefer recording **PKs at save time** (`st_save(..., pk = ...)`)—downstream code can safely assume identity.
+* For reproducibility, consider logging a prune report with `dry_run = TRUE` to your project logs before destructive pruning on shared infrastructure.

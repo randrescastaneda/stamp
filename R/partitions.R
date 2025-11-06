@@ -154,9 +154,10 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   if (!fs::dir_exists(base)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
-  # find candidate files by known extensions
+
   exts <- unique(.st_known_exts())
   globs <- paste0("*.", exts)
+
   files <- unlist(
     lapply(globs, function(g) {
       fs::dir_ls(
@@ -171,11 +172,17 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   )
   files <- unique(files)
 
+  # >>> NEW: exclude sidecar files/directories <<<
+  sep <- .Platform$file.sep
+  inside_stmeta <- grepl(paste0(sep, "stmeta", sep), files, fixed = TRUE)
+  is_sidecar <- grepl("\\.stmeta\\.(json|qs2)$", files)
+  files <- files[!(inside_stmeta | is_sidecar)]
+  # <<<
+
   if (!length(files)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
 
-  # Build rows with parsed key columns
   rows <- lapply(files, function(p) {
     rel <- fs::path_rel(p, start = base)
     key <- .st_parse_key_from_rel(rel)
@@ -188,7 +195,7 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   if (!length(rows)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
-  # coerce to data.frame with dynamic columns
+
   all_keys <- unique(unlist(lapply(rows, names)))
   all_keys <- setdiff(all_keys, "path")
   df <- data.frame(
@@ -204,6 +211,7 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   }
   df[order(df$path), , drop = FALSE]
 }
+
 
 #' Load and row-bind partitioned data
 #'
