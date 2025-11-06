@@ -224,65 +224,49 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   mode <- match.arg(as)
   listing <- st_list_parts(base, filter = filter, recursive = TRUE)
   if (!nrow(listing)) {
-    return(
-      if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
-        data.table::data.table()[, `:=`()]
-      } else {
-        data.frame()
-      }
-    )
+    return(if (mode == "dt" && requireNamespace("data.table", quietly = TRUE))
+             data.table::data.table()[, `:=`()]
+           else data.frame())
   }
 
-  # Gather objects + attach key columns
   objs <- vector("list", nrow(listing))
   key_cols <- setdiff(names(listing), "path")
+
   for (i in seq_len(nrow(listing))) {
     p <- listing$path[[i]]
     obj <- tryCatch(st_load(p), error = function(e) NULL)
-    if (is.null(obj)) {
-      next
-    }
-    # Attach key fields to each object if it’s a data.frame-like
+    if (is.null(obj)) next
+
     if (inherits(obj, "data.frame")) {
-      for (k in key_cols) {
-        obj[[k]] <- listing[[k]][[i]]
-      }
+      # table case: just tack on key columns
+      for (k in key_cols) obj[[k]] <- listing[[k]][[i]]
     } else {
-      # Non-table objects: wrap into a one-row df carrying a list-col
-      tmp <- data.frame(stringsAsFactors = FALSE)
-      tmp[[".object"]] <- list(obj)
-      for (k in key_cols) {
-        tmp[[k]] <- listing[[k]][[i]]
-      }
+      # >>> NEW: build a 1-row df with a list-col from the start <<<
+      tmp <- data.frame(.object = I(list(obj)), stringsAsFactors = FALSE)
+      for (k in key_cols) tmp[[k]] <- listing[[k]][[i]]
       obj <- tmp
+      # <<<
     }
     objs[[i]] <- obj
   }
+
   objs <- Filter(Negate(is.null), objs)
   if (!length(objs)) {
-    return(
-      if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
-        data.table::data.table()[, `:=`()]
-      } else {
-        data.frame()
-      }
-    )
+    return(if (mode == "dt" && requireNamespace("data.table", quietly = TRUE))
+             data.table::data.table()[, `:=`()]
+           else data.frame())
   }
 
   if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
     return(data.table::rbindlist(objs, use.names = TRUE, fill = TRUE))
   }
-  # base R fallback
-  Reduce(
-    function(a, b) {
-      # unioned column names; fill missing with NA
-      cols <- union(names(a), names(b))
-      a[setdiff(cols, names(a))] <- NA
-      b[setdiff(cols, names(b))] <- NA
-      a <- a[, cols, drop = FALSE]
-      b <- b[, cols, drop = FALSE]
-      rbind(a, b)
-    },
-    objs
-  )
+
+  Reduce(function(a, b) {
+    cols <- union(names(a), names(b))
+    a[setdiff(cols, names(a))] <- NA
+    b[setdiff(cols, names(b))] <- NA
+    a <- a[, cols, drop = FALSE]
+    b <- b[, cols, drop = FALSE]
+    rbind(a, b)
+  }, objs)
 }
