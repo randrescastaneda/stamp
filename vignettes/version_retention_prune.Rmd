@@ -184,6 +184,8 @@ pop <- data.frame(
 p_pop <- fs::path(root, "inputs/population.qs")
 
 # Validates uniqueness by default and writes PK to sidecar
+# Note: `st_save(..., pk = ...)` validates the keys against the provided data
+# and persists the `pk` element into the artifact's sidecar (stmeta/).
 st_save(pop, p_pop, pk = c("country", "year", "reporting_level"))
 ```
 
@@ -197,7 +199,7 @@ st_save(pop, p_pop, pk = c("country", "year", "reporting_level"))
 
 ```{r}
 st_inspect_pk(p_pop) # read PK from sidecar
-# If older artifact lacks PK, repair the sidecar:
+# If an older artifact lacks PK or you need to repair metadata, use:
 st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
 ```
 

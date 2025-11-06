@@ -1,4 +1,3 @@
----
 title: "02.Hashing, Change Detection & Versions"
 output: rmarkdown::html_vignette
 vignette: >
@@ -20,13 +19,15 @@ if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
 }
 ```
 
-In this article we cover **stable hashing**, **skip-on-equal** saves, and the lightweight **versions** catalog.
+This article explains how stamp detects changes and records versions. We'll cover:
 
-* Object hashes: `st_hash_obj(x)` — stable (serialize, then SipHash-1-3 via `{secretbase}`)
-* Code hashes: `st_hash_code(code)` — function/expr/character, normalized
-* File hashes (optional): `st_hash_file(path)`
-* Change detection: `st_changed()`, `st_changed_reason()`, `st_should_save()`
-* Versions catalog: `st_versions()`, `st_latest()`, `st_load_version()`
+- Stable object hashing (`st_hash_obj()`),
+- Code hashing / provenance (`st_hash_code()`),
+- Optional file hashing (`st_hash_file()`),
+- Change-detection helpers (`st_changed()`, `st_changed_reason()`, `st_should_save()`), and
+- The lightweight versions catalog (`st_versions()`, `st_latest()`, `st_load_version()`).
+
+The core idea: stamp computes stable, reproducible hashes for objects and (optionally) the user-supplied code. When you call `st_save()`, stamp compares the new hashes with stored metadata (sidecars or committed snapshots) and decides whether to write a new version. This allows cheap "skip-on-equal" behavior for expensive workflows.
 
 ## Recommended options
 
@@ -58,6 +59,10 @@ st_save(x, p, code = function(z) z)
 nrow(st_versions(p))  # should be 1
 ```
 
+In the snippet above stamp serializes `x` in a deterministic way and computes a content hash. If both the content hash and (when provided) the code hash match the stored metadata, no new version is created when `versioning = "content"`.
+
+Note: the first write will always create the artifact and its sidecar(s). If you see the first write skipped, check that the path you passed to `st_save()` exactly matches subsequent calls.
+
 If you **change content** (or **change the code**), a new version is recorded:
 
 ```{r}
@@ -69,12 +74,23 @@ st_latest(p)          # latest version id (string)
 
 > **Policy:** By design, changing the `code=` you pass to `st_save()` creates a new version even if `x` is identical. This makes code provenance explicit.
 
+A short practical pattern:
+
+- Pass your transformation code to `st_save(..., code = <function or expression>)` so stamp can record the code hash.
+- Use `st_changed()` or `st_should_save()` to cheaply decide whether to run expensive computations before calling `st_save()`.
+
 ## Inspect sidecars & metadata
 
 ```{r}
 meta <- st_read_sidecar(p)
 meta[c("format", "created_at", "size_bytes", "content_hash", "code_hash", "file_hash")]
 ```
+
+Explanation:
+
+- `content_hash` is the stable hash of the R object written (via `st_hash_obj()`).
+- `code_hash` is recorded when you provide `code=` to `st_save()` (via `st_hash_code()`).
+- `file_hash` is computed after the file write (if `store_file_hash = TRUE`) and can be used to detect external file tampering.
 
 * `content_hash` comes from `st_hash_obj(x)`
 * `code_hash` comes from `st_hash_code(code)` if you supplied `code=`
@@ -98,6 +114,18 @@ st_should_save(p, x = x_same, code = function(z) z)      # recommends skip
 st_should_save(p, x = x_new,  code = function(z) z)      # recommends save
 ```
 
+When you call `st_changed()` or `st_changed_reason()` you avoid performing any file writes. These helpers are ideal as guards inside functions that compute expensive results only when necessary:
+
+Example pattern inside your pipeline function:
+
+```r
+if (st_should_save(p, x = out, code = my_transform)$save) {
+  st_save(out, p, code = my_transform)
+} else {
+  message("Skipping write; content and code unchanged")
+}
+```
+
 ## Loading specific versions
 
 ```{r}
@@ -113,6 +141,8 @@ if (nrow(vids) > 1L) {
   obj_old <- st_load_version(p, vid_old)
 }
 ```
+
+`st_versions()` returns a table of version metadata. Each row includes the `version_id`, `created_at`, and a snapshot of sidecar fields available at commit time. Use `st_load_version()` to restore the artifact as it was at that version.
 
 ### Where are versions stored?
 
@@ -137,6 +167,8 @@ Each snapshot dir contains:
 * `artifact` — a copy of the saved file
 * `sidecar.json` and/or `sidecar.qs2` — depending on `meta_format`
 
+Additionally each snapshot may include a `parents.json` file capturing committed lineage between artifacts; this is created when stamp records explicit parents during a commit. Sidecar metadata (in `stmeta/`) is the primary local source used to decide whether to write, while snapshots are the long-term committed record.
+
 ## Integrity checks on load (optional)
 
 If `verify_on_load = TRUE` and a `content_hash` exists in the sidecar, `st_load()` recomputes the object’s hash and warns if it differs (indicating the file changed outside **stamp**).
@@ -144,6 +176,8 @@ If `verify_on_load = TRUE` and a `content_hash` exists in the sidecar, `st_load(
 ```{r}
 invisible(st_load(p))  # triggers optional verify; warns on mismatch
 ```
+
+If `verify_on_load = TRUE`, `st_load()` recomputes `st_hash_obj()` and compares it to the `content_hash` recorded in the sidecar or snapshot. A mismatch usually means the file was modified outside of stamp and re-saving is recommended.
 
 ## Troubleshooting
 
@@ -176,4 +210,9 @@ A: Version snapshots live under `.stamp/versions/<relative-path>/<version_id>/`.
 * Keep `versioning = "content"` for reproducible artifacts; use `"timestamp"` if you want a new version on every save; `"off"` to skip versioning entirely.
 * Use `st_changed()` / `st_should_save()` to gate expensive computation inside your own functions.
 * Sidecars: prefer `meta_format = "json"` for readability, `"qs2"` for compactness, or `"both"` for redundancy.
+
+Further reading / next steps:
+
+- See the `lineage-rebuilds` vignette for how committed `parents` and sidecar parents interact during `st_rebuild()`.
+- Consider recording `code=` for critical data transformations so provenance is preserved even when object content is identical.
 

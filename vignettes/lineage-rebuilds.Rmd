@@ -26,10 +26,10 @@ This vignette shows how **stamp** captures **lineage** (parents → children), h
 
 You’ll use:
 
-* Lineage: `st_children()`, `st_lineage()`
-* Staleness: `st_is_stale()`
-* Planning: `st_plan_rebuild(targets, mode = "propagate" | "strict")`
-* Rebuilding: `st_register_builder()`, `st_clear_builders()`, `st_rebuild()`
+- Lineage: `st_children()`, `st_lineage()`
+- Staleness: `st_is_stale()`
+- Planning: `st_plan_rebuild()` (returns a plan data.frame)
+- Rebuilding: `st_register_builder()`, `st_clear_builders()`, `st_rebuild()`
 
 > **Strict vs. Propagate**
 > *Strict* checks actual mismatch vs the parents’ **current** latest versions.
@@ -145,11 +145,11 @@ st_register_builder(pC, function(path, parents) {
   )
 })
 
-# Dry run first
-st_rebuild(plan, rebuild_fun = st_builder_for)
+# Dry run first (uses registered builders found by st_rebuild when rebuild_fun is NULL)
+st_rebuild(plan, dry_run = TRUE)
 
-# Now actually rebuild
-res <- st_rebuild(plan, rebuild_fun = st_builder_for, dry_run = FALSE)
+# Now actually rebuild (will use registered builders)
+res <- st_rebuild(plan, dry_run = FALSE)
 res
 ```
 
