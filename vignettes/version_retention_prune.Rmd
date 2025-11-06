@@ -1,8 +1,8 @@
 ---
-title: "04. Version Retention & Pruning"
+title: "04. Version Retention, Pruning, and Table Metadata"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Version Retention & Pruning}
+  %\VignetteIndexEntry{Version Retention, Pruning, and Table Metadata}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -23,30 +23,37 @@ if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
 }
 ```
 
-This vignette shows how to **prune old versions** from the versions store and keep the catalog tidy—either **automatically after each save** or with an **ad-hoc pruning pass**.
+This vignette shows how to keep your **versions store** lean and your **tables self-describing**:
 
-Key pieces:
+* **Retention & pruning**: keep only the versions you need, either **automatically after each save** or **on demand**.
+* **Table metadata**: record **primary keys (PKs)** and sidecar metadata so downstream code understands the **grain** and integrity of each table.
+* **Partitioned datasets**: read/write tidy “Hive-style” layouts (e.g., `country=PER/year=2023/part.qs2`) and bind them efficiently.
 
-* Global option: `st_opts(retain_versions = policy)`
-* On-demand: `st_prune_versions(path = NULL, policy = ..., dry_run = FALSE)`
-* Latest version is **always protected**.
+Key APIs:
 
-Retention **policy** can be:
+* Global retention: `st_opts(retain_versions = policy)`
+* Ad-hoc pruning: `st_prune_versions(path = NULL, policy = ..., dry_run = FALSE)`
+* PK metadata: `st_save(..., pk = c(...))`, `st_add_pk()`, `st_inspect_pk()`
+* Partition helpers: `st_part_path()`, `st_save_part()`, `st_list_parts()`, `st_load_parts()`
+
+**Policy syntax** (for `retain_versions` or `st_prune_versions(policy=...)`):
 
 * `Inf` (default): keep everything.
-* An integer `n`: keep **n latest** versions.
-* A list like `list(n = 5, days = 14)`: keep the **union** of “5 latest” and “last 14 days”.
+* Integer `n`: keep the **n latest** versions per artifact.
+* List union: `list(n = 5, days = 14)` keeps the **5 latest** **or** anything from the **last 14 days** (latest is *always* protected).
 
-> Note: This vignette assumes your package defines `retain_versions = Inf` as a default in `st_opts()` initialization, and that `st_save()` calls an internal `.st_apply_retention()` which reads that option. If you prefer only manual pruning, skip the automatic hook and use `st_prune_versions()` explicitly.
+> Implementation note: we recommend your package initializes `retain_versions = Inf` via `st_opts()` defaults. If you wire `.st_apply_retention()` at the end of `st_save()`, retention will be enforced automatically after each write. Otherwise, use `st_prune_versions()` explicitly.
 
-## Setup a temporary project
+---
+
+## Minimal project scaffold (temp)
 
 ```{r}
 root <- tempdir()
 st_init(root)
 ```
 
-We’ll make three artifacts and a few versions for each.
+We’ll create a few artifacts and multiple versions to demonstrate pruning:
 
 ```{r}
 pA <- fs::path(root, "A.qs")
@@ -73,97 +80,98 @@ st_save(xB1, pB, code = function(z) z)
 st_save(xB2, pB, code = function(z) z)
 
 st_save(xC1, pC, code = function(z) z)
-
-# How many versions recorded?
-nrow(st_versions(pA))
-nrow(st_versions(pB))
-nrow(st_versions(pC))
 ```
 
-You can inspect the versions directory (may be large, so we only list the top-level):
+Inspect store & catalog:
 
 ```{r}
 vroot <- stamp:::.st_versions_root()
 fs::dir_tree(vroot, recurse = FALSE, all = TRUE)
-```
 
-And the catalog entries:
-
-```{r}
 st_versions(pA)
 st_versions(pB)
 st_versions(pC)
 ```
 
-## Ad-hoc pruning (no automatic retention)
+---
 
-### Keep **n latest** (e.g., 2) for a single artifact
+## Ad-hoc pruning (explicit runs)
+
+Use this when you want **full control** (e.g., pre-release cleanup, occasional housekeeping, or when you don’t wire auto-retention into `st_save()`).
+
+### Keep the **n latest** for a specific artifact
 
 ```{r}
-# Preview only (no deletion):
+# Dry run (safe preview)
 st_prune_versions(path = pA, policy = 2, dry_run = TRUE)
 
-# Apply:
+# Apply pruning
 repA <- st_prune_versions(path = pA, policy = 2, dry_run = FALSE)
 repA
-nrow(st_versions(pA)) # should be <= 2 (latest always kept)
+nrow(st_versions(pA)) # <= 2; latest always protected
 ```
 
-### Keep by **recency window** (e.g., last 14 days) for the whole catalog
+### Keep by **recency window** across the entire catalog
 
 ```{r}
-# Preview:
+# Keep anything from the last 14 days; preview first
 st_prune_versions(policy = list(days = 14), dry_run = TRUE)
 
-# Apply:
+# Apply
 repAll <- st_prune_versions(policy = list(days = 14))
 head(repAll)
 ```
 
-### Combine **n + days** (union)
+### Combine **count + recency** (union semantics)
 
 ```{r}
-# Keep last 2 versions OR any version within 7 days
+# Keep last 2 versions OR any version created within 7 days
 st_prune_versions(policy = list(n = 2, days = 7))
 ```
 
-After pruning, verify the catalog:
+**What the report returns**
 
-```{r}
-st_versions(pA)
-st_versions(pB)
-st_versions(pC)
-```
+A data frame with `artifact_path`, `version_id`, `created_at`, and `action` (`keep`/`delete`). Use `dry_run = TRUE` to log/approve a plan before destructive actions (recommended on shared infra/CI).
 
-Latest version remains present by design.
+**Edge cases & guarantees**
 
-## Automatic pruning after each save
+* **Latest version is always protected** (even if it falls outside your policy window).
+* Time windows are computed from each version’s `created_at` in the catalog.
+* Pruning is **idempotent**: re-running with the same policy won’t remove more once the policy is satisfied.
 
-If your package calls `.st_apply_retention()` at the end of `st_save()`, you can set a global policy and forget about it:
+---
+
+## Automatic pruning (on every `st_save()`)
+
+If you call an internal `.st_apply_retention()` at the end of `st_save()`, you can choose a global policy and stop thinking about it:
 
 ```{r}
 # Keep only the latest 2 versions per artifact going forward
 st_opts(retain_versions = 2)
 
-# New save will write a new version and immediately prune older ones
+# New save writes + immediate prune
 xA4 <- data.frame(a = 4:6)
 st_save(xA4, pA, code = function(z) z)
 
-nrow(st_versions(pA)) # should be <= 2
+nrow(st_versions(pA)) # <= 2
 ```
 
-You can disable auto-pruning by restoring:
+Disable auto-pruning:
 
 ```{r}
-st_opts(retain_versions = Inf) # keep all (no-op on save)
+st_opts(retain_versions = Inf) # keep all versions
 ```
 
+**Where to set this**
+For project-wide behavior, set `options(stamp.retain_versions = ...)` in your project `.Rprofile`. At runtime, `st_opts(retain_versions = ...)` takes precedence.
+
+---
 
 ## Primary-key metadata & load-time checks
 
-Milestone 4 adds **primary-key (PK) metadata** so tables carry their identity and consumers can reason about joins/subsets without out-of-band documentation.
+Milestone 4 adds **PK metadata** so each table carries its **identity**. This improves join safety, reproducibility, and downstream tooling (e.g., merge validation).
 
-### Recording PK at save time
+### Record PK at save time (recommended)
 
 ```{r}
 pop <- data.frame(
@@ -175,67 +183,80 @@ pop <- data.frame(
 
 p_pop <- fs::path(root, "inputs/population.qs")
 
-# Save and record PK columns (uniqueness is enforced by default)
+# Validates uniqueness by default and writes PK to sidecar
 st_save(pop, p_pop, pk = c("country", "year", "reporting_level"))
 ```
 
-What this does:
+**Effects**
 
-* Validates that PK columns exist (and are unique when `unique = TRUE`, the default).
-* Persists `pk` into the **sidecar** (see below).
-* Attaches `attr(x, "stamp_pk")` in memory for immediate reuse.
+* Validates that PK columns exist and are unique (unless you disable uniqueness).
+* Persists `pk` into the artifact **sidecar**.
+* Attaches `attr(x, "stamp_pk")` in memory on subsequent `st_load()`.
 
-### Inspecting/adding PK later
+### Inspect / repair PK later
 
 ```{r}
-# Read PK from sidecar
-st_inspect_pk(p_pop)
-
-# If you saved earlier without PK, you can repair the sidecar:
+st_inspect_pk(p_pop) # read PK from sidecar
+# If older artifact lacks PK, repair the sidecar:
 st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
 ```
 
-### Load-time behavior
+### Load-time behavior & options
 
 ```{r}
 obj <- st_load(p_pop)
-attr(obj, "stamp_pk") # keys attached on load for convenience
+attr(obj, "stamp_pk") # keys attached on load
 ```
 
-If a table is loaded **without** a recorded PK:
-
-* If `st_opts(require_pk_on_load = TRUE)`: error.
-* Else if `st_opts(warn_missing_pk_on_load = TRUE)`: warning.
-* Else: silent.
-
-Defaults (for now): `require_pk_on_load = FALSE`, `warn_missing_pk_on_load = TRUE`.
+Missing PK policy:
 
 ```{r}
-# Example: enforce PK presence globally
-st_opts(require_pk_on_load = TRUE)
-# st_load("some_table_without_pk.qs")  # would error
-st_opts(require_pk_on_load = FALSE) # restore default
+st_opts("require_pk_on_load", .get = TRUE) # default FALSE
+st_opts("warn_missing_pk_on_load", .get = TRUE) # default TRUE
+
+# CI: make PK presence a hard requirement
+st_opts(require_pk_on_load = TRUE, warn_missing_pk_on_load = FALSE)
 ```
 
-### Convenience filter
-
-For small, explicit slices you can filter by named values:
+### Why PKs matter (joins & merges)
 
 ```{r}
-per_nat <- st_filter(obj, list(country = "PER", reporting_level = "national"))
-per_nat
+pop <- data.frame(
+  country = c("PER", "MEX"),
+  year = c(2023, 2022),
+  pop = c(34.5, 126.7)
+)
+pop <- st_with_pk(pop, c("country", "year"))
+
+gdp <- data.frame(
+  country = c("PER", "MEX"),
+  year = c(2023, 2022),
+  gdp = c(0.27, 1.26)
+)
+gdp <- st_with_pk(gdp, c("country", "year"))
+
+merged <- merge(pop, gdp, by = c("country", "year"))
+attr(merged, "stamp_pk") <- list(keys = c("country", "year")) # preserve grain
+merged
 ```
+
+**Tips**
+
+* Include **all identifier columns** in the PK (`country`, `year`, `reporting_level`, …). Measures are *not* part of the PK.
+* Prefer recording PKs at write time. Post-hoc repairs are supported but easier to forget.
+
+---
 
 ## Sidecar metadata (quick reference)
 
-Each artifact can have a **sidecar** stored under a sibling `stmeta/` directory. It records:
+Every artifact has a JSON sidecar under sibling `stmeta/` with:
 
-* `format`, `created_at`, `size_bytes`
-* hashes: `content_hash`, `code_hash`, optional `file_hash`
-* `parents` (provenance), `code_label`
-* `pk` and optional `domain` (when saving data.frames with PK)
+* Core: `format`, `created_at`, `size_bytes`
+* Integrity: `content_hash`, `code_hash`, optional `file_hash`
+* Lineage: `parents`, `code_label`
+* Tabular: `pk`, optional `domain`
 
-You can inspect it:
+Inspect:
 
 ```{r}
 side <- st_read_sidecar(p_pop)
@@ -243,49 +264,100 @@ names(side)
 side$pk
 ```
 
-When `st_opts(verify_on_load = TRUE)`, `st_load()` will warn on:
+Integrity checks on load (if enabled via `st_opts(verify_on_load = TRUE)`):
 
-* Mismatch between `content_hash` and the hash of the loaded object.
-* Mismatch between `file_hash` (if stored) and the on-disk file bytes.
+* Warn on mismatched `content_hash` (object changed).
+* Warn on mismatched `file_hash` (file bytes changed), when recorded.
 
+---
 
 ## Partitioned datasets (Hive-style)
 
-When you want one file **per key combo** without materializing a single huge table, you can use the partition helpers. Layout:
+When you need **one file per key combo** (e.g., per country/year), use the partition helpers. Layout:
 
 ```
 <base>/<k1>=<v1>/<k2>=<v2>/part.<ext>
 ```
 
-### Save a partition
+### Create partitions & save parts
 
 ```{r}
-base <- fs::path(root, "inputs/country_year")
-st_save_part(
-  x = data.frame(value = 1L),
-  base = base,
+base <- fs::path(root, "inputs", "country_year")
+
+# Paths (order of keys doesn't matter; normalized internally)
+p_per_2023 <- st_part_path(
+  base,
   key = list(country = "PER", year = 2023),
-  code = function(z) z
+  format = "qs2"
+)
+p_mex_2022 <- st_part_path(base, key = list(country = "MEX", year = 2022))
+
+per_tbl <- data.frame(country = "PER", year = 2023, pop = 34.5)
+mex_tbl <- data.frame(country = "MEX", year = 2022, pop = 126.7)
+
+# Save; PK recorded in each partition's sidecar
+st_save_part(
+  per_tbl,
+  base,
+  key = list(country = "PER", year = 2023),
+  pk = c("country", "year")
+)
+st_save_part(
+  mex_tbl,
+  base,
+  key = list(country = "MEX", year = 2022),
+  pk = c("country", "year")
 )
 ```
 
-### List and load partitions
+> `st_save_part()` uses `st_save()` under the hood and writes sidecars in a local `stmeta/` directory inside each partition.
+
+### Discover & load
 
 ```{r}
+# List artifacts (sidecars under stmeta/ are ignored)
 st_list_parts(base)
 st_list_parts(base, filter = list(country = "PER"))
 
-# Row-bind all partitions (adds the key columns as regular columns)
+# Bind rows (adds key columns as ordinary columns)
 all_parts <- st_load_parts(base, as = "rbind")
 all_parts
+
+# data.table option (if installed)
+if (requireNamespace("data.table", quietly = TRUE)) {
+  dt <- st_load_parts(base, as = "dt")
+  dt[]
+}
 ```
 
-> Under the hood, `st_save_part()` and friends reuse `st_save()`/`st_load()` and inherit all sidecar/PK behaviors.
+**Notes**
 
+* If a partition artifact is **not** a `data.frame`, `st_load_parts()` returns a one-row table with a `.object` list-column and still appends the key columns.
+* Folder keys (e.g., `country=PER/year=2023`) should **agree** with the partition table’s PK columns.
 
-## Notes & Recommendations
+---
 
-* **Latest is protected** regardless of policy.
-* Use `dry_run = TRUE` before pruning a big catalog.
-* Prefer recording **PKs at save time** (`st_save(..., pk = ...)`)—downstream code can safely assume identity.
-* For reproducibility, consider logging a prune report with `dry_run = TRUE` to your project logs before destructive pruning on shared infrastructure.
+## Recommendations & Recipes
+
+* **Safety first**: always `dry_run = TRUE` on large catalogs; store the plan for auditability.
+* **Auto vs. manual**: prefer **auto retention** for day-to-day saves; add a **manual prune** step in release or housekeeping jobs.
+* **Project defaults**: set `options(stamp.retain_versions = ...)` in `.Rprofile`; override at runtime with `st_opts()`.
+* **CI**: enforce `require_pk_on_load = TRUE` and run `st_prune_versions(..., dry_run = TRUE)` to produce a log before destructive steps.
+* **Time windows**: retention windows are based on `created_at` recorded at version creation; keep machine clocks sane on shared hosts.
+
+---
+
+## FAQ
+
+**Does pruning ever delete the latest version?**
+No. The latest version per artifact is **always** protected.
+
+**What’s the union semantics of `list(n, days)`?**
+A version is kept if it is among the **n most recent** *or* if its `created_at` falls within the **days** window.
+
+**Where are PKs stored?**
+In each artifact’s sidecar JSON under sibling `stmeta/`. `st_load()` re-attaches them as `attr(x, "stamp_pk")`.
+
+**Do partition helpers change how retention works?**
+No. Each partition artifact is versioned/pruned independently, inheriting the same retention policies.
+
