@@ -1,7 +1,7 @@
 Package: stamp
 Type: Package
 Title: "Reproducible Artifact Store with Sidecars, Versions, and Partitions
-Version: 0.0.0.9016
+Version: 0.0.1
 Authors@R: person("R.Andres", "Castaneda",
     email = "acastanedaa@worldbank.org",
     role = c("aut", "cre"),
