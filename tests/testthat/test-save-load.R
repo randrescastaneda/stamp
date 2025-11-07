@@ -57,6 +57,25 @@ test_that("st_register_format registers and st_formats lists it", {
   f <- st_formats()
   expect_true("txt_test" %in% f)
 })
+
+test_that("sidecar absent, versions empty, and st_load_version errors when missing", {
+  skip_on_cran()
+  td <- withr::local_tempdir()
+  st_init(td)
+  st_opts(default_format = "rds")
+
+  p <- fs::path(td, "missing.qs")
+  # no artifact saved yet
+  expect_true(!fs::file_exists(p))
+  expect_true(nrow(st_versions(p)) == 0)
+  expect_true(is.na(st_latest(p)))
+  expect_error(st_load_version(p, "nope"))
+  expect_null(st_read_sidecar(p))
+
+  # internal helper returns an stmeta path containing the stmeta dir
+  sc <- stamp:::.st_sidecar_path(p, ext = "json")
+  expect_true(grepl("stmeta", sc))
+})
 test_that("multiplication works", {
   expect_equal(2 * 2, 4)
 })

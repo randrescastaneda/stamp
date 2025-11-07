@@ -33,6 +33,26 @@ test_that("st_should_save writes when content or code changed", {
   expect_true(dec3$save)
 })
 
+test_that("st_should_save writes when sidecar missing (missing_meta)", {
+  skip_on_cran()
+  td <- withr::local_tempdir()
+  st_init(td)
+  st_opts(default_format = "rds")
+  p <- fs::path(td, "nometa.qs")
+  x <- data.frame(a=1)
+  st_save(x, p, code = function(z) z)
+
+  # remove sidecar files
+  scj <- stamp:::.st_sidecar_path(p, ext = "json")
+  scq <- stamp:::.st_sidecar_path(p, ext = "qs2")
+  if (fs::file_exists(scj)) fs::file_delete(scj)
+  if (fs::file_exists(scq)) fs::file_delete(scq)
+
+  dec <- st_should_save(p, x = x, code = function(z) z)
+  expect_true(dec$save)
+  expect_equal(dec$reason, "missing_meta")
+})
+
 test_that("st_should_save respects versioning policy timestamp and off", {
   skip_on_cran()
   td <- withr::local_tempdir()

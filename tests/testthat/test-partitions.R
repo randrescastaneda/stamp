@@ -40,6 +40,18 @@ test_that("st_list_parts returns empty for missing base and st_load_parts dt mod
     expect_s3_class(dt, "data.table")
   }
 })
+
+test_that("st_part_path rejects invalid partition keys and sanitizes values", {
+  skip_on_cran()
+  # invalid characters in partition value
+  expect_error(st_part_path("/tmp", list(a = "bad/value")))
+  expect_error(st_part_path("/tmp", list(a = "bad=value")))
+
+  # numeric keys coerced to strings and ordering stable
+  p1 <- st_part_path("/tmp", list(b = 2, a = 1), format = "rds")
+  p2 <- st_part_path("/tmp", list(a = 1, b = 2), format = "rds")
+  expect_equal(p1, p2)
+})
 test_that("multiplication works", {
   expect_equal(2 * 2, 4)
 })

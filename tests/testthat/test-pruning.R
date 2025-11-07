@@ -54,6 +54,20 @@ test_that("retention policy parsing errors on invalid input and accepts char str
   res <- st_prune_versions(policy = "1", dry_run = TRUE)
   expect_true(is.data.frame(res))
 })
+
+test_that("st_prune_versions does not remove live artifact files (only snapshots)", {
+  skip_on_cran()
+  td <- withr::local_tempdir()
+  st_init(td)
+  st_opts(default_format = "rds")
+  p <- fs::path(td, "keep.qs")
+  st_save(data.frame(a=1), p, code = function(z) z)
+  st_save(data.frame(a=2), p, code = function(z) z)
+  # Apply pruning (keep latest 1)
+  st_prune_versions(path = p, policy = 1, dry_run = FALSE)
+  # live artifact should still exist
+  expect_true(fs::file_exists(p))
+})
 test_that("multiplication works", {
   expect_equal(2 * 2, 4)
 })
