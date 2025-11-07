@@ -35,6 +35,13 @@ You’ll use:
 > *Strict* checks actual mismatch vs the parents’ **current** latest versions.
 > *Propagate* simulates change pushing downstream (A changes ⇒ schedule B ⇒ schedule C, etc.).
 
+A few implementation notes that clarify behavior used by the examples below:
+
+- Committed parents (the `parents.json` file inside a version snapshot) are the authoritative record for lineage when present. They are captured at commit time and are used for reproducible, recursive lineage walking.
+- Sidecar parents (the `parents` field in the sidecar metadata written next to the artifact file) are a lightweight convenience that let you inspect first-level lineage before a snapshot is committed. `st_lineage()` falls back to sidecar parents only for the immediate parent level when no snapshot is available; recursive walking beyond level 1 requires snapshot-backed parents.
+
+This design keeps interactive workflows fast (sidecars are quick) while preserving reproducible history once snapshots are written.
+
 ## Setup a tiny graph A → B(A) → C(B)
 
 ```{r}
@@ -74,6 +81,28 @@ st_save(
   code = function(z) z,
   parents = list(list(path = pB, version_id = st_latest(pB)))
 )
+```
+
+Note: after these saves each artifact has a sidecar (in `stmeta/`) and snapshots under `.stamp/versions/`.
+
+Committed parents vs sidecar example
+
+This short interactive example shows the difference between committed parents (stored inside the version snapshot) and the light-weight sidecar parents next to the artifact file. We deliberately remove the committed snapshot for `B` to simulate a case where only the sidecar remains; `st_lineage()` will still return immediate parents (level 1) by reading the sidecar, but recursive walking beyond level 1 only uses snapshot-backed parents.
+
+```{r}
+# Remove committed snapshot for B to simulate a no-snapshot state
+vdir_b <- stamp:::.st_version_dir(pB, st_latest(pB))
+if (fs::dir_exists(vdir_b)) fs::dir_delete(vdir_b)
+
+# Now st_info will show snapshot_dir = NA but sidecar present
+st_info(pB)
+
+# st_lineage will fall back to the sidecar for immediate parents (level 1)
+st_lineage(pB, depth = 1)
+
+# But recursive lineage (depth > 1) will only follow snapshot-backed parents
+# (no recursive walk available once snapshots are missing)
+st_lineage(pB, depth = 2)
 ```
 
 ## Inspect lineage
