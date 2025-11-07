@@ -76,6 +76,7 @@ print.st_path <- function(x, ...) {
 # ---- Load and Save -----------------------------------------------------------
 
 #' Save an R object to disk with metadata & versioning (atomic move)
+#'
 #' @param x object to save
 #' @param file destination path (character or st_path)
 #' @param format optional format override ("qs2" | "rds" | "csv" | "fst" | "json")
@@ -88,32 +89,32 @@ print.st_path <- function(x, ...) {
 #' @param domain optional character scalar or vector label(s) for the dataset
 #' @param unique logical; enforce uniqueness of pk at save time (default TRUE)
 #' @param ... forwarded to format writer
-#' @return invisibly, a list with path, metadata, and version_id
+#' @return invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
 #' @export
 st_save <- function(
   x,
   file,
-  format = NULL,
+  format   = NULL,
   metadata = list(),
-  code = NULL,
-  parents = NULL,
+  code     = NULL,
+  parents  = NULL,
   code_label = NULL,
-  pk = NULL,
-  domain = NULL,
-  unique = TRUE,
+  pk       = NULL,
+  domain   = NULL,
+  unique   = TRUE,
   ...
 ) {
+  # Normalize path + format selection
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
-  # If pk provided (table use-case), attach pk (and validate/uniqueness)
+  # Primary-key handling for tabular objects
   if (!is.null(pk)) {
     if (!is.data.frame(x)) {
       cli::cli_abort("{.arg pk} supplied but object is not a data.frame.")
     }
     x <- st_set_pk(x, pk = pk, domain = domain, unique = unique)
   } else {
-    # If object already carries a pk attribute, sanity-check columns exist
-    if (is.data.frame(x)) st_assert_pk(x)
+    if (is.data.frame(x)) st_assert_pk(x)  # sanity check for attached PK metadata
   }
 
   fmt <- format %||%
@@ -128,7 +129,7 @@ st_save <- function(
     )
   }
 
-  # Decide whether to write a new version
+  # Decide if we should create a new version (hashes, code hash, etc.)
   dec <- st_should_save(sp$path, x = x, code = code)
   if (!dec$save) {
     cli::cli_inform(c(
@@ -137,83 +138,80 @@ st_save <- function(
     return(invisible(list(path = sp$path, skipped = TRUE, reason = dec$reason)))
   }
 
-  # Ensure destination directory exists
+  # Ensure destination directory exists (idempotent)
   fs::dir_create(fs::path_dir(sp$path), recurse = TRUE)
 
-  # Atomic write: write to a temp file in the same directory, then move
-  tmp <- fs::file_temp(
-    tmp_dir = fs::path_dir(sp$path),
-    pattern = paste0(fs::path_file(sp$path), ".tmp-")
-  )
-  on.exit(try(fs::file_delete(tmp), silent = TRUE), add = TRUE)
+  # Write + sidecar + catalog under a best-effort file lock
+  out <- NULL
+  .st_with_lock(sp$path, {
+    # 1) Atomic artifact write (overwrite-in-place policy lives here)
+    .st_write_atomic(
+      obj      = x,
+      path     = sp$path,
+      writer   = function(obj, pth) h$write(obj, pth, ...),
+      overwrite = TRUE
+    )
 
-  # Write artifact
-  h$write(x, tmp, ...)
+    # 2) Assemble sidecar metadata (needs size/file hash after the move)
+    meta <- c(
+      list(
+        path        = as.character(sp$path),
+        format      = fmt,
+        created_at  = .st_now_utc(),
+        size_bytes  = unname(fs::file_info(sp$path)$size),
+        content_hash = st_hash_obj(x),
+        code_hash    = if (isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)) {
+          st_hash_code(code)
+        } else {
+          NA_character_
+        },
+        file_hash    = if (isTRUE(st_opts("store_file_hash", .get = TRUE))) {
+          st_hash_file(sp$path)
+        } else {
+          NA_character_
+        },
+        code_label   = code_label %||% NA_character_,
+        parents      = parents %||% list(),
+        attrs        = list()
+      ),
+      metadata
+    )
 
-  # Move into place (replace existing if present)
-  if (fs::file_exists(sp$path)) {
-    fs::file_delete(sp$path)
-  }
-  fs::file_move(tmp, sp$path)
-
-  # Assemble sidecar metadata
-  meta <- c(
-    list(
-      path = as.character(sp$path),
-      format = fmt,
-      created_at = .st_now_utc(),
-      size_bytes = unname(fs::file_info(sp$path)$size),
-      content_hash = st_hash_obj(x),
-      code_hash = if (
-        isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
-      ) {
-        st_hash_code(code)
-      } else {
-        NA_character_
-      },
-      file_hash = if (isTRUE(st_opts("store_file_hash", .get = TRUE))) {
-        st_hash_file(sp$path)
-      } else {
-        NA_character_
-      },
-      code_label = code_label %||% NA_character_,
-      parents = parents %||% list(),
-      attrs = list()
-    ),
-    metadata
-  )
-
-  # Mirror pk & (optional) domain into sidecar if present on x
-  if (is.data.frame(x)) {
-    pk_keys <- st_get_pk(x)
-    if (length(pk_keys)) {
-      meta$pk <- list(keys = pk_keys)
+    # Mirror PK/domain from the object into sidecar when applicable
+    if (is.data.frame(x)) {
+      pk_keys <- st_get_pk(x)
+      if (length(pk_keys)) {
+        meta$pk <- list(keys = pk_keys)
+      }
+      dom <- attr(x, "stamp_domain", exact = TRUE)
+      if (!is.null(dom)) meta$domain <- as.character(dom)
     }
-    dom <- attr(x, "stamp_domain", exact = TRUE)
-    if (!is.null(dom)) meta$domain <- as.character(dom)
-  }
 
-  .st_write_sidecar(sp$path, meta)
+    # 3) Sidecar write (should be atomic inside the helper)
+    .st_write_sidecar(sp$path, meta)
 
-  # Catalog + snapshot
-  vid <- .st_catalog_record_version(
-    artifact_path = sp$path,
-    format = fmt,
-    size_bytes = meta$size_bytes,
-    content_hash = meta$content_hash,
-    code_hash = meta$code_hash,
-    created_at = meta$created_at,
-    sidecar_format = .st_sidecar_present(sp$path)
-  )
-  .st_version_commit_files(sp$path, vid, parents = parents)
+    # 4) Catalog snapshot + version commit
+    vid <- .st_catalog_record_version(
+      artifact_path  = sp$path,
+      format         = fmt,
+      size_bytes     = meta$size_bytes,
+      content_hash   = meta$content_hash,
+      code_hash      = meta$code_hash,
+      created_at     = meta$created_at,
+      sidecar_format = .st_sidecar_present(sp$path)
+    )
+    .st_version_commit_files(sp$path, vid, parents = parents)
 
-  # Optional retention just for this artifact
-  .st_apply_retention(sp$path)
+    # 5) Optional retention for this artifact
+    .st_apply_retention(sp$path)
 
-  cli::cli_inform(c(
-    "v" = "Saved [{.field {fmt}}] \u2192 {.file {sp$path}} @ version {.field {vid}}"
-  ))
-  invisible(list(path = sp$path, metadata = meta, version_id = vid))
+    cli::cli_inform(c(
+      "v" = "Saved [{.field {fmt}}] \u2192 {.file {sp$path}} @ version {.field {vid}}"
+    ))
+    out <<- list(path = sp$path, metadata = meta, version_id = vid)
+  })
+
+  invisible(out %||% list(path = sp$path, metadata = NULL, version_id = NULL))
 }
 
 
@@ -265,7 +263,7 @@ st_load <- function(file, format = NULL, ...) {
   # Read the artifact with the registered reader
   res <- h$read(sp$path, ...)
 
-  # ---- pk presence check on load (warn or error depending on options) --------
+  #  pk presence check on load (warn or error depending on options) \
   pk_keys <- character(0)
   if (is.list(meta) && !is.null(meta$pk)) {
     # expect meta$pk$keys
@@ -409,4 +407,49 @@ st_should_save <- function(path, x = NULL, code = NULL) {
 
   # default: no change → skip
   list(save = FALSE, reason = "no_change_policy")
+}
+
+#' @keywords internal
+.st_write_atomic <- function(obj, path, writer, overwrite = FALSE) {
+  dir.create(fs::path_dir(path), recursive = TRUE, showWarnings = FALSE)
+
+  tmp <- paste0(
+    path,
+    ".tmp-",
+    sprintf("%08x", sample.int(.Machine$integer.max, 1))
+  )
+  on.exit(try(fs::file_delete(tmp), silent = TRUE), add = TRUE)
+
+  writer(obj, tmp) # e.g., qs::qsave / saveRDS / jsonlite::write_json ...
+
+  if (!fs::file_exists(tmp)) {
+    stop("Temp file not created: ", tmp, call. = FALSE)
+  }
+  if (fs::file_exists(path)) {
+    if (isTRUE(overwrite)) {
+      fs::file_delete(path) # atomic move below requires dest not to exist
+    } else {
+      stop("Destination exists and overwrite = FALSE: ", path, call. = FALSE)
+    }
+  }
+  fs::file_move(tmp, path) # atomic on same filesystem
+  invisible(path)
+}
+
+
+#' @keywords internal
+.st_with_lock <- function(path, expr) {
+  # Best-effort lock: use filelock if available; otherwise just run expr.
+  lockfile <- paste0(
+    normalizePath(path, winslash = "/", mustWork = FALSE),
+    ".lock"
+  )
+  if (requireNamespace("filelock", quietly = TRUE)) {
+    dir.create(dirname(lockfile), recursive = TRUE, showWarnings = FALSE)
+    lock <- filelock::lock(lockfile, timeout = 5000) # 5s
+    on.exit(try(filelock::unlock(lock), silent = TRUE), add = TRUE)
+    force(expr)
+  } else {
+    force(expr) # advisory fallback
+  }
 }
