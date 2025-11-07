@@ -1,3 +1,4 @@
+st_opts(warn_missing_pk_on_load = FALSE)
 test_that("st_save_part and st_list_parts work and st_load_parts binds", {
   skip_on_cran()
   td <- withr::local_tempdir()

@@ -1,3 +1,4 @@
+st_opts(warn_missing_pk_on_load = FALSE)
 test_that("st_save and st_load create artifact, sidecar and versions", {
   skip_on_cran()
   td <- withr::local_tempdir()
@@ -25,7 +26,14 @@ test_that("st_save and st_load create artifact, sidecar and versions", {
   out2 <- st_save(x, p_rds, format = "rds", code = function(z) z)
   expect_true(fs::file_exists(p_rds))
   expect_true(nzchar(out2$version_id))
-  y2 <- st_load(p_rds)
+  st_opts(warn_missing_pk_on_load = TRUE)
+  st_load(p_rds) |>
+    expect_warning(regexp = "No primary key recorded for")
+  st_opts(warn_missing_pk_on_load = FALSE)
+
+  y2 <- st_load(p_rds) |>
+    suppressWarnings()
+
   expect_equal(y2, x)
 })
 

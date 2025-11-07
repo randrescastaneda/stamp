@@ -1,3 +1,4 @@
+st_opts(warn_missing_pk_on_load = FALSE)
 test_that("verify_on_load warns when file hash or content hash mismatch", {
   skip_on_cran()
   td <- withr::local_tempdir()
@@ -20,8 +21,13 @@ test_that("verify_on_load warns when file hash or content hash mismatch", {
     # fallback: overwrite with saveRDS (still should change content hash)
     saveRDS(data.frame(a = 9), p)
   }
-
-  expect_warning(st_load(p), regexp = "mismatch|File hash mismatch|Loaded object hash mismatch")
+  st_opts(warn_missing_pk_on_load = TRUE)
+  st_load(p) |>
+  expect_warning(
+    regexp = "mismatch|File hash mismatch|Loaded object hash mismatch"
+  ) |>
+    expect_warning(regexp = "No primary key recorded")
+  st_opts(warn_missing_pk_on_load = FALSE)
 })
 
 test_that("sidecar parents shaped as data.frame are normalized and used for first-level lineage", {
@@ -32,14 +38,20 @@ test_that("sidecar parents shaped as data.frame are normalized and used for firs
 
   p1 <- fs::path(td, "a.qs")
   p2 <- fs::path(td, "b.qs")
-  st_save(data.frame(a=1), p1, code = function(z) z)
+  st_save(data.frame(a = 1), p1, code = function(z) z)
   # create b with a sidecar parents written as a data.frame shape
-  st_save(data.frame(a=2), p2, code = function(z) z,
-          parents = list(list(path = p1, version_id = st_latest(p1))))
+  st_save(
+    data.frame(a = 2),
+    p2,
+    code = function(z) z,
+    parents = list(list(path = p1, version_id = st_latest(p1)))
+  )
 
   # remove the committed snapshot for b to force sidecar-only parents
   vdirb <- stamp:::.st_version_dir(p2, st_latest(p2))
-  if (fs::dir_exists(vdirb)) fs::dir_delete(vdirb)
+  if (fs::dir_exists(vdirb)) {
+    fs::dir_delete(vdirb)
+  }
 
   lin <- st_lineage(p2, depth = 1)
   # should find a parent (using sidecar fallback)

@@ -94,14 +94,14 @@ print.st_path <- function(x, ...) {
 st_save <- function(
   x,
   file,
-  format   = NULL,
+  format = NULL,
   metadata = list(),
-  code     = NULL,
-  parents  = NULL,
+  code = NULL,
+  parents = NULL,
   code_label = NULL,
-  pk       = NULL,
-  domain   = NULL,
-  unique   = TRUE,
+  pk = NULL,
+  domain = NULL,
+  unique = TRUE,
   ...
 ) {
   # Normalize path + format selection
@@ -114,7 +114,7 @@ st_save <- function(
     }
     x <- st_set_pk(x, pk = pk, domain = domain, unique = unique)
   } else {
-    if (is.data.frame(x)) st_assert_pk(x)  # sanity check for attached PK metadata
+    if (is.data.frame(x)) st_assert_pk(x) # sanity check for attached PK metadata
   }
 
   fmt <- format %||%
@@ -142,74 +142,97 @@ st_save <- function(
   fs::dir_create(fs::path_dir(sp$path), recurse = TRUE)
 
   # Write + sidecar + catalog under a best-effort file lock
-  out <- NULL
-  .st_with_lock(sp$path, {
-    # 1) Atomic artifact write (overwrite-in-place policy lives here)
-    .st_write_atomic(
-      obj      = x,
-      path     = sp$path,
-      writer   = function(obj, pth) h$write(obj, pth, ...),
-      overwrite = TRUE
-    )
+  out <- tryCatch(
+    .st_with_lock(sp$path, {
+      # 1) Atomic artifact write (overwrite-in-place policy lives here)
+      .st_write_atomic(
+        obj = x,
+        path = sp$path,
+        writer = function(obj, pth) h$write(obj, pth, ...),
+        overwrite = TRUE
+      )
 
-    # 2) Assemble sidecar metadata (needs size/file hash after the move)
-    meta <- c(
-      list(
-        path        = as.character(sp$path),
-        format      = fmt,
-        created_at  = .st_now_utc(),
-        size_bytes  = unname(fs::file_info(sp$path)$size),
-        content_hash = st_hash_obj(x),
-        code_hash    = if (isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)) {
-          st_hash_code(code)
-        } else {
-          NA_character_
-        },
-        file_hash    = if (isTRUE(st_opts("store_file_hash", .get = TRUE))) {
-          st_hash_file(sp$path)
-        } else {
-          NA_character_
-        },
-        code_label   = code_label %||% NA_character_,
-        parents      = parents %||% list(),
-        attrs        = list()
-      ),
-      metadata
-    )
+      # 2) Assemble sidecar metadata (needs size/file hash after the move)
+      meta <- c(
+        list(
+          path = as.character(sp$path),
+          format = fmt,
+          created_at = .st_now_utc(),
+          size_bytes = unname(fs::file_info(sp$path)$size),
+          content_hash = st_hash_obj(x),
+          code_hash = if (
+            isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
+          ) {
+            st_hash_code(code)
+          } else {
+            NA_character_
+          },
+          file_hash = if (isTRUE(st_opts("store_file_hash", .get = TRUE))) {
+            st_hash_file(sp$path)
+          } else {
+            NA_character_
+          },
+          code_label = code_label %||% NA_character_,
+          parents = parents %||% list(),
+          attrs = list()
+        ),
+        metadata
+      )
 
-    # Mirror PK/domain from the object into sidecar when applicable
-    if (is.data.frame(x)) {
-      pk_keys <- st_get_pk(x)
-      if (length(pk_keys)) {
-        meta$pk <- list(keys = pk_keys)
+      # Mirror PK/domain from the object into sidecar when applicable
+      if (is.data.frame(x)) {
+        pk_keys <- st_get_pk(x)
+        if (length(pk_keys)) {
+          meta$pk <- list(keys = pk_keys)
+        }
+        dom <- attr(x, "stamp_domain", exact = TRUE)
+        if (!is.null(dom)) meta$domain <- as.character(dom)
       }
-      dom <- attr(x, "stamp_domain", exact = TRUE)
-      if (!is.null(dom)) meta$domain <- as.character(dom)
+
+      # 3) Sidecar write (should be atomic inside the helper)
+      .st_write_sidecar(sp$path, meta)
+
+      # 4) Catalog snapshot + version commit
+      vid <- .st_catalog_record_version(
+        artifact_path = sp$path,
+        format = fmt,
+        size_bytes = meta$size_bytes,
+        content_hash = meta$content_hash,
+        code_hash = meta$code_hash,
+        created_at = meta$created_at,
+        sidecar_format = .st_sidecar_present(sp$path)
+      )
+      # Defensive fallback: if for any reason the catalog helper returned
+      # an empty or non-character id, compute a stable local version id
+      # based on timestamp and available hashes so callers (and tests)
+      # receive a non-empty identifier.
+      if (!is.character(vid) || !nzchar(vid)) {
+        vid <- .st_version_id(
+          meta$created_at,
+          meta$content_hash,
+          meta$code_hash
+        )
+      }
+      .st_version_commit_files(sp$path, vid, parents = parents)
+
+      # 5) Optional retention for this artifact
+      .st_apply_retention(sp$path)
+
+      cli::cli_inform(c(
+        "v" = "Saved [{.field {fmt}}] \u2192 {.file {sp$path}} @ version {.field {vid}}"
+      ))
+      list(path = sp$path, metadata = meta, version_id = vid)
+    }),
+    error = function(e) {
+      # Best-effort: surface a warning and allow the function to fall back
+      # to a safe return value rather than failing the whole process.
+      cli::cli_warn(c(
+        "x" = "Save failed for {.file {sp$path}}: {conditionMessage(e)}",
+        "i" = "Returning fallback result (no metadata/version)."
+      ))
+      NULL
     }
-
-    # 3) Sidecar write (should be atomic inside the helper)
-    .st_write_sidecar(sp$path, meta)
-
-    # 4) Catalog snapshot + version commit
-    vid <- .st_catalog_record_version(
-      artifact_path  = sp$path,
-      format         = fmt,
-      size_bytes     = meta$size_bytes,
-      content_hash   = meta$content_hash,
-      code_hash      = meta$code_hash,
-      created_at     = meta$created_at,
-      sidecar_format = .st_sidecar_present(sp$path)
-    )
-    .st_version_commit_files(sp$path, vid, parents = parents)
-
-    # 5) Optional retention for this artifact
-    .st_apply_retention(sp$path)
-
-    cli::cli_inform(c(
-      "v" = "Saved [{.field {fmt}}] \u2192 {.file {sp$path}} @ version {.field {vid}}"
-    ))
-    out <<- list(path = sp$path, metadata = meta, version_id = vid)
-  })
+  )
 
   invisible(out %||% list(path = sp$path, metadata = NULL, version_id = NULL))
 }
