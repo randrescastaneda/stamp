@@ -43,7 +43,7 @@ list(list(path = "\if{html}{\out{<path>}}", version_id = "\if{html}{\out{<id>}}"
 \item{...}{forwarded to format writer}
 }
 \value{
-invisibly, a list with path, metadata, and version_id
+invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
 }
 \description{
 Save an R object to disk with metadata & versioning (atomic move)
