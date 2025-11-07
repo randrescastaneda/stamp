@@ -111,6 +111,8 @@ repA
 nrow(st_versions(pA)) # <= 2; latest always protected
 ```
 
+Practical tip: always run the `dry_run = TRUE` preview and inspect `repA` before calling with `dry_run = FALSE`. The returned table indicates which snapshots would be removed and allows you to store that plan in CI logs for audit.
+
 ### Keep by **recency window** across the entire catalog
 
 ```{r}
@@ -155,6 +157,10 @@ st_save(xA4, pA, code = function(z) z)
 
 nrow(st_versions(pA)) # <= 2
 ```
+
+If you enable automatic pruning via `st_opts(retain_versions = <policy>)`, `.st_apply_retention()` will be invoked after each `st_save()` and prune according to the policy for the just-written artifact. This keeps your versions directory compact without extra housekeeping steps.
+
+Be cautious when enabling aggressive retention (small `n` or short `days`) in shared or collaborative projects: set `dry_run = TRUE` in CI or have an approval step before destructive pruning.
 
 Disable auto-pruning:
 
@@ -241,6 +247,20 @@ merged <- merge(pop, gdp, by = c("country", "year"))
 attr(merged, "stamp_pk") <- list(keys = c("country", "year")) # preserve grain
 merged
 ```
+
+### Catalog corruption & safety
+
+On rare occasions a catalog file can become unreadable (disk issues, manual edit, or process crash). The package is conservative:
+
+- `.st_catalog_read()` will error if the catalog cannot be parsed. You can recover by removing the corrupted catalog file (it lives under `<root>/<state_dir>/catalog.qs2`) and re-running `st_save()`; the catalog will be recreated from the remaining snapshot directories.
+- Always back up the `catalog.qs2` (and `.stamp/versions/`) before running destructive operations in production.
+
+Example recovery steps (manual):
+
+1. Move the corrupted catalog: `mv <state>/catalog.qs2 <state>/catalog.qs2.bak`
+2. Re-run `st_save()` on a representative artifact to recreate the catalog.
+
+These steps are safe because pruning and catalog operations never touch the live artifact files — only the committed snapshots and the catalog.
 
 **Tips**
 
