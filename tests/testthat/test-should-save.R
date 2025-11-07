@@ -32,6 +32,26 @@ test_that("st_should_save writes when content or code changed", {
   # Likely code change triggers save
   expect_true(dec3$save)
 })
+
+test_that("st_should_save respects versioning policy timestamp and off", {
+  skip_on_cran()
+  td <- withr::local_tempdir()
+  st_init(td)
+  st_opts(default_format = "rds")
+  p <- fs::path(td, "v.qs")
+  x <- data.frame(a = 1)
+  st_save(x, p, code = function(z) z)
+
+  # timestamp policy always writes
+  st_opts(versioning = "timestamp")
+  dec_ts <- st_should_save(p, x = x, code = function(z) z)
+  expect_true(dec_ts$save)
+
+  # off policy never writes when no change
+  st_opts(versioning = "off")
+  dec_off <- st_should_save(p, x = x, code = function(z) z)
+  expect_false(dec_off$save)
+})
 test_that("multiplication works", {
   expect_equal(2 * 2, 4)
 })

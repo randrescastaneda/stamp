@@ -40,6 +40,20 @@ test_that("st_opts retain_versions applies after st_save via .st_apply_retention
   # As retain_versions=1, after the last save there should be 1 version
   expect_true(nrow(st_versions(pB)) == 1)
 })
+
+test_that("retention policy parsing errors on invalid input and accepts char strings", {
+  skip_on_cran()
+  expect_error(st_prune_versions(policy = list()))
+  # character like "2 7" should parse
+  p <- withr::local_tempdir()
+  st_init(p)
+  st_opts(default_format = "rds")
+  # create an artifact then call prune with char policy
+  pa <- fs::path(p, "x.qs")
+  st_save(data.frame(a=1), pa, code = function(z) z)
+  res <- st_prune_versions(policy = "1", dry_run = TRUE)
+  expect_true(is.data.frame(res))
+})
 test_that("multiplication works", {
   expect_equal(2 * 2, 4)
 })

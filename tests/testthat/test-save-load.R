@@ -44,6 +44,19 @@ test_that("atomic write creates temp then moves into place", {
   tmpfiles <- fs::dir_ls(fs::path_dir(p), glob = "*tmp-*", recurse = FALSE, fail = FALSE)
   expect_true(length(tmpfiles) == 0)
 })
+
+test_that("st_register_format registers and st_formats lists it", {
+  skip_on_cran()
+  # register a trivial text format and ensure it appears
+  st_register_format(
+    "txt_test",
+    read = function(p, ...) readLines(p, ...),
+    write = function(x, p, ...) writeLines(as.character(x), p, ...),
+    extensions = "txt"
+  )
+  f <- st_formats()
+  expect_true("txt_test" %in% f)
+})
 test_that("multiplication works", {
   expect_equal(2 * 2, 4)
 })
