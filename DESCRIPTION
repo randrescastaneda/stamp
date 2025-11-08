@@ -1,6 +1,6 @@
 Package: stamp
 Type: Package
-Title: "Reproducible Artifact Store with Sidecars, Versions, and Partitions
+Title: Reproducible Artifact Store with Sidecars, Versions, and Partitions
 Version: 0.0.1
 Authors@R: person("R.Andres", "Castaneda",
     email = "acastanedaa@worldbank.org",
