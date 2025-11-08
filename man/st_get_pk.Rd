@@ -2,7 +2,7 @@
 % Please edit documentation in R/schema_pk.R
 \name{st_get_pk}
 \alias{st_get_pk}
-\title{Read primary-key keys from a data.frame or sidecar/meta list}
+\title{Read primary-key columns from a data.frame or sidecar/meta list}
 \usage{
 st_get_pk(x_or_meta)
 }
