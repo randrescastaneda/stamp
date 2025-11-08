@@ -186,6 +186,7 @@
 # Public API -------------------------------------------------------------------
 
 #' List versions for an artifact path
+#' @inheritParams st_path
 #' @export
 st_versions <- function(path) {
   aid <- .st_artifact_id(path)
@@ -204,6 +205,7 @@ st_versions <- function(path) {
 }
 
 #' Get the latest version_id for an artifact path
+#' @inheritParams st_path
 #' @export
 st_latest <- function(path) {
   aid <- .st_artifact_id(path)
@@ -217,6 +219,9 @@ st_latest <- function(path) {
 
 #' Load a specific version of an artifact
 #' @export
+#' @inheritParams st_path
+#' @inheritParams st_children
+#' @inheritParams st_load
 st_load_version <- function(path, version_id, ...) {
   vdir <- .st_version_dir(path, version_id)
   art <- fs::path(vdir, "artifact")

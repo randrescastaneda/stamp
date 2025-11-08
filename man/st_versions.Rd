@@ -6,6 +6,9 @@
 \usage{
 st_versions(path)
 }
+\arguments{
+\item{path}{file or directory path}
+}
 \description{
 List versions for an artifact path
 }

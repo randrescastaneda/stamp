@@ -17,13 +17,13 @@ Depends:
 Imports:
     cli (>= 3.4.1),
     fs (>= 1.5.2),
-    qs2,
     rlang (>= 1.0.6),
     secretbase,
     jsonlite,
     utils
 Suggests:
     data.table (>= 1.14.6),
+    qs2,
     qs (>= 0.25.4),
     arrow (>= 10.0.0),
     fst (>= 0.9.8),

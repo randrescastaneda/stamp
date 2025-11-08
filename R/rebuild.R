@@ -207,12 +207,12 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
     for (i in idxs) {
       p <- plan$path[[i]]
       reason <- plan$reason[[i]]
-      cli::cli_inform(c(" " = "• {.field {p}} ({.field {reason}})"))
+      cli::cli_inform(c(" " = "{cli:::symbol$bullet} {.field {p}} ({.field {reason}})"))
 
       pars <- get_parents_for(p, allow_sidecar_fallback = (lvl == 1L))
 
       if (isTRUE(dry_run)) {
-        cli::cli_inform(c(" " = "  ↳ DRY RUN"))
+        cli::cli_inform(c(" " = "  DRY RUN"))
         results[[i]] <- data.frame(
           level = plan$level[[i]],
           path = p,
@@ -241,7 +241,7 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
         } else {
           conditionMessage(err)
         }
-        cli::cli_warn("  ↳ FAILED: {msg}")
+        cli::cli_warn("   FAILED: {msg}")
         results[[i]] <- data.frame(
           level = plan$level[[i]],
           path = p,
@@ -265,7 +265,7 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
         } else {
           conditionMessage(err)
         }
-        cli::cli_warn("  ↳ FAILED: {msg}")
+        cli::cli_warn("   FAILED: {msg}")
         results[[i]] <- data.frame(
           level = plan$level[[i]],
           path = p,
@@ -299,7 +299,7 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
       })
       if (is.null(res) || is.null(res$version_id)) {
         msg <- if (is.null(err)) "st_save() failed" else conditionMessage(err)
-        cli::cli_warn("  ↳ FAILED: {msg}")
+        cli::cli_warn("   FAILED: {msg}")
         results[[i]] <- data.frame(
           level = plan$level[[i]],
           path = p,
@@ -313,7 +313,7 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
       }
 
       vid <- res$version_id
-      cli::cli_inform("  ↳ OK @ version {.field {vid}}")
+      cli::cli_inform("   OK @ version {.field {vid}}")
       results[[i]] <- data.frame(
         level = plan$level[[i]],
         path = p,
@@ -480,7 +480,7 @@ st_plan_rebuild <- function(
             stringsAsFactors = FALSE
           )
         }
-        # Newly scheduled children are assumed to change → seed their children next
+        # Newly scheduled children are assumed to change --> seed their children next
         will_change <- unique(c(will_change, norm(new_take)))
       }
     }

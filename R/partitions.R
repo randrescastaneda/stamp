@@ -224,7 +224,7 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   if (!nrow(listing)) {
     return(
       if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
-        data.table::data.table()[, `:=`()]
+        data.table::data.table()
       } else {
         data.frame()
       }
@@ -260,7 +260,7 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   if (!length(objs)) {
     return(
       if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
-        data.table::data.table()[, `:=`()]
+        data.table::data.table()
       } else {
         data.frame()
       }

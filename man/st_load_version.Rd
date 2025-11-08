@@ -6,6 +6,13 @@
 \usage{
 st_load_version(path, version_id, ...)
 }
+\arguments{
+\item{path}{file or directory path}
+
+\item{version_id}{Optional version id of \code{path} to match. Default: any.}
+
+\item{...}{forwarded to format reader}
+}
 \description{
 Load a specific version of an artifact
 }

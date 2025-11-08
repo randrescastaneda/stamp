@@ -121,7 +121,7 @@ st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
   meta$pk <- list(keys = unique(as.character(keys)))
 
   .st_write_sidecar(path, meta)
-  cli::cli_inform(c("v" = "Recorded primary key for {.file {path}} → {paste(meta$pk$keys, collapse=', ')}"))
+  cli::cli_inform(c("v" = "Recorded primary key for {.file {path}} --> {paste(meta$pk$keys, collapse=', ')}"))
   invisible(meta$pk$keys)
 }
 

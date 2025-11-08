@@ -6,6 +6,9 @@
 \usage{
 st_latest(path)
 }
+\arguments{
+\item{path}{file or directory path}
+}
 \description{
 Get the latest version_id for an artifact path
 }
