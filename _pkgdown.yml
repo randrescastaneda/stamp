@@ -16,7 +16,7 @@ navbar:
   components:
     github:
       icon: fa-github
-      href: https://github.com/your-org/stamp
+      href: https://github.com/randrescastaneda/stamp
 
 articles:
   index:
