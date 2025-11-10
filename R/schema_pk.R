@@ -32,7 +32,8 @@ st_pk <- function(x = NULL, keys, validate = TRUE, check_unique = FALSE) {
       )
     }
     if (validate && isTRUE(check_unique)) {
-      dup <- any(duplicated(x[keys]))
+      cols <- as.data.frame(x)[, keys, drop = FALSE]
+      dup <- any(duplicated(cols))
       if (dup) {
         cli::cli_abort("pk is not unique over the provided data.")
       }
@@ -40,6 +41,7 @@ st_pk <- function(x = NULL, keys, validate = TRUE, check_unique = FALSE) {
   }
   list(keys = keys)
 }
+
 
 #' Attach primary-key metadata to a data.frame (in-memory)
 #'

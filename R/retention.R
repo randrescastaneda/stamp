@@ -112,141 +112,154 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
   }
 
   # Load catalog
-  cat <- .st_catalog_read()
-  if (!nrow(cat$versions)) {
-    cli::cli_inform(c("v" = "No versions recorded; nothing to prune."))
-    return(invisible(data.frame()))
-  }
+  catalog_path <- .st_catalog_path()
+  lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
-  # Optional path filter → restrict to those artifacts
-  if (!is.null(path)) {
-    want <- .st_norm_path(path)
-    a_keep <- cat$artifacts$path %in% want
-    cat$artifacts <- cat$artifacts[a_keep, , drop = FALSE]
-    if (!nrow(cat$artifacts)) {
-      cli::cli_inform(c(
-        "v" = "No catalog artifacts matched the provided path filter; nothing to prune."
-      ))
-      return(invisible(data.frame()))
+  result <- NULL
+  .st_with_lock(lock_path, {
+    cat <- .st_catalog_read()
+    if (!nrow(cat$versions)) {
+      cli::cli_inform(c("v" = "No versions recorded; nothing to prune."))
+      result <<- invisible(data.frame())
+      return()
     }
-    cat$versions <- cat$versions[
-      cat$versions$artifact_id %in% cat$artifacts$artifact_id,
+
+    # Optional path filter → restrict to those artifacts
+    if (!is.null(path)) {
+      want <- .st_norm_path(path)
+      a_keep <- cat$artifacts$path %in% want
+      cat$artifacts <- cat$artifacts[a_keep, , drop = FALSE]
+      if (!nrow(cat$artifacts)) {
+        cli::cli_inform(c(
+          "v" = "No catalog artifacts matched the provided path filter; nothing to prune."
+        ))
+        result <<- invisible(data.frame())
+        return()
+      }
+      cat$versions <- cat$versions[
+        cat$versions$artifact_id %in% cat$artifacts$artifact_id,
+        ,
+        drop = FALSE
+      ]
+      if (!nrow(cat$versions)) {
+        cli::cli_inform(c(
+          "v" = "No versions exist for the provided path filter; nothing to prune."
+        ))
+        result <<- invisible(data.frame())
+        return()
+      }
+    }
+
+    # Attach artifact paths to versions
+    arts <- cat$artifacts[, c("artifact_id", "path"), drop = FALSE]
+    vers <- merge(
+      cat$versions,
+      arts,
+      by = "artifact_id",
+      all.x = TRUE,
+      sort = FALSE
+    )
+
+    # For safety, ensure creation ordering newest -> oldest
+    ord <- order(vers$created_at, decreasing = TRUE)
+    vers <- vers[ord, , drop = FALSE]
+
+    # Group by artifact and choose which versions to KEEP under policy
+    split_idx <- split(seq_len(nrow(vers)), vers$artifact_id)
+    keep_ids <- character(0)
+
+    # Always keep at least 1 newest per artifact (conservative default)
+    min_keep <- 1L
+
+    for (aid in names(split_idx)) {
+      idx <- split_idx[[aid]]
+      block <- vers[idx, , drop = FALSE]
+
+      # newest -> oldest
+      bord <- order(block$created_at, decreasing = TRUE)
+      block <- block[bord, , drop = FALSE]
+
+      # Compute "keep" set from normalized policy
+      kid <- .st_policy_keep_ids(block, pol)
+
+      # Enforce min_keep (pad with newest if policy returned fewer)
+      if (length(kid) < min_keep && nrow(block) > 0L) {
+        kid <- unique(c(
+          kid,
+          block$version_id[seq_len(min(nrow(block), min_keep))]
+        ))
+      }
+
+      keep_ids <- c(keep_ids, kid)
+    }
+
+    keep_ids <- unique(keep_ids)
+    prune_mask <- !(vers$version_id %in% keep_ids)
+    candidates <- vers[
+      prune_mask,
+      c("artifact_id", "path", "version_id", "created_at", "size_bytes"),
+      drop = FALSE
+    ]
+    names(candidates)[names(candidates) == "path"] <- "artifact_path"
+    candidates <- candidates[
+      order(candidates$artifact_path, candidates$created_at),
       ,
       drop = FALSE
     ]
-    if (!nrow(cat$versions)) {
+
+    if (!nrow(candidates)) {
       cli::cli_inform(c(
-        "v" = "No versions exist for the provided path filter; nothing to prune."
+        "v" = "Retention policy matched zero versions; nothing to prune."
       ))
-      return(invisible(data.frame()))
+      result <<- invisible(candidates)
+      return()
     }
-  }
 
-  # Attach artifact paths to versions
-  arts <- cat$artifacts[, c("artifact_id", "path"), drop = FALSE]
-  vers <- merge(
-    cat$versions,
-    arts,
-    by = "artifact_id",
-    all.x = TRUE,
-    sort = FALSE
-  )
-
-  # For safety, ensure creation ordering newest -> oldest
-  ord <- order(vers$created_at, decreasing = TRUE)
-  vers <- vers[ord, , drop = FALSE]
-
-  # Group by artifact and choose which versions to KEEP under policy
-  split_idx <- split(seq_len(nrow(vers)), vers$artifact_id)
-  keep_ids <- character(0)
-
-  # Always keep at least 1 newest per artifact (conservative default)
-  min_keep <- 1L
-
-  for (aid in names(split_idx)) {
-    idx <- split_idx[[aid]]
-    block <- vers[idx, , drop = FALSE]
-
-    # newest -> oldest
-    bord <- order(block$created_at, decreasing = TRUE)
-    block <- block[bord, , drop = FALSE]
-
-    # Compute "keep" set from normalized policy
-    kid <- .st_policy_keep_ids(block, pol)
-
-    # Enforce min_keep (pad with newest if policy returned fewer)
-    if (length(kid) < min_keep && nrow(block) > 0L) {
-      kid <- unique(c(
-        kid,
-        block$version_id[seq_len(min(nrow(block), min_keep))]
+    if (isTRUE(dry_run)) {
+      total_bytes <- sum(candidates$size_bytes %||% 0, na.rm = TRUE)
+      cli::cli_inform(c(
+        "v" = "DRY RUN: {nrow(candidates)} version{?s} would be pruned across {length(unique(candidates$artifact_id))} artifact{?s}.",
+        " " = sprintf(
+          "Estimated space reclaimed: ~%s",
+          format(structure(total_bytes, class = "object_size"))
+        )
       ))
+      result <<- invisible(candidates)
+      return()
     }
 
-    keep_ids <- c(keep_ids, kid)
-  }
-
-  keep_ids <- unique(keep_ids)
-  prune_mask <- !(vers$version_id %in% keep_ids)
-  candidates <- vers[
-    prune_mask,
-    c("artifact_id", "path", "version_id", "created_at", "size_bytes"),
-    drop = FALSE
-  ]
-  names(candidates)[names(candidates) == "path"] <- "artifact_path"
-  candidates <- candidates[
-    order(candidates$artifact_path, candidates$created_at),
-    ,
-    drop = FALSE
-  ]
-
-  if (!nrow(candidates)) {
-    cli::cli_inform(c(
-      "v" = "Retention policy matched zero versions; nothing to prune."
-    ))
-    return(invisible(candidates))
-  }
-
-  if (isTRUE(dry_run)) {
-    total_bytes <- sum(candidates$size_bytes %||% 0, na.rm = TRUE)
-    cli::cli_inform(c(
-      "v" = "DRY RUN: {nrow(candidates)} version{?s} would be pruned across {length(unique(candidates$artifact_id))} artifact{?s}.",
-      " " = sprintf(
-        "Estimated space reclaimed: ~%s",
-        format(structure(total_bytes, class = "object_size"))
-      )
-    ))
-    return(invisible(candidates))
-  }
-
-  # ---- destructive path (delete snapshots + update catalog) -------------------
-  # Delete version snapshot dirs
-  for (i in seq_len(nrow(candidates))) {
-    a_path <- candidates$artifact_path[[i]]
-    vid <- candidates$version_id[[i]]
-    vdir <- .st_version_dir(a_path, vid)
-    .st_delete_version_dir_safe(vdir)
-  }
-
-  # Remove version rows from catalog
-  keep_mask <- !(cat$versions$version_id %in% candidates$version_id)
-  cat$versions <- cat$versions[keep_mask, , drop = FALSE]
-
-  # Recompute artifacts table (n_versions & latest_version_id)
-  for (aid in unique(candidates$artifact_id)) {
-    v_rows <- cat$versions[cat$versions$artifact_id == aid, , drop = FALSE]
-    a_idx <- which(cat$artifacts$artifact_id == aid)
-    if (!nrow(v_rows)) {
-      # No versions left → drop the artifact row
-      cat$artifacts <- cat$artifacts[-a_idx, , drop = FALSE]
-    } else {
-      ord <- order(v_rows$created_at, decreasing = TRUE)
-      latest_vid <- v_rows$version_id[[ord[1L]]]
-      cat$artifacts$latest_version_id[a_idx] <- latest_vid
-      cat$artifacts$n_versions[a_idx] <- nrow(v_rows)
+    # ---- destructive path (delete snapshots + update catalog) -------------------
+    # Delete version snapshot dirs
+    for (i in seq_len(nrow(candidates))) {
+      a_path <- candidates$artifact_path[[i]]
+      vid <- candidates$version_id[[i]]
+      vdir <- .st_version_dir(a_path, vid)
+      .st_delete_version_dir_safe(vdir)
     }
-  }
 
-  .st_catalog_write(cat)
+    # Remove version rows from catalog
+    keep_mask <- !(cat$versions$version_id %in% candidates$version_id)
+    cat$versions <- cat$versions[keep_mask, , drop = FALSE]
+
+    # Recompute artifacts table (n_versions & latest_version_id)
+    for (aid in unique(candidates$artifact_id)) {
+      v_rows <- cat$versions[cat$versions$artifact_id == aid, , drop = FALSE]
+      a_idx <- which(cat$artifacts$artifact_id == aid)
+      if (!nrow(v_rows)) {
+        # No versions left → drop the artifact row
+        cat$artifacts <- cat$artifacts[-a_idx, , drop = FALSE]
+      } else {
+        ord <- order(v_rows$created_at, decreasing = TRUE)
+        latest_vid <- v_rows$version_id[[ord[1L]]]
+        cat$artifacts$latest_version_id[a_idx] <- latest_vid
+        cat$artifacts$n_versions[a_idx] <- nrow(v_rows)
+      }
+    }
+
+    .st_catalog_write(cat)
+    result <<- invisible(candidates)
+  })
+  return(result)
 
   total_bytes <- sum(candidates$size_bytes %||% 0, na.rm = TRUE)
   cli::cli_inform(c(
@@ -368,7 +381,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 .st_parse_utc_times <- function(chr) {
   suppressWarnings(as.POSIXct(
     chr,
-    format = "%Y-%m-%dT%H:%M:%OSZ",
+    format = "%Y-%m-%dT%H:%M:%SZ",
     tz = "UTC"
   ))
 }
