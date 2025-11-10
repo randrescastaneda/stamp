@@ -34,8 +34,8 @@ st_init(tdir)
 ```
 
     ## ✔ stamp initialized
-    ##   root: /tmp/RtmpqRgzwc/stamp-vignette
-    ##   state: /tmp/RtmpqRgzwc/stamp-vignette/.stamp
+    ##   root: /tmp/RtmpWDd09Q/stamp-vignette
+    ##   state: /tmp/RtmpWDd09Q/stamp-vignette/.stamp
 
 ``` r
 # Inspect created structure
@@ -43,7 +43,7 @@ fs::path(tdir, ".stamp") |>
   fs::dir_tree(recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/RtmpqRgzwc/stamp-vignette/.stamp
+    ## /tmp/RtmpWDd09Q/stamp-vignette/.stamp
     ## ├── logs
     ## └── temp
 
@@ -175,25 +175,25 @@ fs::dir_create(outdir)
 res <- st_save(x, fs::path(outdir, "example.qs2"), metadata = list(description = "toy"))
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpqRgzwc/stamp-output/example.qs2 @ version
-    ##   bf7190f7a945990b
+    ## ✔ Saved [qs2] → /tmp/RtmpWDd09Q/stamp-output/example.qs2 @ version
+    ##   6caba206c152f9e8
 
 ``` r
 res$path
 ```
 
-    ## /tmp/RtmpqRgzwc/stamp-output/example.qs2
+    ## /tmp/RtmpWDd09Q/stamp-output/example.qs2
 
 ``` r
 # load back (format auto-detected)
 y <- st_load(res$path)
 ```
 
-    ## Warning: No primary key recorded for /tmp/RtmpqRgzwc/stamp-output/example.qs2.
+    ## Warning: No primary key recorded for /tmp/RtmpWDd09Q/stamp-output/example.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpqRgzwc/stamp-output/example.qs2
+    ## /tmp/RtmpWDd09Q/stamp-output/example.qs2
 
 ``` r
 identical(x, y)
@@ -223,9 +223,9 @@ str(sc)
 ```
 
     ## List of 11
-    ##  $ path        : chr "/tmp/RtmpqRgzwc/stamp-output/example.qs2"
+    ##  $ path        : chr "/tmp/RtmpWDd09Q/stamp-output/example.qs2"
     ##  $ format      : chr "qs2"
-    ##  $ created_at  : chr "2025-11-10T22:05:08Z"
+    ##  $ created_at  : chr "2025-11-10T22:07:35Z"
     ##  $ size_bytes  : int 214
     ##  $ content_hash: chr "6017305813f9d38e"
     ##  $ code_hash   : NULL
@@ -265,8 +265,8 @@ in_path <- fs::path(outdir, "upstream.qs")
 st_save(data.frame(id=1:3), in_path)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpqRgzwc/stamp-output/upstream.qs @ version
-    ##   9e2e6394f65de58a
+    ## ✔ Saved [qs2] → /tmp/RtmpWDd09Q/stamp-output/upstream.qs @ version
+    ##   ce25db7f3107ca58
 
 ``` r
 in_vid <- st_latest(in_path)
@@ -277,21 +277,21 @@ parents <- list(list(path = in_path, version_id = in_vid))
 st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpqRgzwc/stamp-output/derived.qs @ version
-    ##   3ab4df4e6dd7aec3
+    ## ✔ Saved [qs2] → /tmp/RtmpWDd09Q/stamp-output/derived.qs @ version
+    ##   ebf9f866dc6ce533
 
 ``` r
 st_info(out_path)$sidecar
 ```
 
     ## $path
-    ## [1] "/tmp/RtmpqRgzwc/stamp-output/derived.qs"
+    ## [1] "/tmp/RtmpWDd09Q/stamp-output/derived.qs"
     ## 
     ## $format
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2025-11-10T22:05:08Z"
+    ## [1] "2025-11-10T22:07:35Z"
     ## 
     ## $size_bytes
     ## [1] 217
@@ -310,7 +310,7 @@ st_info(out_path)$sidecar
     ## 
     ## $parents
     ##                                       path       version_id
-    ## 1 /tmp/RtmpqRgzwc/stamp-output/upstream.qs bf7190f7a945990b
+    ## 1 /tmp/RtmpWDd09Q/stamp-output/upstream.qs 6caba206c152f9e8
     ## 
     ## $attrs
     ## list()
@@ -351,11 +351,11 @@ st_add_pk(out_path, keys = c("id"))
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
-    ## Warning: No primary key recorded for /tmp/RtmpqRgzwc/stamp-output/derived.qs.
+    ## Warning: No primary key recorded for /tmp/RtmpWDd09Q/stamp-output/derived.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/RtmpqRgzwc/stamp-output/derived.qs
-    ## ✔ Recorded primary key for /tmp/RtmpqRgzwc/stamp-output/derived.qs --> id
+    ## ✔ Loaded [qs2] ← /tmp/RtmpWDd09Q/stamp-output/derived.qs
+    ## ✔ Recorded primary key for /tmp/RtmpWDd09Q/stamp-output/derived.qs --> id
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
@@ -371,7 +371,7 @@ df <- st_load(out_path)
 ```
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpqRgzwc/stamp-output/derived.qs
+    ## /tmp/RtmpWDd09Q/stamp-output/derived.qs
 
 ``` r
 st_filter(df, list(id = 1))
