@@ -333,6 +333,15 @@ st_load <- function(file, format = NULL, ...) {
     attr(res, "stamp_schema") <- meta$schema
   }
 
+  # Reattach domain if present and not already attached
+  if (
+    !is.null(meta$domain) &&
+      is.data.frame(res) &&
+      is.null(attr(res, "stamp_domain"))
+  ) {
+    attr(res, "stamp_domain") <- meta$domain
+  }
+
   cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.file {sp$path}}"))
   res
 }

@@ -700,12 +700,20 @@ st_lineage <- function(path, depth = 1L) {
 .st_catalog_latest_version_row <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
-  art <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
+  art <- if (inherits(cat$artifacts, "data.table")) {
+    cat$artifacts[cat$artifacts$artifact_id == aid]
+  } else {
+    cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
+  }
   if (!nrow(art)) {
     return(NULL)
   }
   vid <- art$latest_version_id[[1L]]
-  ver <- cat$versions[cat$versions$version_id == vid, , drop = FALSE]
+  ver <- if (inherits(cat$versions, "data.table")) {
+    cat$versions[cat$versions$version_id == vid]
+  } else {
+    cat$versions[cat$versions$version_id == vid, , drop = FALSE]
+  }
   if (!nrow(ver)) {
     return(NULL)
   }

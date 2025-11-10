@@ -126,18 +126,28 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     if (!is.null(path)) {
       want <- .st_norm_path(path)
       a_keep <- cat$artifacts$path %in% want
-      cat$artifacts <- cat$artifacts[a_keep, , drop = FALSE]
+      if (inherits(cat$artifacts, "data.table")) {
+        cat$artifacts <- cat$artifacts[a_keep]
+      } else {
+        cat$artifacts <- cat$artifacts[a_keep, , drop = FALSE]
+      }
       if (!nrow(cat$artifacts)) {
         cli::cli_inform(c(
           "v" = "No catalog artifacts matched the provided path filter; nothing to prune."
         ))
         return(data.frame())
       }
-      cat$versions <- cat$versions[
-        cat$versions$artifact_id %in% cat$artifacts$artifact_id,
-        ,
-        drop = FALSE
-      ]
+      if (inherits(cat$versions, "data.table")) {
+        cat$versions <- cat$versions[
+          cat$versions$artifact_id %in% cat$artifacts$artifact_id
+        ]
+      } else {
+        cat$versions <- cat$versions[
+          cat$versions$artifact_id %in% cat$artifacts$artifact_id,
+          ,
+          drop = FALSE
+        ]
+      }
       if (!nrow(cat$versions)) {
         cli::cli_inform(c(
           "v" = "No versions exist for the provided path filter; nothing to prune."
