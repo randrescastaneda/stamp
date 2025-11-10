@@ -510,41 +510,48 @@ st_lineage <- function(path, depth = 1L) {
     )
   )
 
-  cat <- .st_catalog_read()
+  # Use catalog-level lock to serialize concurrent updates
+  catalog_path <- .st_catalog_path()
+  lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
+  
+  .st_with_lock(lock_path, {
+    cat <- .st_catalog_read()
 
-  # upsert artifact row
-  idx_a <- which(cat$artifacts$artifact_id == aid)
-  if (length(idx_a)) {
-    cat$artifacts$path[idx_a] <- .st_norm_path(artifact_path)
-    cat$artifacts$format[idx_a] <- format
-    cat$artifacts$latest_version_id[idx_a] <- vid
-    cat$artifacts$n_versions[idx_a] <- cat$artifacts$n_versions[idx_a] + 1L
-  } else {
-    new_a <- data.frame(
+    # upsert artifact row
+    idx_a <- which(cat$artifacts$artifact_id == aid)
+    if (length(idx_a)) {
+      cat$artifacts$path[idx_a] <- .st_norm_path(artifact_path)
+      cat$artifacts$format[idx_a] <- format
+      cat$artifacts$latest_version_id[idx_a] <- vid
+      cat$artifacts$n_versions[idx_a] <- cat$artifacts$n_versions[idx_a] + 1L
+    } else {
+      new_a <- data.frame(
+        artifact_id = aid,
+        path = .st_norm_path(artifact_path),
+        format = format,
+        latest_version_id = vid,
+        n_versions = 1L,
+        stringsAsFactors = FALSE
+      )
+      cat$artifacts <- rbind(cat$artifacts, new_a)
+    }
+
+    # append version row
+    new_v <- data.frame(
+      version_id = vid,
       artifact_id = aid,
-      path = .st_norm_path(artifact_path),
-      format = format,
-      latest_version_id = vid,
-      n_versions = 1L,
+      content_hash = content_hash %||% NA_character_,
+      code_hash = code_hash %||% NA_character_,
+      size_bytes = as.numeric(size_bytes),
+      created_at = created_at,
+      sidecar_format = sidecar_format,
       stringsAsFactors = FALSE
     )
-    cat$artifacts <- rbind(cat$artifacts, new_a)
-  }
+    cat$versions <- rbind(cat$versions, new_v)
 
-  # append version row
-  new_v <- data.frame(
-    version_id = vid,
-    artifact_id = aid,
-    content_hash = content_hash %||% NA_character_,
-    code_hash = code_hash %||% NA_character_,
-    size_bytes = as.numeric(size_bytes),
-    created_at = created_at,
-    sidecar_format = sidecar_format,
-    stringsAsFactors = FALSE
-  )
-  cat$versions <- rbind(cat$versions, new_v)
-
-  .st_catalog_write(cat)
+    .st_catalog_write(cat)
+  })
+  
   vid
 }
 
