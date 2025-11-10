@@ -73,3 +73,12 @@ reference:
       - st_is_stale
       - st_info
       - st_filter
+
+
+articles:
+- title: Basics
+  contents:
+  - 01.Setup & Basics
+  - 02.Hashing, Change Detection & Versions
+  - 03.Lineage & Rebuilds
+  - 04.Version Retention, Pruning, and Table Metadata
