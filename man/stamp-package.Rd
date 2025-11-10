@@ -4,15 +4,15 @@
 \name{stamp-package}
 \alias{stamp}
 \alias{stamp-package}
-\title{stamp: Read and Write R Objects with Data Hash}
+\title{stamp: Reproducible Artifact Store with Sidecars, Versions, and Partitions}
 \description{
-A system to manage the reading and writing R objects in disk by creating and saving data signatures (hash).
+Stamp saves R objects with sidecar metadata (hashes, provenance, PKs), keeps version history, prunes old versions, and supports Hive-style partitions.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/randrescastaneda/stamp}
   \item \url{https://randrescastaneda.github.io/stamp/}
+  \item \url{https://github.com/randrescastaneda/stamp}
   \item Report bugs at \url{https://github.com/randrescastaneda/stamp/issues}
 }
 
