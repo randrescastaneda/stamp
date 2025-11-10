@@ -4,7 +4,7 @@
 \name{stamp-package}
 \alias{stamp}
 \alias{stamp-package}
-\title{stamp: "Reproducible Artifact Store with Sidecars, Versions, and Partitions"}
+\title{stamp: Reproducible Artifact Store with Sidecars, Versions, and Partitions}
 \description{
 Stamp saves R objects with sidecar metadata (hashes, provenance, PKs), keeps version history, prunes old versions, and supports Hive-style partitions.
 }

@@ -24,6 +24,14 @@
 }
 
 # Root/state helpers -----------------------------------------------------------
+#' Get the version directory for the latest version of an artifact (internal)
+#'
+#' Returns the absolute path to the version directory for the latest version of the artifact at `path`.
+#' If no version exists, returns NA_character_.
+#'
+#' @param path Character path to the artifact file.
+#' @return Character scalar path to the version directory, or NA_character_ if not found.
+#' @keywords internal
 
 #' Project root directory recorded by st_init() (internal)
 #'
@@ -37,6 +45,15 @@
 }
 
 # Absolute state dir: <root>/<state_dir>
+#' Get canonical artifact path from artifact_id (internal)
+#'
+#' Returns the current canonical path for the artifact identified by `artifact_id` from the catalog.
+#' If not found, returns NA_character_.
+#'
+#' @param aid Character artifact_id.
+#' @param cat Optional catalog list (if NULL, reads from disk).
+#' @return Character scalar path, or NA_character_ if not found.
+#' @keywords internal
 #' Absolute state directory path (internal)
 #'
 #' Compute the absolute path to the package state directory. This is
@@ -68,6 +85,30 @@
 #' Compute the version directory path for `artifact_path` and `version_id`
 #' under <root>/<state_dir>/versions. We store snapshots under the *relative*
 #' artifact path from root; if the artifact is outside the root, we fall back
+#' to a collision-free identifier based on the artifact's unique ID.
+#'
+#' @param artifact_path Path to the artifact file.
+#' @param version_id Version identifier (character).
+#' @return Character scalar path to the version directory.
+#' @keywords internal
+.st_version_dir <- function(artifact_path, version_id) {
+  ap_abs <- .st_norm_path(artifact_path)
+  rd <- .st_root_dir()
+
+  rel <- tryCatch(
+    as.character(fs::path_rel(ap_abs, start = rd)),
+    error = function(e) NULL
+  )
+  
+  if (is.null(rel) || identical(rel, ".") || !nzchar(rel)) {
+    # Use artifact ID (hash of absolute path) to ensure collision-free storage
+    aid <- .st_artifact_id(ap_abs)
+    basename <- fs::path_file(ap_abs)
+    rel <- fs::path("external", paste0(substr(aid, 1, 8), "-", basename))
+  }
+
+  fs::path(.st_versions_root(), rel, version_id)
+}
 #' to the artifact's basename to avoid exploding the versions tree.
 #'
 #' @param artifact_path Path to the artifact file.
@@ -489,6 +530,21 @@ st_lineage <- function(path, depth = 1L) {
 }
 
 #' Record a new version in the catalog (internal)
+#' @keywords internal
+#' Record a new version in the catalog (internal)
+#'
+#' Adds a new version row to the catalog for the given artifact, updating the artifact's
+#' latest version id and incrementing its version count. Uses a catalog-level lock to
+#' serialize concurrent updates. Returns the computed version id.
+#'
+#' @param artifact_path Character path to the artifact file.
+#' @param format Character format name (e.g. "rds", "qs2").
+#' @param size_bytes Numeric size of the artifact in bytes.
+#' @param content_hash Character content hash of the artifact.
+#' @param code_hash Character code hash (if available).
+#' @param created_at Character ISO8601 timestamp of creation.
+#' @param sidecar_format Character sidecar format present ("json", "qs2", "both", "none").
+#' @return Character version id (SipHash of artifact id, hashes, timestamp).
 #' @keywords internal
 .st_catalog_record_version <- function(
   artifact_path,

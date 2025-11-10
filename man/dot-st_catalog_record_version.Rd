@@ -14,7 +14,56 @@
   sidecar_format
 )
 }
+\arguments{
+\item{artifact_path}{Character path to the artifact file.}
+
+\item{format}{Character format name (e.g. "rds", "qs2").}
+
+\item{size_bytes}{Numeric size of the artifact in bytes.}
+
+\item{content_hash}{Character content hash of the artifact.}
+
+\item{code_hash}{Character code hash (if available).}
+
+\item{created_at}{Character ISO8601 timestamp of creation.}
+
+\item{sidecar_format}{Character sidecar format present ("json", "qs2", "both", "none").}
+}
+\value{
+Character version id (SipHash of artifact id, hashes, timestamp).
+}
 \description{
 Record a new version in the catalog (internal)
 }
+\keyword{(internal)}
+\keyword{Adds}
+\keyword{Record}
+\keyword{Returns}
+\keyword{Uses}
+\keyword{a}
+\keyword{and}
+\keyword{artifact's}
+\keyword{artifact,}
+\keyword{catalog}
+\keyword{catalog-level}
+\keyword{computed}
+\keyword{concurrent}
+\keyword{count.}
+\keyword{for}
+\keyword{given}
+\keyword{id}
+\keyword{id.}
+\keyword{in}
+\keyword{incrementing}
 \keyword{internal}
+\keyword{its}
+\keyword{latest}
+\keyword{lock}
+\keyword{new}
+\keyword{row}
+\keyword{serialize}
+\keyword{the}
+\keyword{to}
+\keyword{updates.}
+\keyword{updating}
+\keyword{version}

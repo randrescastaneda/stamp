@@ -2,16 +2,49 @@
 % Please edit documentation in R/version_store.R
 \name{.st_state_dir_abs}
 \alias{.st_state_dir_abs}
-\title{Absolute state directory path (internal)}
+\title{Get canonical artifact path from artifact_id (internal)}
 \usage{
 .st_state_dir_abs()
 }
+\arguments{
+\item{aid}{Character artifact_id.}
+
+\item{cat}{Optional catalog list (if NULL, reads from disk).}
+}
 \value{
+Character scalar path, or NA_character_ if not found.
+
 Character scalar absolute path to the state directory.
 }
 \description{
-Compute the absolute path to the package state directory. This is
-constructed as \if{html}{\out{<root>}}/<state_dir> where \code{root} is from
-\code{st_init()} and \code{state_dir} is an option stored in the package state.
+Returns the current canonical path for the artifact identified by \code{artifact_id} from the catalog.
+If not found, returns NA_character_.
 }
+\keyword{(internal)}
+\keyword{<root>/<state_dir>}
+\keyword{Absolute}
+\keyword{Compute}
+\keyword{This}
+\keyword{`root`}
+\keyword{`st_init()`}
+\keyword{`state_dir`}
+\keyword{absolute}
+\keyword{an}
+\keyword{and}
+\keyword{as}
+\keyword{constructed}
+\keyword{directory}
+\keyword{directory.}
+\keyword{from}
+\keyword{in}
 \keyword{internal}
+\keyword{is}
+\keyword{option}
+\keyword{package}
+\keyword{path}
+\keyword{state}
+\keyword{state.}
+\keyword{stored}
+\keyword{the}
+\keyword{to}
+\keyword{where}
