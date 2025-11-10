@@ -70,9 +70,12 @@
 #'
 #' @param artifact_path Path to the artifact file.
 #' @param version_id Version identifier (character).
-#' @return Character scalar path to the version directory.
+#' @return Character scalar path to the version directory, or NA if version_id is NA/empty.
 #' @keywords internal
 .st_version_dir <- function(artifact_path, version_id) {
+  if (is.na(version_id) || !length(version_id) || !nzchar(version_id)) {
+    return(NA_character_)
+  }
   ap_abs <- .st_norm_path(artifact_path)
   rd <- .st_root_dir()
 
@@ -212,21 +215,89 @@
 st_versions <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
-  ver <- if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
-    data.table::as.data.table(cat$versions)
-  } else {
-    cat$versions
+
+  ver <- cat$versions
+  was_dt <- FALSE
+  if (inherits(ver, "data.table")) {
+    was_dt <- TRUE
+    ver <- as.data.frame(ver, stringsAsFactors = FALSE)
   }
 
-  if (inherits(ver, "data.table")) {
-    out <- ver[ver$artifact_id == aid]
-  } else {
-    out <- ver[ver$artifact_id == aid, , drop = FALSE]
+  # Required columns
+  required_cols <- c(
+    "version_id",
+    "artifact_id",
+    "content_hash",
+    "code_hash",
+    "size_bytes",
+    "created_at",
+    "sidecar_format"
+  )
+  missing <- setdiff(required_cols, names(ver))
+  if (length(missing)) {
+    cat_path <- .st_catalog_path()
+    cli::cli_abort(c(
+      "Catalog schema mismatch in versions table.",
+      "x" = "Missing columns: {toString(missing)}",
+      "i" = "Delete the catalog file and recreate by calling st_save():",
+      " " = "{.file {cat_path}}"
+    ))
   }
-  if (nrow(out) == 0L) {
+
+  out <- ver[ver$artifact_id == aid, , drop = FALSE]
+  if (!nrow(out)) {
+    if (was_dt && requireNamespace("data.table", quietly = TRUE)) {
+      return(data.table::as.data.table(out))
+    }
     return(out)
   }
-  out[order(out$created_at, decreasing = TRUE), , drop = FALSE]
+
+  # Coerce created_at robustly ------------------------------------------------
+  ca <- out$created_at
+  if (is.list(ca)) {
+    ca <- vapply(
+      ca,
+      function(x) {
+        if (is.null(x) || !length(x)) {
+          return(NA_character_)
+        }
+        # Common corruption pattern: list of length 1 containing scalar
+        as.character(if (is.list(x) && length(x) == 1L) x[[1L]] else x)
+      },
+      character(1L)
+    )
+  } else {
+    ca <- as.character(ca)
+  }
+  # Drop rows with NA/empty created_at (corrupt entries)
+  keep <- !is.na(ca) & nzchar(ca)
+  if (!all(keep)) {
+    dropped <- sum(!keep)
+    cli::cli_warn(c(
+      "Dropped {dropped} corrupt version row{?s} with invalid created_at.",
+      "i" = "Recreate versions if needed; catalog retained."
+    ))
+    out <- out[keep, , drop = FALSE]
+    ca <- ca[keep]
+  }
+  if (!nrow(out)) {
+    # Everything was corrupt; return empty table
+    out$created_at <- character()
+    if (was_dt && requireNamespace("data.table", quietly = TRUE)) {
+      return(data.table::as.data.table(out))
+    }
+    return(out)
+  }
+  out$created_at <- ca
+
+  # Deterministic ordering: created_at desc then version_id desc
+  ord <- order(out$created_at, out$version_id, decreasing = TRUE)
+  out <- out[ord, , drop = FALSE]
+
+  if (was_dt && requireNamespace("data.table", quietly = TRUE)) {
+    out <- data.table::as.data.table(out)
+  }
+  out
 }
 
 #' Get the latest version_id for an artifact path
@@ -243,7 +314,12 @@ st_latest <- function(path) {
   if (nrow(art) == 0L) {
     return(NA_character_)
   }
-  art$latest_version_id[[1L]]
+  # Defensive: ensure we return a length-1 character or NA
+  v <- art$latest_version_id[[1L]]
+  if (is.null(v) || !length(v) || is.na(v) || !nzchar(as.character(v))) {
+    return(NA_character_)
+  }
+  as.character(v)
 }
 
 
@@ -449,10 +525,14 @@ st_lineage <- function(path, depth = 1L) {
 
 .st_version_dir_latest <- function(path) {
   vid <- st_latest(path)
-  if (is.na(vid) || !nzchar(vid)) {
+  # vid may be NA or empty; guard accordingly
+  if (is.null(vid) || is.na(vid) || !nzchar(as.character(vid))) {
     return(NA_character_)
   }
-  vdir <- .st_version_dir(path, vid)
+  vdir <- .st_version_dir(path, as.character(vid))
+  if (is.na(vdir) || !nzchar(vdir)) {
+    return(NA_character_)
+  }
   if (fs::dir_exists(vdir)) vdir else NA_character_
 }
 
@@ -572,44 +652,33 @@ st_lineage <- function(path, depth = 1L) {
     )
   )
 
-  # Use catalog-level lock to serialize concurrent updates
   catalog_path <- .st_catalog_path()
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
   .st_with_lock(lock_path, {
     cat <- .st_catalog_read()
 
-    # upsert artifact row
-    idx_a <- which(cat$artifacts$artifact_id == aid)
-    if (length(idx_a)) {
-      cat$artifacts$path[idx_a] <- .st_norm_path(artifact_path)
-      cat$artifacts$format[idx_a] <- format
-      cat$artifacts$latest_version_id[idx_a] <- vid
-      cat$artifacts$n_versions[idx_a] <- cat$artifacts$n_versions[idx_a] + 1L
-    } else {
-      new_a <- data.frame(
-        artifact_id = aid,
-        path = .st_norm_path(artifact_path),
-        format = format,
-        latest_version_id = vid,
-        n_versions = 1L,
-        stringsAsFactors = FALSE
-      )
-      cat$artifacts <- rbind(cat$artifacts, new_a)
-    }
+    # Upsert artifact row using helper
+    cat <- .st_catalog_upsert_artifact(
+      cat,
+      artifact_id = aid,
+      path = artifact_path,
+      format = format,
+      latest_version_id = vid
+    )
 
-    # append version row
+    # Append version row using helper (ensures consistent coercion)
     new_v <- data.frame(
       version_id = vid,
       artifact_id = aid,
       content_hash = content_hash %||% NA_character_,
       code_hash = code_hash %||% NA_character_,
       size_bytes = as.numeric(size_bytes),
-      created_at = created_at,
+      created_at = as.character(created_at),
       sidecar_format = sidecar_format,
       stringsAsFactors = FALSE
     )
-    cat$versions <- rbind(cat$versions, new_v)
+    cat <- .st_catalog_append_version(cat, new_v)
 
     .st_catalog_write(cat)
   })

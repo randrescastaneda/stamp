@@ -1,8 +1,8 @@
 ---
-title: "03.Lineage & Rebuilds"
+title: "03. Lineage & Rebuilds"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Lineage & Rebuilds}
+  %\VignetteIndexEntry{03. Lineage & Rebuilds}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

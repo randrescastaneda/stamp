@@ -12,7 +12,7 @@
 \item{version_id}{Version identifier (character).}
 }
 \value{
-Character scalar path to the version directory.
+Character scalar path to the version directory, or NA if version_id is NA/empty.
 }
 \description{
 Compute the version directory path for \code{artifact_path} and \code{version_id}

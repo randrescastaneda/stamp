@@ -49,7 +49,10 @@ Key APIs:
 ## Minimal project scaffold (temp)
 
 ```{r}
-root <- tempdir()
+root <- fs::path(tempdir(), "stamp-retention-example")
+if (fs::dir_exists(root)) {
+  fs::dir_delete(root)
+}
 st_init(root)
 ```
 
