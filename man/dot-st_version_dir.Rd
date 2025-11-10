@@ -5,8 +5,6 @@
 \title{Version directory for an artifact (internal)}
 \usage{
 .st_version_dir(artifact_path, version_id)
-
-.st_version_dir(artifact_path, version_id)
 }
 \arguments{
 \item{artifact_path}{Path to the artifact file.}
@@ -14,8 +12,6 @@
 \item{version_id}{Version identifier (character).}
 }
 \value{
-Character scalar path to the version directory.
-
 Character scalar path to the version directory.
 }
 \description{

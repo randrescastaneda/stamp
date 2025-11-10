@@ -90,28 +90,6 @@
 
   fs::path(.st_versions_root(), rel, version_id)
 }
-#' to the artifact's basename to avoid exploding the versions tree.
-#'
-#' @param artifact_path Path to the artifact file.
-#' @param version_id Version identifier (character).
-#' @return Character scalar path to the version directory.
-#' @keywords internal
-.st_version_dir <- function(artifact_path, version_id) {
-  ap_abs <- .st_norm_path(artifact_path)
-  rd <- .st_root_dir()
-
-  rel <- tryCatch(
-    as.character(fs::path_rel(ap_abs, start = rd)),
-    error = function(e) NULL
-  )
-  if (is.null(rel) || identical(rel, ".") || !nzchar(rel)) {
-    aid <- .st_artifact_id(ap_abs)
-    basename <- fs::path_file(ap_abs)
-    rel <- fs::path("external", paste0(substr(aid, 1, 8), "-", basename))
-  }
-
-  fs::path(.st_versions_root(), rel, version_id)
-}
 
 # Catalog paths & IO -----------------------------------------------------------
 

@@ -5,11 +5,15 @@ template:
   bslib:
     pkgdown-nav-height: 56px
 
+development:
+  mode: auto
+
 home:
   title: stamp
-  description: Simple, opinionated disk I/O that your functions can rely on.
+  description: Simple, opinionated disk I/O for data processing hashing.
 
 navbar:
+  title: stamp
   structure:
     left:  [reference, articles]
     right: [search, github]
@@ -18,15 +22,6 @@ navbar:
       icon: fa-github
       href: https://github.com/randrescastaneda/stamp
 
-      articles:
-        index:
-          title: "Articles"
-          contents:
-            - setup-and-basics
-            - hashing-and-versions
-            - lineage-rebuilds
-            - version_retention_prune
-reference:
 reference:
   - title: "Core I/O"
     contents:
