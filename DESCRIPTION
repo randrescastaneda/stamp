@@ -20,9 +20,9 @@ Imports:
     rlang (>= 1.0.6),
     secretbase,
     jsonlite,
+    data.table (>= 1.14.6),
     utils
 Suggests:
-    data.table (>= 1.14.6),
     qs2,
     qs (>= 0.25.4),
     arrow (>= 10.0.0),
