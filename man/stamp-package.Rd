@@ -11,8 +11,8 @@ Stamp saves R objects with sidecar metadata (hashes, provenance, PKs), keeps ver
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/randrescastaneda/stamp}
   \item \url{https://randrescastaneda.github.io/stamp/}
+  \item \url{https://github.com/randrescastaneda/stamp}
   \item Report bugs at \url{https://github.com/randrescastaneda/stamp/issues}
 }
 

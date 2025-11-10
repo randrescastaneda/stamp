@@ -2,41 +2,15 @@
 % Please edit documentation in R/version_store.R
 \name{.st_root_dir}
 \alias{.st_root_dir}
-\title{Get the version directory for the latest version of an artifact (internal)}
+\title{Project root directory recorded by st_init() (internal)}
 \usage{
 .st_root_dir()
 }
-\arguments{
-\item{path}{Character path to the artifact file.}
-}
 \value{
-Character scalar path to the version directory, or NA_character_ if not found.
-
 Character scalar absolute path to project root.
 }
 \description{
-Returns the absolute path to the version directory for the latest version of the artifact at \code{path}.
-If no version exists, returns NA_character_.
+Return the absolute project root directory previously recorded by
+\code{st_init()}. If not set, defaults to the current working directory.
 }
-\keyword{(internal)}
-\keyword{If}
-\keyword{Project}
-\keyword{Return}
-\keyword{`st_init()`.}
-\keyword{absolute}
-\keyword{by}
-\keyword{current}
-\keyword{defaults}
-\keyword{directory}
-\keyword{directory.}
 \keyword{internal}
-\keyword{not}
-\keyword{previously}
-\keyword{project}
-\keyword{recorded}
-\keyword{root}
-\keyword{set,}
-\keyword{st_init()}
-\keyword{the}
-\keyword{to}
-\keyword{working}
