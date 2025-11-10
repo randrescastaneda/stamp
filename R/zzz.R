@@ -39,7 +39,7 @@
     # prefix all names with "stamp."
     onames <- paste0("stamp.", names(vals))
     names(vals) <- onames
-    old <- getOption(NULL)
+    old <- options()
     # only set missing keys to avoid clobbering user/session overrides
     to_set <- !(onames %in% names(old))
     if (any(to_set)) do.call(options, vals[to_set])
@@ -77,3 +77,4 @@
   }
   invisible()
 }
+

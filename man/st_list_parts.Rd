@@ -14,7 +14,7 @@ st_list_parts(base, filter = NULL, recursive = TRUE)
 \item{recursive}{Logical; search subdirs (default TRUE)}
 }
 \value{
-A data.frame with columns: path, \if{html}{\out{<key columns...>}}
+A data.frame with columns: path plus one column per partition key
 }
 \description{
 List available partitions under a base directory

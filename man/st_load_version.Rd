@@ -7,12 +7,30 @@
 st_load_version(path, version_id, ...)
 }
 \arguments{
-\item{path}{file or directory path}
+\item{path}{Character path to the artifact (same value used with \code{st_save}/\code{st_load}).}
 
-\item{version_id}{Optional version id of \code{path} to match. Default: any.}
+\item{version_id}{Character version identifier (as returned by \code{st_save} or present in the catalog).}
 
-\item{...}{forwarded to format reader}
+\item{...}{Additional arguments forwarded to the format's read function (e.g. \code{read} options).}
+}
+\value{
+The object produced by the format-specific read handler (typically an R object loaded from disk).
 }
 \description{
-Load a specific version of an artifact
+Load a previously committed snapshot for an artifact identified by
+\code{path} and \code{version_id}. The artifact file for the requested version is
+read from the version snapshot directory using the format-specific
+read handler registered in the package. This is useful for inspecting or
+restoring historical versions of artifacts.
+}
+\details{
+The function will abort if the requested version snapshot does not
+exist or if there is no registered format handler for the artifact's
+format.
+}
+\examples{
+\dontrun{
+# load a historical version of a dataset
+old <- st_load_version("data/cleaned.rds", "20250101T000000Z-abcdef01")
+}
 }

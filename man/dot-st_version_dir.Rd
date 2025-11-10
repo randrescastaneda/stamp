@@ -5,6 +5,8 @@
 \title{Version directory for an artifact (internal)}
 \usage{
 .st_version_dir(artifact_path, version_id)
+
+.st_version_dir(artifact_path, version_id)
 }
 \arguments{
 \item{artifact_path}{Path to the artifact file.}
@@ -13,11 +15,13 @@
 }
 \value{
 Character scalar path to the version directory.
+
+Character scalar path to the version directory.
 }
 \description{
 Compute the version directory path for \code{artifact_path} and \code{version_id}
 under \if{html}{\out{<root>}}/<state_dir>/versions. We store snapshots under the \emph{relative}
 artifact path from root; if the artifact is outside the root, we fall back
-to the artifact's basename to avoid exploding the versions tree.
+to a collision-free identifier based on the artifact's unique ID.
 }
 \keyword{internal}

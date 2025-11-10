@@ -72,13 +72,20 @@
 #' - **Getter**: `st_opts(.get = TRUE)` returns a named list of all options
 #' - **Single getter**: `st_opts("meta_format", .get = TRUE)` returns one value
 #'
-#' Valid keys (see defaults in `aaa.R`): `meta_format`, `versioning`, `code_hash`,
-#' `store_file_hash`, `verify_on_load`, `default_format`, `verbose`, `timezone`,
-#' `timeformat`, `usetz`.
+#' Valid keys (defined in \code{.stamp_default_opts} in \code{R/aaa.R}):
+#' \code{meta_format}, \code{versioning}, \code{force_on_code_change},
+#' \code{retain_versions}, \code{code_hash}, \code{store_file_hash},
+#' \code{verify_on_load}, \code{default_format}, \code{verbose},
+#' \code{timezone}, \code{timeformat}, \code{usetz},
+#' \code{require_pk_on_load}, \code{warn_missing_pk_on_load}.
+#'
+#' For a single authoritative source of truth, see \code{.stamp_default_opts} in
+#' \code{R/aaa.R}; changes to that object determine the set of supported keys.
 #'
 #' @param ... Named pairs for setting options; or a single character key when `.get = TRUE`.
 #' @param .get Logical. If `TRUE`, performs a read instead of a write.
 #' @return For setters, `invisible(NULL)`. For getters, the requested value(s).
+#' @seealso \code{st_opts_reset()}, \code{.stamp_default_opts}
 #' @export
 st_opts <- function(..., .get = FALSE) {
   args <- rlang::list2(...)

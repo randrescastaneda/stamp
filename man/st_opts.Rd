@@ -22,7 +22,16 @@ For setters, \code{invisible(NULL)}. For getters, the requested value(s).
 }
 }
 \details{
-Valid keys (see defaults in \code{aaa.R}): \code{meta_format}, \code{versioning}, \code{code_hash},
-\code{store_file_hash}, \code{verify_on_load}, \code{default_format}, \code{verbose}, \code{timezone},
-\code{timeformat}, \code{usetz}.
+Valid keys (defined in \code{.stamp_default_opts} in \code{R/aaa.R}):
+\code{meta_format}, \code{versioning}, \code{force_on_code_change},
+\code{retain_versions}, \code{code_hash}, \code{store_file_hash},
+\code{verify_on_load}, \code{default_format}, \code{verbose},
+\code{timezone}, \code{timeformat}, \code{usetz},
+\code{require_pk_on_load}, \code{warn_missing_pk_on_load}.
+
+For a single authoritative source of truth, see \code{.stamp_default_opts} in
+\code{R/aaa.R}; changes to that object determine the set of supported keys.
+}
+\seealso{
+\code{st_opts_reset()}, \code{.stamp_default_opts}
 }

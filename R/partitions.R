@@ -147,7 +147,7 @@ st_save_part <- function(
 #' @param base Base dir
 #' @param filter Named list to restrict partitions (exact match on key fields)
 #' @param recursive Logical; search subdirs (default TRUE)
-#' @return A data.frame with columns: path, <key columns...>
+#' @return A data.frame with columns: path plus one column per partition key
 #' @export
 st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   stopifnot(is.character(base), length(base) == 1L)

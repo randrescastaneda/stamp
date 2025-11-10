@@ -34,7 +34,6 @@ st_hash_code <- function(code) {
   } else {
     txt <- paste(as.character(code), collapse = "\n")
   }
-  }
   # light normalization
   txt <- gsub("[ \t]+", " ", txt)
   txt <- gsub("\r\n?", "\n", txt, perl = TRUE)

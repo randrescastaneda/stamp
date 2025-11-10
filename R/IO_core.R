@@ -1,9 +1,4 @@
-#' stamp: Milestone 2 — I/O + hashing (qs2-first), cli+fs only
-#' Depends: cli, fs, jsonlite, secretbase (and optionally qs2, qs, fst, data.table)
-#' Exports: st_init, st_path, st_register_format, st_formats, st_save, st_load
-
 # ---- st_init -----------------------------------------------------------------
-
 #' Initialize stamp project structure
 #' @param root project root (default ".")
 #' @param state_dir directory name for internal state (default ".stamp")

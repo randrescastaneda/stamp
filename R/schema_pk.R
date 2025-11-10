@@ -111,6 +111,11 @@ st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
 
   # Optionally validate against the *current* on-disk content
   if (isTRUE(validate)) {
+    # Temporarily disable PK requirement to allow loading artifacts without PK metadata
+    old_require_pk <- st_opts("require_pk_on_load")
+    on.exit(st_opts("require_pk_on_load" = old_require_pk), add = TRUE)
+    st_opts("require_pk_on_load" = FALSE)
+    
     obj <- st_load(path)  # uses your existing readers
     # ensure columns exist (and uniqueness if requested)
     invisible(st_pk(obj, keys = keys, validate = TRUE, check_unique = check_unique))
