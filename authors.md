@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/randrescastaneda/stamp/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/randrescastaneda/stamp/blob/v0.0.2/DESCRIPTION)
 
 Castaneda R (2025). *stamp: Reproducible Artifact Store with Sidecars,
 Versions, and Partitions*. R package version 0.0.2,
