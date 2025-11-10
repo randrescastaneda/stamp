@@ -9,6 +9,21 @@ st_versions(path)
 \arguments{
 \item{path}{file or directory path}
 }
+\value{
+A \code{data.frame} or \code{data.table} with columns:
+\item{version_id}{Character version identifier.}
+\item{artifact_id}{Character artifact identifier (hashed).}
+\item{content_hash}{Character content hash for the version (may be NA).}
+\item{code_hash}{Character code hash for the version (may be NA).}
+\item{size_bytes}{Numeric size of the stored artifact in bytes.}
+\item{created_at}{Character ISO8601 timestamp when the version was recorded.}
+\item{sidecar_format}{Character sidecar format present: "json", "qs2", "both", or "none".}
+An empty table is returned when no versions exist for the given path.
+}
 \description{
-List versions for an artifact path
+Return a table of recorded versions for the artifact identified by
+\code{path} from the catalog. When \code{data.table} is available the result is a
+\code{data.table}; otherwise a base \code{data.frame} is returned. The table contains
+one row per recorded version with the columns described below. Rows are
+ordered by \code{created_at} descending.
 }

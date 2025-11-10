@@ -99,7 +99,7 @@
     as.character(fs::path_rel(ap_abs, start = rd)),
     error = function(e) NULL
   )
-  
+
   if (is.null(rel) || identical(rel, ".") || !nzchar(rel)) {
     # Use artifact ID (hash of absolute path) to ensure collision-free storage
     aid <- .st_artifact_id(ap_abs)
@@ -120,9 +120,14 @@
   rd <- .st_root_dir()
 
   rel <- tryCatch(
-    fs::path_rel(ap_abs, start = rd),
-    error = function(e) fs::path_file(ap_abs)
+    as.character(fs::path_rel(ap_abs, start = rd)),
+    error = function(e) NULL
   )
+  if (is.null(rel) || identical(rel, ".") || !nzchar(rel)) {
+    aid <- .st_artifact_id(ap_abs)
+    basename <- fs::path_file(ap_abs)
+    rel <- fs::path("external", paste0(substr(aid, 1, 8), "-", basename))
+  }
 
   fs::path(.st_versions_root(), rel, version_id)
 }
@@ -227,7 +232,23 @@
 # Public API -------------------------------------------------------------------
 
 #' List versions for an artifact path
+#'
+#' Return a table of recorded versions for the artifact identified by
+#' `path` from the catalog. When `data.table` is available the result is a
+#' `data.table`; otherwise a base `data.frame` is returned. The table contains
+#' one row per recorded version with the columns described below. Rows are
+#' ordered by `created_at` descending.
+#'
 #' @inheritParams st_path
+#' @return A `data.frame` or `data.table` with columns:
+#'   \item{version_id}{Character version identifier.}
+#'   \item{artifact_id}{Character artifact identifier (hashed).}
+#'   \item{content_hash}{Character content hash for the version (may be NA).}
+#'   \item{code_hash}{Character code hash for the version (may be NA).}
+#'   \item{size_bytes}{Numeric size of the stored artifact in bytes.}
+#'   \item{created_at}{Character ISO8601 timestamp when the version was recorded.}
+#'   \item{sidecar_format}{Character sidecar format present: "json", "qs2", "both", or "none".}
+#' An empty table is returned when no versions exist for the given path.
 #' @export
 st_versions <- function(path) {
   aid <- .st_artifact_id(path)
@@ -586,7 +607,7 @@ st_lineage <- function(path, depth = 1L) {
   # Use catalog-level lock to serialize concurrent updates
   catalog_path <- .st_catalog_path()
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
-  
+
   .st_with_lock(lock_path, {
     cat <- .st_catalog_read()
 
@@ -624,7 +645,7 @@ st_lineage <- function(path, depth = 1L) {
 
     .st_catalog_write(cat)
   })
-  
+
   vid
 }
 

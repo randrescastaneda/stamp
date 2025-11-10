@@ -37,9 +37,7 @@
 #'   - adjusts each artifact’s `n_versions` and `latest_version_id`
 #'     (to the newest remaining version), or drops the artifact row if none remain.
 #'
-#' **Scope.** If supported in your build (e.g., you added a `path = NULL`
-#' parameter), you can restrict pruning to a single artifact by passing its path.
-#' Otherwise, pruning considers all artifacts recorded in the catalog.
+#' **Scope.** You can restrict pruning to specific artifacts by supplying their paths via the `path` argument. By default (`path = NULL`), pruning considers all artifacts recorded in the catalog. If you provide one or more artifact paths, only versions associated with those artifacts are considered for pruning.
 #'
 #' **Integration with writes.** If you set a default policy via
 #' `st_opts(retain_versions = <policy>)`, internal helpers may apply pruning

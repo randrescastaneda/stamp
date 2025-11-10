@@ -57,9 +57,7 @@ reports what \emph{would} be pruned (and estimates reclaimed space). With
 (to the newest remaining version), or drops the artifact row if none remain.
 }
 
-\strong{Scope.} If supported in your build (e.g., you added a \code{path = NULL}
-parameter), you can restrict pruning to a single artifact by passing its path.
-Otherwise, pruning considers all artifacts recorded in the catalog.
+\strong{Scope.} You can restrict pruning to specific artifacts by supplying their paths via the \code{path} argument. By default (\code{path = NULL}), pruning considers all artifacts recorded in the catalog. If you provide one or more artifact paths, only versions associated with those artifacts are considered for pruning.
 
 \strong{Integration with writes.} If you set a default policy via
 \verb{st_opts(retain_versions = <policy>)}, internal helpers may apply pruning
