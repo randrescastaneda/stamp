@@ -9,7 +9,6 @@ vignette: >
 
 ```{r setup}
 # Use development build when interactive *and* explicitly enabled via env var.
-dev_mode <- interactive() && (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 
 if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {

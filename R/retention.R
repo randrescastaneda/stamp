@@ -117,6 +117,43 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 
   result <- .st_with_lock(lock_path, {
     cat <- .st_catalog_read()
+    # Normalize tables to plain data.frame to avoid data.table j/by/drop conflicts
+    art_was_dt <- inherits(cat$artifacts, "data.table")
+    ver_was_dt <- inherits(cat$versions, "data.table")
+    if (art_was_dt) {
+      cat$artifacts <- as.data.frame(cat$artifacts, stringsAsFactors = FALSE)
+    }
+    if (ver_was_dt) {
+      cat$versions <- as.data.frame(cat$versions, stringsAsFactors = FALSE)
+    }
+
+    # Schema guards
+    req_art <- c(
+      "artifact_id",
+      "path",
+      "format",
+      "latest_version_id",
+      "n_versions"
+    )
+    req_ver <- c(
+      "version_id",
+      "artifact_id",
+      "content_hash",
+      "code_hash",
+      "size_bytes",
+      "created_at",
+      "sidecar_format"
+    )
+    if (!all(req_art %in% names(cat$artifacts))) {
+      cli::cli_abort(
+        "Catalog artifacts table missing required columns: {toString(setdiff(req_art, names(cat$artifacts)))}"
+      )
+    }
+    if (!all(req_ver %in% names(cat$versions))) {
+      cli::cli_abort(
+        "Catalog versions table missing required columns: {toString(setdiff(req_ver, names(cat$versions)))}"
+      )
+    }
     if (!nrow(cat$versions)) {
       cli::cli_inform(c("v" = "No versions recorded; nothing to prune."))
       return(data.frame())
@@ -156,7 +193,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
       }
     }
 
-    # Attach artifact paths to versions
+    # Attach artifact paths to versions (data.table safe subset)
     arts <- cat$artifacts[, c("artifact_id", "path"), drop = FALSE]
     vers <- merge(
       cat$versions,
@@ -262,6 +299,13 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
       }
     }
 
+    # Optionally convert back to data.table for persistence consistency
+    if (art_was_dt && requireNamespace("data.table", quietly = TRUE)) {
+      cat$artifacts <- data.table::as.data.table(cat$artifacts)
+    }
+    if (ver_was_dt && requireNamespace("data.table", quietly = TRUE)) {
+      cat$versions <- data.table::as.data.table(cat$versions)
+    }
     .st_catalog_write(cat)
     candidates
   })
