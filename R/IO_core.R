@@ -462,12 +462,17 @@ st_should_save <- function(path, x = NULL, code = NULL) {
     normalizePath(path, winslash = "/", mustWork = FALSE),
     ".lock"
   )
+  # Evaluate the provided expression in the caller's environment so that
+  # assignments using `<<-` inside the block affect variables in the
+  # calling function (important for code that captures results by
+  # side-effect, e.g. `result <<- ...` inside a lock block).
+  eval_env <- parent.frame()
   if (requireNamespace("filelock", quietly = TRUE)) {
     dir.create(dirname(lockfile), recursive = TRUE, showWarnings = FALSE)
     lock <- filelock::lock(lockfile, timeout = 5000) # 5s
     on.exit(try(filelock::unlock(lock), silent = TRUE), add = TRUE)
-    force(expr)
+    eval(substitute(expr), envir = eval_env)
   } else {
-    force(expr) # advisory fallback
+    eval(substitute(expr), envir = eval_env) # advisory fallback
   }
 }

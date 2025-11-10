@@ -115,13 +115,11 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
   catalog_path <- .st_catalog_path()
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
-  result <- NULL
-  .st_with_lock(lock_path, {
+  result <- .st_with_lock(lock_path, {
     cat <- .st_catalog_read()
     if (!nrow(cat$versions)) {
       cli::cli_inform(c("v" = "No versions recorded; nothing to prune."))
-      result <<- invisible(data.frame())
-      return()
+      return(data.frame())
     }
 
     # Optional path filter → restrict to those artifacts
@@ -133,8 +131,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
         cli::cli_inform(c(
           "v" = "No catalog artifacts matched the provided path filter; nothing to prune."
         ))
-        result <<- invisible(data.frame())
-        return()
+        return(data.frame())
       }
       cat$versions <- cat$versions[
         cat$versions$artifact_id %in% cat$artifacts$artifact_id,
@@ -145,8 +142,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
         cli::cli_inform(c(
           "v" = "No versions exist for the provided path filter; nothing to prune."
         ))
-        result <<- invisible(data.frame())
-        return()
+        return(data.frame())
       }
     }
 
@@ -211,8 +207,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
       cli::cli_inform(c(
         "v" = "Retention policy matched zero versions; nothing to prune."
       ))
-      result <<- invisible(candidates)
-      return()
+      return(candidates)
     }
 
     if (isTRUE(dry_run)) {
@@ -224,8 +219,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
           format(structure(total_bytes, class = "object_size"))
         )
       ))
-      result <<- invisible(candidates)
-      return()
+      return(candidates)
     }
 
     # ---- destructive path (delete snapshots + update catalog) -------------------
@@ -257,19 +251,10 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     }
 
     .st_catalog_write(cat)
-    result <<- invisible(candidates)
+    candidates
   })
-  return(result)
 
-  total_bytes <- sum(candidates$size_bytes %||% 0, na.rm = TRUE)
-  cli::cli_inform(c(
-    "v" = "Pruned {nrow(candidates)} version{?s} across {length(unique(candidates$artifact_id))} artifact{?s}.",
-    " " = sprintf(
-      "Space reclaimed (est.): ~%s",
-      format(structure(total_bytes, class = "object_size"))
-    )
-  ))
-  invisible(candidates)
+  invisible(result)
 }
 
 # ---- Internals ---------------------------------------------------------------

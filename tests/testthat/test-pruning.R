@@ -11,6 +11,8 @@ test_that("st_prune_versions dry-run reports candidates and apply prunes", {
   st_save(x, pA, code = function(z) z)
   st_save(transform(x, a = a + 1L), pA, code = function(z) z)
   st_save(transform(x, a = a + 2L), pA, code = function(z) z)
+  # Confirm that three versions exist before pruning
+  expect_true(nrow(st_versions(pA)) == 3)
 
   # Dry run keep latest 1 -> should list 2 candidates to prune
   res <- st_prune_versions(path = pA, policy = 1, dry_run = TRUE)
