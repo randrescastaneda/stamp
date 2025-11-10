@@ -16,18 +16,17 @@ navbar:
   components:
     github:
       icon: fa-github
-        href: https://github.com/randrescastaneda/stamp
+      href: https://github.com/randrescastaneda/stamp
 
-      articles:
-        index:
-          title: "Articles"
-          contents:
-        - setup-and-basics
-        - hashing-and-versions
-        - lineage-rebuilds
-        - stamp
-        - version_retention_prune
-
+articles:
+  index:
+    title: "Articles"
+    contents:
+      - setup-and-basics
+      - hashing-and-versions
+      - lineage-rebuilds
+      - stamp
+      - version_retention_prune
 
 reference:
   - title: "Core I/O"

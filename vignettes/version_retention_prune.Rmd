@@ -1,5 +1,5 @@
 ---
-title: "04. Version Retention, Pruning, and Table Metadata"
+title: "04.Version Retention, Pruning, and Table Metadata"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Version Retention, Pruning, and Table Metadata}

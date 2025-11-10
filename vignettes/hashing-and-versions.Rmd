@@ -1,3 +1,4 @@
+---
 title: "02.Hashing, Change Detection & Versions"
 output: rmarkdown::html_vignette
 vignette: >
@@ -12,7 +13,11 @@ dev_mode <- interactive() && (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 
 if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
-  pkgload::load_all(export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+  pkgload::load_all(
+    export_all = FALSE,
+    helpers = FALSE,
+    attach_testthat = FALSE
+  )
 } else {
   # fall back to the installed package (the path CRAN, CI, and pkgdown take)
   library(stamp)
@@ -34,11 +39,11 @@ The core idea: stamp computes stable, reproducible hashes for objects and (optio
 ```{r}
 st_opts_reset()
 st_opts(
-  versioning      = "content",  # skip write when content unchanged
-  code_hash       = TRUE,       # store code hash when 'code=' is provided to st_save()
-  store_file_hash = TRUE,       # compute & store file hash after write
-  verify_on_load  = TRUE,       # verify content on load (warn on mismatch)
-  meta_format     = "both"      # write JSON + QS2 sidecars
+  versioning = "content", # skip write when content unchanged
+  code_hash = TRUE, # store code hash when 'code=' is provided to st_save()
+  store_file_hash = TRUE, # compute & store file hash after write
+  verify_on_load = TRUE, # verify content on load (warn on mismatch)
+  meta_format = "both" # write JSON + QS2 sidecars
 )
 ```
 
@@ -56,7 +61,7 @@ st_save(x, p, code = function(z) z)
 
 # Second write, same content & same code: skipped (no new version)
 st_save(x, p, code = function(z) z)
-nrow(st_versions(p))  # should be 1
+nrow(st_versions(p)) # should be 1
 ```
 
 In the snippet above stamp serializes `x` in a deterministic way and computes a content hash. If both the content hash and (when provided) the code hash match the stored metadata, no new version is created when `versioning = "content"`.
@@ -68,8 +73,8 @@ If you **change content** (or **change the code**), a new version is recorded:
 ```{r}
 x2 <- transform(x, a = a + 1L)
 st_save(x2, p, code = function(z) z)
-nrow(st_versions(p))  # now 2
-st_latest(p)          # latest version id (string)
+nrow(st_versions(p)) # now 2
+st_latest(p) # latest version id (string)
 ```
 
 > **Policy:** By design, changing the `code=` you pass to `st_save()` creates a new version even if `x` is identical. This makes code provenance explicit.
@@ -83,7 +88,14 @@ A short practical pattern:
 
 ```{r}
 meta <- st_read_sidecar(p)
-meta[c("format", "created_at", "size_bytes", "content_hash", "code_hash", "file_hash")]
+meta[c(
+  "format",
+  "created_at",
+  "size_bytes",
+  "content_hash",
+  "code_hash",
+  "file_hash"
+)]
 ```
 
 Explanation:
@@ -102,16 +114,16 @@ Use these **before** doing expensive work, to decide whether to recompute.
 
 ```{r}
 x_same <- x2
-x_new  <- transform(x2, a = a + 10L)
+x_new <- transform(x2, a = a + 10L)
 
 st_changed(p, x = x_same, code = function(z) z)
-st_changed_reason(p, x = x_same, code = function(z) z)   # "no_change"
+st_changed_reason(p, x = x_same, code = function(z) z) # "no_change"
 
 st_changed(p, x = x_new, code = function(z) z)
-st_changed_reason(p, x = x_new, code = function(z) z)    # "content"
+st_changed_reason(p, x = x_new, code = function(z) z) # "content"
 
-st_should_save(p, x = x_same, code = function(z) z)      # recommends skip
-st_should_save(p, x = x_new,  code = function(z) z)      # recommends save
+st_should_save(p, x = x_same, code = function(z) z) # recommends skip
+st_should_save(p, x = x_new, code = function(z) z) # recommends save
 ```
 
 When you call `st_changed()` or `st_changed_reason()` you avoid performing any file writes. These helpers are ideal as guards inside functions that compute expensive results only when necessary:
@@ -174,7 +186,7 @@ Additionally each snapshot may include a `parents.json` file capturing committed
 If `verify_on_load = TRUE` and a `content_hash` exists in the sidecar, `st_load()` recomputes the object’s hash and warns if it differs (indicating the file changed outside **stamp**).
 
 ```{r}
-invisible(st_load(p))  # triggers optional verify; warns on mismatch
+invisible(st_load(p)) # triggers optional verify; warns on mismatch
 ```
 
 If `verify_on_load = TRUE`, `st_load()` recomputes `st_hash_obj()` and compares it to the `content_hash` recorded in the sidecar or snapshot. A mismatch usually means the file was modified outside of stamp and re-saving is recommended.

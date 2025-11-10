@@ -22,13 +22,17 @@ st_pk <- function(x = NULL, keys, validate = TRUE, check_unique = FALSE) {
   keys <- unique(as.character(keys))
 
   if (!is.null(x)) {
-    if (!is.data.frame(x)) cli::cli_abort(".arg x must be a data.frame when provided.")
+    if (!is.data.frame(x)) {
+      cli::cli_abort(".arg x must be a data.frame when provided.")
+    }
     missing <- setdiff(keys, names(x))
     if (validate && length(missing)) {
-      cli::cli_abort("pk refers to columns not in data: {paste(missing, collapse=', ')}")
+      cli::cli_abort(
+        "pk refers to columns not in data: {paste(missing, collapse=', ')}"
+      )
     }
     if (validate && isTRUE(check_unique)) {
-      dup <- any(duplicated(x[ keys ]))
+      dup <- any(duplicated(x[keys]))
       if (dup) {
         cli::cli_abort("pk is not unique over the provided data.")
       }
@@ -69,7 +73,9 @@ st_get_pk <- function(x_or_meta) {
   } else if (is.list(x_or_meta)) {
     # prefer explicit pk, fall back to legacy fields if you ever add them later
     x_or_meta$pk %||% NULL
-  } else NULL
+  } else {
+    NULL
+  }
 
   if (is.list(pk) && length(pk$keys)) pk$keys else character(0)
 }
@@ -84,7 +90,9 @@ st_get_pk <- function(x_or_meta) {
 #' @export
 st_inspect_pk <- function(path) {
   meta <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
-  if (is.null(meta)) return(character(0))
+  if (is.null(meta)) {
+    return(character(0))
+  }
   st_get_pk(meta)
 }
 
@@ -112,21 +120,34 @@ st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
   # Optionally validate against the *current* on-disk content
   if (isTRUE(validate)) {
     # Temporarily disable PK requirement to allow loading artifacts without PK metadata
-    old_require_pk <- st_opts("require_pk_on_load")
+    old_require_pk <- st_opts("require_pk_on_load", .get = TRUE)
     on.exit(st_opts("require_pk_on_load" = old_require_pk), add = TRUE)
     st_opts("require_pk_on_load" = FALSE)
-    
-    obj <- st_load(path)  # uses your existing readers
+
+    obj <- st_load(path) # uses your existing readers
     # ensure columns exist (and uniqueness if requested)
-    invisible(st_pk(obj, keys = keys, validate = TRUE, check_unique = check_unique))
+    invisible(st_pk(
+      obj,
+      keys = keys,
+      validate = TRUE,
+      check_unique = check_unique
+    ))
   }
 
-  meta <- tryCatch(st_read_sidecar(path), error = function(e) list(), finally = NULL)
-  if (!is.list(meta)) meta <- list()
+  meta <- tryCatch(
+    st_read_sidecar(path),
+    error = function(e) list(),
+    finally = NULL
+  )
+  if (!is.list(meta)) {
+    meta <- list()
+  }
   meta$pk <- list(keys = unique(as.character(keys)))
 
   .st_write_sidecar(path, meta)
-  cli::cli_inform(c("v" = "Recorded primary key for {.file {path}} --> {paste(meta$pk$keys, collapse=', ')}"))
+  cli::cli_inform(c(
+    "v" = "Recorded primary key for {.file {path}} --> {paste(meta$pk$keys, collapse=', ')}"
+  ))
   invisible(meta$pk$keys)
 }
 
@@ -143,7 +164,9 @@ st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
 #' @export
 st_filter <- function(df, filters = list(), strict = TRUE) {
   stopifnot(is.data.frame(df))
-  if (!length(filters)) return(df)
+  if (!length(filters)) {
+    return(df)
+  }
 
   if (isTRUE(strict)) {
     unknown <- setdiff(names(filters), names(df))
@@ -154,7 +177,9 @@ st_filter <- function(df, filters = list(), strict = TRUE) {
 
   out <- df
   for (nm in names(filters)) {
-    if (!nm %in% names(out)) next
+    if (!nm %in% names(out)) {
+      next
+    }
     val <- filters[[nm]]
     out <- out[out[[nm]] %in% val, , drop = FALSE]
   }
@@ -180,10 +205,14 @@ st_set_pk <- function(x, pk, domain = NULL, unique = TRUE) {
 st_assert_pk <- function(x) {
   stopifnot(is.data.frame(x))
   pk <- attr(x, "stamp_pk", exact = TRUE)
-  if (is.null(pk) || !length(pk$keys)) return(invisible(TRUE))
+  if (is.null(pk) || !length(pk$keys)) {
+    return(invisible(TRUE))
+  }
   missing <- setdiff(pk$keys, names(x))
   if (length(missing)) {
-    cli::cli_abort("Recorded pk refers to missing columns: {paste(missing, collapse=', ')}")
+    cli::cli_abort(
+      "Recorded pk refers to missing columns: {paste(missing, collapse=', ')}"
+    )
   }
   invisible(TRUE)
 }
