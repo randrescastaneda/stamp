@@ -78,7 +78,7 @@ reference:
 articles:
 - title: Basics
   contents:
-  - 01.Setup & Basics
-  - 02.Hashing, Change Detection & Versions
-  - 03.Lineage & Rebuilds
-  - 04.Version Retention, Pruning, and Table Metadata
+  - Setup & Basics
+  - Hashing, Change Detection & Versions
+  - Lineage & Rebuilds
+  - Version Retention, Pruning, and Table Metadata

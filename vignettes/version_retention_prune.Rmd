@@ -1,8 +1,8 @@
 ---
-title: "04.Version Retention, Pruning, and Table Metadata"
+title: "Version Retention, Pruning, and Table Metadata"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{04.Version Retention, Pruning, and Table Metadata}
+  %\VignetteIndexEntry{Version Retention, Pruning, and Table Metadata}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
