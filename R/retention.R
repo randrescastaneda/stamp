@@ -368,7 +368,11 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 #' Parse UTC timestamp strings (internal)
 #' @keywords internal
 .st_parse_utc_times <- function(chr) {
-  suppressWarnings(as.POSIXct(chr, tz = "UTC"))
+  suppressWarnings(as.POSIXct(
+    chr,
+    format = "%Y-%m-%dT%H:%M:%OSZ",
+    tz = "UTC"
+  ))
 }
 
 #' Safely delete a version directory (internal)

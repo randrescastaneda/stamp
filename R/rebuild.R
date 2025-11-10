@@ -485,7 +485,11 @@ st_plan_rebuild <- function(
       }
     }
 
-    frontier <- unique(next_candidates)
+    new_frontier <- setdiff(unique(next_candidates), planned_paths)
+    if (length(new_frontier) == 0L) {
+      break
+    }
+    frontier <- new_frontier
     level <- level + 1L
   }
 

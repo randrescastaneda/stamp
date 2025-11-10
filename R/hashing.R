@@ -24,14 +24,16 @@ st_hash_obj <- function(x) {
 #' @keywords internal
 st_hash_code <- function(code) {
   if (is.function(code)) {
+    fml <- formals(code)
     txt <- c(
-      paste0("formals:", paste0(names(formals(code)), collapse = ",")),
+      paste(deparse(fml), collapse = "\n"),
       paste(deparse(body(code)), collapse = "\n")
     )
   } else if (is.language(code)) {
     txt <- paste(deparse(code), collapse = "\n")
   } else {
     txt <- paste(as.character(code), collapse = "\n")
+  }
   }
   # light normalization
   txt <- gsub("[ \t]+", " ", txt)
