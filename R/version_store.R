@@ -24,15 +24,6 @@
 }
 
 # Root/state helpers -----------------------------------------------------------
-#' Get the version directory for the latest version of an artifact (internal)
-#'
-#' Returns the absolute path to the version directory for the latest version of the artifact at `path`.
-#' If no version exists, returns NA_character_.
-#'
-#' @param path Character path to the artifact file.
-#' @return Character scalar path to the version directory, or NA_character_ if not found.
-#' @keywords internal
-
 #' Project root directory recorded by st_init() (internal)
 #'
 #' Return the absolute project root directory previously recorded by
@@ -44,16 +35,6 @@
   st_state_get("root_dir", fs::path_abs("."))
 }
 
-# Absolute state dir: <root>/<state_dir>
-#' Get canonical artifact path from artifact_id (internal)
-#'
-#' Returns the current canonical path for the artifact identified by `artifact_id` from the catalog.
-#' If not found, returns NA_character_.
-#'
-#' @param aid Character artifact_id.
-#' @param cat Optional catalog list (if NULL, reads from disk).
-#' @return Character scalar path, or NA_character_ if not found.
-#' @keywords internal
 #' Absolute state directory path (internal)
 #'
 #' Compute the absolute path to the package state directory. This is
