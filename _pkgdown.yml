@@ -18,23 +18,63 @@ navbar:
       icon: fa-github
       href: https://github.com/randrescastaneda/stamp
 
-articles:
-  index:
-    title: "Articles"
-    contents:
-      - setup-and-basics
-      - hashing-and-versions
-      - lineage-rebuilds
-      - stamp
-      - version_retention_prune
-
+      articles:
+        index:
+          title: "Articles"
+          contents:
+            - setup-and-basics
+            - hashing-and-versions
+            - lineage-rebuilds
+            - version_retention_prune
+reference:
 reference:
   - title: "Core I/O"
     contents:
       - st_init
       - st_opts
+      - st_opts_get
+      - st_opts_reset
       - st_path
+      - st_part_path
+      - st_list_parts
       - st_formats
       - st_register_format
       - st_save
+      - st_save_part
       - st_load
+      - st_load_parts
+      - st_load_version
+
+  - title: "Versioning & Catalog"
+    contents:
+      - st_versions
+      - st_latest
+      - st_prune_versions
+      - st_rebuild
+      - st_plan_rebuild
+
+  - title: "Lineage & Builders"
+    contents:
+      - st_children
+      - st_lineage
+      - st_builders
+      - st_register_builder
+      - st_clear_builders
+
+  - title: "Metadata & PKs"
+    contents:
+      - st_read_sidecar
+      - st_inspect_pk
+      - st_add_pk
+      - st_get_pk
+      - st_pk
+      - st_with_pk
+
+  - title: "Helpers"
+    contents:
+      - st_changed
+      - st_changed_reason
+      - st_should_save
+      - st_is_stale
+      - st_info
+      - st_filter
