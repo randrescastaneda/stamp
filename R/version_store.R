@@ -218,7 +218,11 @@ st_versions <- function(path) {
     cat$versions
   }
 
-  out <- ver[ver$artifact_id == aid, , drop = FALSE]
+  if (inherits(ver, "data.table")) {
+    out <- ver[ver$artifact_id == aid]
+  } else {
+    out <- ver[ver$artifact_id == aid, , drop = FALSE]
+  }
   if (nrow(out) == 0L) {
     return(out)
   }
@@ -231,11 +235,16 @@ st_versions <- function(path) {
 st_latest <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
-  art <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
+  art <- if (inherits(cat$artifacts, "data.table")) {
+    cat$artifacts[cat$artifacts$artifact_id == aid]
+  } else {
+    cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
+  }
   if (nrow(art) == 0L) {
     return(NA_character_)
   }
   art$latest_version_id[[1L]]
+}
 }
 
 #' Load a specific version of an artifact
