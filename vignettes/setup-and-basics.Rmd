@@ -1,8 +1,8 @@
 ---
-title: "Setup & Basics"
+title: "Setup and Basics"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Setup & Basics}
+  %\VignetteIndexEntry{Setup and Basics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
