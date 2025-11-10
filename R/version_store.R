@@ -245,7 +245,7 @@ st_latest <- function(path) {
   }
   art$latest_version_id[[1L]]
 }
-}
+
 
 #' Load a specific version of an artifact
 #'
