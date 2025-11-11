@@ -116,16 +116,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
   result <- .st_with_lock(lock_path, {
-    cat <- .st_catalog_read()
-    # Normalize tables to plain data.frame to avoid data.table j/by/drop conflicts
-    art_was_dt <- inherits(cat$artifacts, "data.table")
-    ver_was_dt <- inherits(cat$versions, "data.table")
-    if (art_was_dt) {
-      cat$artifacts <- as.data.frame(cat$artifacts, stringsAsFactors = FALSE)
-    }
-    if (ver_was_dt) {
-      cat$versions <- as.data.frame(cat$versions, stringsAsFactors = FALSE)
-    }
+    cat <- .st_catalog_read() # already data.table invariant
 
     # Schema guards
     req_art <- c(
@@ -163,28 +154,14 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     if (!is.null(path)) {
       want <- .st_norm_path(path)
       a_keep <- cat$artifacts$path %in% want
-      if (inherits(cat$artifacts, "data.table")) {
-        cat$artifacts <- cat$artifacts[a_keep]
-      } else {
-        cat$artifacts <- cat$artifacts[a_keep, , drop = FALSE]
-      }
+      cat$artifacts <- cat$artifacts[a_keep]
       if (!nrow(cat$artifacts)) {
         cli::cli_inform(c(
           "v" = "No catalog artifacts matched the provided path filter; nothing to prune."
         ))
         return(data.frame())
       }
-      if (inherits(cat$versions, "data.table")) {
-        cat$versions <- cat$versions[
-          cat$versions$artifact_id %in% cat$artifacts$artifact_id
-        ]
-      } else {
-        cat$versions <- cat$versions[
-          cat$versions$artifact_id %in% cat$artifacts$artifact_id,
-          ,
-          drop = FALSE
-        ]
-      }
+      cat$versions <- cat$versions[artifact_id %in% cat$artifacts$artifact_id]
       if (!nrow(cat$versions)) {
         cli::cli_inform(c(
           "v" = "No versions exist for the provided path filter; nothing to prune."
@@ -194,7 +171,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     }
 
     # Attach artifact paths to versions (data.table safe subset)
-    arts <- cat$artifacts[, c("artifact_id", "path"), drop = FALSE]
+    arts <- cat$artifacts[, .(artifact_id, path)]
     vers <- merge(
       cat$versions,
       arts,
@@ -242,15 +219,9 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     prune_mask <- !(vers$version_id %in% keep_ids)
     candidates <- vers[
       prune_mask,
-      c("artifact_id", "path", "version_id", "created_at", "size_bytes"),
-      drop = FALSE
+      .(artifact_id, artifact_path = path, version_id, created_at, size_bytes)
     ]
-    names(candidates)[names(candidates) == "path"] <- "artifact_path"
-    candidates <- candidates[
-      order(candidates$artifact_path, candidates$created_at),
-      ,
-      drop = FALSE
-    ]
+    setorder(candidates, artifact_path, created_at)
 
     if (!nrow(candidates)) {
       cli::cli_inform(c(
@@ -282,15 +253,15 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 
     # Remove version rows from catalog
     keep_mask <- !(cat$versions$version_id %in% candidates$version_id)
-    cat$versions <- cat$versions[keep_mask, , drop = FALSE]
+    cat$versions <- cat$versions[keep_mask]
 
     # Recompute artifacts table (n_versions & latest_version_id)
     for (aid in unique(candidates$artifact_id)) {
-      v_rows <- cat$versions[cat$versions$artifact_id == aid, , drop = FALSE]
+      v_rows <- cat$versions[artifact_id == aid]
       a_idx <- which(cat$artifacts$artifact_id == aid)
       if (!nrow(v_rows)) {
         # No versions left → drop the artifact row
-        cat$artifacts <- cat$artifacts[-a_idx, , drop = FALSE]
+        cat$artifacts <- cat$artifacts[-a_idx]
       } else {
         ord <- order(v_rows$created_at, decreasing = TRUE)
         latest_vid <- v_rows$version_id[[ord[1L]]]
@@ -300,12 +271,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     }
 
     # Optionally convert back to data.table for persistence consistency
-    if (art_was_dt && requireNamespace("data.table", quietly = TRUE)) {
-      cat$artifacts <- data.table::as.data.table(cat$artifacts)
-    }
-    if (ver_was_dt && requireNamespace("data.table", quietly = TRUE)) {
-      cat$versions <- data.table::as.data.table(cat$versions)
-    }
+    # Already data.table invariant
     .st_catalog_write(cat)
     candidates
   })
