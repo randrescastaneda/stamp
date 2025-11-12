@@ -34,6 +34,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Get started</h6></li>
+    <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Basics</h6></li>
     <li><a class="dropdown-item" href="../articles/setup-and-basics.html">Setup and Basics</a></li>
     <li><a class="dropdown-item" href="../articles/hashing-and-versions.html">Hashing, Change Detection and Versions</a></li>
@@ -42,8 +44,6 @@
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
     <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
       </ul>
@@ -129,21 +129,21 @@ workflows.</p>
 <code class="sourceCode R"><span><span class="va">root</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">root</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
-<span><span class="co">##   root: /tmp/RtmpVOUwOr</span></span>
-<span><span class="co">##   state: /tmp/RtmpVOUwOr/.stamp</span></span></code></pre>
+<span><span class="co">##   root: /tmp/RtmpKWkwxB</span></span>
+<span><span class="co">##   state: /tmp/RtmpKWkwxB/.stamp</span></span></code></pre>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"demo.qs"</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># First write: creates artifact + sidecars + catalog entry</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpVOUwOr/demo.qs</span> @</span></span>
-<span><span class="co">## version <span style="color: #00BB00;">e6371986ac92c42a</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpKWkwxB/demo.qs</span> @</span></span>
+<span><span class="co">## version <span style="color: #00BB00;">fff7089746ed03f7</span></span></span></code></pre>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Second write, same content &amp; same code: skipped (no new version)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Skip save (reason: <span style="color: #00BB00;">no_change_policy</span>) for</span></span>
-<span><span class="co">## <span style="color: #0000BB;">/tmp/RtmpVOUwOr/demo.qs</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #0000BB;">/tmp/RtmpKWkwxB/demo.qs</span></span></span></code></pre>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="co"># should be 1</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 1</span></span></code></pre>
@@ -159,14 +159,14 @@ code</strong>), a new version is recorded:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">x</span>, a <span class="op">=</span> <span class="va">a</span> <span class="op">+</span> <span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x2</span>, <span class="va">p</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpVOUwOr/demo.qs</span> @</span></span>
-<span><span class="co">## version <span style="color: #00BB00;">3f2de5755627c0ea</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpKWkwxB/demo.qs</span> @</span></span>
+<span><span class="co">## version <span style="color: #00BB00;">3e078463ed6562b3</span></span></span></code></pre>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="co"># now 2</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 2</span></span></code></pre>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="co"># latest version id (string)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "3f2de5755627c0ea"</span></span></code></pre>
+<pre><code><span><span class="co">## [1] "3e078463ed6562b3"</span></span></code></pre>
 <blockquote>
 <p><strong>Policy:</strong> By design, changing the <code>code=</code>
 you pass to <code><a href="../reference/st_save.html">st_save()</a></code> creates a new version even if
@@ -199,7 +199,7 @@ cheaply decide whether to run expensive computations before calling
 <span><span class="co">## [1] "qs2"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $created_at</span></span>
-<span><span class="co">## [1] "2025-11-12T22:34:02Z"</span></span>
+<span><span class="co">## [1] "2025-11-12T22:40:52Z"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $size_bytes</span></span>
 <span><span class="co">## [1] 154</span></span>
@@ -312,25 +312,25 @@ expensive results only when necessary:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">vids</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##          version_id      artifact_id     content_hash        code_hash</span></span>
 <span><span class="co">##              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">## 1: e6371986ac92c42a 6ed612f82ae44d2b d73e0bf1cb9d8dc5 488e8fa49c740261</span></span>
-<span><span class="co">## 2: 3f2de5755627c0ea 6ed612f82ae44d2b f05f2ec030741db5 488e8fa49c740261</span></span>
+<span><span class="co">## 1: fff7089746ed03f7 021114398027458d d73e0bf1cb9d8dc5 488e8fa49c740261</span></span>
+<span><span class="co">## 2: 3e078463ed6562b3 021114398027458d f05f2ec030741db5 488e8fa49c740261</span></span>
 <span><span class="co">##    size_bytes           created_at sidecar_format</span></span>
 <span><span class="co">##         &lt;num&gt;               &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">## 1:        201 2025-11-12T22:34:02Z           both</span></span>
-<span><span class="co">## 2:        154 2025-11-12T22:34:02Z           both</span></span></code></pre>
+<span><span class="co">## 1:        201 2025-11-12T22:40:52Z           both</span></span>
+<span><span class="co">## 2:        154 2025-11-12T22:40:52Z           both</span></span></code></pre>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vid_latest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="va">obj_latest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load_version.html">st_load_version</a></span><span class="op">(</span><span class="va">p</span>, <span class="va">vid_latest</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">/tmp/RtmpVOUwOr/demo.qs</span> @</span></span>
-<span><span class="co">## <span style="color: #00BB00;">3f2de5755627c0ea</span> [<span style="color: #00BB00;">qs2</span>]</span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">/tmp/RtmpKWkwxB/demo.qs</span> @</span></span>
+<span><span class="co">## <span style="color: #00BB00;">3e078463ed6562b3</span> [<span style="color: #00BB00;">qs2</span>]</span></span></code></pre>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load an older version by id</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">vids</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1L</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">vid_old</span> <span class="op">&lt;-</span> <span class="va">vids</span><span class="op">$</span><span class="va">version_id</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">vids</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span>  <span class="va">obj_old</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load_version.html">st_load_version</a></span><span class="op">(</span><span class="va">p</span>, <span class="va">vid_old</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">/tmp/RtmpVOUwOr/demo.qs</span> @</span></span>
-<span><span class="co">## <span style="color: #00BB00;">3f2de5755627c0ea</span> [<span style="color: #00BB00;">qs2</span>]</span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">/tmp/RtmpKWkwxB/demo.qs</span> @</span></span>
+<span><span class="co">## <span style="color: #00BB00;">3e078463ed6562b3</span> [<span style="color: #00BB00;">qs2</span>]</span></span></code></pre>
 <p><code><a href="../reference/st_versions.html">st_versions()</a></code> returns a table of version metadata. Each
 row includes the <code>version_id</code>, <code>created_at</code>, and a
 snapshot of sidecar fields available at commit time. Use
@@ -347,23 +347,23 @@ version.</p>
 <span></span>
 <span><span class="co"># Write once to create a version snapshot</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpVOUwOr/demo.qs</span> @</span></span>
-<span><span class="co">## version <span style="color: #00BB00;">1d54d6cee2fc5b98</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpKWkwxB/demo.qs</span> @</span></span>
+<span><span class="co">## version <span style="color: #00BB00;">1f7fe232d6401150</span></span></span></code></pre>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Now list the versions tree</span></span>
 <span><span class="va">vroot</span> <span class="op">&lt;-</span> <span class="fu">stamp</span><span class="fu">:::</span><span class="fu"><a href="../reference/dot-st_versions_root.html">.st_versions_root</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">vroot</span>, recurse <span class="op">=</span> <span class="cn">TRUE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpVOUwOr/.stamp/versions</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpKWkwxB/.stamp/versions</span></span></span>
 <span><span class="co">## └── <span style="color: #0000BB; font-weight: bold;">demo.qs</span></span></span>
-<span><span class="co">##     ├── <span style="color: #0000BB; font-weight: bold;">1d54d6cee2fc5b98</span></span></span>
+<span><span class="co">##     ├── <span style="color: #0000BB; font-weight: bold;">1f7fe232d6401150</span></span></span>
 <span><span class="co">##     │   ├── artifact</span></span>
 <span><span class="co">##     │   ├── sidecar.json</span></span>
 <span><span class="co">##     │   └── sidecar.qs2</span></span>
-<span><span class="co">##     ├── <span style="color: #0000BB; font-weight: bold;">3f2de5755627c0ea</span></span></span>
+<span><span class="co">##     ├── <span style="color: #0000BB; font-weight: bold;">3e078463ed6562b3</span></span></span>
 <span><span class="co">##     │   ├── artifact</span></span>
 <span><span class="co">##     │   ├── sidecar.json</span></span>
 <span><span class="co">##     │   └── sidecar.qs2</span></span>
-<span><span class="co">##     └── <span style="color: #0000BB; font-weight: bold;">e6371986ac92c42a</span></span></span>
+<span><span class="co">##     └── <span style="color: #0000BB; font-weight: bold;">fff7089746ed03f7</span></span></span>
 <span><span class="co">##         ├── artifact</span></span>
 <span><span class="co">##         ├── sidecar.json</span></span>
 <span><span class="co">##         └── sidecar.qs2</span></span></code></pre>
@@ -392,9 +392,9 @@ hash and warns if it differs (indicating the file changed outside
 <strong>stamp</strong>).</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="co"># triggers optional verify; warns on mismatch</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpVOUwOr/demo.qs</span>.</span></span>
+<pre><code><span><span class="co">## Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpKWkwxB/demo.qs</span>.</span></span>
 <span><span class="co">## <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span></span></code></pre>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpVOUwOr/demo.qs</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpKWkwxB/demo.qs</span></span></span></code></pre>
 <p>If <code>verify_on_load = TRUE</code>, <code><a href="../reference/st_load.html">st_load()</a></code>
 recomputes <code><a href="../reference/st_hash_obj.html">st_hash_obj()</a></code> and compares it to the
 <code>content_hash</code> recorded in the sidecar or snapshot. A
