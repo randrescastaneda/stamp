@@ -1,8 +1,8 @@
 ---
-title: "Get Started"
+title: "Stamp"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Get Started}
+  %\VignetteIndexEntry{Stamp}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

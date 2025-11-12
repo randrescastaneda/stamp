@@ -77,8 +77,14 @@ reference:
 
 articles:
 - title: Basics
+  navbar: Basics
   contents:
   - setup-and-basics
   - hashing-and-versions
   - lineage-rebuilds
+- title: Advanced Usage
+  navbar: Advanced Usage
+  contents:
+  - builders-plans
   - version_retention_prune
+  
