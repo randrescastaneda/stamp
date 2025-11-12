@@ -1,9 +1,5 @@
 # Articles
 
-### Get started
-
-- [Stamp](https://randrescastaneda.github.io/stamp/articles/stamp.md):
-
 ### Basics
 
 - [Setup and
@@ -19,3 +15,7 @@
   Rebuilds](https://randrescastaneda.github.io/stamp/articles/builders-plans.md):
 - [Version Retention, Pruning, and Table
   Metadata](https://randrescastaneda.github.io/stamp/articles/version_retention_prune.md):
+
+### Others
+
+- [Stamp](https://randrescastaneda.github.io/stamp/articles/stamp.md):
