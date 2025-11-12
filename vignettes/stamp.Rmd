@@ -1,11 +1,12 @@
 ---
-title: "stamp"
+title: "Get Started"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{stamp}
+  %\VignetteIndexEntry{Get Started}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -14,14 +15,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 7,
-  fig.height = 5
-)
+# The Problem {.unnumbered}
 
+You have multiple input files produced by different processes. You want
+to read, process, and save derived artifacts while capturing.
+
+Let's simulate the data and folder structure:
+```{r setup}
 if (requireNamespace("pkgload", quietly = TRUE)) {
   pkgload::load_all(".")
 } else {
@@ -60,17 +60,11 @@ data_files <- function(dir) {
 }
 ```
 
-## Overview {.unnumbered}
 
-The problem: you have multiple input files produced by different processes. You want
-to read, process, and save derived artifacts while capturing:
+# The Solution {.unnumbered}
 
-...existing code...
-we write in `qs2` format for speed and atomic writes but helpers support other formats.
 
-Example core helpers (illustrative):
-
-# Scenario: Harmonizing Economic Indicators with Versioning & Lineage
+## Harmonizing Economic Indicators with Versioning & Lineage
 
 We walk through a realistic data engineering scenario: several country/year micro datasets and macro indicators must be combined into a standardized output table. We want:
 
@@ -81,13 +75,13 @@ We walk through a realistic data engineering scenario: several country/year micr
 5. Adding new data (ARG 2015) and observing minimal recomputation.
 6. Producing the same output using partitioned artifacts for partial re-runs.
 
-Countries/years for welfare (micro) data: COL2010, COL2012, MEX2010, MEX2015, PRY2011, PRY2014.
+* Countries/years for welfare (micro) data: COL2010, COL2012, MEX2010, MEX2015, PRY2011, PRY2014.
 
-Reporting levels:
-- COL and MEX: both `urban` and `rural`.
-- PRY: only `national`.
+* Reporting levels:
+  - COL and MEX: both `urban` and `rural`.
+  - PRY: only `national`.
 
-Macro data (CPI, GDP, population) exist for COL, MEX, PRY, BRA, ARG (2010–2015). CPI & population have all three reporting levels (`national`, `urban`, `rural`) for every country-year.
+* Macro data (CPI, GDP, population) exist for COL, MEX, PRY, BRA, ARG (2010–2015). CPI & population have all three reporting levels (`national`, `urban`, `rural`) for every country-year.
 
 ## 1. Simulate and Save Input Micro Data
 
@@ -363,7 +357,7 @@ st_save(
   out_summary_path,
   pk = c("country", "year", "reporting_level"),
   parents = parents,
-  code = bar,
+  code = bar, # addition the function as parent so st_save() can track it
   domain = "summary"
 )
 st_lineage(out_summary_path, depth = 1)
@@ -389,8 +383,85 @@ cpi2 <- st_load(fs::path(macro_dir, "cpi.qs2"))
 cpi2[country == "COL" & year == 2012, cpi := cpi * 1.05] # 5% adjustment
 st_save(cpi2, fs::path(macro_dir, "cpi.qs2")) # new version recorded
 st_versions(fs::path(macro_dir, "cpi.qs2"))[1:3]
-st_is_stale(out_summary_path) # should be TRUE now
+st_is_stale(out_summary_path) # should be TRUE
 ```
+
+## Builders, plans and rebuilds — concepts and how we use them here
+
+A short glossary and explanation of the concepts used in the examples above:
+
+- Artifact: a saved object on disk (one file path managed by stamp).
+- Sidecar: the metadata file that accompanies each artifact (PKs, parents, code hash, domain, timestamps).
+- Version: an immutable snapshot of an artifact; each `st_save()` that produces a change creates a new version id.
+- Parent: a pointer (path + version_id) recorded in a sidecar that identifies an upstream artifact used to produce a downstream artifact.
+- Lineage: the directed graph of artifacts linked by parent relationships; `st_lineage()` inspects this graph.
+- Builder: a small function you register with `st_register_builder()` that knows how to produce a specific artifact. A builder typically has the signature `function(path, parents)` and returns a list containing at least `x` (the object to be saved) and `code` (the function(s) used to produce `x`).
+- Plan: the result of `st_plan_rebuild()` — a computed list of actions that should be executed because artifacts are stale (parents changed, code changed, or missing).
+- Rebuild: executing a plan with `st_rebuild()` — this runs registered builders to produce and save artifacts, updating sidecars and versions.
+
+General idea
+- Register builders for reproducible targets. Builders should be deterministic and return the object to save (do not save directly inside the builder).
+- Use `st_plan_rebuild()` to compute what needs to be rebuilt (it inspects recorded parents and code hashes).
+- Inspect the plan, then call `st_rebuild()` to execute builders and record new versions.
+
+How this vignette implements those ideas
+- We register a builder for `out_summary_path` (see the `st_register_builder()` call below). That builder returns `list(x = foo(), code = foo, code_label = "aggregate_welfare")`.
+- `st_plan_rebuild()` compares current parent version ids and the code hash of `foo` against what the sidecar recorded; if any parent or code changed the plan will mark the target as stale.
+- `st_rebuild(plan)` calls the registered builder, then `st_save()` persistently records the new artifact and sidecar (including the new `code_hash` and parent pointers).
+- This flow gives you a lightweight, auditable, and incremental pipeline: change an upstream artifact or a function and the plan will tell you what to rebuild.
+
+Practical tips and a small example
+- Builders should prefer to use the `parents` argument passed in (this avoids global state and makes builders easier to test).
+- If your target depends on multiple functions, pass them all in `code` so `st_save()` records a combined code hash: `code = list(foo = foo, helper = f1)`.
+
+Example builder that loads parents explicitly and returns multiple functions in `code`:
+
+```{r}
+# Example: register a builder that uses the provided `parents` list and avoids global loads
+st_register_builder(out_summary_path, function(path, parents) {
+  # parents is a list of lists: each element has $path and $version_id
+  # Filter parent paths to identify welfare partitions vs macros, then load them
+  welfare_parent_paths <- vapply(
+    parents,
+    function(p) grepl("welfare", p$path),
+    logical(1)
+  )
+  welfare_list <- lapply(parents[welfare_parent_paths], function(p) {
+    st_load(p$path)
+  })
+
+  cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
+  gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
+  pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
+
+  # Produce the output using a helper function (bar) that accepts pre-loaded inputs
+  out <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
+
+  # Return the produced object plus code metadata (capture both producer and helpers)
+  list(
+    x = out,
+    code = list(bar = bar), # include helpers as needed
+    code_label = "aggregate_welfare_partitioned"
+  )
+})
+```
+
+Inspect the plan before running it:
+```{r}
+plan <- st_plan_rebuild(
+  targets = out_summary_path,
+  include_targets = TRUE,
+  mode = "strict"
+)
+print(plan)
+```
+
+Run the plan to execute the builders and record new versions:
+```{r}
+st_rebuild(plan)
+```
+
+This example shows the recommended pattern: load from `parents`, call a pure worker (like `bar()`), and return `x` and `code`. That ensures `st_rebuild()` can uniformly save artifacts, record lineage, and compute `code_hash` changes for future incremental rebuilds.
 
 Plan & rebuild using a registered builder for the summary artifact.
 
@@ -438,7 +509,7 @@ st_save(
   parents = parents2,
   domain = "summary"
 )
-tail(st_load(out_summary_path))
+head(st_load(out_summary_path))
 ```
 
 ## 6. Partitioned Workflow for Partial Re-execution
@@ -544,71 +615,8 @@ build_partition_summary <- function(path, parents) {
   )
 }
 
-# Register a builder per output partition path
-for (i in seq_len(nrow(partition_keys))) {
-  key <- partition_keys[i, ]
-  out_path <- st_part_path(
-    summary_parts_dir,
-    as.list(key[, c("country", "year", "reporting_level")])
-  )
-  st_register_builder(out_path, build_partition_summary)
-}
-
-# Initial partitioned build plan: treat all partition outputs as targets
-targets <- st_list_parts(summary_parts_dir)$path # initially empty
-```
-
-Execute an initial build (direct iteration since outputs don't exist yet):
-
-```{r partition-initial-build}
-paths_to_build <- st_list_parts(welfare_parts_dir)
-results <- lapply(seq_len(nrow(paths_to_build)), function(i) {
-  key <- paths_to_build[i, ]
-  out_path <- st_part_path(
-    summary_parts_dir,
-    as.list(key[, c("country", "year", "reporting_level")])
-  )
-  parents <- list(
-    list(
-      path = st_part_path(
-        welfare_parts_dir,
-        as.list(key[, c("country", "year", "reporting_level")])
-      ),
-      version_id = st_latest(st_part_path(
-        welfare_parts_dir,
-        as.list(key[, c("country", "year", "reporting_level")])
-      ))
-    ),
-    list(
-      path = fs::path(macro_dir, "cpi.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "cpi.qs2"))
-    ),
-    list(
-      path = fs::path(macro_dir, "gdp.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "gdp.qs2"))
-    ),
-    list(
-      path = fs::path(macro_dir, "population.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "population.qs2"))
-    )
-  )
-  b <- build_partition_summary(out_path, parents)
-  st_save(
-    b$x,
-    out_path,
-    parents = parents,
-    pk = c("country", "year", "reporting_level"),
-    code = b$code,
-    code_label = b$code_label
-  )
-})
-length(results)
-```
-
-
-List a few partitioned summaries:
-
 ```{r partition-summary-list}
+# List a few partitioned summary partitions
 st_list_parts(summary_parts_dir)[1:6, ]
 ```
 
@@ -737,5 +745,56 @@ runner()
 
 If you want, I can update the real `R/` code to include small examples of `make_stamped`
 and `make_partitioned`, plus unit tests showing the partial re-run behavior.
+
+
+## Appendix: Glossary and Concepts (Artifacts, Builders, Plans, Rebuilds)
+
+This appendix consolidates the conceptual explanation so the main narrative above stays focused on the workflow steps.
+
+Glossary
+- **Artifact**: a saved object on disk (one path managed by stamp).
+- **Sidecar**: metadata file beside each artifact (PKs, parents, code hash, domain, timestamps).
+- **Version**: immutable snapshot; new version id recorded when `st_save()` detects changed content.
+- **Parent**: pointer (path + version_id) to an upstream artifact used to produce a downstream artifact.
+- **Lineage**: directed graph linking artifacts via parent relationships; inspect with `st_lineage()`.
+- **Builder**: function registered with `st_register_builder(path, builder_fn)` that knows how to produce one artifact. Returns at least `x` (object to save) and `code` (function(s) used) so code changes trigger staleness.
+- **Plan**: result of `st_plan_rebuild()` describing which targets are stale (parents changed, code changed, or artifact missing) and thus need rebuilding.
+- **Rebuild**: executing a plan via `st_rebuild(plan)`; runs builders, saves artifacts, updates sidecars/versions.
+
+General idea
+1. Register builders for reproducible targets (pure, deterministic, no direct saving inside builder).
+2. Compute a plan (`st_plan_rebuild()`) to see what changed and what must be recomputed.
+3. Inspect/optionally filter the plan.
+4. Run `st_rebuild(plan)` to execute only necessary work.
+
+How the vignette used these ideas
+- Registered a builder for `out_summary_path` that returns `foo()` and code metadata.
+- Mutated CPI to create a new upstream version; `st_is_stale(out_summary_path)` became TRUE.
+- Planned and rebuilt, causing only the summary artifact to be recomputed.
+- Later, partition builders were registered for per-key summaries (illustrating fine-grained incremental recomputation).
+
+Practical tips
+- Pass multiple producing functions as a small named list: `code = list(foo = foo, helper = f1)` so any helper change invalidates the target.
+- Builders should rely on their `parents` argument when possible—this makes them testable and minimizes global reads.
+- Keep domains (`domain = "welfare"`, `"summary"`, etc.) consistent; they are lightweight classification tags useful for filtering, retention, or dashboards.
+- Use strict mode in `st_plan_rebuild(mode = "strict")` for conservative rebuild decisions; relax if performance dictates.
+
+Example builder pattern (parent-driven, pure):
+
+```{r eval=FALSE}
+st_register_builder(out_summary_path, function(path, parents) {
+  welfare_parent_paths <- vapply(parents, function(p) grepl("welfare", p$path), logical(1))
+  welfare_list <- lapply(parents[welfare_parent_paths], function(p) st_load(p$path))
+  cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
+  gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
+  pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
+  out <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
+  list(x = out, code = list(bar = bar), code_label = "aggregate_welfare_partitioned")
+})
+plan <- st_plan_rebuild(targets = out_summary_path, include_targets = TRUE, mode = "strict")
+st_rebuild(plan)
+```
+
+This appendix centralizes the concepts; remove or adapt it if you later create a dedicated vignette just for architecture.
 
 
