@@ -116,47 +116,24 @@
 #' @return A list with elements `artifacts` and `versions` (data.frame or data.table).
 #' @keywords internal
 .st_catalog_empty <- function() {
-  if (requireNamespace("data.table", quietly = TRUE)) {
-    list(
-      artifacts = data.table::data.table(
-        artifact_id = character(),
-        path = character(),
-        format = character(),
-        latest_version_id = character(),
-        n_versions = integer()
-      ),
-      versions = data.table::data.table(
-        version_id = character(),
-        artifact_id = character(),
-        content_hash = character(),
-        code_hash = character(),
-        size_bytes = numeric(),
-        created_at = character(),
-        sidecar_format = character()
-      )
+  list(
+    artifacts = data.table(
+      artifact_id = character(),
+      path = character(),
+      format = character(),
+      latest_version_id = character(),
+      n_versions = integer()
+    ),
+    versions = data.table(
+      version_id = character(),
+      artifact_id = character(),
+      content_hash = character(),
+      code_hash = character(),
+      size_bytes = numeric(),
+      created_at = character(),
+      sidecar_format = character()
     )
-  } else {
-    list(
-      artifacts = data.frame(
-        artifact_id = character(),
-        path = character(),
-        format = character(),
-        latest_version_id = character(),
-        n_versions = integer(),
-        stringsAsFactors = FALSE
-      ),
-      versions = data.frame(
-        version_id = character(),
-        artifact_id = character(),
-        content_hash = character(),
-        code_hash = character(),
-        size_bytes = numeric(),
-        created_at = character(),
-        sidecar_format = character(),
-        stringsAsFactors = FALSE
-      )
-    )
-  }
+  )
 }
 
 #' Read catalog from disk (internal)
@@ -168,7 +145,15 @@
 #' @keywords internal
 .st_catalog_read <- function() {
   p <- .st_catalog_path()
-  if (fs::file_exists(p)) .st_read_qs2(p) else .st_catalog_empty()
+  cat <- if (fs::file_exists(p)) .st_read_qs2(p) else .st_catalog_empty()
+  # Coerce to data.table invariant if loaded catalog used older data.frame layout
+  if (!is.data.table(cat$artifacts)) {
+    cat$artifacts <- as.data.table(cat$artifacts)
+  }
+  if (!is.data.table(cat$versions)) {
+    cat$versions <- as.data.table(cat$versions)
+  }
+  cat
 }
 
 #' Write catalog to disk (internal)
@@ -215,15 +200,8 @@
 st_versions <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
-
   ver <- cat$versions
-  was_dt <- FALSE
-  if (inherits(ver, "data.table")) {
-    was_dt <- TRUE
-    ver <- as.data.frame(ver, stringsAsFactors = FALSE)
-  }
 
-  # Required columns
   required_cols <- c(
     "version_id",
     "artifact_id",
@@ -233,70 +211,54 @@ st_versions <- function(path) {
     "created_at",
     "sidecar_format"
   )
-  missing <- setdiff(required_cols, names(ver))
-  if (length(missing)) {
-    cat_path <- .st_catalog_path()
-    cli::cli_abort(c(
-      "Catalog schema mismatch in versions table.",
-      "x" = "Missing columns: {toString(missing)}",
-      "i" = "Delete the catalog file and recreate by calling st_save():",
-      " " = "{.file {cat_path}}"
-    ))
+  miss <- setdiff(required_cols, names(ver))
+  if (length(miss)) {
+    cli::cli_abort(
+      c(
+        "Catalog schema mismatch in versions table.",
+        "x" = "Missing columns: {toString(miss)}"
+      )
+    )
   }
 
-  out <- ver[ver$artifact_id == aid, , drop = FALSE]
-  if (!nrow(out)) {
-    if (was_dt && requireNamespace("data.table", quietly = TRUE)) {
-      return(data.table::as.data.table(out))
-    }
+  out <- ver[artifact_id == aid]
+  if (nrow(out) == 0L) {
     return(out)
   }
 
-  # Coerce created_at robustly ------------------------------------------------
-  ca <- out$created_at
-  if (is.list(ca)) {
-    ca <- vapply(
-      ca,
-      function(x) {
-        if (is.null(x) || !length(x)) {
-          return(NA_character_)
-        }
-        # Common corruption pattern: list of length 1 containing scalar
-        as.character(if (is.list(x) && length(x) == 1L) x[[1L]] else x)
-      },
-      character(1L)
-    )
+  # created_at coercion (handle accidental list columns)
+  if (is.list(out$created_at)) {
+    out[,
+      created_at := vapply(
+        created_at,
+        function(x) {
+          if (is.null(x) || !length(x)) {
+            return(NA_character_)
+          }
+          as.character(if (is.list(x) && length(x) == 1L) x[[1L]] else x)
+        },
+        character(1L)
+      )
+    ]
   } else {
-    ca <- as.character(ca)
+    out[, created_at := as.character(created_at)]
   }
-  # Drop rows with NA/empty created_at (corrupt entries)
-  keep <- !is.na(ca) & nzchar(ca)
-  if (!all(keep)) {
-    dropped <- sum(!keep)
+
+  # Drop corrupt rows
+  bad <- is.na(out$created_at) | !nzchar(out$created_at)
+  if (any(bad)) {
+    dropped <- sum(bad)
     cli::cli_warn(c(
       "Dropped {dropped} corrupt version row{?s} with invalid created_at.",
       "i" = "Recreate versions if needed; catalog retained."
     ))
-    out <- out[keep, , drop = FALSE]
-    ca <- ca[keep]
+    out <- out[!bad]
   }
-  if (!nrow(out)) {
-    # Everything was corrupt; return empty table
-    out$created_at <- character()
-    if (was_dt && requireNamespace("data.table", quietly = TRUE)) {
-      return(data.table::as.data.table(out))
-    }
-    return(out)
+  if (nrow(out) == 0L) {
+    return(out) # empty data.table
   }
-  out$created_at <- ca
 
-  # Deterministic ordering: created_at desc then version_id desc
-  ord <- order(out$created_at, out$version_id, decreasing = TRUE)
-  out <- out[ord, , drop = FALSE]
-
-  if (was_dt && requireNamespace("data.table", quietly = TRUE)) {
-    out <- data.table::as.data.table(out)
-  }
+  setorder(out, -created_at, -version_id)
   out
 }
 
@@ -306,15 +268,10 @@ st_versions <- function(path) {
 st_latest <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
-  art <- if (inherits(cat$artifacts, "data.table")) {
-    cat$artifacts[cat$artifacts$artifact_id == aid]
-  } else {
-    cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
-  }
+  art <- cat$artifacts[artifact_id == aid]
   if (nrow(art) == 0L) {
     return(NA_character_)
   }
-  # Defensive: ensure we return a length-1 character or NA
   v <- art$latest_version_id[[1L]]
   if (is.null(v) || !length(v) || is.na(v) || !nzchar(as.character(v))) {
     return(NA_character_)
@@ -547,51 +504,28 @@ st_lineage <- function(path, depth = 1L) {
   format,
   latest_version_id
 ) {
-  if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
-    a <- data.table::as.data.table(cat$artifacts)
-    idx <- which(a$artifact_id == artifact_id)
-    if (length(idx) == 0L) {
-      a <- data.table::rbindlist(
-        list(
-          a,
-          data.table::data.table(
-            artifact_id = artifact_id,
-            path = as.character(path),
-            format = format,
-            latest_version_id = latest_version_id,
-            n_versions = 1L
-          )
-        ),
-        use.names = TRUE,
-        fill = TRUE
-      )
-    } else {
-      a$latest_version_id[idx] <- latest_version_id
-      a$n_versions[idx] <- a$n_versions[idx] + 1L
-    }
-    cat$artifacts <- a[]
-  } else {
-    a <- cat$artifacts
-    idx <- which(a$artifact_id == artifact_id)
-    if (length(idx) == 0L) {
-      a <- rbind(
+  a <- cat$artifacts
+  idx <- which(a$artifact_id == artifact_id)
+  if (!length(idx)) {
+    a <- rbindlist(
+      list(
         a,
-        data.frame(
+        data.table(
           artifact_id = artifact_id,
           path = as.character(path),
           format = format,
           latest_version_id = latest_version_id,
-          n_versions = 1L,
-          stringsAsFactors = FALSE
-        ),
-        make.row.names = FALSE
-      )
-    } else {
-      a$latest_version_id[idx] <- latest_version_id
-      a$n_versions[idx] <- a$n_versions[idx] + 1L
-    }
-    cat$artifacts <- a
+          n_versions = 1L
+        )
+      ),
+      use.names = TRUE,
+      fill = TRUE
+    )
+  } else {
+    a$latest_version_id[idx] <- latest_version_id
+    a$n_versions[idx] <- a$n_versions[idx] + 1L
   }
+  cat$artifacts <- a
   cat
 }
 
@@ -599,19 +533,9 @@ st_lineage <- function(path, depth = 1L) {
 #' @keywords internal
 #' @noRd
 .st_catalog_append_version <- function(cat, row) {
-  if (isTRUE(requireNamespace("data.table", quietly = TRUE))) {
-    v <- data.table::as.data.table(cat$versions)
-    v <- data.table::rbindlist(
-      list(v, data.table::as.data.table(row)),
-      use.names = TRUE,
-      fill = TRUE
-    )
-    cat$versions <- v[]
-  } else {
-    v <- cat$versions
-    v <- rbind(v, row, make.row.names = FALSE)
-    cat$versions <- v
-  }
+  v <- cat$versions
+  v <- rbindlist(list(v, as.data.table(row)), use.names = TRUE, fill = TRUE)
+  cat$versions <- v
   cat
 }
 
@@ -668,15 +592,14 @@ st_lineage <- function(path, depth = 1L) {
     )
 
     # Append version row using helper (ensures consistent coercion)
-    new_v <- data.frame(
+    new_v <- data.table(
       version_id = vid,
       artifact_id = aid,
       content_hash = content_hash %||% NA_character_,
       code_hash = code_hash %||% NA_character_,
       size_bytes = as.numeric(size_bytes),
       created_at = as.character(created_at),
-      sidecar_format = sidecar_format,
-      stringsAsFactors = FALSE
+      sidecar_format = sidecar_format
     )
     cat <- .st_catalog_append_version(cat, new_v)
 
@@ -700,24 +623,16 @@ st_lineage <- function(path, depth = 1L) {
 .st_catalog_latest_version_row <- function(path) {
   aid <- .st_artifact_id(path)
   cat <- .st_catalog_read()
-  art <- if (inherits(cat$artifacts, "data.table")) {
-    cat$artifacts[cat$artifacts$artifact_id == aid]
-  } else {
-    cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
-  }
+  art <- cat$artifacts[artifact_id == aid]
   if (!nrow(art)) {
     return(NULL)
   }
   vid <- art$latest_version_id[[1L]]
-  ver <- if (inherits(cat$versions, "data.table")) {
-    cat$versions[cat$versions$version_id == vid]
-  } else {
-    cat$versions[cat$versions$version_id == vid, , drop = FALSE]
-  }
+  ver <- cat$versions[version_id == vid]
   if (!nrow(ver)) {
     return(NULL)
   }
-  ver[1L, , drop = FALSE]
+  ver[1L]
 }
 
 

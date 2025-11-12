@@ -94,6 +94,30 @@ test_that("catalog corruption is detectable and removing it allows repair via sa
   expect_true(nrow(st_versions(p)) >= 1)
 })
 
+test_that("catalog tables are data.table and created_at stays atomic", {
+  skip_on_cran()
+  td <- withr::local_tempdir()
+  st_init(td)
+  st_opts(default_format = "rds")
+
+  p <- fs::path(td, "dt.qs")
+  for (i in 1:3) {
+    st_save(data.frame(a = i), p, code = function(z) z)
+  }
+
+  # Internal read
+  cat <- stamp:::.st_catalog_read()
+  expect_true(data.table::is.data.table(cat$artifacts))
+  expect_true(data.table::is.data.table(cat$versions))
+  expect_false(is.list(cat$versions$created_at))
+  expect_equal(length(cat$versions$created_at), nrow(cat$versions))
+
+  # st_versions returns data.table without list corruption
+  vtab <- st_versions(p)
+  expect_true(data.table::is.data.table(vtab))
+  expect_false(is.list(vtab$created_at))
+})
+
 test_that("pruning warns when candidate deletion snapshot dir missing (deterministic)", {
   skip_on_cran()
   td <- withr::local_tempdir()
