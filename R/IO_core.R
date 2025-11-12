@@ -143,7 +143,25 @@ st_save <- function(
       .st_write_atomic(
         obj = x,
         path = sp$path,
-        writer = function(obj, pth) h$write(obj, pth, ...),
+        writer = function(obj, pth) {
+          # Forward only writer args that the concrete writer accepts.
+          # This avoids passing st_save-specific args (e.g. pk, domain)
+          # to format writers that don't expect them.
+          args_local <- list(...)
+          writer_formals <- names(formals(h$write))
+          if (length(args_local) && !is.null(writer_formals)) {
+            named <- names(args_local)
+            named <- if (is.null(named)) rep("", length(args_local)) else named
+            keep_idx <- which(named != "" & named %in% writer_formals)
+            if (length(keep_idx)) {
+              do.call(h$write, c(list(obj, pth), args_local[keep_idx]))
+            } else {
+              h$write(obj, pth)
+            }
+          } else {
+            h$write(obj, pth)
+          }
+        },
         overwrite = TRUE
       )
 
