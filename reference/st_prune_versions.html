@@ -16,7 +16,18 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Basics</h6></li>
+    <li><a class="dropdown-item" href="../articles/setup-and-basics.html">Setup and Basics</a></li>
+    <li><a class="dropdown-item" href="../articles/hashing-and-versions.html">Hashing, Change Detection and Versions</a></li>
+    <li><a class="dropdown-item" href="../articles/lineage-rebuilds.html">Lineage and Rebuilds</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
+    <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
+    <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/randrescastaneda/stamp"><span class="fa fa-github"></span></a></li>
@@ -29,7 +40,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Prune stored versions according to a retention policy</h1>
-      <small class="dont-index">Source: <a href="https://github.com/randrescastaneda/stamp/blob/v0.0.2/R/retention.R" class="external-link"><code>R/retention.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/randrescastaneda/stamp/blob/master/R/retention.R" class="external-link"><code>R/retention.R</code></a></small>
       <div class="d-none name"><code>st_prune_versions.Rd</code></div>
     </div>
 
@@ -109,8 +120,8 @@ stored version snapshots and catalog entries.</p></li>
 <span class="r-in"><span><span class="va">root</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="st_init.html">st_init</a></span><span class="op">(</span><span class="va">root</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> stamp initialized</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   root: /tmp/RtmpPYS6LI</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>   state: /tmp/RtmpPYS6LI/.stamp</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   root: /tmp/Rtmpb1YuhC</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   state: /tmp/Rtmpb1YuhC/.stamp</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># A, B, C</span></span></span>
 <span class="r-in"><span><span class="va">pA</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"A.qs"</span><span class="op">)</span>; <span class="va">xA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span></span>
@@ -118,35 +129,35 @@ stored version snapshots and catalog entries.</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># First versions</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpPYS6LI/A.qs</span> @ version <span style="color: #00BB00;">4904f670ceccad1e</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpb1YuhC/A.qs</span> @ version <span style="color: #00BB00;">0feaef741428d560</span></span>
 <span class="r-in"><span><span class="fu"><a href="st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">xA</span>, b <span class="op">=</span> <span class="va">a</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, <span class="va">pB</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>,</span></span>
 <span class="r-in"><span>        parents <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">pA</span>, version_id <span class="op">=</span> <span class="fu"><a href="st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">pA</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpPYS6LI/B.qs</span> @ version <span style="color: #00BB00;">a18abb6847fb5f07</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpb1YuhC/B.qs</span> @ version <span style="color: #00BB00;">079c845f4ae20af7</span></span>
 <span class="r-in"><span><span class="fu"><a href="st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="fu"><a href="st_load.html">st_load</a></span><span class="op">(</span><span class="va">pB</span><span class="op">)</span>, c <span class="op">=</span> <span class="va">b</span> <span class="op">+</span> <span class="fl">1L</span><span class="op">)</span>, <span class="va">pC</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>,</span></span>
 <span class="r-in"><span>        parents <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">pB</span>, version_id <span class="op">=</span> <span class="fu"><a href="st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">pB</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpPYS6LI/B.qs</span>.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No primary key recorded for <span style="color: #0000BB;">/tmp/Rtmpb1YuhC/B.qs</span>.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpPYS6LI/B.qs</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpPYS6LI/C.qs</span> @ version <span style="color: #00BB00;">ede6d40cbcca700d</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmpb1YuhC/B.qs</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpb1YuhC/C.qs</span> @ version <span style="color: #00BB00;">4f7d92d2bec9d282</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Create a couple of extra versions for A to have data to prune</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">xA</span>, a <span class="op">=</span> <span class="va">a</span> <span class="op">+</span> <span class="fl">10L</span><span class="op">)</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpPYS6LI/A.qs</span> @ version <span style="color: #00BB00;">d751f0be4958dcda</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpb1YuhC/A.qs</span> @ version <span style="color: #00BB00;">d4c847139a1f13b5</span></span>
 <span class="r-in"><span><span class="fu"><a href="st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">xA</span>, a <span class="op">=</span> <span class="va">a</span> <span class="op">+</span> <span class="fl">20L</span><span class="op">)</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpPYS6LI/A.qs</span> @ version <span style="color: #00BB00;">6c049ef50d518d5c</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpb1YuhC/A.qs</span> @ version <span style="color: #00BB00;">5c5d04d6e91b4170</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Inspect versions for A</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pA</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          version_id      artifact_id     content_hash        code_hash</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: d751f0be4958dcda 6da8254dcda828dc f61c312c86365348 488e8fa49c740261</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: 6c049ef50d518d5c 6da8254dcda828dc abf956f7a95c9738 488e8fa49c740261</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3: 4904f670ceccad1e 6da8254dcda828dc d73e0bf1cb9d8dc5 488e8fa49c740261</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: d4c847139a1f13b5 48dce4b57a116603 f61c312c86365348 488e8fa49c740261</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2: 5c5d04d6e91b4170 48dce4b57a116603 abf956f7a95c9738 488e8fa49c740261</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3: 0feaef741428d560 48dce4b57a116603 d73e0bf1cb9d8dc5 488e8fa49c740261</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    size_bytes           created_at sidecar_format</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         &lt;num&gt;               &lt;char&gt;         &lt;char&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:        155 2025-11-10T22:12:48Z           json</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:        155 2025-11-10T22:12:48Z           json</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:        201 2025-11-10T22:12:48Z           json</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:        155 2025-11-12T22:19:02Z           json</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:        155 2025-11-12T22:19:02Z           json</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:        201 2025-11-12T22:19:02Z           json</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># 1) Keep everything (no-op)</span></span></span>
 <span class="r-in"><span><span class="fu">st_prune_versions</span><span class="op">(</span>policy <span class="op">=</span> <span class="cn">Inf</span>, dry_run <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>

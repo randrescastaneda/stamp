@@ -2,12 +2,13 @@ pandoc: 3.1.11
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
+  builders-plans: builders-plans.html
   hashing-and-versions: hashing-and-versions.html
   lineage-rebuilds: lineage-rebuilds.html
   setup-and-basics: setup-and-basics.html
   stamp: stamp.html
   version_retention_prune: version_retention_prune.html
-last_built: 2025-11-10T22:12Z
+last_built: 2025-11-12T22:18Z
 urls:
   reference: https://randrescastaneda.github.io/stamp/reference
   article: https://randrescastaneda.github.io/stamp/articles
