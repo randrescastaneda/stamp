@@ -5,3 +5,4 @@
 docs
 inst/doc
 .vscode/*
+inst/pkgdown/BS5/assets/headroom.min.js

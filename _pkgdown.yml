@@ -76,10 +76,6 @@ reference:
 
 
 articles:
-- title: Get started
-  navbar: Get started
-  contents:
-  - stamp
 
 - title: Basics
   navbar: Basics
@@ -93,4 +89,8 @@ articles:
   contents:
   - builders-plans
   - version_retention_prune
+
+- title: Others 
+  contents:
+  - stamp
   
