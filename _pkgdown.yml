@@ -76,12 +76,17 @@ reference:
 
 
 articles:
+- title: Get started
+  contents:
+  - stamp
+
 - title: Basics
   navbar: Basics
   contents:
   - setup-and-basics
   - hashing-and-versions
   - lineage-rebuilds
+
 - title: Advanced Usage
   navbar: Advanced Usage
   contents:
