@@ -685,9 +685,31 @@ Explore lineage further:
 st_lineage(out_summary_path, depth = 2)[1:10, ]
 ```
 
+<warning>
+**Warning: The code below will permanently delete the temporary vignette root directory and all its contents.**
+</warning>
+
+```{r cleanup, include = FALSE}
+# Remove the temporary root used for vignette examples. Only run in a local
+# interactive session when you are sure you no longer need the temporary files.
+if (exists("root_dir") && fs::dir_exists(root_dir)) {
+  # fs::dir_delete() permanently removes the directory tree.
+  fs::dir_delete(root_dir)
+}
+```
+
+### Windows path-length note
+
+On Windows the traditional MAX_PATH (260 characters) can be hit when constructing
+deep partition paths. For this reason the vignette uses a short temporary root
+(`root_dir <- fs::path_temp("s")`) to keep example paths compact. If you
+render this vignette in your environment and need longer roots, consider enabling
+long path support on Windows or choose a shorter project root. The code in this
+vignette is intentionally conservative to avoid PATH_MAX errors during examples.
+
 You can prune old versions with retention policies (see `st_prune_versions()`), register custom formats, or integrate `st_plan_rebuild()` for more automated partition scheduling as an extension.
 
----
+```
 End of scenario.
 worker <- function(x) process_part(x)
 
