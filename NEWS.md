@@ -1,3 +1,5 @@
+# stamp 0.0.3
+
 # stamp 0.0.2
 * first version to share
 
