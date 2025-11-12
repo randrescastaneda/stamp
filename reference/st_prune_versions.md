@@ -103,8 +103,8 @@ st_opts(versioning = "content", meta_format = "json")
 root <- tempdir()
 st_init(root)
 #> ✔ stamp initialized
-#>   root: /tmp/Rtmpb1YuhC
-#>   state: /tmp/Rtmpb1YuhC/.stamp
+#>   root: /tmp/RtmpmLWXQ3
+#>   state: /tmp/RtmpmLWXQ3/.stamp
 
 # A, B, C
 pA <- fs::path(root, "A.qs"); xA <- data.frame(a = 1:3)
@@ -112,35 +112,35 @@ pB <- fs::path(root, "B.qs"); pC <- fs::path(root, "C.qs")
 
 # First versions
 st_save(xA, pA, code = function(z) z)
-#> ✔ Saved [qs2] → /tmp/Rtmpb1YuhC/A.qs @ version 0feaef741428d560
+#> ✔ Saved [qs2] → /tmp/RtmpmLWXQ3/A.qs @ version 8d0864c29e87b570
 st_save(transform(xA, b = a * 2), pB, code = function(z) z,
         parents = list(list(path = pA, version_id = st_latest(pA))))
-#> ✔ Saved [qs2] → /tmp/Rtmpb1YuhC/B.qs @ version 079c845f4ae20af7
+#> ✔ Saved [qs2] → /tmp/RtmpmLWXQ3/B.qs @ version 7eda5fdeb16175f1
 st_save(transform(st_load(pB), c = b + 1L), pC, code = function(z) z,
         parents = list(list(path = pB, version_id = st_latest(pB))))
-#> Warning: No primary key recorded for /tmp/Rtmpb1YuhC/B.qs.
+#> Warning: No primary key recorded for /tmp/RtmpmLWXQ3/B.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/Rtmpb1YuhC/B.qs
-#> ✔ Saved [qs2] → /tmp/Rtmpb1YuhC/C.qs @ version 4f7d92d2bec9d282
+#> ✔ Loaded [qs2] ← /tmp/RtmpmLWXQ3/B.qs
+#> ✔ Saved [qs2] → /tmp/RtmpmLWXQ3/C.qs @ version 9d6838890381ac86
 
 # Create a couple of extra versions for A to have data to prune
 st_save(transform(xA, a = a + 10L), pA, code = function(z) z)
-#> ✔ Saved [qs2] → /tmp/Rtmpb1YuhC/A.qs @ version d4c847139a1f13b5
+#> ✔ Saved [qs2] → /tmp/RtmpmLWXQ3/A.qs @ version 38e8f2e24ff93fda
 st_save(transform(xA, a = a + 20L), pA, code = function(z) z)
-#> ✔ Saved [qs2] → /tmp/Rtmpb1YuhC/A.qs @ version 5c5d04d6e91b4170
+#> ✔ Saved [qs2] → /tmp/RtmpmLWXQ3/A.qs @ version 66360849e384b238
 
 # Inspect versions for A
 st_versions(pA)
 #>          version_id      artifact_id     content_hash        code_hash
 #>              <char>           <char>           <char>           <char>
-#> 1: d4c847139a1f13b5 48dce4b57a116603 f61c312c86365348 488e8fa49c740261
-#> 2: 5c5d04d6e91b4170 48dce4b57a116603 abf956f7a95c9738 488e8fa49c740261
-#> 3: 0feaef741428d560 48dce4b57a116603 d73e0bf1cb9d8dc5 488e8fa49c740261
+#> 1: 8d0864c29e87b570 98d9ea2eafb773bf d73e0bf1cb9d8dc5 488e8fa49c740261
+#> 2: 66360849e384b238 98d9ea2eafb773bf abf956f7a95c9738 488e8fa49c740261
+#> 3: 38e8f2e24ff93fda 98d9ea2eafb773bf f61c312c86365348 488e8fa49c740261
 #>    size_bytes           created_at sidecar_format
 #>         <num>               <char>         <char>
-#> 1:        155 2025-11-12T22:19:02Z           json
-#> 2:        155 2025-11-12T22:19:02Z           json
-#> 3:        201 2025-11-12T22:19:02Z           json
+#> 1:        201 2025-11-12T22:21:57Z           json
+#> 2:        155 2025-11-12T22:21:57Z           json
+#> 3:        155 2025-11-12T22:21:57Z           json
 
 # 1) Keep everything (no-op)
 st_prune_versions(policy = Inf, dry_run = TRUE)
@@ -149,7 +149,7 @@ st_prune_versions(policy = Inf, dry_run = TRUE)
 # 2) Keep only the latest 1 per artifact (dry run)
 st_prune_versions(policy = 1, dry_run = TRUE)
 #> ✔ DRY RUN: 2 versions would be pruned across 1 artifact.
-#>   Estimated space reclaimed: ~356 bytes
+#>   Estimated space reclaimed: ~310 bytes
 
 # 3) Combined policy:
 #    - keep the latest 2 per artifact
@@ -160,7 +160,7 @@ st_prune_versions(policy = list(n = 2, days = 7), dry_run = TRUE)
 # 4) Restrict pruning to a single artifact path
 st_prune_versions(path = pA, policy = 1, dry_run = TRUE)
 #> ✔ DRY RUN: 2 versions would be pruned across 1 artifact.
-#>   Estimated space reclaimed: ~356 bytes
+#>   Estimated space reclaimed: ~310 bytes
 
 # 5) Apply pruning (destructive): keep latest 1 everywhere
 #    (Uncomment to run for real)

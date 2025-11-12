@@ -11,13 +11,13 @@ Source:
 [`DESCRIPTION`](https://github.com/randrescastaneda/stamp/blob/master/DESCRIPTION)
 
 Castaneda R (2025). *stamp: Reproducible Artifact Store with Sidecars,
-Versions, and Partitions*. R package version 0.0.2,
+Versions, and Partitions*. R package version 0.0.3,
 <https://randrescastaneda.github.io/stamp/>.
 
     @Manual{,
       title = {stamp: Reproducible Artifact Store with Sidecars, Versions, and Partitions},
       author = {R.Andres Castaneda},
       year = {2025},
-      note = {R package version 0.0.2},
+      note = {R package version 0.0.3},
       url = {https://randrescastaneda.github.io/stamp/},
     }
