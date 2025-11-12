@@ -390,14 +390,21 @@ st_is_stale(out_summary_path) # should be TRUE
 
 A short glossary and explanation of the concepts used in the examples above:
 
-- Artifact: a saved object on disk (one file path managed by stamp).
-- Sidecar: the metadata file that accompanies each artifact (PKs, parents, code hash, domain, timestamps).
-- Version: an immutable snapshot of an artifact; each `st_save()` that produces a change creates a new version id.
-- Parent: a pointer (path + version_id) recorded in a sidecar that identifies an upstream artifact used to produce a downstream artifact.
-- Lineage: the directed graph of artifacts linked by parent relationships; `st_lineage()` inspects this graph.
-- Builder: a small function you register with `st_register_builder()` that knows how to produce a specific artifact. A builder typically has the signature `function(path, parents)` and returns a list containing at least `x` (the object to be saved) and `code` (the function(s) used to produce `x`).
-- Plan: the result of `st_plan_rebuild()` — a computed list of actions that should be executed because artifacts are stale (parents changed, code changed, or missing).
-- Rebuild: executing a plan with `st_rebuild()` — this runs registered builders to produce and save artifacts, updating sidecars and versions.
+- **Artifact**: a saved object on disk (one path managed by stamp).
+
+- **Sidecar**: metadata file beside each artifact (PKs, parents, code hash, domain, timestamps).
+
+- **Version**: immutable snapshot; new version id recorded when `st_save()` detects changed content.
+
+- **Parent**: pointer (path + version_id) to an upstream artifact used to produce a downstream artifact.
+
+- **Lineage**: directed graph linking artifacts via parent relationships; inspect with `st_lineage()`.
+
+- **Builder**: function registered with `st_register_builder(path, builder_fn)` that knows how to produce one artifact. Returns at least `x` (object to save) and `code` (function(s) used) so code changes trigger staleness.
+
+- **Plan**: result of `st_plan_rebuild()` describing which targets are stale (parents changed, code changed, or artifact missing) and thus need rebuilding.
+
+- **Rebuild**: executing a plan via `st_rebuild(plan)`; runs builders, saves artifacts, updates sidecars/versions.
 
 General idea
 - Register builders for reproducible targets. Builders should be deterministic and return the object to save (do not save directly inside the builder).
@@ -705,96 +712,3 @@ if (exists("root_dir") && fs::dir_exists(root_dir)) {
   fs::dir_delete(root_dir)
 }
 ```
-
-### Windows path-length note
-
-On Windows the traditional MAX_PATH (260 characters) can be hit when constructing
-deep partition paths. For this reason the vignette uses a short temporary root
-(`root_dir <- fs::path_temp("s")`) to keep example paths compact. If you
-render this vignette in your environment and need longer roots, consider enabling
-long path support on Windows or choose a shorter project root. The code in this
-vignette is intentionally conservative to avoid PATH_MAX errors during examples.
-
-You can prune old versions with retention policies (see `st_prune_versions()`), register custom formats, or integrate `st_plan_rebuild()` for more automated partition scheduling as an extension.
-
-```
-End of scenario.
-worker <- function(x) process_part(x)
-
-runner <- make_partitioned(
-  worker,
-  list.files("parts", full.names = TRUE),
-  "out"
-)
-
-# initial run
-runner()
-
-# if only parts/B.csv changes, re-running runner() will only process B and
-# write out/B.qs2 (and register a new version)
-```
-
-## Final notes
-
-- This vignette intentionally shows small building blocks. The `stamp` package
-  implements these ideas with reliable atomic writes, a QS2-backed catalog, locking
-  for concurrent runs, and helpers for lineage and pruning.
-- Use the decorator pattern for concise worker definitions and the partitioned wrapper
-  to get efficient, partial re-execution when inputs are independent and similarly
-  processed.
-
-If you want, I can update the real `R/` code to include small examples of `make_stamped`
-and `make_partitioned`, plus unit tests showing the partial re-run behavior.
-
-
-## Appendix: Glossary and Concepts (Artifacts, Builders, Plans, Rebuilds)
-
-This appendix consolidates the conceptual explanation so the main narrative above stays focused on the workflow steps.
-
-Glossary
-- **Artifact**: a saved object on disk (one path managed by stamp).
-- **Sidecar**: metadata file beside each artifact (PKs, parents, code hash, domain, timestamps).
-- **Version**: immutable snapshot; new version id recorded when `st_save()` detects changed content.
-- **Parent**: pointer (path + version_id) to an upstream artifact used to produce a downstream artifact.
-- **Lineage**: directed graph linking artifacts via parent relationships; inspect with `st_lineage()`.
-- **Builder**: function registered with `st_register_builder(path, builder_fn)` that knows how to produce one artifact. Returns at least `x` (object to save) and `code` (function(s) used) so code changes trigger staleness.
-- **Plan**: result of `st_plan_rebuild()` describing which targets are stale (parents changed, code changed, or artifact missing) and thus need rebuilding.
-- **Rebuild**: executing a plan via `st_rebuild(plan)`; runs builders, saves artifacts, updates sidecars/versions.
-
-General idea
-1. Register builders for reproducible targets (pure, deterministic, no direct saving inside builder).
-2. Compute a plan (`st_plan_rebuild()`) to see what changed and what must be recomputed.
-3. Inspect/optionally filter the plan.
-4. Run `st_rebuild(plan)` to execute only necessary work.
-
-How the vignette used these ideas
-- Registered a builder for `out_summary_path` that returns `foo()` and code metadata.
-- Mutated CPI to create a new upstream version; `st_is_stale(out_summary_path)` became TRUE.
-- Planned and rebuilt, causing only the summary artifact to be recomputed.
-- Later, partition builders were registered for per-key summaries (illustrating fine-grained incremental recomputation).
-
-Practical tips
-- Pass multiple producing functions as a small named list: `code = list(foo = foo, helper = f1)` so any helper change invalidates the target.
-- Builders should rely on their `parents` argument when possible—this makes them testable and minimizes global reads.
-- Keep domains (`domain = "welfare"`, `"summary"`, etc.) consistent; they are lightweight classification tags useful for filtering, retention, or dashboards.
-- Use strict mode in `st_plan_rebuild(mode = "strict")` for conservative rebuild decisions; relax if performance dictates.
-
-Example builder pattern (parent-driven, pure):
-
-```{r eval=FALSE}
-st_register_builder(out_summary_path, function(path, parents) {
-  welfare_parent_paths <- vapply(parents, function(p) grepl("welfare", p$path), logical(1))
-  welfare_list <- lapply(parents[welfare_parent_paths], function(p) st_load(p$path))
-  cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
-  gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
-  pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
-  out <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
-  list(x = out, code = list(bar = bar), code_label = "aggregate_welfare_partitioned")
-})
-plan <- st_plan_rebuild(targets = out_summary_path, include_targets = TRUE, mode = "strict")
-st_rebuild(plan)
-```
-
-This appendix centralizes the concepts; remove or adapt it if you later create a dedicated vignette just for architecture.
-
-
