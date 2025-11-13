@@ -212,5 +212,3 @@ st_prune_versions(path = out_path, policy = list(n = 5, days = 30), dry_run = FA
 - Use `st_info()` and `st_lineage()` to inspect provenance; use `st_versions()`
   and `st_load_version()` to access historical snapshots.
 
-If you'd like, I can similarly update the other vignettes in `vignettes/` to
-reflect the current implementation and add small unit-test-like examples.
