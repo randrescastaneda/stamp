@@ -77,6 +77,11 @@ reference:
 
 articles:
 
+- title: Getting Started
+  navbar: Getting Started
+  contents:
+  - stamp
+  
 - title: Basics
   navbar: Basics
   contents:
