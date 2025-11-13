@@ -89,8 +89,3 @@ articles:
   contents:
   - builders-plans
   - version_retention_prune
-
-- title: Others 
-  contents:
-  - stamp
-  
