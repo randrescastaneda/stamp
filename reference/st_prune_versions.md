@@ -103,8 +103,8 @@ st_opts(versioning = "content", meta_format = "json")
 root <- tempdir()
 st_init(root)
 #> ✔ stamp initialized
-#>   root: /tmp/Rtmp4XgJDQ
-#>   state: /tmp/Rtmp4XgJDQ/.stamp
+#>   root: /tmp/Rtmpb3ls9o
+#>   state: /tmp/Rtmpb3ls9o/.stamp
 
 # A, B, C
 pA <- fs::path(root, "A.qs"); xA <- data.frame(a = 1:3)
@@ -112,35 +112,35 @@ pB <- fs::path(root, "B.qs"); pC <- fs::path(root, "C.qs")
 
 # First versions
 st_save(xA, pA, code = function(z) z)
-#> ✔ Saved [qs2] → /tmp/Rtmp4XgJDQ/A.qs @ version d4be182e9c5642f6
+#> ✔ Saved [qs2] → /tmp/Rtmpb3ls9o/A.qs @ version 94e96a24d8156feb
 st_save(transform(xA, b = a * 2), pB, code = function(z) z,
         parents = list(list(path = pA, version_id = st_latest(pA))))
-#> ✔ Saved [qs2] → /tmp/Rtmp4XgJDQ/B.qs @ version f194f520e3cfeedd
+#> ✔ Saved [qs2] → /tmp/Rtmpb3ls9o/B.qs @ version 7cd9482a89f842fc
 st_save(transform(st_load(pB), c = b + 1L), pC, code = function(z) z,
         parents = list(list(path = pB, version_id = st_latest(pB))))
-#> Warning: No primary key recorded for /tmp/Rtmp4XgJDQ/B.qs.
+#> Warning: No primary key recorded for /tmp/Rtmpb3ls9o/B.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/Rtmp4XgJDQ/B.qs
-#> ✔ Saved [qs2] → /tmp/Rtmp4XgJDQ/C.qs @ version c1886a164517babf
+#> ✔ Loaded [qs2] ← /tmp/Rtmpb3ls9o/B.qs
+#> ✔ Saved [qs2] → /tmp/Rtmpb3ls9o/C.qs @ version 6f8ea3172b8f6404
 
 # Create a couple of extra versions for A to have data to prune
 st_save(transform(xA, a = a + 10L), pA, code = function(z) z)
-#> ✔ Saved [qs2] → /tmp/Rtmp4XgJDQ/A.qs @ version b080300bc1e8dca2
+#> ✔ Saved [qs2] → /tmp/Rtmpb3ls9o/A.qs @ version bd64d526f9ebbb03
 st_save(transform(xA, a = a + 20L), pA, code = function(z) z)
-#> ✔ Saved [qs2] → /tmp/Rtmp4XgJDQ/A.qs @ version 986366a2ba973f5b
+#> ✔ Saved [qs2] → /tmp/Rtmpb3ls9o/A.qs @ version e7f08960308bacd2
 
 # Inspect versions for A
 st_versions(pA)
 #>          version_id      artifact_id     content_hash        code_hash
 #>              <char>           <char>           <char>           <char>
-#> 1: b080300bc1e8dca2 93ae00f867d54c00 f61c312c86365348 488e8fa49c740261
-#> 2: 986366a2ba973f5b 93ae00f867d54c00 abf956f7a95c9738 488e8fa49c740261
-#> 3: d4be182e9c5642f6 93ae00f867d54c00 d73e0bf1cb9d8dc5 488e8fa49c740261
+#> 1: e7f08960308bacd2 3aca4fee5ed9942b abf956f7a95c9738 488e8fa49c740261
+#> 2: bd64d526f9ebbb03 3aca4fee5ed9942b f61c312c86365348 488e8fa49c740261
+#> 3: 94e96a24d8156feb 3aca4fee5ed9942b d73e0bf1cb9d8dc5 488e8fa49c740261
 #>    size_bytes           created_at sidecar_format
 #>         <num>               <char>         <char>
-#> 1:        155 2025-11-13T14:37:22Z           json
-#> 2:        155 2025-11-13T14:37:22Z           json
-#> 3:        201 2025-11-13T14:37:21Z           json
+#> 1:        155 2025-11-13T15:18:01Z           json
+#> 2:        155 2025-11-13T15:18:01Z           json
+#> 3:        201 2025-11-13T15:18:01Z           json
 
 # 1) Keep everything (no-op)
 st_prune_versions(policy = Inf, dry_run = TRUE)

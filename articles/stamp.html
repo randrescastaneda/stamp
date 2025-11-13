@@ -30,7 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
+<li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><hr class="dropdown-divider"></li>
@@ -42,8 +42,6 @@
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
     <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
       </ul>
@@ -100,8 +98,8 @@ want to read, process, and save derived artifacts while capturing.</p>
 <span><span class="co"># Initialize stamp under this temp root</span></span>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span>root <span class="op">=</span> <span class="va">root_dir</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
-<span><span class="co">#&gt;   root: /tmp/Rtmp3weKTk/s</span></span>
-<span><span class="co">#&gt;   state: /tmp/Rtmp3weKTk/s/.stamp</span></span>
+<span><span class="co">#&gt;   root: /tmp/Rtmp3VLO5b/s</span></span>
+<span><span class="co">#&gt;   state: /tmp/Rtmp3VLO5b/s/.stamp</span></span>
 <span></span>
 <span><span class="co"># Define subdirectories (they will be created as needed)</span></span>
 <span><span class="va">welfare_dir</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root_dir</span>, <span class="st">"data"</span>, <span class="st">"welfare"</span><span class="op">)</span></span>
@@ -213,25 +211,25 @@ every country-year.</p></li>
 <span>  <span class="op">)</span></span>
 <span>  <span class="va">welfare_paths</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">welfare_paths</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">fn</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">54a6f3f74e8d6d15</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">3e7b34487c458947</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">123dfc8bc1cc9624</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">0391c725b49710e0</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">047bbb879adf46b2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">3c1dd8f84be22182</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">9575690a253c1e59</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">25a67036c9bc6a7d</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">15bdb9e05f1ff670</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">aabcdfa35337ffed</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">2f5d2dcd0a778b21</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">3e073a44528c7cc1</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">welfare_paths</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "/tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2"</span></span>
-<span><span class="co">#&gt; [2] "/tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2"</span></span>
-<span><span class="co">#&gt; [3] "/tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2"</span></span>
-<span><span class="co">#&gt; [4] "/tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2"</span></span>
-<span><span class="co">#&gt; [5] "/tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2"</span></span>
-<span><span class="co">#&gt; [6] "/tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "/tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2"</span></span>
+<span><span class="co">#&gt; [2] "/tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2"</span></span>
+<span><span class="co">#&gt; [3] "/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2"</span></span>
+<span><span class="co">#&gt; [4] "/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2"</span></span>
+<span><span class="co">#&gt; [5] "/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2"</span></span>
+<span><span class="co">#&gt; [6] "/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2"</span></span></code></pre></div>
 <p>Each call to <code><a href="../reference/st_save.html">st_save()</a></code> assigns a version id (if content
 differs) and writes sidecar metadata including PK.</p>
 <p>Inspect one artifact:</p>
@@ -239,13 +237,13 @@ differs) and writes sidecar metadata including PK.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_info.html">st_info</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">welfare_dir</span>, <span class="st">"COL_2010.qs2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $sidecar</span></span>
 <span><span class="co">#&gt; $sidecar$path</span></span>
-<span><span class="co">#&gt; [1] "/tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2"</span></span>
+<span><span class="co">#&gt; [1] "/tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $sidecar$format</span></span>
 <span><span class="co">#&gt; [1] "qs2"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $sidecar$created_at</span></span>
-<span><span class="co">#&gt; [1] "2025-11-13T14:37:38Z"</span></span>
+<span><span class="co">#&gt; [1] "2025-11-13T15:18:17Z"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $sidecar$size_bytes</span></span>
 <span><span class="co">#&gt; [1] 4789</span></span>
@@ -279,14 +277,14 @@ differs) and writes sidecar metadata including PK.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $catalog</span></span>
 <span><span class="co">#&gt; $catalog$latest_version_id</span></span>
-<span><span class="co">#&gt; [1] "54a6f3f74e8d6d15"</span></span>
+<span><span class="co">#&gt; [1] "9575690a253c1e59"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $catalog$n_versions</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $snapshot_dir</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/Rtmp3weKTk/s/.stamp/versions/data/welfare/COL_2010.qs2/54a6f3f74e8d6d15</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/Rtmp3VLO5b/s/.stamp/versions/data/welfare/COL_2010.qs2/9575690a253c1e59</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $parents</span></span>
 <span><span class="co">#&gt; list()</span></span></code></pre></div>
@@ -340,15 +338,15 @@ country-year only.</p>
 <span>  domain <span class="op">=</span> <span class="st">"macro"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span> @ version <span style="color: #00BB00;">792498bee790bd3f</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span> @ version <span style="color: #00BB00;">8af8f4654313858a</span></span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span></span>
 <span>  <span class="va">pop</span>,</span>
 <span>  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"population.qs2"</span><span class="op">)</span>,</span>
 <span>  pk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span>, <span class="st">"reporting_level"</span><span class="op">)</span>,</span>
 <span>  domain <span class="op">=</span> <span class="st">"macro"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/population.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">3b3ef16b5781b02e</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/population.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">bf2340d609a76363</span></span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span></span>
 <span>  <span class="va">gdp</span>,</span>
 <span>  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"gdp.qs2"</span><span class="op">)</span>,</span>
@@ -356,7 +354,7 @@ country-year only.</p>
 <span>  domain <span class="op">=</span> <span class="st">"macro"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/gdp.qs2</span> @ version <span style="color: #00BB00;">d575aae3500aa5da</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2</span> @ version <span style="color: #00BB00;">2527ee5f1e4047f9</span></span></span></code></pre></div>
 <p>Version listing for CPI:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"cpi.qs2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -420,15 +418,15 @@ inputs inside the function for self-containment.</p>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">summary_table</span> <span class="op">&lt;-</span> <span class="fu">foo</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/gdp.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/population.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/population.qs2</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">summary_table</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;country, year&gt;</span></span>
 <span><span class="co">#&gt;    country  year reporting_level welfare_mean welfare_median welfare_sd</span></span>
@@ -468,29 +466,29 @@ datasets plus CPI/GDP/population.</p>
 <span>  parents <span class="op">=</span> <span class="va">parents</span>,</span>
 <span>  domain <span class="op">=</span> <span class="st">"summary"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">2510cb7b5cf74f6c</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">a9741a7409b27285</span></span></span>
 <span><span class="fu"><a href="../reference/st_lineage.html">st_lineage</a></span><span class="op">(</span><span class="va">out_summary_path</span>, depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   level                                    child_path    child_version</span></span>
-<span><span class="co">#&gt; 1     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
-<span><span class="co">#&gt; 2     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
-<span><span class="co">#&gt; 3     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
-<span><span class="co">#&gt; 4     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
-<span><span class="co">#&gt; 5     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
-<span><span class="co">#&gt; 6     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
-<span><span class="co">#&gt; 7     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
-<span><span class="co">#&gt; 8     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
-<span><span class="co">#&gt; 9     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 2510cb7b5cf74f6c</span></span>
+<span><span class="co">#&gt; 1     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
+<span><span class="co">#&gt; 2     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
+<span><span class="co">#&gt; 3     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
+<span><span class="co">#&gt; 4     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
+<span><span class="co">#&gt; 5     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
+<span><span class="co">#&gt; 6     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
+<span><span class="co">#&gt; 7     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
+<span><span class="co">#&gt; 8     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
+<span><span class="co">#&gt; 9     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 a9741a7409b27285</span></span>
 <span><span class="co">#&gt;                                   parent_path   parent_version</span></span>
-<span><span class="co">#&gt; 1 /tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2 54a6f3f74e8d6d15</span></span>
-<span><span class="co">#&gt; 2 /tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2 3e7b34487c458947</span></span>
-<span><span class="co">#&gt; 3 /tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2 123dfc8bc1cc9624</span></span>
-<span><span class="co">#&gt; 4 /tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2 0391c725b49710e0</span></span>
-<span><span class="co">#&gt; 5 /tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2 047bbb879adf46b2</span></span>
-<span><span class="co">#&gt; 6 /tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2 3c1dd8f84be22182</span></span>
-<span><span class="co">#&gt; 7        /tmp/Rtmp3weKTk/s/data/macro/cpi.qs2 792498bee790bd3f</span></span>
-<span><span class="co">#&gt; 8        /tmp/Rtmp3weKTk/s/data/macro/gdp.qs2 d575aae3500aa5da</span></span>
-<span><span class="co">#&gt; 9 /tmp/Rtmp3weKTk/s/data/macro/population.qs2 3b3ef16b5781b02e</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 /tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2 9575690a253c1e59</span></span>
+<span><span class="co">#&gt; 2 /tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2 25a67036c9bc6a7d</span></span>
+<span><span class="co">#&gt; 3 /tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2 15bdb9e05f1ff670</span></span>
+<span><span class="co">#&gt; 4 /tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2 aabcdfa35337ffed</span></span>
+<span><span class="co">#&gt; 5 /tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2 2f5d2dcd0a778b21</span></span>
+<span><span class="co">#&gt; 6 /tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2 3e073a44528c7cc1</span></span>
+<span><span class="co">#&gt; 7        /tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2 8af8f4654313858a</span></span>
+<span><span class="co">#&gt; 8        /tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2 2527ee5f1e4047f9</span></span>
+<span><span class="co">#&gt; 9 /tmp/Rtmp3VLO5b/s/data/macro/population.qs2 bf2340d609a76363</span></span></code></pre></div>
 <p>Note: to make provenance explicit, pass the producing function as
 <code>code=</code> so <code><a href="../reference/st_save.html">st_save()</a></code> records the function hash.
 Below we demonstrate both patterns: <code>foo()</code> loads its own
@@ -544,21 +542,21 @@ with <code>code = bar</code>.</p>
 <span><span class="co"># Example: load inputs outside the worker and call bar()</span></span>
 <span><span class="va">welfare_files</span> <span class="op">&lt;-</span> <span class="fu">data_files</span><span class="op">(</span><span class="va">welfare_dir</span><span class="op">)</span></span>
 <span><span class="va">welfare_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">welfare_files</span>, <span class="va">st_load</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2</span></span></span>
 <span><span class="va">cpi_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"cpi.qs2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span></span></span>
 <span><span class="va">gdp_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"gdp.qs2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/gdp.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2</span></span></span>
 <span><span class="va">pop_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"population.qs2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/population.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/population.qs2</span></span></span>
 <span></span>
 <span><span class="va">summary_table2</span> <span class="op">&lt;-</span> <span class="fu">bar</span><span class="op">(</span><span class="va">welfare_list</span>, <span class="va">cpi_tbl</span>, <span class="va">gdp_tbl</span>, <span class="va">pop_tbl</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span></span>
@@ -569,29 +567,29 @@ with <code>code = bar</code>.</p>
 <span>  code <span class="op">=</span> <span class="va">bar</span>, <span class="co"># addition the function as parent so st_save() can track it</span></span>
 <span>  domain <span class="op">=</span> <span class="st">"summary"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">d1f547daeddfbfec</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">c3dca9762e181b6c</span></span></span>
 <span><span class="fu"><a href="../reference/st_lineage.html">st_lineage</a></span><span class="op">(</span><span class="va">out_summary_path</span>, depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   level                                    child_path    child_version</span></span>
-<span><span class="co">#&gt; 1     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
-<span><span class="co">#&gt; 2     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
-<span><span class="co">#&gt; 3     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
-<span><span class="co">#&gt; 4     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
-<span><span class="co">#&gt; 5     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
-<span><span class="co">#&gt; 6     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
-<span><span class="co">#&gt; 7     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
-<span><span class="co">#&gt; 8     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
-<span><span class="co">#&gt; 9     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 d1f547daeddfbfec</span></span>
+<span><span class="co">#&gt; 1     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
+<span><span class="co">#&gt; 2     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
+<span><span class="co">#&gt; 3     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
+<span><span class="co">#&gt; 4     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
+<span><span class="co">#&gt; 5     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
+<span><span class="co">#&gt; 6     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
+<span><span class="co">#&gt; 7     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
+<span><span class="co">#&gt; 8     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
+<span><span class="co">#&gt; 9     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 c3dca9762e181b6c</span></span>
 <span><span class="co">#&gt;                                   parent_path   parent_version</span></span>
-<span><span class="co">#&gt; 1 /tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2 54a6f3f74e8d6d15</span></span>
-<span><span class="co">#&gt; 2 /tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2 3e7b34487c458947</span></span>
-<span><span class="co">#&gt; 3 /tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2 123dfc8bc1cc9624</span></span>
-<span><span class="co">#&gt; 4 /tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2 0391c725b49710e0</span></span>
-<span><span class="co">#&gt; 5 /tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2 047bbb879adf46b2</span></span>
-<span><span class="co">#&gt; 6 /tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2 3c1dd8f84be22182</span></span>
-<span><span class="co">#&gt; 7        /tmp/Rtmp3weKTk/s/data/macro/cpi.qs2 792498bee790bd3f</span></span>
-<span><span class="co">#&gt; 8        /tmp/Rtmp3weKTk/s/data/macro/gdp.qs2 d575aae3500aa5da</span></span>
-<span><span class="co">#&gt; 9 /tmp/Rtmp3weKTk/s/data/macro/population.qs2 3b3ef16b5781b02e</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 /tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2 9575690a253c1e59</span></span>
+<span><span class="co">#&gt; 2 /tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2 25a67036c9bc6a7d</span></span>
+<span><span class="co">#&gt; 3 /tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2 15bdb9e05f1ff670</span></span>
+<span><span class="co">#&gt; 4 /tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2 aabcdfa35337ffed</span></span>
+<span><span class="co">#&gt; 5 /tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2 2f5d2dcd0a778b21</span></span>
+<span><span class="co">#&gt; 6 /tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2 3e073a44528c7cc1</span></span>
+<span><span class="co">#&gt; 7        /tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2 8af8f4654313858a</span></span>
+<span><span class="co">#&gt; 8        /tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2 2527ee5f1e4047f9</span></span>
+<span><span class="co">#&gt; 9 /tmp/Rtmp3VLO5b/s/data/macro/population.qs2 bf2340d609a76363</span></span></code></pre></div>
 <p>Handling multiple function dependencies</p>
 <p>If the output depends on more than one function (for example
 <code>foo()</code> calls <code>f1()</code> and <code>f2()</code>), you
@@ -616,21 +614,21 @@ version and stale downstream artifact.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cpi2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"cpi.qs2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span></span></span>
 <span><span class="va">cpi2</span><span class="op">[</span><span class="va">country</span> <span class="op">==</span> <span class="st">"COL"</span> <span class="op">&amp;</span> <span class="va">year</span> <span class="op">==</span> <span class="fl">2012</span>, <span class="va">cpi</span> <span class="op">:=</span> <span class="va">cpi</span> <span class="op">*</span> <span class="fl">1.05</span><span class="op">]</span> <span class="co"># 5% adjustment</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">cpi2</span>, <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"cpi.qs2"</span><span class="op">)</span><span class="op">)</span> <span class="co"># new version recorded</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span> @ version <span style="color: #00BB00;">183644690a9613cd</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span> @ version <span style="color: #00BB00;">ec92ebac6b7cd5dc</span></span></span>
 <span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"cpi.qs2"</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span></span>
 <span><span class="co">#&gt;          version_id      artifact_id     content_hash code_hash size_bytes</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;    &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: 183644690a9613cd ebc59ccb42ef8e9e ebe973771e7bc85a      &lt;NA&gt;        885</span></span>
-<span><span class="co">#&gt; 2: 792498bee790bd3f ebc59ccb42ef8e9e bc4f56e02d372e73      &lt;NA&gt;        869</span></span>
+<span><span class="co">#&gt; 1: ec92ebac6b7cd5dc b66e005dfe13faad ebe973771e7bc85a      &lt;NA&gt;        885</span></span>
+<span><span class="co">#&gt; 2: 8af8f4654313858a b66e005dfe13faad bc4f56e02d372e73      &lt;NA&gt;        869</span></span>
 <span><span class="co">#&gt; 3:             &lt;NA&gt;             &lt;NA&gt;             &lt;NA&gt;      &lt;NA&gt;         NA</span></span>
 <span><span class="co">#&gt;              created_at sidecar_format</span></span>
 <span><span class="co">#&gt;                  &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1: 2025-11-13T14:37:39Z           json</span></span>
-<span><span class="co">#&gt; 2: 2025-11-13T14:37:38Z           json</span></span>
+<span><span class="co">#&gt; 1: 2025-11-13T15:18:18Z           json</span></span>
+<span><span class="co">#&gt; 2: 2025-11-13T15:18:17Z           json</span></span>
 <span><span class="co">#&gt; 3:                 &lt;NA&gt;           &lt;NA&gt;</span></span>
 <span><span class="fu"><a href="../reference/st_is_stale.html">st_is_stale</a></span><span class="op">(</span><span class="va">out_summary_path</span><span class="op">)</span> <span class="co"># should be TRUE</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
@@ -719,7 +717,7 @@ functions in <code>code</code>:</p>
 <span>    code_label <span class="op">=</span> <span class="st">"aggregate_welfare_partitioned"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Registered builder for <span style="color: #00BB00;">/tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Registered builder for <span style="color: #00BB00;">/tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2</span></span></span>
 <span><span class="co">#&gt;   (<span style="color: #00BB00;">default</span>)</span></span></code></pre></div>
 <p>Inspect the plan before running it:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -730,26 +728,26 @@ functions in <code>code</code>:</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">plan</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   level                                          path         reason</span></span>
-<span><span class="co">#&gt; 1     0 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 parent_changed</span></span>
+<span><span class="co">#&gt; 1     0 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 parent_changed</span></span>
 <span><span class="co">#&gt;   latest_version_before</span></span>
-<span><span class="co">#&gt; 1      d1f547daeddfbfec</span></span></code></pre></div>
+<span><span class="co">#&gt; 1      c3dca9762e181b6c</span></span></code></pre></div>
 <p>Run the plan to execute the builders and record new versions:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_rebuild.html">st_rebuild</a></span><span class="op">(</span><span class="va">plan</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Rebuild level <span style="color: #00BB00;">0</span>: 1 artifact</span></span>
-<span><span class="co">#&gt;   • <span style="color: #00BB00;">/tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2</span> (<span style="color: #00BB00;">parent_changed</span>)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/gdp.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/population.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">a902e195e24a9b4e</span></span></span>
-<span><span class="co">#&gt; OK @ version <span style="color: #00BB00;">a902e195e24a9b4e</span></span></span>
+<span><span class="co">#&gt;   • <span style="color: #00BB00;">/tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2</span> (<span style="color: #00BB00;">parent_changed</span>)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/population.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">fb5d75d5e99169ca</span></span></span>
+<span><span class="co">#&gt; OK @ version <span style="color: #00BB00;">fb5d75d5e99169ca</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Rebuild summary</span></span>
 <span><span class="co">#&gt;   built 1</span></span></code></pre></div>
 <p>This example shows the recommended pattern: load from
@@ -764,7 +762,7 @@ artifact.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_register_builder.html">st_register_builder</a></span><span class="op">(</span><span class="va">out_summary_path</span>, <span class="kw">function</span><span class="op">(</span><span class="va">path</span>, <span class="va">parents</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu">foo</span><span class="op">(</span><span class="op">)</span>, code <span class="op">=</span> <span class="va">foo</span>, code_label <span class="op">=</span> <span class="st">"aggregate_welfare"</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Registered builder for <span style="color: #00BB00;">/tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Registered builder for <span style="color: #00BB00;">/tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2</span></span></span>
 <span><span class="co">#&gt;   (<span style="color: #00BB00;">default</span>)</span></span>
 <span></span>
 <span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_plan_rebuild.html">st_plan_rebuild</a></span><span class="op">(</span></span>
@@ -780,25 +778,25 @@ artifact.</p>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Nothing to rebuild (empty plan).</span></span>
 <span><span class="fu"><a href="../reference/st_lineage.html">st_lineage</a></span><span class="op">(</span><span class="va">out_summary_path</span>, depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   level                                    child_path    child_version</span></span>
-<span><span class="co">#&gt; 1     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
-<span><span class="co">#&gt; 2     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
-<span><span class="co">#&gt; 3     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
-<span><span class="co">#&gt; 4     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
-<span><span class="co">#&gt; 5     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
-<span><span class="co">#&gt; 6     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
-<span><span class="co">#&gt; 7     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
-<span><span class="co">#&gt; 8     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
-<span><span class="co">#&gt; 9     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 a902e195e24a9b4e</span></span>
+<span><span class="co">#&gt; 1     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
+<span><span class="co">#&gt; 2     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
+<span><span class="co">#&gt; 3     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
+<span><span class="co">#&gt; 4     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
+<span><span class="co">#&gt; 5     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
+<span><span class="co">#&gt; 6     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
+<span><span class="co">#&gt; 7     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
+<span><span class="co">#&gt; 8     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
+<span><span class="co">#&gt; 9     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 fb5d75d5e99169ca</span></span>
 <span><span class="co">#&gt;                                   parent_path   parent_version</span></span>
-<span><span class="co">#&gt; 1 /tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2 54a6f3f74e8d6d15</span></span>
-<span><span class="co">#&gt; 2 /tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2 3e7b34487c458947</span></span>
-<span><span class="co">#&gt; 3 /tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2 123dfc8bc1cc9624</span></span>
-<span><span class="co">#&gt; 4 /tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2 0391c725b49710e0</span></span>
-<span><span class="co">#&gt; 5 /tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2 047bbb879adf46b2</span></span>
-<span><span class="co">#&gt; 6 /tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2 3c1dd8f84be22182</span></span>
-<span><span class="co">#&gt; 7        /tmp/Rtmp3weKTk/s/data/macro/cpi.qs2 183644690a9613cd</span></span>
-<span><span class="co">#&gt; 8        /tmp/Rtmp3weKTk/s/data/macro/gdp.qs2 d575aae3500aa5da</span></span>
-<span><span class="co">#&gt; 9 /tmp/Rtmp3weKTk/s/data/macro/population.qs2 3b3ef16b5781b02e</span></span></code></pre></div>
+<span><span class="co">#&gt; 1 /tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2 9575690a253c1e59</span></span>
+<span><span class="co">#&gt; 2 /tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2 25a67036c9bc6a7d</span></span>
+<span><span class="co">#&gt; 3 /tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2 15bdb9e05f1ff670</span></span>
+<span><span class="co">#&gt; 4 /tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2 aabcdfa35337ffed</span></span>
+<span><span class="co">#&gt; 5 /tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2 2f5d2dcd0a778b21</span></span>
+<span><span class="co">#&gt; 6 /tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2 3e073a44528c7cc1</span></span>
+<span><span class="co">#&gt; 7        /tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2 ec92ebac6b7cd5dc</span></span>
+<span><span class="co">#&gt; 8        /tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2 2527ee5f1e4047f9</span></span>
+<span><span class="co">#&gt; 9 /tmp/Rtmp3VLO5b/s/data/macro/population.qs2 bf2340d609a76363</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="add-new-data-arg-2015-welfare">5. Add New Data (ARG 2015 Welfare)<a class="anchor" aria-label="anchor" href="#add-new-data-arg-2015-welfare"></a>
@@ -814,8 +812,8 @@ added.</p>
 <span>  pk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span>, <span class="st">"reporting_level"</span>, <span class="st">"hh_id"</span><span class="op">)</span>,</span>
 <span>  domain <span class="op">=</span> <span class="st">"welfare"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/ARG_2015.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">47fca7f1e0af32c9</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/ARG_2015.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">dc1c5fc6d58ca46c</span></span></span>
 <span></span>
 <span><span class="va">parents2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -833,21 +831,21 @@ added.</p>
 <span>  parents <span class="op">=</span> <span class="va">parents2</span>,</span>
 <span>  domain <span class="op">=</span> <span class="st">"summary"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/ARG_2015.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/gdp.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/population.qs2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">3f22d1114ede41d4</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/ARG_2015.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/population.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">9b9e4ac11a31c599</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">out_summary_path</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2</span></span></span>
 <span><span class="co">#&gt; Key: &lt;country, year&gt;</span></span>
 <span><span class="co">#&gt;    country  year reporting_level welfare_mean welfare_median welfare_sd</span></span>
 <span><span class="co">#&gt;     &lt;char&gt; &lt;int&gt;          &lt;char&gt;        &lt;num&gt;          &lt;num&gt;      &lt;num&gt;</span></span>
@@ -893,43 +891,43 @@ partitions when an input changes.</p>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">a95c3f01a99d519f</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">c3be06dd07b3105f</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">f1dc503ff84be2b2</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">d2a5f023fb61bb33</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">77b81fe032d7c532</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">f1f3a8efe603d7be</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">cf8805336a170029</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">568a77cd164d9ddd</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2010/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">b75bdbf6d3649c59</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2010/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">0664e0c23e343505</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">c8686ffb508e70f8</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">31d1d4f3f0d3d282</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2015/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">8deb64e16513f201</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2015/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">ae373a58e268b97d</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">53967c8f14d4f4c5</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">1a62a60365d8a887</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=PRY/reporting_level=national/year=2011/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">1058878e2aec80b9</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=PRY/reporting_level=national/year=2011/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">a94d13a620bc9180</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/welfare_parts/country=PRY/reporting_level=national/year=2014/part.qs2</span></span></span>
-<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">2c951bddaaec66bd</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/welfare_parts/country=PRY/reporting_level=national/year=2014/part.qs2</span></span></span>
+<span><span class="co">#&gt;   @ version <span style="color: #00BB00;">22b42f4c90c9b11e</span></span></span>
 <span><span class="fu"><a href="../reference/st_list_parts.html">st_list_parts</a></span><span class="op">(</span><span class="va">welfare_parts_dir</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, <span class="op">]</span></span>
 <span><span class="co">#&gt;                                                                                        path</span></span>
-<span><span class="co">#&gt; 1 /tmp/Rtmp3weKTk/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2</span></span>
-<span><span class="co">#&gt; 2 /tmp/Rtmp3weKTk/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2</span></span>
-<span><span class="co">#&gt; 3 /tmp/Rtmp3weKTk/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2</span></span>
-<span><span class="co">#&gt; 4 /tmp/Rtmp3weKTk/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2</span></span>
-<span><span class="co">#&gt; 5 /tmp/Rtmp3weKTk/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2</span></span>
-<span><span class="co">#&gt; 6 /tmp/Rtmp3weKTk/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2</span></span>
+<span><span class="co">#&gt; 1 /tmp/Rtmp3VLO5b/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2</span></span>
+<span><span class="co">#&gt; 2 /tmp/Rtmp3VLO5b/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2</span></span>
+<span><span class="co">#&gt; 3 /tmp/Rtmp3VLO5b/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2</span></span>
+<span><span class="co">#&gt; 4 /tmp/Rtmp3VLO5b/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2</span></span>
+<span><span class="co">#&gt; 5 /tmp/Rtmp3VLO5b/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2</span></span>
+<span><span class="co">#&gt; 6 /tmp/Rtmp3VLO5b/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2</span></span>
 <span><span class="co">#&gt;   country reporting_level year</span></span>
 <span><span class="co">#&gt; 1     COL           rural 2010</span></span>
 <span><span class="co">#&gt; 2     COL           rural 2012</span></span>
@@ -1028,11 +1026,11 @@ for COL 2012 across reporting levels.</p>
 <code class="sourceCode R"><span><span class="co"># Modify CPI again (COL 2012) to trigger staleness</span></span>
 <span><span class="va">cpi3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"cpi.qs2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span></span></span>
 <span><span class="va">cpi3</span><span class="op">[</span><span class="va">country</span> <span class="op">==</span> <span class="st">"COL"</span> <span class="op">&amp;</span> <span class="va">year</span> <span class="op">==</span> <span class="fl">2012</span>, <span class="va">cpi</span> <span class="op">:=</span> <span class="va">cpi</span> <span class="op">*</span> <span class="fl">1.02</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">cpi3</span>, <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">macro_dir</span>, <span class="st">"cpi.qs2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3weKTk/s/data/macro/cpi.qs2</span> @ version <span style="color: #00BB00;">96bb97c6d6d1fdcf</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2</span> @ version <span style="color: #00BB00;">3705e3620d62de16</span></span></span>
 <span></span>
 <span><span class="co"># Detect which partition outputs are stale (simple check: those whose parent CPI version differs)</span></span>
 <span><span class="va">summary_parts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_list_parts.html">st_list_parts</a></span><span class="op">(</span><span class="va">summary_parts_dir</span><span class="op">)</span></span>
@@ -1098,27 +1096,27 @@ inputs.</li>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_lineage.html">st_lineage</a></span><span class="op">(</span><span class="va">out_summary_path</span>, depth <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span></span>
 <span><span class="co">#&gt;    level                                    child_path    child_version</span></span>
-<span><span class="co">#&gt; 1      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 2      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 3      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 4      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 5      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 6      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 7      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 8      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 9      1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
-<span><span class="co">#&gt; 10     1 /tmp/Rtmp3weKTk/s/outputs/welfare_summary.qs2 3f22d1114ede41d4</span></span>
+<span><span class="co">#&gt; 1      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 2      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 3      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 4      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 5      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 6      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 7      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 8      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 9      1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
+<span><span class="co">#&gt; 10     1 /tmp/Rtmp3VLO5b/s/outputs/welfare_summary.qs2 9b9e4ac11a31c599</span></span>
 <span><span class="co">#&gt;                                    parent_path   parent_version</span></span>
-<span><span class="co">#&gt; 1  /tmp/Rtmp3weKTk/s/data/welfare/ARG_2015.qs2 47fca7f1e0af32c9</span></span>
-<span><span class="co">#&gt; 2  /tmp/Rtmp3weKTk/s/data/welfare/COL_2010.qs2 54a6f3f74e8d6d15</span></span>
-<span><span class="co">#&gt; 3  /tmp/Rtmp3weKTk/s/data/welfare/COL_2012.qs2 3e7b34487c458947</span></span>
-<span><span class="co">#&gt; 4  /tmp/Rtmp3weKTk/s/data/welfare/MEX_2010.qs2 123dfc8bc1cc9624</span></span>
-<span><span class="co">#&gt; 5  /tmp/Rtmp3weKTk/s/data/welfare/MEX_2015.qs2 0391c725b49710e0</span></span>
-<span><span class="co">#&gt; 6  /tmp/Rtmp3weKTk/s/data/welfare/PRY_2011.qs2 047bbb879adf46b2</span></span>
-<span><span class="co">#&gt; 7  /tmp/Rtmp3weKTk/s/data/welfare/PRY_2014.qs2 3c1dd8f84be22182</span></span>
-<span><span class="co">#&gt; 8         /tmp/Rtmp3weKTk/s/data/macro/cpi.qs2 183644690a9613cd</span></span>
-<span><span class="co">#&gt; 9         /tmp/Rtmp3weKTk/s/data/macro/gdp.qs2 d575aae3500aa5da</span></span>
-<span><span class="co">#&gt; 10 /tmp/Rtmp3weKTk/s/data/macro/population.qs2 3b3ef16b5781b02e</span></span></code></pre></div>
+<span><span class="co">#&gt; 1  /tmp/Rtmp3VLO5b/s/data/welfare/ARG_2015.qs2 dc1c5fc6d58ca46c</span></span>
+<span><span class="co">#&gt; 2  /tmp/Rtmp3VLO5b/s/data/welfare/COL_2010.qs2 9575690a253c1e59</span></span>
+<span><span class="co">#&gt; 3  /tmp/Rtmp3VLO5b/s/data/welfare/COL_2012.qs2 25a67036c9bc6a7d</span></span>
+<span><span class="co">#&gt; 4  /tmp/Rtmp3VLO5b/s/data/welfare/MEX_2010.qs2 15bdb9e05f1ff670</span></span>
+<span><span class="co">#&gt; 5  /tmp/Rtmp3VLO5b/s/data/welfare/MEX_2015.qs2 aabcdfa35337ffed</span></span>
+<span><span class="co">#&gt; 6  /tmp/Rtmp3VLO5b/s/data/welfare/PRY_2011.qs2 2f5d2dcd0a778b21</span></span>
+<span><span class="co">#&gt; 7  /tmp/Rtmp3VLO5b/s/data/welfare/PRY_2014.qs2 3e073a44528c7cc1</span></span>
+<span><span class="co">#&gt; 8         /tmp/Rtmp3VLO5b/s/data/macro/cpi.qs2 ec92ebac6b7cd5dc</span></span>
+<span><span class="co">#&gt; 9         /tmp/Rtmp3VLO5b/s/data/macro/gdp.qs2 2527ee5f1e4047f9</span></span>
+<span><span class="co">#&gt; 10 /tmp/Rtmp3VLO5b/s/data/macro/population.qs2 bf2340d609a76363</span></span></code></pre></div>
 <warning><strong>Warning: The code below will permanently delete the temporary
 vignette root directory and all its contents.</strong>
 </warning>
