@@ -7,12 +7,37 @@
 st_hash_file(path)
 }
 \arguments{
-\item{path}{Path to a file.}
+\item{path}{Character path to a file}
 }
 \value{
-Lowercase hex string (16 hex chars).
+Lowercase hex string (16 hex characters) from siphash13().
 }
 \description{
-SipHash-1-3 of a file (bytes on disk)
+Computes a hash of a file's contents by reading the file as raw bytes and
+hashing them via \code{secretbase::siphash13()}. This is faster than reading the
+file into R first because \code{secretbase} can stream the file directly.
+}
+\section{Use Cases}{
+
+\itemize{
+\item Detecting if an artifact file has been modified on disk
+\item Verifying file integrity across copies
+\item Checking if a file needs to be re-saved
+}
+}
+
+\section{Note}{
+
+This hashes the file's raw bytes, not its R representation. If you save an
+R object with \code{saveRDS()}, the file hash will change even if the object
+content is the same (due to timestamps, compression variation, etc.). Use
+\code{st_hash_obj()} for content-based hashing of R objects.
+}
+
+\examples{
+\dontrun{
+# Hash a file
+st_hash_file("data.csv")
+}
 }
 \keyword{internal}
