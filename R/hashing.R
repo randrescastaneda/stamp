@@ -1,10 +1,10 @@
 # hashing.R — content/code/file hashing with secretbase only
 
-#' Normalize attributes for consistent hashing (copy-based)
+#' Normalize attributes for consistent hashing
 #'
-#' Creates a normalized copy of an object with attributes in canonical order.
-#' This ensures consistent serialization and hashing regardless of the order
-#' attributes were originally set.
+#' Normalizes the order of object attributes to a canonical form. For data.tables,
+#' modifies attributes in-place using `data.table::setattr()`. For other objects,
+#' returns a new object with normalized attributes.
 #'
 #' @section Problem:
 #' Operations like `collapse::rowbind()` + `collapse::funique()` can leave
@@ -13,20 +13,41 @@
 #' and thus different hashes for logically identical objects.
 #'
 #' @section Solution:
-#' This function rebuilds the object with attributes in a canonical order:
+#' This function reorders attributes to a canonical order:
 #' 1. Priority attributes: names, row.names, class, .internal.selfref
 #' 2. Additional attributes: alphabetically sorted
 #'
-#' @section Implementation Notes:
-#' - For data.frames/data.tables: Rebuilds from column list to avoid copying
-#'   large column data (columns are referenced, not copied)
-#' - For lists/other objects: Uses `unclass()` + attribute replacement
-#' - Does NOT mutate the original object (returns a new object)
+#' @section Implementation Strategy:
+#' The function uses different approaches based on object type:
+#'
+#' **For data.table objects:**
+#' - Modifies attributes **in-place** (mutates the input)
+#' - Uses `data.table::setattr()` exclusively for safe modification
+#' - `setattr()` ensures `.internal.selfref` and other internals stay consistent
+#' - No memory overhead (no copy created)
+#' - Returns invisibly for piping
+#'
+#' **For regular data.frames:**
+#' - Returns a new object with normalized attributes
+#' - Rebuilds from column list with canonical attribute order
+#' - Shallow copy (column data is referenced, not copied)
+#' - Preserves data.frame class
+#'
+#' **For lists and other objects:**
+#' - Returns a new object with normalized attributes
+#' - Uses `unclass()` + attribute replacement
+#'
+#' @section Performance:
+#' - data.table path: Zero memory overhead (in-place modification)
+#' - data.frame/other paths: Shallow copy (column/element data referenced)
+#' - Fast path: returns unchanged if already in canonical order
+#' - Negligible overhead for most use cases (< 1% of hashing time)
 #'
 #' @param x A data.frame, data.table, list, or other object.
-#' @return A normalized copy of the object with attributes in canonical order.
+#' @return For data.tables: invisibly returns the modified object (mutated in-place).
+#'   For other objects: returns a new object with normalized attributes.
+#'   In both cases, the class is preserved.
 #' @keywords internal
-#' @seealso [st_normalize_attrs_inplace()] for in-place normalization of data.tables
 st_normalize_attrs <- function(x) {
   attrs <- attributes(x)
 
@@ -49,10 +70,41 @@ st_normalize_attrs <- function(x) {
   # Canonical order: priority items in specified order, then others alphabetically
   canonical_order <- c(priority_present, sort(other_attrs))
 
-  # Strategy: Build a fresh object with attributes in canonical order
-  # We avoid full deep copies of data; instead we reference existing columns/elements
+  # Fast path: already in canonical order
+  if (identical(attr_names, canonical_order)) {
+    return(x)
+  }
 
-  # --- Path 1: data.frames and data.tables ---
+  # --- Path 1: data.table objects ---
+  # Modify attributes in-place using data.table::setattr()
+  # This is efficient and respects data.table's design philosophy
+  if (inherits(x, "data.table")) {
+    # Save all current attribute values
+    # (we'll clear and re-add them in canonical order)
+    saved_attrs <- copy(attrs)
+
+    # Clear ALL attributes
+    # This is safe for data.table because:
+    # - Column data is stored in the underlying list structure (not in attributes)
+    # - We'll immediately restore them using setattr()
+    attributes(x) <- NULL
+
+    # Re-add attributes in canonical order using data.table::setattr()
+    # setattr() is the ONLY safe way to modify data.table attributes because:
+    # - It properly maintains .internal.selfref
+    # - It updates other internal data.table state as needed
+    # - It's designed for in-place modification
+    for (nm in canonical_order) {
+      setattr(x, nm, saved_attrs[[nm]])
+    }
+
+    # Return invisibly (convention for functions that modify in-place)
+    return(invisible(x))
+  }
+
+  # --- Path 2: regular data.frames (not data.table) ---
+  # Create a new object with normalized attributes
+  # We don't modify in-place because data.frames don't have a safe setattr()
   if (is.data.frame(x)) {
     # Extract columns as a list (this does NOT copy column data, just references)
     cols <- as.list(x)
@@ -66,7 +118,6 @@ st_normalize_attrs <- function(x) {
 
     # Create base structure using structure() which is fast and low-level
     # We use .set_row_names() to create efficient row names (integer sequence)
-    # Both data.table and data.frame paths use the same base structure
     result <- structure(cols, row.names = .set_row_names(length(cols[[1L]])))
 
     # Apply the canonical attributes all at once
@@ -76,7 +127,7 @@ st_normalize_attrs <- function(x) {
     return(result)
   }
 
-  # --- Path 2: lists and other objects ---
+  # --- Path 3: lists and other objects ---
   # For non-data.frame objects, we unclass and rebuild with ordered attributes
 
   # Build canonical attributes list
@@ -92,99 +143,6 @@ st_normalize_attrs <- function(x) {
   attributes(result) <- new_attrs
 
   result
-}
-
-#' Normalize attributes for data.tables in-place
-#'
-#' Mutates a data.table object to reorder its attributes in canonical order.
-#' This is more efficient than creating a copy for large data.tables, and uses
-#' `data.table::setattr()` to ensure data.table internal consistency is maintained.
-#'
-#' @section Why in-place for data.table only:
-#' - data.table provides `setattr()` which is designed for safe in-place
-#'   attribute modification without breaking internal references
-#' - data.frames don't have an equivalent safe in-place mechanism
-#' - For data.tables, in-place is faster and more memory-efficient
-#'
-#' @section How it works:
-#' The challenge: R's `setattr()` or `attr<-()` don't let you reorder existing
-#' attributes; you can only set values. To reorder, we:
-#' 1. Save all current attributes
-#' 2. Remove all attributes (sets to NULL, but doesn't break data.table)
-#' 3. Use `data.table::setattr()` to re-add them in canonical order
-#'
-#' @section Safety:
-#' - Uses `data.table::setattr()` exclusively (never base `attr<-()`)
-#' - Only works on data.table objects (checked)
-#' - Returns invisibly for use in piping/side-effect contexts
-#'
-#' @param x A data.table object
-#' @return The same data.table object (modified in-place), invisibly
-#' @keywords internal
-#' @seealso [st_normalize_attrs()] for copy-based normalization
-st_normalize_attrs_inplace <- function(x) {
-  # Type check: only data.tables support safe in-place attribute modification
-  if (!inherits(x, "data.table")) {
-    stop(
-      "st_normalize_attrs_inplace() only works with data.table objects. ",
-      "Use st_normalize_attrs() for other object types."
-    )
-  }
-
-  # Ensure data.table package is available
-  if (!requireNamespace("data.table", quietly = TRUE)) {
-    stop("data.table package required for in-place attribute normalization")
-  }
-
-  attrs <- attributes(x)
-
-  # Fast path: no attributes to normalize
-  if (is.null(attrs) || length(attrs) == 0L) {
-    return(invisible(x))
-  }
-
-  attr_names <- names(attrs)
-
-  # Define canonical priority order (same as st_normalize_attrs)
-  priority <- c("names", "row.names", "class", ".internal.selfref")
-
-  # Separate attributes into priority and others
-  priority_present <- intersect(priority, attr_names)
-  other_attrs <- setdiff(attr_names, priority)
-
-  # Canonical order
-  canonical_order <- c(priority_present, sort(other_attrs))
-
-  # Check if already in canonical order (fast path to avoid unnecessary work)
-  if (identical(attr_names, canonical_order)) {
-    return(invisible(x))
-  }
-
-  # Strategy for reordering attributes in-place:
-  # We cannot directly reorder the internal attribute pairlist in R.
-  # Instead, we must remove all attributes and re-add them in the desired order.
-  # For data.table, this is safe because:
-  # - setattr() is designed for this
-  # - The column data is not affected (stored separately in the list structure)
-  # - .internal.selfref gets properly updated by setattr()
-
-  # Step 1: Save all attribute values
-  saved_attrs <- attrs
-
-  # Step 2: Clear ALL attributes
-  # Note: This is safe for data.table despite looking dangerous
-  # The actual column data is in the list structure, not in attributes
-  attributes(x) <- NULL
-
-  # Step 3: Re-add attributes in canonical order using data.table::setattr()
-  # setattr() is the ONLY safe way to modify data.table attributes
-  # It ensures .internal.selfref and other internals stay consistent
-  for (nm in canonical_order) {
-    data.table::setattr(x, nm, saved_attrs[[nm]])
-  }
-
-  # Return invisibly to support usage like: dt |> st_normalize_attrs_inplace()
-  invisible(x)
 }
 
 #' Stable SipHash-1-3 of an R object
@@ -218,6 +176,9 @@ st_normalize_attrs_inplace <- function(x) {
 #' - The normalization cost is typically < 1% of total hashing time
 #'
 #' @param x Any R object (data.frame, data.table, list, vector, etc.)
+#' @param copydt Logical scalar. When TRUE and `x` is a data.table, a shallow
+#'   copy is made before normalization to avoid mutating the caller's object.
+#'   Default: FALSE (no copy; data.table attributes will be modified in-place).
 #' @return Lowercase hex string (16 hex characters) from siphash13().
 #'
 #' @examples
@@ -234,9 +195,21 @@ st_normalize_attrs_inplace <- function(x) {
 #' }
 #'
 #' @export
-st_hash_obj <- function(x) {
+st_hash_obj <- function(x, copydt = FALSE) {
+  # Validate copydt
+  if (!is.logical(copydt) || length(copydt) != 1L || is.na(copydt)) {
+    stop("`copydt` must be a single non-missing logical value.")
+  }
+
+  # If requested, create a shallow copy for data.tables to avoid mutating the caller's object
+  if (copydt && inherits(x, "data.table")) {
+    x <- data.table::copy(x)
+  }
+
   # Step 1: Normalize attribute order for consistent serialization
-  # This creates a shallow copy with reordered attributes but doesn't copy data
+  # NOTE: For data.tables, this mutates `x` in-place when copydt = FALSE
+  #       (caller will observe modified attributes). When copydt = TRUE,
+  #       we normalized a shallow copy instead.
   x_normalized <- st_normalize_attrs(x)
 
   # Step 2: Serialize the normalized object to raw bytes
