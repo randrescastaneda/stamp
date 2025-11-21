@@ -10,14 +10,13 @@ st_normalize_attrs(x)
 \item{x}{A data.frame, data.table, list, or other object.}
 }
 \value{
-For data.tables: invisibly returns the modified object (mutated in-place).
-For other objects: returns a new object with normalized attributes.
-In both cases, the class is preserved.
+A new object with the same data but attributes in canonical order.
+The class is preserved.
 }
 \description{
-Normalizes the order of object attributes to a canonical form. For data.tables,
-modifies attributes in-place using \code{data.table::setattr()}. For other objects,
-returns a new object with normalized attributes.
+Normalizes the order of object attributes to a canonical form by creating
+a new object with attributes in the correct order. This is necessary because
+R does not allow reordering attributes in-place.
 }
 \section{Problem}{
 
@@ -38,20 +37,20 @@ This function reorders attributes to a canonical order:
 
 \section{Implementation Strategy}{
 
-The function uses different approaches based on object type:
+The function creates a new object with attributes in canonical order.
+This is a shallow copy - the actual data (columns, elements) is referenced,
+not copied, making it efficient even for large objects.
 
 \strong{For data.table objects:}
 \itemize{
-\item Modifies attributes \strong{in-place} (mutates the input)
-\item Uses \code{data.table::setattr()} exclusively for safe modification
-\item \code{setattr()} ensures \code{.internal.selfref} and other internals stay consistent
-\item No memory overhead (no copy created)
-\item Returns invisibly for piping
+\item Extracts columns as a list
+\item Rebuilds with attributes in canonical order
+\item Shallow copy (column data is referenced, not duplicated)
+\item Preserves data.table class and .internal.selfref
 }
 
 \strong{For regular data.frames:}
 \itemize{
-\item Returns a new object with normalized attributes
 \item Rebuilds from column list with canonical attribute order
 \item Shallow copy (column data is referenced, not copied)
 \item Preserves data.frame class
@@ -59,16 +58,15 @@ The function uses different approaches based on object type:
 
 \strong{For lists and other objects:}
 \itemize{
-\item Returns a new object with normalized attributes
 \item Uses \code{unclass()} + attribute replacement
+\item Shallow copy when possible
 }
 }
 
 \section{Performance}{
 
 \itemize{
-\item data.table path: Zero memory overhead (in-place modification)
-\item data.frame/other paths: Shallow copy (column/element data referenced)
+\item Shallow copy strategy: data is referenced, not duplicated
 \item Fast path: returns unchanged if already in canonical order
 \item Negligible overhead for most use cases (< 1\% of hashing time)
 }

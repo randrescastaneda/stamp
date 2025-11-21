@@ -4,14 +4,10 @@
 \alias{st_hash_obj}
 \title{Stable SipHash-1-3 of an R object}
 \usage{
-st_hash_obj(x, copydt = FALSE)
+st_hash_obj(x)
 }
 \arguments{
 \item{x}{Any R object (data.frame, data.table, list, vector, etc.)}
-
-\item{copydt}{Logical scalar. When TRUE and \code{x} is a data.table, a shallow
-copy is made before normalization to avoid mutating the caller's object.
-Default: FALSE (no copy; data.table attributes will be modified in-place).}
 }
 \value{
 Lowercase hex string (16 hex characters) from siphash13().
@@ -28,7 +24,7 @@ Before hashing, this function normalizes the order of object attributes to
 ensure consistent hashes even when operations (like \code{collapse::rowbind()} +
 \code{collapse::funique()}) leave attributes in different orders.
 
-The normalization creates a copy of the object with attributes reordered to:
+The normalization reorders attributes to a canonical form:
 \enumerate{
 \item Priority attributes: names, row.names, class, .internal.selfref
 \item Other attributes: alphabetically sorted
@@ -36,6 +32,21 @@ The normalization creates a copy of the object with attributes reordered to:
 
 This ensures that logically identical objects produce identical hashes
 regardless of their attribute creation history.
+}
+
+\section{Mutation Behavior (data.table only)}{
+
+\strong{By default (\code{copydt = FALSE}), this function modifies data.table attributes in-place.}
+The actual column data is never changed, but the order of attributes in the
+object's metadata will be reordered to canonical form. This provides the best
+performance for large data.tables (no memory overhead).
+
+If you need to preserve the original attribute order, use \code{copydt = TRUE} to
+create a shallow copy before normalization. This adds minimal overhead (the
+copy only references the existing column data, it doesn't duplicate it).
+
+\strong{For data.frames, lists, and other objects:} A new object is always returned
+internally (normalization doesn't modify the input), regardless of \code{copydt}.
 }
 
 \section{Why This Matters}{
@@ -50,7 +61,7 @@ incorrectly flagged as changed.
 
 \itemize{
 \item For small to medium objects: negligible overhead
-\item For large objects: creates a shallow copy (column data is referenced, not copied)
+\item For large objects: creates a shallow copy (data is referenced, not duplicated)
 \item The normalization cost is typically < 1\% of total hashing time
 }
 }
