@@ -65,10 +65,7 @@ st_normalize_attrs <- function(x) {
 
   canonical_order <- c(priority_present, sort(other_attrs))
 
-  # Already canonical? nothing to do
-  if (identical(attr_names, canonical_order)) {
-    return(x)
-  }
+  # Always rebuild to ensure deterministic attribute ordering
 
   # ---------------------------------------------------------------------------
   # data.table branch
@@ -135,6 +132,47 @@ st_normalize_attrs <- function(x) {
   result
 }
 
+# -----------------------------------------------------------------------------
+# Sanitization helpers (content-only hashing for tabular data)
+# -----------------------------------------------------------------------------
+
+#' @keywords internal
+.st_is_dt <- function(x) inherits(x, "data.table")
+
+#' Sanitize object prior to hashing
+#'
+#' For tabular data we want hashing to depend only on the data/frame content,
+#' not on volatile data.table internals (e.g. `.internal.selfref`) or differing
+#' row name representations. Strategy:
+#' - If `x` is a data.table: coerce to plain data.frame (drops DT internals).
+#' - If `x` is a data.frame (including coerced DT): enforce deterministic
+#'   row.names via `.set_row_names(NROW(x))`.
+#' - Record original class in `st_original_format` so a loader can restore it.
+#'
+#' Non-tabular objects are returned unchanged (attribute normalization handles
+#' them subsequently).
+#'
+#' NOTE: The returned object is a shallow copy; column data is not duplicated.
+#' @keywords internal
+st_sanitize_for_hash <- function(x) {
+  # Skip if already sanitized
+  if (isTRUE(attr(x, "stamp_sanitized"))) {
+    return(x)
+  }
+  if (is.data.frame(x)) {
+    if (.st_is_dt(x)) {
+      orig_class <- class(x)
+      x <- as.data.frame(x)
+      attr(x, "st_original_format") <- orig_class
+    }
+    attr(x, "row.names") <- .set_row_names(NROW(x))
+    attr(x, "stamp_sanitized") <- TRUE
+    return(x)
+  }
+  attr(x, "stamp_sanitized") <- TRUE
+  x
+}
+
 #' Stable SipHash-1-3 of an R object
 #'
 #' Computes a stable hash of an R object by serializing it with
@@ -196,16 +234,16 @@ st_normalize_attrs <- function(x) {
 #'
 #' @export
 st_hash_obj <- function(x) {
-  # Step 1: Normalize attribute order for consistent serialization
-  # This creates a shallow copy with reordered attributes
-  x_normalized <- st_normalize_attrs(x)
-
-  # Step 2: Serialize the normalized object to raw bytes
-  # version = 3 ensures stable serialization format across R 3.5+
-  raw <- serialize(x_normalized, connection = NULL, version = 3)
-
-  # Step 3: Hash the raw bytes using SipHash-1-3
-  # SipHash is fast and cryptographically strong enough for non-adversarial use
+  # 1) Sanitize (content-only for tabular data); skip if already sanitized
+  x_clean <- if (isTRUE(attr(x, "stamp_sanitized"))) {
+    x
+  } else {
+    st_sanitize_for_hash(x)
+  }
+  # 2) Canonicalize attribute order
+  x_norm <- st_normalize_attrs(x_clean)
+  # 3) Serialize + SipHash
+  raw <- serialize(x_norm, connection = NULL, version = 3)
   secretbase::siphash13(raw)
 }
 
