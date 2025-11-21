@@ -63,5 +63,4 @@ identical(dt_a, dt_b)  # TRUE
 # And now they hash the same too!
 st_hash_obj(dt_a) == st_hash_obj(dt_b)  # TRUE
 }
-
 }

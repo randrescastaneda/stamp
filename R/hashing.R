@@ -219,6 +219,8 @@ st_sanitize_for_hash <- function(x) {
 #' @param x Any R object (data.frame, data.table, list, vector, etc.)
 #' @return Lowercase hex string (16 hex characters) from siphash13().
 #'
+#' @export
+#'
 #' @examples
 #' \dontrun{
 #' # Two ways to create the "same" data
@@ -231,8 +233,6 @@ st_sanitize_for_hash <- function(x) {
 #' # And now they hash the same too!
 #' st_hash_obj(dt_a) == st_hash_obj(dt_b)  # TRUE
 #' }
-#'
-#' @export
 st_hash_obj <- function(x) {
   # 1) Sanitize (content-only for tabular data); skip if already sanitized
   x_clean <- if (isTRUE(attr(x, "stamp_sanitized"))) {
