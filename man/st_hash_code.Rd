@@ -7,13 +7,45 @@
 st_hash_code(code)
 }
 \arguments{
-\item{code}{A function, expression, or character vector.}
+\item{code}{A function, expression (language object), or character vector}
 }
 \value{
-Lowercase hex string (16 hex chars).
+Lowercase hex string (16 hex characters) from siphash13().
 }
 \description{
-Accepts a function, expression (language), or character. For functions,
-includes both formals and body. Whitespace is normalized conservatively.
+Computes a stable hash of R code (functions, expressions, or character vectors).
+For functions, includes both formals (arguments) and body. Whitespace is
+lightly normalized to reduce spurious differences.
+}
+\section{Normalization}{
+
+The code undergoes light normalization before hashing:
+\itemize{
+\item Multiple spaces/tabs collapsed to single space
+\item Line endings normalized to \verb{\\n}
+\item This reduces false positives from formatting changes while preserving code structure
+}
+}
+
+\section{What Gets Hashed}{
+
+\itemize{
+\item \strong{Functions}: formals (argument list) + body (code)
+\item \strong{Expressions/language}: deparsed code
+\item \strong{Character vectors}: concatenated with newlines
+}
+}
+
+\examples{
+\dontrun{
+# Hash a function
+st_hash_code(function(x) x + 1)
+
+# Hash an expression
+st_hash_code(quote(x + 1))
+
+# Hash character code
+st_hash_code("x <- 1\ny <- 2")
+}
 }
 \keyword{internal}

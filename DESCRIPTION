@@ -31,6 +31,7 @@ Suggests:
     knitr,
     rmarkdown,
     filelock,
+    collapse,
     covr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
