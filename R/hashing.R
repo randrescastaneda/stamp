@@ -105,7 +105,8 @@ st_normalize_attrs <- function(x) {
 
     # Create base structure using structure() which is fast and low-level
     # We use .set_row_names() to create efficient row names (integer sequence)
-    result <- structure(cols, row.names = .set_row_names(length(cols[[1L]])))
+    n_rows <- if (length(cols)) NROW(cols[[1L]]) else NROW(x) 
+    result <- structure(cols, row.names = .set_row_names(n_rows)) 
 
     # Apply the canonical attributes all at once
     # This replaces the minimal attributes from structure() with our full set
@@ -116,6 +117,18 @@ st_normalize_attrs <- function(x) {
 
   # --- Path 3: lists and other objects ---
   # For non-data.frame objects, we unclass and rebuild with ordered attributes
+
+  # Short-circuit S4 objects: unclass() is not safe for S4 instances.
+  # Return S4 objects unchanged (caller can handle S4-specific normalization if needed).
+  if (isS4(x)) {
+
+    cli::cli_warn(c(
+      "!" = "S4 objects cannot be normalized for hashing; returning object unchanged."
+    ))
+
+    return(x)
+
+  }
 
   # Build canonical attributes list
   new_attrs <- vector("list", length(canonical_order))
