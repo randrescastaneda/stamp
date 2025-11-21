@@ -1,6 +1,8 @@
 library(data.table)
-library(collapse)
+
 test_that("data.table hashing ignores volatile internals", {
+  skip_if_not_installed("collapse")  
+
   dt <- data.table(a = 1:5, b = letters[1:5])
   # Create via different path (duplicate then unique)
   dt_alt <- collapse::rowbind(dt, dt) |> collapse::funique()

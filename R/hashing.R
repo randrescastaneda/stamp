@@ -105,8 +105,8 @@ st_normalize_attrs <- function(x) {
 
     # Create base structure using structure() which is fast and low-level
     # We use .set_row_names() to create efficient row names (integer sequence)
-    n_rows <- if (length(cols)) NROW(cols[[1L]]) else NROW(x) 
-    result <- structure(cols, row.names = .set_row_names(n_rows)) 
+    n_rows <- if (length(cols)) NROW(cols[[1L]]) else NROW(x)
+    result <- structure(cols, row.names = .set_row_names(n_rows))
 
     # Apply the canonical attributes all at once
     # This replaces the minimal attributes from structure() with our full set
@@ -222,8 +222,8 @@ st_sanitize_for_hash <- function(x) {
 #' @examples
 #' \dontrun{
 #' # Two ways to create the "same" data
-#' dt_a <- data.table(x = 1:5) |> funique()
-#' dt_b <- data.table(x = 1:5) |> rowbind(data.table(x = 1:5)) |> funique()
+#' dt_a <- data.table(x = 1:5)
+#' dt_b <- data.table(x = 1:5) |> collapse::rowbind(data.table(x = 1:5)) |> collapse::funique()
 #'
 #' # They're identical in content
 #' identical(dt_a, dt_b)  # TRUE

@@ -54,8 +54,8 @@ incorrectly flagged as changed.
 \examples{
 \dontrun{
 # Two ways to create the "same" data
-dt_a <- data.table(x = 1:5) |> funique()
-dt_b <- data.table(x = 1:5) |> rowbind(data.table(x = 1:5)) |> funique()
+dt_a <- data.table(x = 1:5)
+dt_b <- data.table(x = 1:5) |> collapse::rowbind(data.table(x = 1:5)) |> collapse::funique()
 
 # They're identical in content
 identical(dt_a, dt_b)  # TRUE
