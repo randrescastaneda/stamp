@@ -15,7 +15,7 @@ home:
 navbar:
   title: stamp
   structure:
-    left:  [reference, articles]
+    left:  [intro, reference, articles]
     right: [search, github]
   components:
     github:
@@ -42,6 +42,7 @@ reference:
 
   - title: "Versioning & Catalog"
     contents:
+      - st_hash_obj
       - st_versions
       - st_latest
       - st_prune_versions
@@ -77,15 +78,15 @@ reference:
 
 articles:
 
-- title: Basics
-  navbar: Basics
-  contents:
-  - setup-and-basics
-  - hashing-and-versions
-  - lineage-rebuilds
+  - title: Basics
+    navbar: Basics
+    contents:
+    - setup-and-basics
+    - hashing-and-versions
+    - lineage-rebuilds
 
-- title: Advanced Usage
-  navbar: Advanced Usage
-  contents:
-  - builders-plans
-  - version_retention_prune
+  - title: Advanced Usage
+    navbar: Advanced Usage
+    contents:
+    - builders-plans
+    - version_retention_prune
