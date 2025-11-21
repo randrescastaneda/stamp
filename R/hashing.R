@@ -192,19 +192,6 @@ st_sanitize_for_hash <- function(x) {
 #' This ensures that logically identical objects produce identical hashes
 #' regardless of their attribute creation history.
 #'
-#' @section Mutation Behavior (data.table only):
-#' **By default (`copydt = FALSE`), this function modifies data.table attributes in-place.**
-#' The actual column data is never changed, but the order of attributes in the
-#' object's metadata will be reordered to canonical form. This provides the best
-#' performance for large data.tables (no memory overhead).
-#'
-#' If you need to preserve the original attribute order, use `copydt = TRUE` to
-#' create a shallow copy before normalization. This adds minimal overhead (the
-#' copy only references the existing column data, it doesn't duplicate it).
-#'
-#' **For data.frames, lists, and other objects:** A new object is always returned
-#' internally (normalization doesn't modify the input), regardless of `copydt`.
-#'
 #' @section Why This Matters:
 #' Without normalization, two data.frames that are `identical()` can produce
 #' different hashes if their internal attributes are in different orders. This

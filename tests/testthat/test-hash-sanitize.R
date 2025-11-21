@@ -3,7 +3,7 @@ library(collapse)
 test_that("data.table hashing ignores volatile internals", {
   dt <- data.table(a = 1:5, b = letters[1:5])
   # Create via different path (duplicate then unique)
-  dt_alt <- rowbind(dt, dt) |> funique()
+  dt_alt <- collapse::rowbind(dt, dt) |> collapse::funique()
 
   # Sanity: content identical
   expect_true(identical(as.data.frame(dt), as.data.frame(dt_alt)))
