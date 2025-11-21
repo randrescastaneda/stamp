@@ -303,6 +303,22 @@ st_load <- function(file, format = NULL, ...) {
   # Read the artifact with the registered reader
   res <- h$read(sp$path, ...)
 
+  # (2) Optional CONTENT integrity check: sidecar$content_hash vs rehash of loaded object
+  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
+    if (
+      is.list(meta) &&
+        is.character(meta$content_hash) &&
+        nzchar(meta$content_hash)
+    ) {
+      h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
+      if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
+        cli::cli_warn(
+          "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
+        )
+      }
+    }
+  }
+  
   # Restore original tabular format if it was a data.table at save time
   if (
     is.data.frame(res) &&
@@ -343,21 +359,6 @@ st_load <- function(file, format = NULL, ...) {
     attr(res, "stamp_pk") <- list(keys = pk_keys)
   }
 
-  # (2) Optional CONTENT integrity check: sidecar$content_hash vs rehash of loaded object
-  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
-    if (
-      is.list(meta) &&
-        is.character(meta$content_hash) &&
-        nzchar(meta$content_hash)
-    ) {
-      h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
-      if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
-        cli::cli_warn(
-          "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
-        )
-      }
-    }
-  }
 
   # Reattach schema if present and not already attached
   if (
