@@ -1,9 +1,6 @@
+library(data.table)
+library(collapse)
 test_that("data.table hashing ignores volatile internals", {
-  skip_if_not_installed("data.table")
-  skip_if_not_installed("collapse")
-  library(data.table)
-  library(collapse)
-
   dt <- data.table(a = 1:5, b = letters[1:5])
   # Create via different path (duplicate then unique)
   dt_alt <- rowbind(dt, dt) |> funique()
@@ -17,8 +14,6 @@ test_that("data.table hashing ignores volatile internals", {
 })
 
 test_that("saving + loading restores data.table class", {
-  skip_if_not_installed("data.table")
-  library(data.table)
   tdir <- tempfile("stamp-sanitize-test-")
   dir.create(tdir)
   old_opts <- options()

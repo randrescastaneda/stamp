@@ -3,9 +3,6 @@
 # causing identical objects to hash differently
 
 test_that("st_hash_obj produces consistent hashes despite attribute order differences", {
-  skip_if_not_installed("collapse")
-  skip_if_not_installed("data.table")
-
   # Create test data
   raw <- data.table::data.table(
     a = 1:5,
