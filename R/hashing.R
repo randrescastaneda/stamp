@@ -47,48 +47,49 @@
 #'   The class is preserved.
 #' @keywords internal
 st_normalize_attrs <- function(x) {
+  # Get attributes once
   attrs <- attributes(x)
 
-  # Fast path: no attributes to normalize
+  # Fast path: no attributes
   if (is.null(attrs) || length(attrs) == 0L) {
     return(x)
   }
 
   attr_names <- names(attrs)
 
-  # Define canonical priority order for common R object attributes
-  # These are ordered to match the most "natural" structure and ensure
-  # consistency across different object creation paths
+  # Canonical priority order
   priority <- c("names", "row.names", "class", ".internal.selfref")
 
-  # Separate attributes into priority (fixed order) and others (alphabetical)
   priority_present <- intersect(priority, attr_names)
   other_attrs <- setdiff(attr_names, priority)
 
-  # Canonical order: priority items in specified order, then others alphabetically
   canonical_order <- c(priority_present, sort(other_attrs))
 
-  # Fast path: already in canonical order
+  # Already canonical? nothing to do
   if (identical(attr_names, canonical_order)) {
     return(x)
   }
 
-  # --- Path 1: data.table objects ---
-  # IMPORTANT: R does not allow reordering attributes in-place. The only way to
-  # change attribute order is to rebuild the object with a new attribute list.
-  # For data.tables, we need to be very careful to preserve the internal structure.
+  # ---------------------------------------------------------------------------
+  # data.table branch
+  # ---------------------------------------------------------------------------
   if (inherits(x, "data.table")) {
-    # Build the canonical attributes list in the correct order
-    new_attrs <- vector("list", length(canonical_order))
-    names(new_attrs) <- canonical_order
-    for (nm in canonical_order) {
-      new_attrs[[nm]] <- attrs[[nm]]
+    # Work on a copy to avoid mutating caller's object by reference
+    result <- copy(x)
+
+    # Values of attributes in canonical order
+    vals <- attrs[canonical_order]
+
+    # 1) Drop ALL attributes via setattr(..., NULL)
+    #    This uses only data.table's API (no attributes<-).
+    for (nm in attr_names) {
+      setattr(result, nm, NULL)
     }
 
-    # Strategy: Copy the data.table, then replace ALL attributes at once
-    # This preserves the data.table structure while reordering attributes
-    result <- copy(x)
-    attributes(result) <- new_attrs
+    # 2) Re-add attributes in canonical order
+    for (nm in canonical_order) {
+      setattr(result, nm, vals[[nm]])
+    }
 
     return(result)
   } # --- Path 2: regular data.frames (not data.table) ---
