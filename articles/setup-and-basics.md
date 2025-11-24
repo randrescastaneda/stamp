@@ -34,8 +34,8 @@ st_init(tdir)
 ```
 
     ## ✔ stamp initialized
-    ##   root: /tmp/Rtmp5Pl0vH/stamp-vignette
-    ##   state: /tmp/Rtmp5Pl0vH/stamp-vignette/.stamp
+    ##   root: /tmp/RtmpBCJjgP/stamp-vignette
+    ##   state: /tmp/RtmpBCJjgP/stamp-vignette/.stamp
 
 ``` r
 # Inspect created structure
@@ -43,7 +43,7 @@ fs::path(tdir, ".stamp") |>
   fs::dir_tree(recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/Rtmp5Pl0vH/stamp-vignette/.stamp
+    ## /tmp/RtmpBCJjgP/stamp-vignette/.stamp
     ## ├── logs
     ## └── temp
 
@@ -175,25 +175,25 @@ fs::dir_create(outdir)
 res <- st_save(x, fs::path(outdir, "example.qs2"), metadata = list(description = "toy"))
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmp5Pl0vH/stamp-output/example.qs2 @ version
-    ##   76be18f2bcdc2865
+    ## ✔ Saved [qs2] → /tmp/RtmpBCJjgP/stamp-output/example.qs2 @ version
+    ##   9ae8121b3c1d9351
 
 ``` r
 res$path
 ```
 
-    ## /tmp/Rtmp5Pl0vH/stamp-output/example.qs2
+    ## /tmp/RtmpBCJjgP/stamp-output/example.qs2
 
 ``` r
 # load back (format auto-detected)
 y <- st_load(res$path)
 ```
 
-    ## Warning: No primary key recorded for /tmp/Rtmp5Pl0vH/stamp-output/example.qs2.
+    ## Warning: No primary key recorded for /tmp/RtmpBCJjgP/stamp-output/example.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/Rtmp5Pl0vH/stamp-output/example.qs2
+    ## /tmp/RtmpBCJjgP/stamp-output/example.qs2
 
 ``` r
 identical(x, y)
@@ -223,9 +223,9 @@ str(sc)
 ```
 
     ## List of 11
-    ##  $ path        : chr "/tmp/Rtmp5Pl0vH/stamp-output/example.qs2"
+    ##  $ path        : chr "/tmp/RtmpBCJjgP/stamp-output/example.qs2"
     ##  $ format      : chr "qs2"
-    ##  $ created_at  : chr "2025-11-24T19:24:45Z"
+    ##  $ created_at  : chr "2025-11-24T19:28:44Z"
     ##  $ size_bytes  : int 256
     ##  $ content_hash: chr "99235ac79dea7ab0"
     ##  $ code_hash   : NULL
@@ -265,8 +265,8 @@ in_path <- fs::path(outdir, "upstream.qs")
 st_save(data.frame(id=1:3), in_path)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmp5Pl0vH/stamp-output/upstream.qs @ version
-    ##   71e0b96d2336373a
+    ## ✔ Saved [qs2] → /tmp/RtmpBCJjgP/stamp-output/upstream.qs @ version
+    ##   af66777da4272b01
 
 ``` r
 in_vid <- st_latest(in_path)
@@ -277,21 +277,21 @@ parents <- list(list(path = in_path, version_id = in_vid))
 st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmp5Pl0vH/stamp-output/derived.qs @ version
-    ##   80232a0066d58733
+    ## ✔ Saved [qs2] → /tmp/RtmpBCJjgP/stamp-output/derived.qs @ version
+    ##   2508a07aab59ed4a
 
 ``` r
 st_info(out_path)$sidecar
 ```
 
     ## $path
-    ## [1] "/tmp/Rtmp5Pl0vH/stamp-output/derived.qs"
+    ## [1] "/tmp/RtmpBCJjgP/stamp-output/derived.qs"
     ## 
     ## $format
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2025-11-24T19:24:45Z"
+    ## [1] "2025-11-24T19:28:44Z"
     ## 
     ## $size_bytes
     ## [1] 256
@@ -310,7 +310,7 @@ st_info(out_path)$sidecar
     ## 
     ## $parents
     ##                                       path       version_id
-    ## 1 /tmp/Rtmp5Pl0vH/stamp-output/upstream.qs 71e0b96d2336373a
+    ## 1 /tmp/RtmpBCJjgP/stamp-output/upstream.qs af66777da4272b01
     ## 
     ## $attrs
     ## list()
@@ -320,9 +320,9 @@ st_lineage(out_path, depth = 1)
 ```
 
     ##   level                              child_path    child_version
-    ## 1     1 /tmp/Rtmp5Pl0vH/stamp-output/derived.qs 80232a0066d58733
+    ## 1     1 /tmp/RtmpBCJjgP/stamp-output/derived.qs 2508a07aab59ed4a
     ##                                parent_path   parent_version
-    ## 1 /tmp/Rtmp5Pl0vH/stamp-output/upstream.qs 71e0b96d2336373a
+    ## 1 /tmp/RtmpBCJjgP/stamp-output/upstream.qs af66777da4272b01
 
 Notes on behavior - The sidecar always contains `parents` for quick
 inspection. However, in the default `versioning = "content"` mode a new
@@ -353,11 +353,11 @@ st_add_pk(out_path, keys = c("id"))
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
-    ## Warning: No primary key recorded for /tmp/Rtmp5Pl0vH/stamp-output/derived.qs.
+    ## Warning: No primary key recorded for /tmp/RtmpBCJjgP/stamp-output/derived.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/Rtmp5Pl0vH/stamp-output/derived.qs
-    ## ✔ Recorded primary key for /tmp/Rtmp5Pl0vH/stamp-output/derived.qs --> id
+    ## ✔ Loaded [qs2] ← /tmp/RtmpBCJjgP/stamp-output/derived.qs
+    ## ✔ Recorded primary key for /tmp/RtmpBCJjgP/stamp-output/derived.qs --> id
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
@@ -373,7 +373,7 @@ df <- st_load(out_path)
 ```
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/Rtmp5Pl0vH/stamp-output/derived.qs
+    ## /tmp/RtmpBCJjgP/stamp-output/derived.qs
 
 ``` r
 st_filter(df, list(id = 1))
