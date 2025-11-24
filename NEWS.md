@@ -1,3 +1,9 @@
+# stamp 0.0.4
+* add normalization of attributes
+* Sanitize data.tables
+* improve logic of `st_hash_obj()`
+* Avoid redundancies and make more efficient the use of `st_hash_obj()`
+
 # stamp 0.0.3
 * standardize helpers to use data.table
 * Add get started vignette
