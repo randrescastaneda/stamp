@@ -318,7 +318,7 @@ st_load <- function(file, format = NULL, ...) {
       }
     }
   }
-  
+
   # Restore original tabular format if it was a data.table at save time
   if (
     is.data.frame(res) &&
@@ -376,6 +376,15 @@ st_load <- function(file, format = NULL, ...) {
       is.null(attr(res, "stamp_domain"))
   ) {
     attr(res, "stamp_domain") <- meta$domain
+  }
+
+  # Remove st_original_format attribute (internal marker, not part of user object)
+  if (!is.null(attr(res, "st_original_format"))) {
+    if (inherits(res, "data.table")) {
+      setattr(res, "st_original_format", NULL)
+    } else {
+      attr(res, "st_original_format") <- NULL
+    }
   }
 
   # Remove stamp_sanitized attribute (not part of user-visible object) after any verification

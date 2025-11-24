@@ -55,17 +55,12 @@ st_normalize_attrs <- function(x) {
   attr_names <- names(attrs)
 
   # Canonical priority order
-  priority <- c("names", "row.names", "class", ".internal.selfref")
+  priority <- c("names", "row.names", "class")
 
   priority_present <- intersect(priority, attr_names)
   other_attrs <- setdiff(attr_names, priority)
 
   canonical_order <- c(priority_present, sort(other_attrs))
-
-  # Fast path: already in canonical order?
-  if (identical(attr_names, canonical_order)) {
-    return(x)  # ← skip rebuild
-  }
 
   # Rebuild only if attribute order differs from canonical
 
@@ -73,7 +68,7 @@ st_normalize_attrs <- function(x) {
   if (inherits(x, "data.table")) {
 
     # Warn that sanitation is required
-    cli::cli_error(c(
+    cli::cli_abort(c(
       "!" = "data.table objects require sanitation before hashing.",
       "i" = "Please run `st_sanitize_for_hash()` on the object before hashing."
     ))
@@ -159,19 +154,22 @@ st_normalize_attrs <- function(x) {
 #' @keywords internal
 st_sanitize_for_hash <- function(x) {
   # Skip if already sanitized
-  if (isTRUE(attr(x, "stamp_sanitized") && !.st_is_dt(x))) {
+  if (isTRUE(attr(x, "stamp_sanitized")) && !.st_is_dt(x)) {
     return(x)
   }
+  orig_class <- class(x)
+
   if (is.data.frame(x)) {
     if (.st_is_dt(x)) {
-      orig_class <- class(x)
       x <- as.data.frame(x)
-      attr(x, "st_original_format") <- orig_class
     }
+    attr(x, "st_original_format") <- orig_class
     attr(x, "row.names") <- .set_row_names(NROW(x))
     attr(x, "stamp_sanitized") <- TRUE
     return(x)
   }
+
+  attr(x, "st_original_format") <- orig_class
   attr(x, "stamp_sanitized") <- TRUE
   x
 }

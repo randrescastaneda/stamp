@@ -43,10 +43,7 @@ not copied, making it efficient even for large objects.
 
 \strong{For data.table objects:}
 \itemize{
-\item Extracts columns as a list
-\item Rebuilds with attributes in canonical order
-\item Shallow copy (column data is referenced, not duplicated)
-\item Preserves data.table class and .internal.selfref
+\item Warning on the need of sanitation of the object using \code{st_sanitize_for_hash}
 }
 
 \strong{For regular data.frames:}
