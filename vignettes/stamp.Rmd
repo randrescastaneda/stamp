@@ -705,7 +705,7 @@ st_lineage(out_summary_path, depth = 2)[1:10, ]
 **Warning: The code below will permanently delete the temporary vignette root directory and all its contents.**
 </warning>
 
-```{r cleanup}
+```{r cleanup, eval= interactive()}
 # Remove the temporary root used for vignette examples. Only run in a local
 # interactive session when you are sure you no longer need the temporary files.
 if (exists("root_dir") && fs::dir_exists(root_dir)) {

@@ -251,7 +251,8 @@ st_hash_obj <- function(x) {
 #'
 #' Computes a stable hash of R code (functions, expressions, or character vectors).
 #' For functions, includes both formals (arguments) and body. Whitespace is
-#' lightly normalized to reduce spurious differences.
+#' lightly normalized to reduce spurious differences. That means code changes which only
+#' alter the number of spaces in strings (e.g. "a  b" vs "a b") will produce identical hashes.
 #'
 #' @section Normalization:
 #' The code undergoes light normalization before hashing:
