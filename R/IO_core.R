@@ -124,8 +124,12 @@ st_save <- function(
     )
   }
 
+  # Prepare sanitized object (content-only for tabular data) for hashing & storage
+  x_sanitized <- st_sanitize_for_hash(x)
+
   # Decide if we should create a new version (hashes, code hash, etc.)
-  dec <- st_should_save(sp$path, x = x, code = code)
+  # Use sanitized object so decision aligns with stored content
+  dec <- st_should_save(sp$path, x = x_sanitized, code = code)
   if (!dec$save) {
     cli::cli_inform(c(
       "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {sp$path}}"
@@ -141,7 +145,7 @@ st_save <- function(
     .st_with_lock(sp$path, {
       # 1) Atomic artifact write (overwrite-in-place policy lives here)
       .st_write_atomic(
-        obj = x,
+        obj = x_sanitized,
         path = sp$path,
         writer = function(obj, pth) {
           # Forward only writer args that the concrete writer accepts.
@@ -172,7 +176,7 @@ st_save <- function(
           format = fmt,
           created_at = .st_now_utc(),
           size_bytes = unname(fs::file_info(sp$path)$size),
-          content_hash = st_hash_obj(x),
+          content_hash = st_hash_obj(x_sanitized),
           code_hash = if (
             isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
           ) {
@@ -193,12 +197,12 @@ st_save <- function(
       )
 
       # Mirror PK/domain from the object into sidecar when applicable
-      if (is.data.frame(x)) {
-        pk_keys <- st_get_pk(x)
+      if (is.data.frame(x_sanitized)) {
+        pk_keys <- st_get_pk(x_sanitized)
         if (length(pk_keys)) {
           meta$pk <- list(keys = pk_keys)
         }
-        dom <- attr(x, "stamp_domain", exact = TRUE)
+        dom <- attr(x_sanitized, "stamp_domain", exact = TRUE)
         if (!is.null(dom)) meta$domain <- as.character(dom)
       }
 
@@ -299,6 +303,31 @@ st_load <- function(file, format = NULL, ...) {
   # Read the artifact with the registered reader
   res <- h$read(sp$path, ...)
 
+  # (2) Optional CONTENT integrity check: sidecar$content_hash vs rehash of loaded object
+  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
+    if (
+      is.list(meta) &&
+        is.character(meta$content_hash) &&
+        nzchar(meta$content_hash)
+    ) {
+      h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
+      if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
+        cli::cli_warn(
+          "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
+        )
+      }
+    }
+  }
+
+  # Restore original tabular format if it was a data.table at save time
+  if (
+    is.data.frame(res) &&
+      !is.null(attr(res, "st_original_format")) &&
+      "data.table" %in% attr(res, "st_original_format")
+  ) {
+    res <- as.data.table(res)
+  }
+
   #  pk presence check on load (warn or error depending on options) \
   pk_keys <- character(0)
   if (is.list(meta) && !is.null(meta$pk)) {
@@ -326,21 +355,6 @@ st_load <- function(file, format = NULL, ...) {
     attr(res, "stamp_pk") <- list(keys = pk_keys)
   }
 
-  # (2) Optional CONTENT integrity check: sidecar$content_hash vs rehash of loaded object
-  if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
-    if (
-      is.list(meta) &&
-        is.character(meta$content_hash) &&
-        nzchar(meta$content_hash)
-    ) {
-      h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
-      if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
-        cli::cli_warn(
-          "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
-        )
-      }
-    }
-  }
 
   # Reattach schema if present and not already attached
   if (
@@ -358,6 +372,24 @@ st_load <- function(file, format = NULL, ...) {
       is.null(attr(res, "stamp_domain"))
   ) {
     attr(res, "stamp_domain") <- meta$domain
+  }
+
+  # Remove st_original_format attribute (internal marker, not part of user object)
+  if (!is.null(attr(res, "st_original_format"))) {
+    if (inherits(res, "data.table")) {
+      setattr(res, "st_original_format", NULL)
+    } else {
+      attr(res, "st_original_format") <- NULL
+    }
+  }
+
+  # Remove stamp_sanitized attribute (not part of user-visible object) after any verification
+  if (!is.null(attr(res, "stamp_sanitized"))) {
+    if (inherits(res, "data.table")) {
+      setattr(res, "stamp_sanitized", NULL)
+    } else {
+      attr(res, "stamp_sanitized") <- NULL
+    }
   }
 
   cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.file {sp$path}}"))
