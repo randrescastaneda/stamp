@@ -326,10 +326,6 @@ st_load <- function(file, format = NULL, ...) {
       "data.table" %in% attr(res, "st_original_format")
   ) {
     res <- as.data.table(res)
-    # Remove only st_original_format now; defer stamp_sanitized removal until after integrity check
-    if (!is.null(attr(res, "st_original_format"))) {
-      setattr(res, "st_original_format", NULL)
-    }
   }
 
   #  pk presence check on load (warn or error depending on options) \
