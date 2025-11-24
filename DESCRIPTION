@@ -25,7 +25,7 @@ Imports:
 Suggests:
     qs2,
     qs (>= 0.25.4),
-    arrow (>= 10.0.0),
+    nanoparquet,
     fst (>= 0.9.8),
     testthat (>= 3.1.5),
     knitr,
