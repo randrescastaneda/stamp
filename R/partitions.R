@@ -142,6 +142,223 @@ st_save_part <- function(
   invisible(list(path = path, version_id = out$version_id))
 }
 
+#' Auto-partition and save a dataset (Hive-style)
+#'
+#' Splits a data.frame/data.table by partition columns and saves each partition
+#' to a separate file using Hive-style directory structure. Eliminates manual
+#' looping and splitting logic.
+#'
+#' @param x Data.frame or data.table to partition and save
+#' @param base Base directory for partitions (e.g., "data/welfare_parts")
+#' @param partitioning Character vector of column names to partition by
+#'   (e.g., c("country", "year", "reporting_level"))
+#' @param code,parents,code_label,format,... Passed to st_save() for each partition
+#' @param pk Optional primary key columns (passed to st_save())
+#' @param domain Optional domain label(s) (passed to st_save())
+#' @param unique Logical; enforce PK uniqueness at save time (default TRUE)
+#' @param .progress Logical; show progress bar for partitions (default TRUE for >10 parts)
+#'
+#' @return Invisibly, a data.frame with columns:
+#'   - partition_key: list-column of key values
+#'   - path: file path
+#'   - version_id: version identifier
+#'   - n_rows: number of rows in partition
+#'
+#' @section Performance:
+#' For large datasets with many partitions, this function uses data.table's
+#' split for efficiency when available. Progress reporting can be disabled
+#' with `.progress = FALSE`.
+#'
+#' @examples
+#' \dontrun{
+#' # Create sample data
+#' welfare <- data.frame(
+#'   country = rep(c("USA", "CAN"), each = 100),
+#'   year = rep(2020:2021, each = 50),
+#'   reporting_level = sample(c("national", "urban"), 200, replace = TRUE),
+#'   value = rnorm(200)
+#' )
+#'
+#' # Auto-partition and save
+#' st_write_parts(
+#'   welfare,
+#'   base = "data/welfare_parts",
+#'   partitioning = c("country", "year", "reporting_level"),
+#'   code_label = "welfare_partition"
+#' )
+#'
+#' # Result: files saved to:
+#' #   data/welfare_parts/country=USA/year=2020/reporting_level=national/part.qs2
+#' #   data/welfare_parts/country=USA/year=2020/reporting_level=urban/part.qs2
+#' #   ... etc
+#' }
+#'
+#' @export
+st_write_parts <- function(
+  x,
+  base,
+  partitioning,
+  code = NULL,
+  parents = NULL,
+  code_label = NULL,
+  format = NULL,
+  pk = NULL,
+  domain = NULL,
+  unique = TRUE,
+  .progress = NULL,
+  ...
+) {
+  # Validate inputs
+  stopifnot(
+    is.data.frame(x),
+    is.character(base),
+    length(base) == 1L,
+    is.character(partitioning),
+    length(partitioning) >= 1L
+  )
+
+  # Check partition columns exist
+  missing_cols <- setdiff(partitioning, names(x))
+  if (length(missing_cols)) {
+    cli::cli_abort(
+      "Partitioning columns not found in data: {.field {missing_cols}}"
+    )
+  }
+
+  # Ensure base directory exists
+  fs::dir_create(base)
+
+  # Default to parquet for partitions (optimal for column subsetting)
+  format <- format %||% "parquet"
+
+  # Split data by partition columns
+  # Use data.table split for efficiency if available
+  if (inherits(x, "data.table")) {
+    # data.table fast split
+    split_list <- split(x, by = partitioning, keep.by = TRUE)
+  } else {
+    # Base R split (works for data.frame)
+    # Create interaction factor for all partition columns
+    part_factor <- interaction(
+      x[, partitioning, drop = FALSE],
+      sep = "|",
+      lex.order = TRUE
+    )
+    split_list <- split(x, part_factor)
+  }
+
+  n_parts <- length(split_list)
+  if (n_parts == 0L) {
+    cli::cli_warn("No partitions created (empty dataset?)")
+    return(invisible(data.frame(
+      partition_key = list(),
+      path = character(),
+      version_id = character(),
+      n_rows = integer()
+    )))
+  }
+
+  # Determine if we should show progress
+  show_progress <- .progress %||% (n_parts > 10L)
+
+  # Setup progress bar if needed
+  if (show_progress) {
+    cli::cli_progress_bar(
+      "Saving partitions",
+      total = n_parts,
+      format = "{cli::pb_spin} Saving {cli::pb_current}/{cli::pb_total} partitions [{cli::pb_elapsed}]"
+    )
+  }
+
+  # Save each partition
+  results <- vector("list", n_parts)
+  part_names <- names(split_list)
+
+  for (i in seq_len(n_parts)) {
+    part_data <- split_list[[i]]
+    part_name <- part_names[[i]]
+
+    # Extract partition key values from first row
+    # Use ..cols syntax for data.table, otherwise standard subsetting
+    if (inherits(part_data, "data.table")) {
+      key <- as.list(part_data[1L, ..partitioning])
+    } else {
+      key <- as.list(part_data[1L, partitioning, drop = FALSE])
+    }
+    names(key) <- partitioning
+
+    # Save partition
+    res <- tryCatch(
+      {
+        st_save_part(
+          x = part_data,
+          base = base,
+          key = key,
+          code = code,
+          parents = parents,
+          code_label = code_label,
+          format = format,
+          pk = pk,
+          domain = domain,
+          unique = unique,
+          ...
+        )
+      },
+      error = function(e) {
+        cli::cli_warn(
+          "Failed to save partition {part_name}: {conditionMessage(e)}"
+        )
+        NULL
+      }
+    )
+
+    if (!is.null(res)) {
+      results[[i]] <- list(
+        partition_key = list(key),
+        path = res$path,
+        version_id = res$version_id %||% NA_character_,
+        n_rows = nrow(part_data)
+      )
+    }
+
+    if (show_progress) {
+      cli::cli_progress_update()
+    }
+  }
+
+  if (show_progress) {
+    cli::cli_progress_done()
+  }
+
+  # Filter out failed partitions
+  results <- Filter(Negate(is.null), results)
+
+  if (!length(results)) {
+    cli::cli_warn("No partitions saved successfully")
+    return(invisible(data.frame(
+      partition_key = list(),
+      path = character(),
+      version_id = character(),
+      n_rows = integer()
+    )))
+  }
+
+  # Build manifest data.frame
+  manifest <- data.frame(
+    partition_key = I(lapply(results, function(r) r$partition_key[[1]])),
+    path = vapply(results, function(r) r$path, character(1)),
+    version_id = vapply(results, function(r) r$version_id, character(1)),
+    n_rows = vapply(results, function(r) r$n_rows, integer(1)),
+    stringsAsFactors = FALSE
+  )
+
+  cli::cli_inform(c(
+    "v" = "Saved {nrow(manifest)} partition{?s} to {.path {base}}"
+  ))
+
+  invisible(manifest)
+}
+
 #' List available partitions under a base directory
 #'
 #' @param base Base dir
@@ -215,7 +432,7 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
 #'
 #' @param base Base dir
 #' @param filter Named list to restrict partitions (exact match)
-#' @param as Data frame binding mode: "rbind" (base) or "dt" (data.table if available)
+#' @param as Data frame binding mode: "rbind" (base) or "dt" (data.table)
 #' @return Data frame with unioned columns and extra columns for the key fields
 #' @export
 st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
@@ -223,7 +440,7 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   listing <- st_list_parts(base, filter = filter, recursive = TRUE)
   if (!nrow(listing)) {
     return(
-      if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
+      if (mode == "dt") {
         data.table::data.table()
       } else {
         data.frame()
@@ -259,7 +476,7 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   objs <- Filter(Negate(is.null), objs)
   if (!length(objs)) {
     return(
-      if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
+      if (mode == "dt") {
         data.table::data.table()
       } else {
         data.frame()
@@ -267,7 +484,7 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
     )
   }
 
-  if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
+  if (mode == "dt") {
     return(data.table::rbindlist(objs, use.names = TRUE, fill = TRUE))
   }
 
