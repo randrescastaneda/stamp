@@ -23,10 +23,7 @@
 #' not copied, making it efficient even for large objects.
 #'
 #' **For data.table objects:**
-#' - Extracts columns as a list
-#' - Rebuilds with attributes in canonical order
-#' - Shallow copy (column data is referenced, not duplicated)
-#' - Preserves data.table class and .internal.selfref
+#' - Warning on the need of sanitation of the object using `st_sanitize_for_hash`
 #'
 #' **For regular data.frames:**
 #' - Rebuilds from column list with canonical attribute order
@@ -65,31 +62,24 @@ st_normalize_attrs <- function(x) {
 
   canonical_order <- c(priority_present, sort(other_attrs))
 
-  # Always rebuild to ensure deterministic attribute ordering
+  # Fast path: already in canonical order?
+  if (identical(attr_names, canonical_order)) {
+    return(x)  # ← skip rebuild
+  }
 
-  # ---------------------------------------------------------------------------
-  # data.table branch
-  # ---------------------------------------------------------------------------
+  # Rebuild only if attribute order differs from canonical
+
+  # --- Path 1: data.tables ---
   if (inherits(x, "data.table")) {
-    # Work on a copy to avoid mutating caller's object by reference
-    result <- copy(x)
 
-    # Values of attributes in canonical order
-    vals <- attrs[canonical_order]
+    # Warn that sanitation is required
+    cli::cli_error(c(
+      "!" = "data.table objects require sanitation before hashing.",
+      "i" = "Please run `st_sanitize_for_hash()` on the object before hashing."
+    ))
 
-    # 1) Drop ALL attributes via setattr(..., NULL)
-    #    This uses only data.table's API (no attributes<-).
-    for (nm in attr_names) {
-      setattr(result, nm, NULL)
-    }
-
-    # 2) Re-add attributes in canonical order
-    for (nm in canonical_order) {
-      setattr(result, nm, vals[[nm]])
-    }
-
-    return(result)
-  } # --- Path 2: regular data.frames (not data.table) ---
+  }
+  # --- Path 2: regular data.frames (not data.table) ---
   # Create a new object with normalized attributes
   # We don't modify in-place because data.frames don't have a safe setattr()
   if (is.data.frame(x)) {
@@ -105,7 +95,7 @@ st_normalize_attrs <- function(x) {
 
     # Create base structure using structure() which is fast and low-level
     # We use .set_row_names() to create efficient row names (integer sequence)
-    n_rows <- if (length(cols)) NROW(cols[[1L]]) else NROW(x)
+    n_rows <- NROW(x)
     result <- structure(cols, row.names = .set_row_names(n_rows))
 
     # Apply the canonical attributes all at once
@@ -169,7 +159,7 @@ st_normalize_attrs <- function(x) {
 #' @keywords internal
 st_sanitize_for_hash <- function(x) {
   # Skip if already sanitized
-  if (isTRUE(attr(x, "stamp_sanitized"))) {
+  if (isTRUE(attr(x, "stamp_sanitized") && !.st_is_dt(x))) {
     return(x)
   }
   if (is.data.frame(x)) {
@@ -234,14 +224,13 @@ st_sanitize_for_hash <- function(x) {
 #' st_hash_obj(dt_a) == st_hash_obj(dt_b)  # TRUE
 #' }
 st_hash_obj <- function(x) {
+
   # 1) Sanitize (content-only for tabular data); skip if already sanitized
-  x_clean <- if (isTRUE(attr(x, "stamp_sanitized"))) {
-    x
-  } else {
-    st_sanitize_for_hash(x)
-  }
+  x_clean <- st_sanitize_for_hash(x)
+
   # 2) Canonicalize attribute order
   x_norm <- st_normalize_attrs(x_clean)
+
   # 3) Serialize + SipHash
   raw <- serialize(x_norm, connection = NULL, version = 3)
   secretbase::siphash13(raw)
