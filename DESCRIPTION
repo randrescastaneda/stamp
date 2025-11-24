@@ -3,7 +3,7 @@ Title: Reproducible Artifact Store with Sidecars, Versions, and Partitions
 Description: Stamp saves R objects with sidecar metadata (hashes, 
     provenance, PKs), keeps version history, prunes old versions, and 
     supports Hive-style partitions.
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: person("R.Andres", "Castaneda",
     email = "acastanedaa@worldbank.org",
     role = c("aut", "cre"),
