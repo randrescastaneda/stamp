@@ -57,6 +57,7 @@
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_load.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_load_parts.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_load_version.html</loc></url>
+<url><loc>https://randrescastaneda.github.io/stamp/reference/st_normalize_attrs.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_opts.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_opts_get.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_opts_reset.html</loc></url>
@@ -70,6 +71,7 @@
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_rebuild.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_register_builder.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_register_format.html</loc></url>
+<url><loc>https://randrescastaneda.github.io/stamp/reference/st_sanitize_for_hash.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_save.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_save_part.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_should_save.html</loc></url>

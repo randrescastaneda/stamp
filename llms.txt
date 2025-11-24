@@ -125,6 +125,8 @@ See vignettes for retention + partition details.
 
 ## Versioning & Catalog
 
+- [`st_hash_obj()`](https://randrescastaneda.github.io/stamp/reference/st_hash_obj.md)
+  : Stable SipHash-1-3 of an R object
 - [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md)
   : List versions for an artifact path
 - [`st_latest()`](https://randrescastaneda.github.io/stamp/reference/st_latest.md)
