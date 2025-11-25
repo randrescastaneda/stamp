@@ -74,22 +74,80 @@
   }
   for (s in kv) {
     m <- regmatches(s, regexec("^([^=]+)=(.*)$", s))[[1]]
-    if (length(m) == 3L) out[[m[2]]] <- m[3]
+    if (length(m) == 3L) {
+      key_name <- m[2]
+      key_val <- m[3]
+
+      # Try to intelligently convert types (numeric, logical, or keep as string)
+      converted_val <- tryCatch(
+        {
+          # Try numeric conversion
+          num_val <- suppressWarnings(as.numeric(key_val))
+          if (!is.na(num_val) && as.character(num_val) == key_val) {
+            num_val
+          } else if (key_val %in% c("TRUE", "FALSE")) {
+            # Boolean conversion
+            as.logical(key_val)
+          } else {
+            # Keep as string
+            key_val
+          }
+        },
+        error = function(e) key_val
+      )
+
+      out[[key_name]] <- converted_val
+    }
   }
   out
 }
 
-.st_match_filter <- function(key_list, filter) {
-  # filter: named list of exact matches; return TRUE if all present & equal
-  if (is.null(filter) || !length(filter)) {
+.st_match_filter <- function(key_list, filter_expr = NULL, filter_list = NULL) {
+  # Support two filter modes:
+  # 1. filter_expr: NSE expression (e.g., quote(year > 2010 & country == "COL"))
+  # 2. filter_list: named list for exact matching (backward compat)
+
+  if (is.null(filter_expr) && is.null(filter_list)) {
     return(TRUE)
   }
-  stopifnot(.st_is_named_scalar_list(filter))
-  for (nm in names(filter)) {
-    want <- as.character(filter[[nm]])
-    have <- key_list[[nm]]
-    if (is.null(have) || !identical(as.character(have), want)) return(FALSE)
+
+  # Handle expression-based filtering
+  if (!is.null(filter_expr)) {
+    # Convert key_list to single-row data.frame for expression evaluation
+    # Ensure proper type conversion already happened in .st_parse_key_from_rel
+    key_df <- as.data.frame(key_list, stringsAsFactors = FALSE)
+
+    # Evaluate filter expression in context of key_df
+    result <- tryCatch(
+      {
+        eval(filter_expr, envir = key_df, enclos = parent.frame(n = 3))
+      },
+      error = function(e) {
+        # Silently fail for invalid expressions (e.g., missing columns)
+        # This allows graceful handling when partition keys don't match filter variables
+        FALSE
+      }
+    )
+
+    # Ensure result is logical and length 1
+    if (!is.logical(result) || length(result) != 1L) {
+      return(FALSE)
+    }
+
+    return(isTRUE(result))
   }
+
+  # Handle named list filtering (exact match, backward compatible)
+  if (!is.null(filter_list)) {
+    stopifnot(.st_is_named_scalar_list(filter_list))
+    for (nm in names(filter_list)) {
+      want <- as.character(filter_list[[nm]])
+      have <- key_list[[nm]]
+      if (is.null(have) || !identical(as.character(have), want)) return(FALSE)
+    }
+    return(TRUE)
+  }
+
   TRUE
 }
 
@@ -362,12 +420,47 @@ st_write_parts <- function(
 #' List available partitions under a base directory
 #'
 #' @param base Base dir
-#' @param filter Named list to restrict partitions (exact match on key fields)
+#' @param filter Partition filter. Supports three formats:
+#'   - Named list for exact matching: `list(country = "USA", year = 2020)`
+#'   - Formula with expression: `~ year > 2010` or `~ country == "COL" & year >= 2012`
+#'   - NULL for no filtering (default)
 #' @param recursive Logical; search subdirs (default TRUE)
 #' @return A data.frame with columns: path plus one column per partition key
+#' @examples
+#' \dontrun{
+#' # List all partitions
+#' st_list_parts("data/parts")
+#'
+#' # Exact match (backward compatible)
+#' st_list_parts("data/parts", filter = list(country = "USA"))
+#'
+#' # Expression-based (flexible)
+#' st_list_parts("data/parts", filter = ~ year > 2010)
+#' st_list_parts("data/parts", filter = ~ country == "COL" & year >= 2012)
+#' }
 #' @export
 st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   stopifnot(is.character(base), length(base) == 1L)
+
+  # Determine filter mode
+  filter_expr <- NULL
+  filter_list <- NULL
+
+  if (!is.null(filter)) {
+    if (inherits(filter, "formula")) {
+      # Formula: extract RHS as expression
+      filter_expr <- if (length(filter) == 2L) filter[[2L]] else filter[[3L]]
+    } else if (is.list(filter) && !is.null(names(filter))) {
+      # Named list: exact matching
+      filter_list <- filter
+    } else {
+      cli::cli_abort(c(
+        "!" = "Invalid filter argument",
+        "i" = "Use named list (e.g., {.code list(year = 2020)}) or formula (e.g., {.code ~ year > 2010})"
+      ))
+    }
+  }
+
   if (!fs::dir_exists(base)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
@@ -401,7 +494,15 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   rows <- lapply(files, function(p) {
     rel <- fs::path_rel(p, start = base)
     key <- .st_parse_key_from_rel(rel)
-    if (!.st_match_filter(key, filter)) {
+
+    # Apply filter
+    if (
+      !.st_match_filter(
+        key,
+        filter_expr = filter_expr,
+        filter_list = filter_list
+      )
+    ) {
       return(NULL)
     }
     c(list(path = as.character(p)), key)
@@ -431,12 +532,29 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
 #' Load and row-bind partitioned data
 #'
 #' @param base Base dir
-#' @param filter Named list to restrict partitions (exact match)
+#' @param filter Partition filter. Supports three formats:
+#'   - Named list for exact matching: `list(country = "USA", year = 2020)`
+#'   - Formula with expression: `~ year > 2010` or `~ country == "COL" & year >= 2012`
+#'   - NULL for no filtering (default)
 #' @param columns Character vector of column names to load (optional).
 #'   For parquet/fst formats, uses native column selection (fast, low memory).
 #'   For other formats (qs/rds/csv), loads full object then subsets (with warning).
 #' @param as Data frame binding mode: "rbind" (base) or "dt" (data.table)
 #' @return Data frame with unioned columns and extra columns for the key fields
+#' @examples
+#' \dontrun{
+#' # Load all partitions
+#' st_load_parts("data/parts")
+#'
+#' # Filter with exact match
+#' st_load_parts("data/parts", filter = list(country = "USA"))
+#'
+#' # Filter with expression
+#' st_load_parts("data/parts", filter = ~ year > 2010)
+#'
+#' # Combine filter + column selection
+#' st_load_parts("data/parts", filter = ~ year > 2010, columns = c("value", "metric"))
+#' }
 #' @export
 st_load_parts <- function(
   base,
@@ -445,6 +563,8 @@ st_load_parts <- function(
   as = c("rbind", "dt")
 ) {
   mode <- match.arg(as)
+
+  # Pass filter through to st_list_parts (handles formula/list/NULL)
   listing <- st_list_parts(base, filter = filter, recursive = TRUE)
   if (!nrow(listing)) {
     return(
