@@ -140,3 +140,83 @@ test_that("st_write_parts with filter allows selective loading", {
   expect_equal(nrow(loaded_2021), 2)
   expect_true(all(loaded_2021$year == "2021"))
 })
+
+test_that("st_load_parts supports column selection for parquet", {
+  skip_if_not_installed("data.table")
+  skip_if_not_installed("nanoparquet")
+  library(data.table)
+
+  tdir <- tempfile("stamp-load-cols-")
+  dir.create(tdir)
+  old_opts <- options()
+  on.exit(options(old_opts), add = TRUE)
+  st_init(tdir)
+
+  dt <- data.table(
+    country = rep(c("USA", "CAN"), each = 3),
+    year = rep(2020:2022, 2),
+    value = 1:6,
+    extra_col = letters[1:6]
+  )
+
+  parts_dir <- file.path(tdir, "parts")
+
+  # Save as parquet (default for partitions)
+  st_write_parts(
+    dt,
+    base = parts_dir,
+    partitioning = c("country"),
+    .progress = FALSE
+  )
+
+  # Load only specific columns
+  loaded_subset <- st_load_parts(
+    parts_dir,
+    columns = c("year", "value"),
+    as = "dt"
+  )
+
+  expect_equal(ncol(loaded_subset), 3) # year, value, + country (partition key)
+  expect_true(all(c("year", "value", "country") %in% names(loaded_subset)))
+  expect_false("extra_col" %in% names(loaded_subset))
+  expect_equal(nrow(loaded_subset), 6)
+})
+
+test_that("st_load_parts warns for non-columnar formats", {
+  skip_if_not_installed("data.table")
+  library(data.table)
+
+  tdir <- tempfile("stamp-load-warn-")
+  dir.create(tdir)
+  old_opts <- options()
+  on.exit(options(old_opts), add = TRUE)
+  st_init(tdir)
+
+  dt <- data.table(
+    country = "USA",
+    year = 2020,
+    value = 100,
+    extra = 200
+  )
+
+  parts_dir <- file.path(tdir, "parts")
+
+  # Save as qs2 (non-columnar)
+  st_write_parts(
+    dt,
+    base = parts_dir,
+    partitioning = "country",
+    format = "qs2",
+    .progress = FALSE
+  )
+
+  # Should warn and load full object then subset
+  expect_warning(
+    loaded <- st_load_parts(parts_dir, columns = c("year", "value"), as = "dt"),
+    "Column selection not supported"
+  )
+
+  # Should still subset correctly
+  expect_true(all(c("year", "value", "country") %in% names(loaded)))
+  expect_false("extra" %in% names(loaded))
+})

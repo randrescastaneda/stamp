@@ -432,10 +432,18 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
 #'
 #' @param base Base dir
 #' @param filter Named list to restrict partitions (exact match)
+#' @param columns Character vector of column names to load (optional).
+#'   For parquet/fst formats, uses native column selection (fast, low memory).
+#'   For other formats (qs/rds/csv), loads full object then subsets (with warning).
 #' @param as Data frame binding mode: "rbind" (base) or "dt" (data.table)
 #' @return Data frame with unioned columns and extra columns for the key fields
 #' @export
-st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
+st_load_parts <- function(
+  base,
+  filter = NULL,
+  columns = NULL,
+  as = c("rbind", "dt")
+) {
   mode <- match.arg(as)
   listing <- st_list_parts(base, filter = filter, recursive = TRUE)
   if (!nrow(listing)) {
@@ -451,9 +459,76 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   objs <- vector("list", nrow(listing))
   key_cols <- setdiff(names(listing), "path")
 
+  # Track if we've warned about column selection for non-columnar formats
+  warned_formats <- character()
+
   for (i in seq_len(nrow(listing))) {
     p <- listing$path[[i]]
-    obj <- tryCatch(st_load(p), error = function(e) NULL)
+
+    # Determine format from file extension
+    fmt <- tolower(fs::path_ext(p))
+
+    # Load with column selection if supported
+    obj <- tryCatch(
+      {
+        if (!is.null(columns) && length(columns) > 0L) {
+          if (fmt == "parquet") {
+            # Native column selection for parquet
+            if (requireNamespace("nanoparquet", quietly = TRUE)) {
+              # nanoparquet uses col_select argument directly
+              nanoparquet::read_parquet(p, col_select = columns)
+            } else {
+              cli::cli_warn(
+                "nanoparquet not available; loading all columns from {.file {basename(p)}}"
+              )
+              st_load(p)
+            }
+          } else if (fmt == "fst") {
+            # Native column selection for fst
+            if (requireNamespace("fst", quietly = TRUE)) {
+              fst::read_fst(p, columns = columns)
+            } else {
+              cli::cli_warn(
+                "fst not available; loading all columns from {.file {basename(p)}}"
+              )
+              st_load(p)
+            }
+          } else {
+            # Warn once per format type
+            if (!fmt %in% warned_formats) {
+              cli::cli_warn(c(
+                "!" = "Column selection not supported for {.field {fmt}} format",
+                "i" = "Loading full object then subsetting (less efficient)",
+                "i" = "Consider using parquet or fst format for columnar loading"
+              ))
+              warned_formats <<- c(warned_formats, fmt)
+            }
+            # Load full object then subset
+            full_obj <- st_load(p)
+            if (inherits(full_obj, "data.frame")) {
+              # Keep requested columns that exist
+              available_cols <- intersect(columns, names(full_obj))
+              if (length(available_cols) > 0L) {
+                if (inherits(full_obj, "data.table")) {
+                  full_obj[, ..available_cols]
+                } else {
+                  full_obj[, available_cols, drop = FALSE]
+                }
+              } else {
+                full_obj
+              }
+            } else {
+              full_obj
+            }
+          }
+        } else {
+          # No column selection requested
+          st_load(p)
+        }
+      },
+      error = function(e) NULL
+    )
+
     if (is.null(obj)) {
       next
     }
