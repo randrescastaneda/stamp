@@ -1,7 +1,5 @@
 # stamp (development version)
 
-# stamp 0.0.4
-
 ## Major Features
 
 ### Partitioned Datasets
@@ -37,10 +35,6 @@
 * Partition keys automatically included in loaded results
 
 ## Bug Fixes & Improvements
-* add normalization of attributes
-* Sanitize data.tables for consistent hashing
-* improve logic of `st_hash_obj()`
-* Avoid redundancies and make more efficient the use of `st_hash_obj()`
 * Remove unnecessary `requireNamespace()` checks for packages in Imports (data.table, cli)
 * Fix data.table column selection syntax in partition operations
 
@@ -49,6 +43,13 @@
 * Updated examples demonstrating auto-partitioning workflow
 * Performance guidelines for partition key selection
 * Format comparison tables (write/read speed, column selection, compression)
+
+# stamp 0.0.4
+
+* add normalization of attributes
+* Sanitize data.tables for consistent hashing
+* improve logic of `st_hash_obj()`
+* Avoid redundancies and make more efficient the use of `st_hash_obj()`
 
 # stamp 0.0.3
 * standardize helpers to use data.table
