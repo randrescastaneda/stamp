@@ -9,7 +9,12 @@ st_list_parts(base, filter = NULL, recursive = TRUE)
 \arguments{
 \item{base}{Base dir}
 
-\item{filter}{Named list to restrict partitions (exact match on key fields)}
+\item{filter}{Partition filter. Supports three formats:
+\itemize{
+\item Named list for exact matching: \code{list(country = "USA", year = 2020)}
+\item Formula with expression: \code{~ year > 2010} or \code{~ country == "COL" & year >= 2012}
+\item NULL for no filtering (default)
+}}
 
 \item{recursive}{Logical; search subdirs (default TRUE)}
 }
@@ -18,4 +23,17 @@ A data.frame with columns: path plus one column per partition key
 }
 \description{
 List available partitions under a base directory
+}
+\examples{
+\dontrun{
+# List all partitions
+st_list_parts("data/parts")
+
+# Exact match (backward compatible)
+st_list_parts("data/parts", filter = list(country = "USA"))
+
+# Expression-based (flexible)
+st_list_parts("data/parts", filter = ~ year > 2010)
+st_list_parts("data/parts", filter = ~ country == "COL" & year >= 2012)
+}
 }
