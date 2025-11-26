@@ -9,15 +9,6 @@ vignette: >
 
 ```{r setup}
 # ---- setup, include=FALSE ----------------------------------------------------
-# Use development build when interactive *and* explicitly enabled via env var.
-# dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
-# 
-# if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
-#   pkgload::load_all(export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
-# } else {
-#   # fall back to the installed package (the path CRAN, CI, and pkgdown take)
-#   library(stamp)
-# }
 
 if (requireNamespace("pkgload", quietly = TRUE)) {
   pkgload::load_all(".")

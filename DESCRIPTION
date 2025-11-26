@@ -21,11 +21,11 @@ Imports:
     secretbase,
     jsonlite,
     data.table (>= 1.14.6),
-    utils
+    utils,
+    nanoparquet
 Suggests:
     qs2,
     qs (>= 0.25.4),
-    nanoparquet,
     fst (>= 0.9.8),
     testthat (>= 3.1.5),
     knitr,

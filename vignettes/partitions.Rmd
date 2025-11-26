@@ -131,7 +131,7 @@ manifest <- st_write_parts(
   code_label = "welfare_data",
   .progress = FALSE # Disable progress bar for vignette
 )
-
+  
 cat(sprintf("Saved %d partitions\n", nrow(manifest)))
 ```
 
@@ -221,6 +221,8 @@ cat(sprintf("USA 2020: %d rows\n", nrow(usa_2020)))
 unique(usa_2020[, .(country, year)])
 ```
 
+Notice it is possible to use the numeric string "2020". See [Filter Expression Capabilities](#filter-expression-capabilities)  below for clarification.
+
 ### Expression-Based Filtering (Formula)
 
 For flexible filtering with comparisons and boolean logic, use formula syntax:
@@ -262,7 +264,7 @@ cat(sprintf("USA/MEX (not 2020): %d rows\n", nrow(selected_countries)))
 selected_countries[, .N, by = country]
 ```
 
-### Filter Expression Capabilities
+### Filter Expression Capabilities {#filter-expression-capabilities}
 
 Formula filters support:
 

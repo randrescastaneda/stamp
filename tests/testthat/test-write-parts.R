@@ -131,7 +131,7 @@ test_that("st_write_parts with filter allows selective loading", {
   expect_equal(nrow(loaded_usa), 3)
   expect_true(all(loaded_usa$country == "USA"))
 
-  # Load only 2021 data
+  # Load only 2021 data (with character)
   loaded_2021 <- st_load_parts(
     parts_dir,
     filter = list(year = "2021"),
@@ -139,6 +139,16 @@ test_that("st_write_parts with filter allows selective loading", {
   )
   expect_equal(nrow(loaded_2021), 2)
   expect_true(all(loaded_2021$year == "2021"))
+
+  # Load only 2020 data (numeric)
+  loaded_2020 <- st_load_parts(
+    parts_dir,
+    filter = list(year = 2020),
+    as = "dt"
+  )
+  expect_equal(nrow(loaded_2020), 2)
+  expect_true(all(loaded_2020$year == "2020"))
+
 })
 
 test_that("st_load_parts supports column selection for parquet", {
@@ -355,7 +365,7 @@ test_that("st_list_parts supports expression filtering", {
     filter = ~ region == "North" | status == "active"
   )
 
-  expect_true(nrow(listing_expr) >= 3) # North (2) + South/active (1) + East/active (1)
+  expect_equal(nrow(listing_expr), 4) # North (2) + South/active (1) + East/active (1)
 
   # Verify all results match filter
   for (i in seq_len(nrow(listing_expr))) {
