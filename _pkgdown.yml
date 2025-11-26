@@ -36,6 +36,7 @@ reference:
       - st_register_format
       - st_save
       - st_save_part
+      - st_write_parts
       - st_load
       - st_load_parts
       - st_load_version
@@ -90,3 +91,5 @@ articles:
     contents:
     - builders-plans
     - version_retention_prune
+    - partitions
+

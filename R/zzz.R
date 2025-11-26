@@ -57,15 +57,14 @@
   .seed_extmap()
 
   # 4) apply small CLI theme (and remember prior theme to restore later)
-  if (requireNamespace("cli", quietly = TRUE)) {
-    .st_cli_old_theme <<- getOption("cli.user_theme")
-    options(
-      cli.user_theme = utils::modifyList(
-        .st_cli_old_theme %||% list(),
-        .st_cli_theme
-      )
+
+  .st_cli_old_theme <<- getOption("cli.user_theme")
+  options(
+    cli.user_theme = utils::modifyList(
+      .st_cli_old_theme %||% list(),
+      .st_cli_theme
     )
-  }
+  )
 
   invisible()
 }

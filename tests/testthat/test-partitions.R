@@ -36,10 +36,8 @@ test_that("st_list_parts returns empty for missing base and st_load_parts dt mod
   # create some parts and test dt mode if data.table available
   base2 <- fs::path(td, "parts2")
   st_save_part(data.frame(x=1:2), base2, list(k=1), code = function(z) z)
-  if (requireNamespace("data.table", quietly = TRUE)) {
-    dt <- st_load_parts(base2, as = "dt")
-    expect_s3_class(dt, "data.table")
-  }
+  dt <- st_load_parts(base2, as = "dt")
+  expect_s3_class(dt, "data.table")
 })
 
 test_that("st_part_path rejects invalid partition keys and sanitizes values", {

@@ -4,18 +4,42 @@
 \alias{st_load_parts}
 \title{Load and row-bind partitioned data}
 \usage{
-st_load_parts(base, filter = NULL, as = c("rbind", "dt"))
+st_load_parts(base, filter = NULL, columns = NULL, as = c("rbind", "dt"))
 }
 \arguments{
 \item{base}{Base dir}
 
-\item{filter}{Named list to restrict partitions (exact match)}
+\item{filter}{Partition filter. Supports three formats:
+\itemize{
+\item Named list for exact matching: \code{list(country = "USA", year = 2020)}
+\item Formula with expression: \code{~ year > 2010} or \code{~ country == "COL" & year >= 2012}
+\item NULL for no filtering (default)
+}}
 
-\item{as}{Data frame binding mode: "rbind" (base) or "dt" (data.table if available)}
+\item{columns}{Character vector of column names to load (optional).
+For parquet/fst formats, uses native column selection (fast, low memory).
+For other formats (qs/rds/csv), loads full object then subsets (with warning).}
+
+\item{as}{Data frame binding mode: "rbind" (base) or "dt" (data.table)}
 }
 \value{
 Data frame with unioned columns and extra columns for the key fields
 }
 \description{
 Load and row-bind partitioned data
+}
+\examples{
+\dontrun{
+# Load all partitions
+st_load_parts("data/parts")
+
+# Filter with exact match
+st_load_parts("data/parts", filter = list(country = "USA"))
+
+# Filter with expression
+st_load_parts("data/parts", filter = ~ year > 2010)
+
+# Combine filter + column selection
+st_load_parts("data/parts", filter = ~ year > 2010, columns = c("value", "metric"))
+}
 }

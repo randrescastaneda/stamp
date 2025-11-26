@@ -74,22 +74,80 @@
   }
   for (s in kv) {
     m <- regmatches(s, regexec("^([^=]+)=(.*)$", s))[[1]]
-    if (length(m) == 3L) out[[m[2]]] <- m[3]
+    if (length(m) == 3L) {
+      key_name <- m[2]
+      key_val <- m[3]
+
+      # Try to intelligently convert types (numeric, logical, or keep as string)
+      converted_val <- tryCatch(
+        {
+          # Try numeric conversion
+          num_val <- suppressWarnings(as.numeric(key_val))
+          if (!is.na(num_val) && as.character(num_val) == key_val) {
+            num_val
+          } else if (key_val %in% c("TRUE", "FALSE")) {
+            # Boolean conversion
+            as.logical(key_val)
+          } else {
+            # Keep as string
+            key_val
+          }
+        },
+        error = function(e) key_val
+      )
+
+      out[[key_name]] <- converted_val
+    }
   }
   out
 }
 
-.st_match_filter <- function(key_list, filter) {
-  # filter: named list of exact matches; return TRUE if all present & equal
-  if (is.null(filter) || !length(filter)) {
+.st_match_filter <- function(key_list, filter_expr = NULL, filter_list = NULL) {
+  # Support two filter modes:
+  # 1. filter_expr: NSE expression (e.g., quote(year > 2010 & country == "COL"))
+  # 2. filter_list: named list for exact matching (backward compat)
+
+  if (is.null(filter_expr) && is.null(filter_list)) {
     return(TRUE)
   }
-  stopifnot(.st_is_named_scalar_list(filter))
-  for (nm in names(filter)) {
-    want <- as.character(filter[[nm]])
-    have <- key_list[[nm]]
-    if (is.null(have) || !identical(as.character(have), want)) return(FALSE)
+
+  # Handle expression-based filtering
+  if (!is.null(filter_expr)) {
+    # Convert key_list to single-row data.frame for expression evaluation
+    # Ensure proper type conversion already happened in .st_parse_key_from_rel
+    key_df <- as.data.frame(key_list, stringsAsFactors = FALSE)
+
+    # Evaluate filter expression in context of key_df
+    result <- tryCatch(
+      {
+        eval(filter_expr, envir = key_df, enclos = parent.frame(n = 3))
+      },
+      error = function(e) {
+        # Silently fail for invalid expressions (e.g., missing columns)
+        # This allows graceful handling when partition keys don't match filter variables
+        FALSE
+      }
+    )
+
+    # Ensure result is logical and length 1
+    if (!is.logical(result) || length(result) != 1L) {
+      return(FALSE)
+    }
+
+    return(isTRUE(result))
   }
+
+  # Handle named list filtering (exact match, backward compatible)
+  if (!is.null(filter_list)) {
+    stopifnot(.st_is_named_scalar_list(filter_list))
+    for (nm in names(filter_list)) {
+      want <- as.character(filter_list[[nm]])
+      have <- key_list[[nm]]
+      if (is.null(have) || !identical(as.character(have), want)) return(FALSE)
+    }
+    return(TRUE)
+  }
+
   TRUE
 }
 
@@ -142,15 +200,267 @@ st_save_part <- function(
   invisible(list(path = path, version_id = out$version_id))
 }
 
+#' Auto-partition and save a dataset (Hive-style)
+#'
+#' Splits a data.frame/data.table by partition columns and saves each partition
+#' to a separate file using Hive-style directory structure. Eliminates manual
+#' looping and splitting logic.
+#'
+#' @param x Data.frame or data.table to partition and save
+#' @param base Base directory for partitions (e.g., "data/welfare_parts")
+#' @param partitioning Character vector of column names to partition by
+#'   (e.g., c("country", "year", "reporting_level"))
+#' @param code,parents,code_label,format,... Passed to st_save() for each partition
+#' @param pk Optional primary key columns (passed to st_save())
+#' @param domain Optional domain label(s) (passed to st_save())
+#' @param unique Logical; enforce PK uniqueness at save time (default TRUE)
+#' @param .progress Logical; show progress bar for partitions (default TRUE for >10 parts)
+#'
+#' @return Invisibly, a data.frame with columns:
+#'   - partition_key: list-column of key values
+#'   - path: file path
+#'   - version_id: version identifier
+#'   - n_rows: number of rows in partition
+#'
+#' @section Performance:
+#' For large datasets with many partitions, this function uses data.table's
+#' split for efficiency when available. Progress reporting can be disabled
+#' with `.progress = FALSE`.
+#'
+#' @examples
+#' \dontrun{
+#' # Create sample data
+#' welfare <- data.frame(
+#'   country = rep(c("USA", "CAN"), each = 100),
+#'   year = rep(2020:2021, each = 50),
+#'   reporting_level = sample(c("national", "urban"), 200, replace = TRUE),
+#'   value = rnorm(200)
+#' )
+#'
+#' # Auto-partition and save
+#' st_write_parts(
+#'   welfare,
+#'   base = "data/welfare_parts",
+#'   partitioning = c("country", "year", "reporting_level"),
+#'   code_label = "welfare_partition"
+#' )
+#'
+#' # Result: files saved to:
+#' #   data/welfare_parts/country=USA/year=2020/reporting_level=national/part.qs2
+#' #   data/welfare_parts/country=USA/year=2020/reporting_level=urban/part.qs2
+#' #   ... etc
+#' }
+#'
+#' @export
+st_write_parts <- function(
+  x,
+  base,
+  partitioning,
+  code = NULL,
+  parents = NULL,
+  code_label = NULL,
+  format = NULL,
+  pk = NULL,
+  domain = NULL,
+  unique = TRUE,
+  .progress = NULL,
+  ...
+) {
+  # Validate inputs
+  stopifnot(
+    is.data.frame(x),
+    is.character(base),
+    length(base) == 1L,
+    is.character(partitioning),
+    length(partitioning) >= 1L
+  )
+
+  # Check partition columns exist
+  missing_cols <- setdiff(partitioning, names(x))
+  if (length(missing_cols)) {
+    cli::cli_abort(
+      "Partitioning columns not found in data: {.field {missing_cols}}"
+    )
+  }
+
+  # Ensure base directory exists
+  fs::dir_create(base)
+
+  # Default to parquet for partitions (optimal for column subsetting)
+  format <- format %||% "parquet"
+
+  # Split data by partition columns
+  # Use data.table split for efficiency if available
+  if (inherits(x, "data.table")) {
+    # data.table fast split
+    split_list <- split(x, by = partitioning, keep.by = TRUE)
+  } else {
+    # Base R split (works for data.frame)
+    # Create interaction factor for all partition columns
+    part_factor <- interaction(
+      x[, partitioning, drop = FALSE],
+      sep = "|",
+      lex.order = TRUE
+    )
+    split_list <- split(x, part_factor)
+  }
+
+  n_parts <- length(split_list)
+  if (n_parts == 0L) {
+    cli::cli_warn("No partitions created (empty dataset?)")
+    return(invisible(data.frame(
+      partition_key = list(),
+      path = character(),
+      version_id = character(),
+      n_rows = integer()
+    )))
+  }
+
+  # Determine if we should show progress
+  show_progress <- .progress %||% (n_parts > 10L)
+
+  # Setup progress bar if needed
+  if (show_progress) {
+    cli::cli_progress_bar(
+      "Saving partitions",
+      total = n_parts,
+      format = "{cli::pb_spin} Saving {cli::pb_current}/{cli::pb_total} partitions [{cli::pb_elapsed}]"
+    )
+  }
+
+  # Save each partition
+  results <- vector("list", n_parts)
+  part_names <- names(split_list)
+
+  for (i in seq_len(n_parts)) {
+    part_data <- split_list[[i]]
+    part_name <- part_names[[i]]
+
+    # Extract partition key values from first row
+    # Use ..cols syntax for data.table, otherwise standard subsetting
+    if (inherits(part_data, "data.table")) {
+      key <- as.list(part_data[1L, ..partitioning])
+    } else {
+      key <- as.list(part_data[1L, partitioning, drop = FALSE])
+    }
+    names(key) <- partitioning
+
+    # Save partition
+    res <- tryCatch(
+      {
+        st_save_part(
+          x = part_data,
+          base = base,
+          key = key,
+          code = code,
+          parents = parents,
+          code_label = code_label,
+          format = format,
+          pk = pk,
+          domain = domain,
+          unique = unique,
+          ...
+        )
+      },
+      error = function(e) {
+        cli::cli_warn(
+          "Failed to save partition {part_name}: {conditionMessage(e)}"
+        )
+        NULL
+      }
+    )
+
+    if (!is.null(res)) {
+      results[[i]] <- list(
+        partition_key = list(key),
+        path = res$path,
+        version_id = res$version_id %||% NA_character_,
+        n_rows = nrow(part_data)
+      )
+    }
+
+    if (show_progress) {
+      cli::cli_progress_update()
+    }
+  }
+
+  if (show_progress) {
+    cli::cli_progress_done()
+  }
+
+  # Filter out failed partitions
+  results <- Filter(Negate(is.null), results)
+
+  if (!length(results)) {
+    cli::cli_warn("No partitions saved successfully")
+    return(invisible(data.frame(
+      partition_key = list(),
+      path = character(),
+      version_id = character(),
+      n_rows = integer()
+    )))
+  }
+
+  # Build manifest data.frame
+  manifest <- data.frame(
+    partition_key = I(lapply(results, function(r) r$partition_key[[1]])),
+    path = vapply(results, function(r) r$path, character(1)),
+    version_id = vapply(results, function(r) r$version_id, character(1)),
+    n_rows = vapply(results, function(r) r$n_rows, integer(1)),
+    stringsAsFactors = FALSE
+  )
+
+  cli::cli_inform(c(
+    "v" = "Saved {nrow(manifest)} partition{?s} to {.path {base}}"
+  ))
+
+  invisible(manifest)
+}
+
 #' List available partitions under a base directory
 #'
 #' @param base Base dir
-#' @param filter Named list to restrict partitions (exact match on key fields)
+#' @param filter Partition filter. Supports three formats:
+#'   - Named list for exact matching: `list(country = "USA", year = 2020)`
+#'   - Formula with expression: `~ year > 2010` or `~ country == "COL" & year >= 2012`
+#'   - NULL for no filtering (default)
 #' @param recursive Logical; search subdirs (default TRUE)
 #' @return A data.frame with columns: path plus one column per partition key
+#' @examples
+#' \dontrun{
+#' # List all partitions
+#' st_list_parts("data/parts")
+#'
+#' # Exact match (backward compatible)
+#' st_list_parts("data/parts", filter = list(country = "USA"))
+#'
+#' # Expression-based (flexible)
+#' st_list_parts("data/parts", filter = ~ year > 2010)
+#' st_list_parts("data/parts", filter = ~ country == "COL" & year >= 2012)
+#' }
 #' @export
 st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   stopifnot(is.character(base), length(base) == 1L)
+
+  # Determine filter mode
+  filter_expr <- NULL
+  filter_list <- NULL
+
+  if (!is.null(filter)) {
+    if (inherits(filter, "formula")) {
+      # Formula: extract RHS as expression
+      filter_expr <- if (length(filter) == 2L) filter[[2L]] else filter[[3L]]
+    } else if (is.list(filter) && !is.null(names(filter))) {
+      # Named list: exact matching
+      filter_list <- filter
+    } else {
+      cli::cli_abort(c(
+        "!" = "Invalid filter argument",
+        "i" = "Use named list (e.g., {.code list(year = 2020)}) or formula (e.g., {.code ~ year > 2010})"
+      ))
+    }
+  }
+
   if (!fs::dir_exists(base)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
@@ -184,7 +494,15 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   rows <- lapply(files, function(p) {
     rel <- fs::path_rel(p, start = base)
     key <- .st_parse_key_from_rel(rel)
-    if (!.st_match_filter(key, filter)) {
+
+    # Apply filter
+    if (
+      !.st_match_filter(
+        key,
+        filter_expr = filter_expr,
+        filter_list = filter_list
+      )
+    ) {
       return(NULL)
     }
     c(list(path = as.character(p)), key)
@@ -214,16 +532,43 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
 #' Load and row-bind partitioned data
 #'
 #' @param base Base dir
-#' @param filter Named list to restrict partitions (exact match)
-#' @param as Data frame binding mode: "rbind" (base) or "dt" (data.table if available)
+#' @param filter Partition filter. Supports three formats:
+#'   - Named list for exact matching: `list(country = "USA", year = 2020)`
+#'   - Formula with expression: `~ year > 2010` or `~ country == "COL" & year >= 2012`
+#'   - NULL for no filtering (default)
+#' @param columns Character vector of column names to load (optional).
+#'   For parquet/fst formats, uses native column selection (fast, low memory).
+#'   For other formats (qs/rds/csv), loads full object then subsets (with warning).
+#' @param as Data frame binding mode: "rbind" (base) or "dt" (data.table)
 #' @return Data frame with unioned columns and extra columns for the key fields
+#' @examples
+#' \dontrun{
+#' # Load all partitions
+#' st_load_parts("data/parts")
+#'
+#' # Filter with exact match
+#' st_load_parts("data/parts", filter = list(country = "USA"))
+#'
+#' # Filter with expression
+#' st_load_parts("data/parts", filter = ~ year > 2010)
+#'
+#' # Combine filter + column selection
+#' st_load_parts("data/parts", filter = ~ year > 2010, columns = c("value", "metric"))
+#' }
 #' @export
-st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
+st_load_parts <- function(
+  base,
+  filter = NULL,
+  columns = NULL,
+  as = c("rbind", "dt")
+) {
   mode <- match.arg(as)
+
+  # Pass filter through to st_list_parts (handles formula/list/NULL)
   listing <- st_list_parts(base, filter = filter, recursive = TRUE)
   if (!nrow(listing)) {
     return(
-      if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
+      if (mode == "dt") {
         data.table::data.table()
       } else {
         data.frame()
@@ -234,9 +579,76 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   objs <- vector("list", nrow(listing))
   key_cols <- setdiff(names(listing), "path")
 
+  # Track if we've warned about column selection for non-columnar formats
+  warned_formats <- character()
+
   for (i in seq_len(nrow(listing))) {
     p <- listing$path[[i]]
-    obj <- tryCatch(st_load(p), error = function(e) NULL)
+
+    # Determine format from file extension
+    fmt <- tolower(fs::path_ext(p))
+
+    # Load with column selection if supported
+    obj <- tryCatch(
+      {
+        if (!is.null(columns) && length(columns) > 0L) {
+          if (fmt == "parquet") {
+            # Native column selection for parquet
+            if (requireNamespace("nanoparquet", quietly = TRUE)) {
+              # nanoparquet uses col_select argument directly
+              nanoparquet::read_parquet(p, col_select = columns)
+            } else {
+              cli::cli_warn(
+                "nanoparquet not available; loading all columns from {.file {basename(p)}}"
+              )
+              st_load(p)
+            }
+          } else if (fmt == "fst") {
+            # Native column selection for fst
+            if (requireNamespace("fst", quietly = TRUE)) {
+              fst::read_fst(p, columns = columns)
+            } else {
+              cli::cli_warn(
+                "fst not available; loading all columns from {.file {basename(p)}}"
+              )
+              st_load(p)
+            }
+          } else {
+            # Warn once per format type
+            if (!fmt %in% warned_formats) {
+              cli::cli_warn(c(
+                "!" = "Column selection not supported for {.field {fmt}} format",
+                "i" = "Loading full object then subsetting (less efficient)",
+                "i" = "Consider using parquet or fst format for columnar loading"
+              ))
+              warned_formats <<- c(warned_formats, fmt)
+            }
+            # Load full object then subset
+            full_obj <- st_load(p)
+            if (inherits(full_obj, "data.frame")) {
+              # Keep requested columns that exist
+              available_cols <- intersect(columns, names(full_obj))
+              if (length(available_cols) > 0L) {
+                if (inherits(full_obj, "data.table")) {
+                  full_obj[, ..available_cols]
+                } else {
+                  full_obj[, available_cols, drop = FALSE]
+                }
+              } else {
+                full_obj
+              }
+            } else {
+              full_obj
+            }
+          }
+        } else {
+          # No column selection requested
+          st_load(p)
+        }
+      },
+      error = function(e) NULL
+    )
+
     if (is.null(obj)) {
       next
     }
@@ -259,7 +671,7 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
   objs <- Filter(Negate(is.null), objs)
   if (!length(objs)) {
     return(
-      if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
+      if (mode == "dt") {
         data.table::data.table()
       } else {
         data.frame()
@@ -267,7 +679,7 @@ st_load_parts <- function(base, filter = NULL, as = c("rbind", "dt")) {
     )
   }
 
-  if (mode == "dt" && requireNamespace("data.table", quietly = TRUE)) {
+  if (mode == "dt") {
     return(data.table::rbindlist(objs, use.names = TRUE, fill = TRUE))
   }
 

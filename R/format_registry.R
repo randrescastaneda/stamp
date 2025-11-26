@@ -69,15 +69,9 @@ rlang::env_bind(
   ),
   csv = list(
     read = function(path, ...) {
-      if (!requireNamespace("data.table", quietly = TRUE)) {
-        cli::cli_abort("{.pkg data.table} is required for CSV read.")
-      }
       data.table::fread(path, ...)
     },
     write = function(x, path, ...) {
-      if (!requireNamespace("data.table", quietly = TRUE)) {
-        cli::cli_abort("{.pkg data.table} is required for CSV write.")
-      }
       data.table::fwrite(x, path, ...)
     }
   ),
@@ -93,6 +87,20 @@ rlang::env_bind(
         cli::cli_abort("{.pkg fst} is required for FST write.")
       }
       fst::write_fst(x, path, ...)
+    }
+  ),
+  parquet = list(
+    read = function(path, ...) {
+      if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+        cli::cli_abort("{.pkg nanoparquet} is required for Parquet read.")
+      }
+      nanoparquet::read_parquet(path, ...)
+    },
+    write = function(x, path, ...) {
+      if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+        cli::cli_abort("{.pkg nanoparquet} is required for Parquet write.")
+      }
+      nanoparquet::write_parquet(x, file = path, ...)
     }
   ),
   json = list(
