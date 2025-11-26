@@ -1,0 +1,206 @@
+# stamp
+
+Lightweight versioned artifact store for R with sidecar metadata,
+pruning policies, and Hive-style partitions.
+
+## Installation
+
+You can install the development version of stamp from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("randrescastaneda/stamp")
+```
+
+## Quickstart
+
+``` r
+library(stamp)
+root <- tempdir()
+st_init(root)
+#> ✔ stamp initialized
+#>   root: C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa
+#>   state: C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/.stamp
+
+p <- fs::path(root, "demo.qs")
+x <- data.frame(id = 1:3, val = letters[1:3])
+
+st_save(x, p, pk = "id", code = function(z) z)
+#> ✔ Saved [qs2] → 'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/demo.qs' @
+#>   version 127affba57484657
+y <- st_load(p)
+#> ✔ Loaded [qs2] ← 'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/demo.qs'
+st_versions(p)
+#>          version_id      artifact_id     content_hash        code_hash
+#>              <char>           <char>           <char>           <char>
+#> 1: 127affba57484657 e7350537ff428064 2ba92a4feeebbf98 f61faf5f16af2f9f
+#>    size_bytes           created_at sidecar_format
+#>         <num>               <char>         <char>
+#> 1:        255 2025-11-06T22:43:15Z           json
+
+# Retention
+st_opts(retain_versions = 2)
+#> ✔ stamp options updated
+#>   retain_versions = "2"
+st_save(transform(x, val = toupper(val)), p, code = function(z) z)
+#> ✔ Retention policy matched zero versions; nothing to prune.
+#> ✔ Saved [qs2] → 'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/demo.qs' @
+#>   version 66a5ca432fe09e5a
+st_versions(p)
+#>          version_id      artifact_id     content_hash        code_hash
+#>              <char>           <char>           <char>           <char>
+#> 1: 66a5ca432fe09e5a e7350537ff428064 ac6d1caaa0c15f0e f61faf5f16af2f9f
+#> 2: 127affba57484657 e7350537ff428064 2ba92a4feeebbf98 f61faf5f16af2f9f
+#>    size_bytes           created_at sidecar_format
+#>         <num>               <char>         <char>
+#> 1:        228 2025-11-06T22:43:16Z           json
+#> 2:        255 2025-11-06T22:43:15Z           json
+
+# Partitions
+base <- fs::path(root, "inputs/country_year")
+st_save_part(
+  data.frame(country = "PER", year = 2023, pop = 34.5),
+  base,
+  key = list(country = "PER", year = 2023),
+  pk = c("country", "year")
+)
+#> ✔ Retention policy matched zero versions; nothing to prune.
+#> ✔ Saved [qs2] →
+#>   'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/inputs/country_year/country=PER/year=2023/part.qs2'
+#>   @ version b79b777eef2607f4
+st_list_parts(base)
+#>                                                                                                 path
+#> 1 C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/inputs/country_year/country=PER/year=2023/part.qs2
+#>   country year
+#> 1     PER 2023
+st_load_parts(base, as = "rbind")
+#> ✔ Loaded [qs2] ←
+#>   'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/inputs/country_year/country=PER/year=2023/part.qs2'
+#>   country year  pop
+#> 1     PER 2023 34.5
+```
+
+Why stamp? Sidecars: hashes, provenance, PKs.
+
+Retention: keep latest N and/or recent days.
+
+Partitions: Hive-style directories, easy bind & filter.
+
+See vignettes for retention + partition details.
+
+# Package index
+
+## Core I/O
+
+- [`st_init()`](https://randrescastaneda.github.io/stamp/dev/reference/st_init.md)
+  : Initialize stamp project structure
+- [`st_opts()`](https://randrescastaneda.github.io/stamp/dev/reference/st_opts.md)
+  : Get or set package options
+- [`st_opts_get()`](https://randrescastaneda.github.io/stamp/dev/reference/st_opts_get.md)
+  : Convenience getter (optional sugar)
+- [`st_opts_reset()`](https://randrescastaneda.github.io/stamp/dev/reference/st_opts_reset.md)
+  : Reset all options to package defaults
+- [`st_path()`](https://randrescastaneda.github.io/stamp/dev/reference/st_path.md)
+  : Declare a path (with optional format & partition hint)
+- [`st_part_path()`](https://randrescastaneda.github.io/stamp/dev/reference/st_part_path.md)
+  : Build a concrete partition path under a base directory
+- [`st_list_parts()`](https://randrescastaneda.github.io/stamp/dev/reference/st_list_parts.md)
+  : List available partitions under a base directory
+- [`st_formats()`](https://randrescastaneda.github.io/stamp/dev/reference/st_formats.md)
+  : Inspect available formats
+- [`st_register_format()`](https://randrescastaneda.github.io/stamp/dev/reference/st_register_format.md)
+  : Register or override a format handler
+- [`st_save()`](https://randrescastaneda.github.io/stamp/dev/reference/st_save.md)
+  : Save an R object to disk with metadata & versioning (atomic move)
+- [`st_save_part()`](https://randrescastaneda.github.io/stamp/dev/reference/st_save_part.md)
+  : Save a single partition (uses st_save under the hood)
+- [`st_write_parts()`](https://randrescastaneda.github.io/stamp/dev/reference/st_write_parts.md)
+  : Auto-partition and save a dataset (Hive-style)
+- [`st_load()`](https://randrescastaneda.github.io/stamp/dev/reference/st_load.md)
+  : Load an object from disk (format auto-detected; optional integrity
+  checks)
+- [`st_load_parts()`](https://randrescastaneda.github.io/stamp/dev/reference/st_load_parts.md)
+  : Load and row-bind partitioned data
+- [`st_load_version()`](https://randrescastaneda.github.io/stamp/dev/reference/st_load_version.md)
+  : Load a specific version of an artifact
+
+## Versioning & Catalog
+
+- [`st_hash_obj()`](https://randrescastaneda.github.io/stamp/dev/reference/st_hash_obj.md)
+  : Stable SipHash-1-3 of an R object
+- [`st_versions()`](https://randrescastaneda.github.io/stamp/dev/reference/st_versions.md)
+  : List versions for an artifact path
+- [`st_latest()`](https://randrescastaneda.github.io/stamp/dev/reference/st_latest.md)
+  : Get the latest version_id for an artifact path
+- [`st_prune_versions()`](https://randrescastaneda.github.io/stamp/dev/reference/st_prune_versions.md)
+  : Prune stored versions according to a retention policy
+- [`st_rebuild()`](https://randrescastaneda.github.io/stamp/dev/reference/st_rebuild.md)
+  : Rebuild artifacts from a plan (level order)
+- [`st_plan_rebuild()`](https://randrescastaneda.github.io/stamp/dev/reference/st_plan_rebuild.md)
+  : Plan a rebuild of descendants when parents changed
+
+## Lineage & Builders
+
+- [`st_children()`](https://randrescastaneda.github.io/stamp/dev/reference/st_children.md)
+  : List children (reverse lineage) of an artifact
+- [`st_lineage()`](https://randrescastaneda.github.io/stamp/dev/reference/st_lineage.md)
+  : Show immediate or recursive parents for an artifact
+- [`st_builders()`](https://randrescastaneda.github.io/stamp/dev/reference/st_builders.md)
+  : List registered builders
+- [`st_register_builder()`](https://randrescastaneda.github.io/stamp/dev/reference/st_register_builder.md)
+  : Register a builder for an artifact path
+- [`st_clear_builders()`](https://randrescastaneda.github.io/stamp/dev/reference/st_clear_builders.md)
+  : Clear all builders (or only those for a given path)
+
+## Metadata & PKs
+
+- [`st_read_sidecar()`](https://randrescastaneda.github.io/stamp/dev/reference/st_read_sidecar.md)
+  : Read sidecar metadata (internal)
+- [`st_inspect_pk()`](https://randrescastaneda.github.io/stamp/dev/reference/st_inspect_pk.md)
+  : Inspect primary-key of an artifact from its sidecar
+- [`st_add_pk()`](https://randrescastaneda.github.io/stamp/dev/reference/st_add_pk.md)
+  : Add or repair primary-key metadata in an artifact sidecar
+- [`st_get_pk()`](https://randrescastaneda.github.io/stamp/dev/reference/st_get_pk.md)
+  : Read primary-key keys from a data.frame or sidecar/meta list
+- [`st_pk()`](https://randrescastaneda.github.io/stamp/dev/reference/st_pk.md)
+  : Normalize a primary-key specification
+- [`st_with_pk()`](https://randrescastaneda.github.io/stamp/dev/reference/st_with_pk.md)
+  : Attach primary-key metadata to a data.frame (in-memory)
+
+## Helpers
+
+- [`st_changed()`](https://randrescastaneda.github.io/stamp/dev/reference/st_changed.md)
+  : Check whether an artifact would change if saved now
+- [`st_changed_reason()`](https://randrescastaneda.github.io/stamp/dev/reference/st_changed_reason.md)
+  : Explain why an artifact would change
+- [`st_should_save()`](https://randrescastaneda.github.io/stamp/dev/reference/st_should_save.md)
+  : Decide if a save should proceed given current st_opts() Uses
+  versioning policy and code-change rule.
+- [`st_is_stale()`](https://randrescastaneda.github.io/stamp/dev/reference/st_is_stale.md)
+  : Is a child artifact stale because its parents advanced?
+- [`st_info()`](https://randrescastaneda.github.io/stamp/dev/reference/st_info.md)
+  : Inspect an artifact's current status (sidecar + catalog + snapshot
+  location)
+- [`st_filter()`](https://randrescastaneda.github.io/stamp/dev/reference/st_filter.md)
+  : Filter a data.frame by primary-key values (or arbitrary columns)
+
+# Articles
+
+### Basics
+
+- [Setup and
+  Basics](https://randrescastaneda.github.io/stamp/dev/articles/setup-and-basics.md):
+- [Hashing, Change Detection and
+  Versions](https://randrescastaneda.github.io/stamp/dev/articles/hashing-and-versions.md):
+- [Lineage and
+  Rebuilds](https://randrescastaneda.github.io/stamp/dev/articles/lineage-rebuilds.md):
+
+### Advanced Usage
+
+- [Builders, Plans, and
+  Rebuilds](https://randrescastaneda.github.io/stamp/dev/articles/builders-plans.md):
+- [Version Retention, Pruning, and Table
+  Metadata](https://randrescastaneda.github.io/stamp/dev/articles/version_retention_prune.md):
+- [Working with Partitioned
+  Datasets](https://randrescastaneda.github.io/stamp/dev/articles/partitions.md):
