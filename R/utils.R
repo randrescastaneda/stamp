@@ -1,12 +1,14 @@
 # utils.R — small internal helpers (no global state defined here)
 
-#' Current time as UTC ISO-8601 (Z) string
+#' Current time as UTC ISO-8601 (Z) string with microsecond precision
 #'
-#' @return Character scalar like "2025-10-30T15:42:07Z"
+#' @return Character scalar like "2025-10-30T15:42:07.123456Z"
 #' @keywords internal
 .st_now_utc <- function() {
-  # ISO 8601 with trailing 'Z' for UTC; stable for lexicographic sort
-  strftime(as.POSIXct(Sys.time(), tz = "UTC"), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  # ISO 8601 with microsecond precision and trailing 'Z' for UTC
+  # %OS6 gives fractional seconds with 6 digits (microseconds)
+  # This ensures proper ordering even for versions saved in rapid succession
+  format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6Z", tz = "UTC")
 }
 
 #' Ensure directory exists (idempotent)

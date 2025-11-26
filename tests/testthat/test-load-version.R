@@ -27,7 +27,7 @@ test_that("st_load with version=0 loads current version", {
   x2 <- data.frame(a = 4:6, b = letters[4:6])
 
   st_save(x1, p, code = function() "v1")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(x2, p, code = function() "v2")
 
   # version=0 should load latest version
@@ -46,7 +46,7 @@ test_that("st_load with version=-1 loads previous version", {
   x2 <- data.frame(a = 4:6, b = letters[4:6])
 
   st_save(x1, p, code = function() "v1")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(x2, p, code = function() "v2")
 
   # version=-1 should load the previous version (x1)
@@ -66,9 +66,9 @@ test_that("st_load with version=-2 loads two versions back", {
   x3 <- data.frame(a = 7:9, b = letters[7:9])
 
   st_save(x1, p, code = function() "v1")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(x2, p, code = function() "v2")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(x3, p, code = function() "v3")
 
   # version=-2 should load x1 (two versions back from x3)
@@ -129,7 +129,7 @@ test_that("st_load with character version_id loads specific version", {
 
   out1 <- st_save(x1, p, code = function() "v1")
   vid1 <- out1$version_id
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   out2 <- st_save(x2, p, code = function() "v2")
 
   # Load specific version by version_id
@@ -190,7 +190,7 @@ test_that("st_load version works with multiple formats", {
   x2 <- data.frame(a = 4:6)
 
   st_save(x1, p_qs, code = function() "v1")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(x2, p_qs, code = function() "v2")
 
   y_qs <- st_load(p_qs, version = -1)
@@ -199,7 +199,7 @@ test_that("st_load version works with multiple formats", {
   # Test with .rds format
   p_rds <- fs::path(td, "data.rds")
   st_save(x1, p_rds, format = "rds", code = function() "v1")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(x2, p_rds, format = "rds", code = function() "v2")
 
   y_rds <- st_load(p_rds, version = -1)
@@ -221,7 +221,7 @@ test_that("st_load version preserves data.table class", {
   dt2 <- data.table::data.table(a = 4:6, b = letters[4:6])
 
   st_save(dt1, p, code = function() "v1")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(dt2, p, code = function() "v2")
 
   # Load previous version
@@ -243,10 +243,10 @@ test_that(".st_resolve_version handles all cases correctly", {
 
   out1 <- st_save(x1, p, code = function() "v1")
   vid1 <- out1$version_id
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   out2 <- st_save(x2, p, code = function() "v2")
   vid2 <- out2$version_id
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   out3 <- st_save(x3, p, code = function() "v3")
   vid3 <- out3$version_id
 
@@ -300,7 +300,7 @@ test_that("st_load default behavior unchanged (backward compatibility)", {
   x2 <- data.frame(a = 4:6)
 
   st_save(x1, p, code = function() "v1")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(x2, p, code = function() "v2")
 
   # Default st_load() should load current file (x2)
@@ -356,7 +356,7 @@ test_that(".st_resolve_version with 'select' keyword detects non-interactive", {
   x2 <- data.frame(a = 4:6)
 
   st_save(x1, p, code = function() "v1")
-  Sys.sleep(1)
+  Sys.sleep(0.1)
   st_save(x2, p, code = function() "v2")
 
   # All three keywords should error in non-interactive mode

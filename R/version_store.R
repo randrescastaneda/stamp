@@ -341,11 +341,17 @@ st_latest <- function(path) {
       choices <- character(nrow(vers))
       for (i in seq_len(nrow(vers))) {
         row <- vers[i, ]
-        # Format timestamp
-        ts <- tryCatch(
-          format(as.POSIXct(row$created_at, format = "%Y%m%dT%H%M%SZ", tz = "UTC"), 
-                 "%Y-%m-%d %H:%M:%S"),
-          error = function(e) row$created_at
+        # Format timestamp - handle both old (seconds) and new (microseconds) formats
+        ts <- tryCatch({
+          # Try parsing with microseconds first
+          dt <- as.POSIXct(row$created_at, format = "%Y-%m-%dT%H:%M:%OSZ", tz = "UTC")
+          if (is.na(dt)) {
+            # Fallback to seconds-only format for backward compatibility
+            dt <- as.POSIXct(row$created_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+          }
+          format(dt, "%Y-%m-%d %H:%M:%OS3")  # Display with milliseconds
+        },
+        error = function(e) row$created_at
         )
         # Format size
         size_mb <- round(as.numeric(row$size_bytes) / (1024^2), 2)
@@ -542,7 +548,9 @@ st_lineage <- function(path, depth = 1L) {
   content_hash = NA_character_,
   code_hash = NA_character_
 ) {
-  ts <- gsub("[-:]", "", created_at, fixed = FALSE)
+  # Remove dashes, colons, and periods to create compact timestamp
+  # E.g., "2025-10-30T15:42:07.123456Z" -> "20251030T154207123456Z"
+  ts <- gsub("[-:.]", "", created_at, fixed = FALSE)
   ts <- gsub("Z$", "Z", ts)
   h <- if (!is.na(content_hash) && nzchar(content_hash)) {
     content_hash
