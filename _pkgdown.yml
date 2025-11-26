@@ -38,6 +38,7 @@ reference:
       - st_save_part
       - st_load
       - st_load_parts
+      - st_write_parts
       - st_load_version
 
   - title: "Versioning & Catalog"
