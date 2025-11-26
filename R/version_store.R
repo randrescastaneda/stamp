@@ -279,6 +279,65 @@ st_latest <- function(path) {
   as.character(v)
 }
 
+#' Resolve version specification to a concrete version_id (internal)
+#'
+#' @param path artifact path
+#' @param version NULL (latest), integer (relative), or character (specific version ID)
+#' @return character version_id or NA_character_
+#' @keywords internal
+.st_resolve_version <- function(path, version = NULL) {
+  # NULL or 0 -> latest
+  if (is.null(version) || (is.numeric(version) && version == 0)) {
+    return(st_latest(path))
+  }
+  
+  # Positive integers are not allowed
+  if (is.numeric(version) && version > 0) {
+    cli::cli_abort(c(
+      "x" = "Positive version numbers are not allowed.",
+      "i" = "Use NULL for latest, 0 for current, or negative integers for relative versions."
+    ))
+  }
+  
+  # Negative integers: relative to latest
+  if (is.numeric(version) && version < 0) {
+    vers <- st_versions(path)
+    if (nrow(vers) == 0L) {
+      cli::cli_abort("No versions found for {.file {path}}")
+    }
+    
+    # vers is already sorted by created_at descending
+    idx <- abs(version) + 1L  # -1 -> index 2 (one before latest)
+    if (idx > nrow(vers)) {
+      cli::cli_abort(c(
+        "x" = "Version index {version} goes beyond available versions.",
+        "i" = "Only {nrow(vers)} version{?s} available for {.file {path}}"
+      ))
+    }
+    
+    return(as.character(vers$version_id[idx]))
+  }
+  
+  # Character: treat as specific version ID
+  if (is.character(version)) {
+    vers <- st_versions(path)
+    if (nrow(vers) == 0L) {
+      cli::cli_abort("No versions found for {.file {path}}")
+    }
+    
+    if (!version %in% vers$version_id) {
+      cli::cli_abort(c(
+        "x" = "Version {.val {version}} not found for {.file {path}}",
+        "i" = "Use {.fn st_versions} to see available versions."
+      ))
+    }
+    
+    return(as.character(version))
+  }
+  
+  cli::cli_abort("Invalid version specification: {.val {version}}")
+}
+
 
 #' Load a specific version of an artifact
 #'

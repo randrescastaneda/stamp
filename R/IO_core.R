@@ -258,12 +258,32 @@ st_save <- function(
 #' Load an object from disk (format auto-detected; optional integrity checks)
 #' @param file path or st_path
 #' @param format optional format override
+#' @param version An integer or a quoted directive. Retrieve a specific version
+#'   of an artifact. See details.
 #' @param ... forwarded to format reader
 #' @return the loaded object
+#' @details
+#' The `version` argument allows you to load specific versions:
+#'   * `NULL` (default): loads the most recent version available.
+#'   * Negative integer (e.g., `-1`) or zero (`0`): loads that number of versions
+#'     before the most recent version. So, if `0`, it loads the current
+#'     version, which is equivalent to `NULL`. If `-1`, it will load the version
+#'     right before the current one, `-2` loads two versions before, and so on.
+#'   * Positive numbers: Error.
+#'   * Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
 #' @export
-st_load <- function(file, format = NULL, ...) {
+st_load <- function(file, format = NULL, version = NULL, ...) {
   # Normalize input into an st_path
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
+
+  # If a specific version is requested, resolve it and delegate to st_load_version
+  if (!is.null(version)) {
+    version_id <- .st_resolve_version(sp$path, version)
+    if (is.na(version_id)) {
+      cli::cli_abort("Could not resolve version {.val {version}} for {.file {sp$path}}")
+    }
+    return(st_load_version(sp$path, version_id, ...))
+  }
 
   # Existence check
   if (!fs::file_exists(sp$path)) {
