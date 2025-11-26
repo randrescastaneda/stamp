@@ -38,6 +38,7 @@ dir.create(tdir)
 st_init(tdir)
 
 # Create sample welfare data
+set.seed(123)  # for reproducible vignette output
 welfare <- data.table(
   country = rep(c("USA", "CAN", "MEX"), each = 100),
   year = rep(2020:2024, 60),
@@ -149,7 +150,7 @@ By default, `st_write_parts()` uses **parquet** format for optimal columnar perf
 
 ```{r format-default}
 # Default format is parquet
-manifest <- st_write_parts(
+format_manifest <- st_write_parts(
   welfare[1:50],
   base = file.path(tdir, "test_format"),
   partitioning = "country",
@@ -157,7 +158,7 @@ manifest <- st_write_parts(
 )
 
 # Check file extension
-basename(manifest$path[1])
+basename(format_manifest$path[1])
 ```
 
 Override with explicit format:
