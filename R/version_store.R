@@ -307,8 +307,10 @@ st_latest <- function(path) {
       cli::cli_abort("No versions found for {.file {path}}")
     }
     
-    # vers is already sorted by created_at descending
-    idx <- abs(version) + 1L  # -1 -> index 2 (one before latest)
+    # vers is already sorted by created_at descending (newest first)
+    # version=-1 means "one version back from latest" -> index 2
+    # version=-2 means "two versions back from latest" -> index 3
+    idx <- abs(version) + 1L
     if (idx > nrow(vers)) {
       cli::cli_abort(c(
         "x" = "Version index {version} goes beyond available versions.",
@@ -419,10 +421,40 @@ st_load_version <- function(path, version_id, ...) {
     cli::cli_abort("Unknown format {.field {fmt}} for version load.")
   }
 
+  # Read the artifact with the registered reader
+  res <- h$read(art, ...)
+
+  # Restore original tabular format if it was a data.table at save time
+  if (
+    is.data.frame(res) &&
+      !is.null(attr(res, "st_original_format")) &&
+      "data.table" %in% attr(res, "st_original_format")
+  ) {
+    res <- as.data.table(res)
+  }
+
+  # Remove st_original_format attribute (internal marker, not part of user object)
+  if (!is.null(attr(res, "st_original_format"))) {
+    if (inherits(res, "data.table")) {
+      setattr(res, "st_original_format", NULL)
+    } else {
+      attr(res, "st_original_format") <- NULL
+    }
+  }
+
+  # Remove stamp_sanitized attribute (not part of user-visible object) after any verification
+  if (!is.null(attr(res, "stamp_sanitized"))) {
+    if (inherits(res, "data.table")) {
+      setattr(res, "stamp_sanitized", NULL)
+    } else {
+      attr(res, "stamp_sanitized") <- NULL
+    }
+  }
+
   cli::cli_inform(c(
     "v" = "Loaded \u2190 {.field {path}} @ {.field {version_id}} [{.field {fmt}}]"
   ))
-  h$read(art, ...)
+  res
 }
 
 #' Show immediate or recursive parents for an artifact
