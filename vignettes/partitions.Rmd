@@ -13,17 +13,9 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-# Use development build when interactive *and* explicitly enabled via env var.
-dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
-
-if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
-  pkgload::load_all(
-    export_all = FALSE,
-    helpers = FALSE,
-    attach_testthat = FALSE
-  )
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(".")
 } else {
-  # fall back to the installed package (the path CRAN, CI, and pkgdown take)
   library(stamp)
 }
 
