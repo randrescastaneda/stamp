@@ -314,3 +314,82 @@ test_that("st_load default behavior unchanged (backward compatibility)", {
   # Both should be identical
   expect_identical(y_default, y_null)
 })
+
+test_that("st_load with version='select' in non-interactive session throws error", {
+  skip_on_cran()
+  td <- withr::local_tempdir()
+  st_init(td)
+  st_opts(default_format = "rds")
+  
+  p <- fs::path(td, "data.rds")
+  x1 <- data.frame(a = 1:3)
+  
+  st_save(x1, p, code = function() "v1")
+  
+  # In non-interactive session, should error
+  expect_error(
+    st_load(p, version = "select"),
+    regexp = "not interactive"
+  )
+  
+  # Same for "pick"
+  expect_error(
+    st_load(p, version = "pick"),
+    regexp = "not interactive"
+  )
+  
+  # Same for "choose"
+  expect_error(
+    st_load(p, version = "choose"),
+    regexp = "not interactive"
+  )
+})
+
+test_that(".st_resolve_version with 'select' keyword detects non-interactive", {
+  skip_on_cran()
+  td <- withr::local_tempdir()
+  st_init(td)
+  st_opts(default_format = "rds")
+  
+  p <- fs::path(td, "data.rds")
+  x1 <- data.frame(a = 1:3)
+  x2 <- data.frame(a = 4:6)
+  
+  st_save(x1, p, code = function() "v1")
+  Sys.sleep(0.1)
+  st_save(x2, p, code = function() "v2")
+  
+  # All three keywords should error in non-interactive mode
+  expect_error(
+    stamp:::.st_resolve_version(p, "select"),
+    regexp = "not interactive"
+  )
+  
+  expect_error(
+    stamp:::.st_resolve_version(p, "pick"),
+    regexp = "not interactive"
+  )
+  
+  expect_error(
+    stamp:::.st_resolve_version(p, "choose"),
+    regexp = "not interactive"
+  )
+})
+
+test_that("interactive menu help text updated in error messages", {
+  skip_on_cran()
+  td <- withr::local_tempdir()
+  st_init(td)
+  st_opts(default_format = "rds")
+  
+  p <- fs::path(td, "data.rds")
+  x1 <- data.frame(a = 1:3)
+  
+  st_save(x1, p, code = function() "v1")
+  
+  # Error message should mention 'select' option
+  expect_error(
+    st_load(p, version = "nonexistent-version-id"),
+    regexp = "select"
+  )
+})

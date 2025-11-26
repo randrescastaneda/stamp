@@ -282,7 +282,8 @@ st_latest <- function(path) {
 #' Resolve version specification to a concrete version_id (internal)
 #'
 #' @param path artifact path
-#' @param version NULL (latest), integer (relative), or character (specific version ID)
+#' @param version NULL (latest), integer (relative), character (specific version ID), 
+#'   or "select"/"pick"/"choose" to show interactive menu
 #' @return character version_id or NA_character_
 #' @keywords internal
 .st_resolve_version <- function(path, version = NULL) {
@@ -318,17 +319,59 @@ st_latest <- function(path) {
     return(as.character(vers$version_id[idx]))
   }
   
-  # Character: treat as specific version ID
+  # Character: check for interactive menu request or specific version ID
   if (is.character(version)) {
     vers <- st_versions(path)
     if (nrow(vers) == 0L) {
       cli::cli_abort("No versions found for {.file {path}}")
     }
     
+    # Interactive menu
+    if (tolower(version) %in% c("select", "pick", "choose")) {
+      if (!interactive()) {
+        cli::cli_abort(c(
+          "x" = "Interactive menu requested but session is not interactive.",
+          "i" = "Specify a version explicitly or use NULL for latest."
+        ))
+      }
+      
+      # Build menu choices with formatted dates and metadata
+      choices <- character(nrow(vers))
+      for (i in seq_len(nrow(vers))) {
+        row <- vers[i, ]
+        # Format timestamp
+        ts <- tryCatch(
+          format(as.POSIXct(row$created_at, format = "%Y%m%dT%H%M%SZ", tz = "UTC"), 
+                 "%Y-%m-%d %H:%M:%S"),
+          error = function(e) row$created_at
+        )
+        # Format size
+        size_mb <- round(as.numeric(row$size_bytes) / (1024^2), 2)
+        # Construct choice string
+        choices[i] <- sprintf("[%d] %s (%.2f MB) - %s", 
+                              i, ts, size_mb, substr(row$version_id, 1, 16))
+      }
+      
+      # Show menu
+      cli::cli_inform(c(
+        "i" = "Select a version to load from {.file {path}}:",
+        " " = "Latest version is [1]"
+      ))
+      
+      selection <- utils::menu(choices, title = "Available versions:")
+      
+      if (selection == 0) {
+        cli::cli_abort("Version selection cancelled by user.")
+      }
+      
+      return(as.character(vers$version_id[selection]))
+    }
+    
+    # Specific version ID
     if (!version %in% vers$version_id) {
       cli::cli_abort(c(
         "x" = "Version {.val {version}} not found for {.file {path}}",
-        "i" = "Use {.fn st_versions} to see available versions."
+        "i" = "Use {.fn st_versions} to see available versions or 'select' for a menu."
       ))
     }
     
