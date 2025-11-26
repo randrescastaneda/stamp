@@ -69,15 +69,9 @@ rlang::env_bind(
   ),
   csv = list(
     read = function(path, ...) {
-      if (!requireNamespace("data.table", quietly = TRUE)) {
-        cli::cli_abort("{.pkg data.table} is required for CSV read.")
-      }
       data.table::fread(path, ...)
     },
     write = function(x, path, ...) {
-      if (!requireNamespace("data.table", quietly = TRUE)) {
-        cli::cli_abort("{.pkg data.table} is required for CSV write.")
-      }
       data.table::fwrite(x, path, ...)
     }
   ),
