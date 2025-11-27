@@ -1,4 +1,4 @@
-# stamp (development version)
+# stamp 0.0.5
 
 ## Major Features
 
