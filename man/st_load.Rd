@@ -4,12 +4,15 @@
 \alias{st_load}
 \title{Load an object from disk (format auto-detected; optional integrity checks)}
 \usage{
-st_load(file, format = NULL, ...)
+st_load(file, format = NULL, version = NULL, ...)
 }
 \arguments{
 \item{file}{path or st_path}
 
 \item{format}{optional format override}
+
+\item{version}{An integer or a quoted directive. Retrieve a specific version
+of an artifact. See details.}
 
 \item{...}{forwarded to format reader}
 }
@@ -18,4 +21,36 @@ the loaded object
 }
 \description{
 Load an object from disk (format auto-detected; optional integrity checks)
+}
+\details{
+The \code{version} argument allows you to load specific versions:
+\itemize{
+\item \code{NULL} (default): loads the most recent version available.
+\item Negative integer (e.g., \code{-1}) or zero (\code{0}): loads that number of versions
+before the most recent version. So, if \code{0}, it loads the current
+version, which is equivalent to \code{NULL}. If \code{-1}, it will load the version
+right before the current one, \code{-2} loads two versions before, and so on.
+\item Positive numbers: Error.
+\item Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
+\item \code{"select"}, \code{"pick"}, or \code{"choose"}: displays an interactive menu to select from
+available versions (only in interactive R sessions).
+}
+}
+\examples{
+\dontrun{
+# Basic usage: load latest version
+data <- st_load("data/mydata.rds")
+
+# Load previous version
+old_data <- st_load("data/mydata.rds", version = -1)
+
+# Load specific version by ID
+vid <- st_versions("data/mydata.rds")$version_id[3]
+specific <- st_load("data/mydata.rds", version = vid)
+
+# Interactive menu (in interactive sessions only)
+selected <- st_load("data/mydata.rds", version = "select")
+# or use "pick" or "choose"
+selected <- st_load("data/mydata.rds", version = "pick")
+}
 }

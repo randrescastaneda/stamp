@@ -2,14 +2,14 @@
 % Please edit documentation in R/utils.R
 \name{.st_now_utc}
 \alias{.st_now_utc}
-\title{Current time as UTC ISO-8601 (Z) string}
+\title{Current time as UTC ISO-8601 (Z) string with microsecond precision}
 \usage{
 .st_now_utc()
 }
 \value{
-Character scalar like "2025-10-30T15:42:07Z"
+Character scalar like "2025-10-30T15:42:07.123456Z"
 }
 \description{
-Current time as UTC ISO-8601 (Z) string
+Current time as UTC ISO-8601 (Z) string with microsecond precision
 }
 \keyword{internal}

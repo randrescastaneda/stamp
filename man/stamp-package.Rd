@@ -20,5 +20,10 @@ Useful links:
 \author{
 \strong{Maintainer}: R.Andres Castaneda \email{acastanedaa@worldbank.org} (\href{https://orcid.org/0000-0003-1154-1374}{ORCID})
 
+Authors:
+\itemize{
+  \item Diana C. Garcia Rojas \email{dgarciarojas@worldbank.org} (\href{https://orcid.org/0000-0001-9423-3865}{ORCID})
+}
+
 }
 \keyword{internal}
