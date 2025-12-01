@@ -1,48 +1,40 @@
-# stamp (development version)
+# stamp 0.0.5
 
 ## Major Features
 
-### Partitioned Datasets
-* **NEW**: `st_write_parts()` - Auto-partition datasets by specified columns with Hive-style directory structure. Eliminates manual nested loops for partition creation.
-* **NEW**: Expression-based filtering for `st_load_parts()` and `st_list_parts()` using formula syntax (`~ year > 2021`, `~ country %in% c("USA", "CAN")`). Backward compatible with named list filtering.
-* **NEW**: Columnar loading support with `columns` argument. Native column selection for parquet/fst formats (reads only specified columns from disk). Fallback subsetting for qs/rds/csv formats.
-* **NEW**: Comprehensive partitioning vignette (`vignette("partitions")`) with examples, performance tips, and comparisons with Arrow/DuckDB.
-
-### Format Support
-* **NEW**: Parquet format support via `nanoparquet` package (lightweight, no system dependencies).
-* **CHANGE**: Default format for partitions is now `parquet` (optimal for columnar analytics).
-* **NEW**: Format registry supports automatic type-specific column selection.
-
-### Partitioning Functions
-* `st_write_parts(x, base, partitioning, ...)` - Auto-partition and save datasets
-* `st_load_parts(base, filter, columns, as)` - Load partitions with filtering and column selection
-* `st_list_parts(base, filter)` - List available partitions without loading data
-* `st_save_part(x, base, key, ...)` - Save individual partition (low-level)
-* `st_part_path(base, key, ...)` - Build partition path (utility)
-
-### Filter Capabilities
-* **Exact match** (backward compatible): `filter = list(country = "USA", year = 2020)`
-* **Expression-based** (NEW): `filter = ~ year > 2021 & country != "USA"`
-* **Boolean operators**: `&` (AND), `|` (OR), `!` (NOT)
-* **Comparisons**: `>`, `<`, `>=`, `<=`, `==`, `!=`
-* **Set operations**: `%in%` for multiple values
-* **Auto type conversion**: Numeric and boolean partition keys converted from strings
-
-## Performance Improvements
-* Partitioning uses `data.table::split()` for efficient splitting when available
-* Progress bar for partition operations (>10 partitions by default, configurable)
-* Smart warning system for non-columnar formats (warns once per format type)
-* Partition keys automatically included in loaded results
+### Version Loading
+* **NEW**: `st_load()` now accepts a `version` argument to load specific historical versions
+  - `version = NULL` or `0` loads the latest version (default behavior)
+  - `version = -1, -2, ...` loads relative versions (previous, two back, etc.)
+  - `version = "version_id"` loads a specific version by ID
+  - `version = "select"`, `"pick"`, or `"choose"` shows interactive menu in console
+* Interactive version selection menu displays timestamps, file sizes, and version IDs
+* New internal function `.st_resolve_version()` handles version resolution logic
 
 ## Bug Fixes & Improvements
-* Remove unnecessary `requireNamespace()` checks for packages in Imports (data.table, cli)
-* Fix data.table column selection syntax in partition operations
+
+### Timestamp Precision
+* **FIXED**: Timestamp precision increased from seconds to microseconds (ISO8601 format with `%OS6`)
+  - Resolves ordering issues when multiple versions are saved within the same second
+  - Format: `"2025-10-30T15:42:07.123456Z"` (backward compatible with old format)
+  - Ensures reliable version ordering in rapid-fire save scenarios (e.g., automated pipelines)
+* Updated `.st_now_utc()` to use microsecond precision
+* Updated `.st_version_id()` to handle fractional seconds in timestamps
+* Interactive menu timestamp parser handles both old (seconds) and new (microseconds) formats
+
+### Data Loading
+* `st_load_version()` now properly cleans loaded data, removing internal attributes (`st_original_format`, `stamp_sanitized`) and restoring `data.table` class when appropriate
+* Consistent cleanup behavior between `st_load()` and `st_load_version()`
 
 ## Documentation
-* New vignette: "Working with Partitioned Datasets"
-* Updated examples demonstrating auto-partitioning workflow
-* Performance guidelines for partition key selection
-* Format comparison tables (write/read speed, column selection, compression)
+* Added vignette section demonstrating version loading workflows
+* Examples showing interactive version selection and relative version indexing
+* Updated documentation for `st_load()` with comprehensive `@param version` details
+
+# stamp 0.0.5
+* add ability to load specific versions via `st_load(version=...)`
+* improve timestamp precision to microseconds to avoid ordering issues in versioning
+* update `st_load_version()` to clean loaded data properly
 
 # stamp 0.0.4
 

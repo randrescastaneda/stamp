@@ -109,6 +109,78 @@ identical(x, y)
 - `parents`: optional list of parent descriptors (list(list(path=..., version_id=...), ...)) to record provenance.
 - `code_label`: a short human label for the producing code.
 
+### 4.1 Loading specific versions
+
+The `version` argument in `st_load()` allows you to load historical versions
+of artifacts. This is useful for comparing changes over time or recovering
+from mistakes.
+
+```{r load-versions}
+# Create multiple versions by modifying and saving
+v_path <- fs::path(outdir, "versioned.qs2")
+
+# Version 1
+v1 <- data.frame(x = 1:3, y = c("a", "b", "c"))
+st_save(v1, v_path, code_label = "initial")
+Sys.sleep(0.15)  # ensure distinct timestamps
+
+# Version 2
+v2 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"))
+st_save(v2, v_path, code_label = "added rows")
+Sys.sleep(0.15)
+
+# Version 3
+v3 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"), z = 10:14)
+st_save(v3, v_path, code_label = "added column z")
+
+# Check available versions
+versions <- st_versions(v_path)
+print(versions[, .(version_id, created_at, size_bytes)])
+
+# Load latest (default)
+current <- st_load(v_path)
+nrow(current)  # 5 rows, 3 columns
+
+# Load previous version (version = -1)
+previous <- st_load(v_path, version = -1)
+nrow(previous)  # 5 rows, 2 columns (before adding z)
+
+# Load two versions back (version = -2)
+older <- st_load(v_path, version = -2)
+nrow(older)  # 3 rows, 2 columns (original)
+
+# Load specific version by ID
+vid <- versions$version_id[1]  # oldest version
+specific <- st_load(v_path, version = vid)
+identical(specific, older)
+```
+
+The `version` argument supports several modes:
+
+- `NULL` (default): loads the current artifact file
+- `0`: same as NULL, loads latest version
+- Negative integers (`-1`, `-2`, etc.): load versions relative to latest
+- Character string: specific version ID (from `st_versions()`)
+- `"select"`, `"pick"`, or `"choose"`: interactive menu (in interactive sessions)
+
+```{r load-interactive, eval=FALSE}
+# Interactive menu to choose a version (only works in interactive R sessions)
+# This will display a menu with formatted timestamps and file sizes
+selected <- st_load(v_path, version = "select")
+
+# The menu looks like:
+# ℹ Select a version to load from versioned.qs2:
+#   Latest version is [1]
+# 
+# Available versions:
+# 
+# 1: [1] 2025-11-26 10:30:15 (0.12 MB) - 20251126T103015Z
+# 2: [2] 2025-11-26 10:30:10 (0.10 MB) - 20251126T103010Z
+# 3: [3] 2025-11-26 10:30:05 (0.08 MB) - 20251126T103005Z
+# 
+# Selection: _
+```
+
 
 ## 5. Sidecars (quick metadata)
 

@@ -279,6 +279,116 @@ st_latest <- function(path) {
   as.character(v)
 }
 
+#' Resolve version specification to a concrete version_id (internal)
+#'
+#' @param path artifact path
+#' @param version NULL (latest), integer (relative), character (specific version ID), 
+#'   or "select"/"pick"/"choose" to show interactive menu
+#' @return character version_id or NA_character_
+#' @keywords internal
+.st_resolve_version <- function(path, version = NULL) {
+  # NULL or 0 -> latest
+  if (is.null(version) || (is.numeric(version) && version == 0)) {
+    return(st_latest(path))
+  }
+  
+  # Positive integers are not allowed
+  if (is.numeric(version) && version > 0) {
+    cli::cli_abort(c(
+      "x" = "Positive version numbers are not allowed.",
+      "i" = "Use NULL for latest, 0 for current, or negative integers for relative versions."
+    ))
+  }
+  
+  # Negative integers: relative to latest
+  if (is.numeric(version) && version < 0) {
+    vers <- st_versions(path)
+    if (nrow(vers) == 0L) {
+      cli::cli_abort("No versions found for {.file {path}}")
+    }
+    
+    # vers is already sorted by created_at descending (newest first)
+    # version=-1 means "one version back from latest" -> index 2
+    # version=-2 means "two versions back from latest" -> index 3
+    idx <- abs(version) + 1L
+    if (idx > nrow(vers)) {
+      cli::cli_abort(c(
+        "x" = "Version index {version} goes beyond available versions.",
+        "i" = "Only {nrow(vers)} version{?s} available for {.file {path}}"
+      ))
+    }
+    
+    return(as.character(vers$version_id[idx]))
+  }
+  
+  # Character: check for interactive menu request or specific version ID
+  if (is.character(version)) {
+    vers <- st_versions(path)
+    if (nrow(vers) == 0L) {
+      cli::cli_abort("No versions found for {.file {path}}")
+    }
+    
+    # Interactive menu
+    if (tolower(version) %in% c("select", "pick", "choose")) {
+      if (!interactive()) {
+        cli::cli_abort(c(
+          "x" = "Interactive menu requested but session is not interactive.",
+          "i" = "Specify a version explicitly or use NULL for latest."
+        ))
+      }
+      
+      # Build menu choices with formatted dates and metadata
+      choices <- character(nrow(vers))
+      for (i in seq_len(nrow(vers))) {
+        row <- vers[i, ]
+        # Format timestamp - handle both old (seconds) and new (microseconds) formats
+        ts <- tryCatch({
+          # Try parsing with microseconds first
+          dt <- as.POSIXct(row$created_at, format = "%Y-%m-%dT%H:%M:%OSZ", tz = "UTC")
+          if (is.na(dt)) {
+            # Fallback to seconds-only format for backward compatibility
+            dt <- as.POSIXct(row$created_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+          }
+          format(dt, "%Y-%m-%d %H:%M:%OS3")  # Display with milliseconds
+        },
+        error = function(e) row$created_at
+        )
+        # Format size
+        size_mb <- round(as.numeric(row$size_bytes) / (1024^2), 2)
+        # Construct choice string
+        choices[i] <- sprintf("[%d] %s (%.2f MB) - %s", 
+                              i, ts, size_mb, substr(row$version_id, 1, 16))
+      }
+      
+      # Show menu
+      cli::cli_inform(c(
+        "i" = "Select a version to load from {.file {path}}:",
+        " " = "Latest version is [1]"
+      ))
+      
+      selection <- utils::menu(choices, title = "Available versions:")
+      
+      if (selection == 0) {
+        cli::cli_abort("Version selection cancelled by user.")
+      }
+      
+      return(as.character(vers$version_id[selection]))
+    }
+    
+    # Specific version ID
+    if (!version %in% vers$version_id) {
+      cli::cli_abort(c(
+        "x" = "Version {.val {version}} not found for {.file {path}}",
+        "i" = "Use {.fn st_versions} to see available versions or 'select' for a menu."
+      ))
+    }
+    
+    return(as.character(version))
+  }
+  
+  cli::cli_abort("Invalid version specification: {.val {version}}")
+}
+
 
 #' Load a specific version of an artifact
 #'
@@ -317,10 +427,40 @@ st_load_version <- function(path, version_id, ...) {
     cli::cli_abort("Unknown format {.field {fmt}} for version load.")
   }
 
+  # Read the artifact with the registered reader
+  res <- h$read(art, ...)
+
+  # Restore original tabular format if it was a data.table at save time
+  if (
+    is.data.frame(res) &&
+      !is.null(attr(res, "st_original_format")) &&
+      "data.table" %in% attr(res, "st_original_format")
+  ) {
+    res <- as.data.table(res)
+  }
+
+  # Remove st_original_format attribute (internal marker, not part of user object)
+  if (!is.null(attr(res, "st_original_format"))) {
+    if (inherits(res, "data.table")) {
+      setattr(res, "st_original_format", NULL)
+    } else {
+      attr(res, "st_original_format") <- NULL
+    }
+  }
+
+  # Remove stamp_sanitized attribute (not part of user-visible object) after any verification
+  if (!is.null(attr(res, "stamp_sanitized"))) {
+    if (inherits(res, "data.table")) {
+      setattr(res, "stamp_sanitized", NULL)
+    } else {
+      attr(res, "stamp_sanitized") <- NULL
+    }
+  }
+
   cli::cli_inform(c(
     "v" = "Loaded \u2190 {.field {path}} @ {.field {version_id}} [{.field {fmt}}]"
   ))
-  h$read(art, ...)
+  res
 }
 
 #' Show immediate or recursive parents for an artifact
@@ -408,7 +548,9 @@ st_lineage <- function(path, depth = 1L) {
   content_hash = NA_character_,
   code_hash = NA_character_
 ) {
-  ts <- gsub("[-:]", "", created_at, fixed = FALSE)
+  # Remove dashes, colons, and periods to create compact timestamp
+  # E.g., "2025-10-30T15:42:07.123456Z" -> "20251030T154207123456Z"
+  ts <- gsub("[-:.]", "", created_at, fixed = FALSE)
   ts <- gsub("Z$", "Z", ts)
   h <- if (!is.na(content_hash) && nzchar(content_hash)) {
     content_hash
