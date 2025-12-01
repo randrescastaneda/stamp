@@ -17,5 +17,5 @@ Character vector of format names.
 
 ``` r
 st_formats()
-#> [1] "csv"  "fst"  "json" "qs2"  "rds" 
+#> [1] "csv"     "fst"     "json"    "parquet" "qs2"     "rds"    
 ```

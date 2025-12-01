@@ -24,6 +24,8 @@
   : Save an R object to disk with metadata & versioning (atomic move)
 - [`st_save_part()`](https://randrescastaneda.github.io/stamp/reference/st_save_part.md)
   : Save a single partition (uses st_save under the hood)
+- [`st_write_parts()`](https://randrescastaneda.github.io/stamp/reference/st_write_parts.md)
+  : Auto-partition and save a dataset (Hive-style)
 - [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)
   : Load an object from disk (format auto-detected; optional integrity
   checks)

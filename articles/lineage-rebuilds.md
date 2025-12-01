@@ -80,8 +80,8 @@ st_init(root)
 ```
 
     ## ✔ stamp initialized
-    ##   root: /tmp/RtmpYudjWG
-    ##   state: /tmp/RtmpYudjWG/.stamp
+    ##   root: /tmp/RtmpvUC6iM
+    ##   state: /tmp/RtmpvUC6iM/.stamp
 
 ``` r
 # A
@@ -90,8 +90,8 @@ xA <- data.frame(a = 1:3)
 st_save(xA, pA, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpYudjWG/A.qs @ version
-    ## b89537b3b6412347
+    ## ✔ Saved [qs2] → /tmp/RtmpvUC6iM/A.qs @ version
+    ## e042cbe3da0ab9c3
 
 ``` r
 # B depends on A
@@ -105,8 +105,8 @@ st_save(
 )
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpYudjWG/B.qs @ version
-    ## a98f9d473c95b2e7
+    ## ✔ Saved [qs2] → /tmp/RtmpvUC6iM/B.qs @ version
+    ## 777709478b2cc7fa
 
 ``` r
 # C depends on B
@@ -120,8 +120,8 @@ st_save(
 )
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpYudjWG/C.qs @ version
-    ## 9b07159c9d99a582
+    ## ✔ Saved [qs2] → /tmp/RtmpvUC6iM/C.qs @ version
+    ## 8f1de0db2d09cc80
 
 Note: after these saves each artifact has a sidecar (in `stmeta/`) and
 snapshots under `.stamp/versions/`.
@@ -150,13 +150,13 @@ st_info(pB)
 
     ## $sidecar
     ## $sidecar$path
-    ## [1] "/tmp/RtmpYudjWG/B.qs"
+    ## [1] "/tmp/RtmpvUC6iM/B.qs"
     ## 
     ## $sidecar$format
     ## [1] "qs2"
     ## 
     ## $sidecar$created_at
-    ## [1] "2025-11-24T19:28:41Z"
+    ## [1] "2025-12-01T15:24:37.864045Z"
     ## 
     ## $sidecar$size_bytes
     ## [1] 255
@@ -175,7 +175,7 @@ st_info(pB)
     ## 
     ## $sidecar$parents
     ##                   path       version_id
-    ## 1 /tmp/RtmpYudjWG/A.qs b89537b3b6412347
+    ## 1 /tmp/RtmpvUC6iM/A.qs e042cbe3da0ab9c3
     ## 
     ## $sidecar$attrs
     ## list()
@@ -183,7 +183,7 @@ st_info(pB)
     ## 
     ## $catalog
     ## $catalog$latest_version_id
-    ## [1] "a98f9d473c95b2e7"
+    ## [1] "777709478b2cc7fa"
     ## 
     ## $catalog$n_versions
     ## [1] 1
@@ -194,7 +194,7 @@ st_info(pB)
     ## 
     ## $parents
     ##                   path       version_id
-    ## 1 /tmp/RtmpYudjWG/A.qs b89537b3b6412347
+    ## 1 /tmp/RtmpvUC6iM/A.qs e042cbe3da0ab9c3
 
 ``` r
 # st_lineage will fall back to the sidecar for immediate parents (level 1)
@@ -202,9 +202,9 @@ st_lineage(pB, depth = 1)
 ```
 
     ##   level           child_path    child_version          parent_path
-    ## 1     1 /tmp/RtmpYudjWG/B.qs a98f9d473c95b2e7 /tmp/RtmpYudjWG/A.qs
+    ## 1     1 /tmp/RtmpvUC6iM/B.qs 777709478b2cc7fa /tmp/RtmpvUC6iM/A.qs
     ##     parent_version
-    ## 1 b89537b3b6412347
+    ## 1 e042cbe3da0ab9c3
 
 ``` r
 # But recursive lineage (depth > 1) will only follow snapshot-backed parents
@@ -213,9 +213,9 @@ st_lineage(pB, depth = 2)
 ```
 
     ##   level           child_path    child_version          parent_path
-    ## 1     1 /tmp/RtmpYudjWG/B.qs a98f9d473c95b2e7 /tmp/RtmpYudjWG/A.qs
+    ## 1     1 /tmp/RtmpvUC6iM/B.qs 777709478b2cc7fa /tmp/RtmpvUC6iM/A.qs
     ##     parent_version
-    ## 1 b89537b3b6412347
+    ## 1 e042cbe3da0ab9c3
 
 ## Inspect lineage
 
@@ -233,9 +233,9 @@ st_lineage(pC, depth = Inf)
 ```
 
     ##   level           child_path    child_version          parent_path
-    ## 1     1 /tmp/RtmpYudjWG/C.qs 9b07159c9d99a582 /tmp/RtmpYudjWG/B.qs
+    ## 1     1 /tmp/RtmpvUC6iM/C.qs 8f1de0db2d09cc80 /tmp/RtmpvUC6iM/B.qs
     ##     parent_version
-    ## 1 a98f9d473c95b2e7
+    ## 1 777709478b2cc7fa
 
 ## Make a change upstream & detect staleness
 
@@ -245,8 +245,8 @@ xA2 <- transform(xA, a = a + 10L)
 st_save(xA2, pA, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpYudjWG/A.qs @ version
-    ## a4752fda67f877aa
+    ## ✔ Saved [qs2] → /tmp/RtmpvUC6iM/A.qs @ version
+    ## ce3bca45ff50ddd0
 
 ``` r
 # Strict staleness
@@ -316,7 +316,7 @@ st_register_builder(pB, function(path, parents) {
 })
 ```
 
-    ## ✔ Registered builder for /tmp/RtmpYudjWG/B.qs
+    ## ✔ Registered builder for /tmp/RtmpvUC6iM/B.qs
     ## (default)
 
 ``` r
@@ -331,7 +331,7 @@ st_register_builder(pC, function(path, parents) {
 })
 ```
 
-    ## ✔ Registered builder for /tmp/RtmpYudjWG/C.qs
+    ## ✔ Registered builder for /tmp/RtmpvUC6iM/C.qs
     ## (default)
 
 ``` r
@@ -377,7 +377,7 @@ st_plan_rebuild(pB, depth = Inf, mode = "propagate")
 ```
 
     ##   level                 path           reason latest_version_before
-    ## 1     1 /tmp/RtmpYudjWG/C.qs upstream_changed      9b07159c9d99a582
+    ## 1     1 /tmp/RtmpvUC6iM/C.qs upstream_changed      8f1de0db2d09cc80
 
 ## Inspect snapshots on disk
 
@@ -386,19 +386,19 @@ vroot <- stamp:::.st_versions_root()
 fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/RtmpYudjWG/.stamp/versions
+    ## /tmp/RtmpvUC6iM/.stamp/versions
     ## ├── A.qs
-    ## │   ├── a4752fda67f877aa
+    ## │   ├── ce3bca45ff50ddd0
     ## │   │   ├── artifact
     ## │   │   ├── sidecar.json
     ## │   │   └── sidecar.qs2
-    ## │   └── b89537b3b6412347
+    ## │   └── e042cbe3da0ab9c3
     ## │       ├── artifact
     ## │       ├── sidecar.json
     ## │       └── sidecar.qs2
     ## ├── B.qs
     ## └── C.qs
-    ##     └── 9b07159c9d99a582
+    ##     └── 8f1de0db2d09cc80
     ##         ├── artifact
     ##         ├── parents.json
     ##         ├── sidecar.json
@@ -414,13 +414,13 @@ st_info(pC)
 
     ## $sidecar
     ## $sidecar$path
-    ## [1] "/tmp/RtmpYudjWG/C.qs"
+    ## [1] "/tmp/RtmpvUC6iM/C.qs"
     ## 
     ## $sidecar$format
     ## [1] "qs2"
     ## 
     ## $sidecar$created_at
-    ## [1] "2025-11-24T19:28:41Z"
+    ## [1] "2025-12-01T15:24:37.922419Z"
     ## 
     ## $sidecar$size_bytes
     ## [1] 266
@@ -439,7 +439,7 @@ st_info(pC)
     ## 
     ## $sidecar$parents
     ##                   path       version_id
-    ## 1 /tmp/RtmpYudjWG/B.qs a98f9d473c95b2e7
+    ## 1 /tmp/RtmpvUC6iM/B.qs 777709478b2cc7fa
     ## 
     ## $sidecar$attrs
     ## list()
@@ -447,22 +447,22 @@ st_info(pC)
     ## 
     ## $catalog
     ## $catalog$latest_version_id
-    ## [1] "9b07159c9d99a582"
+    ## [1] "8f1de0db2d09cc80"
     ## 
     ## $catalog$n_versions
     ## [1] 1
     ## 
     ## 
     ## $snapshot_dir
-    ## /tmp/RtmpYudjWG/.stamp/versions/C.qs/9b07159c9d99a582
+    ## /tmp/RtmpvUC6iM/.stamp/versions/C.qs/8f1de0db2d09cc80
     ## 
     ## $parents
     ## $parents[[1]]
     ## $parents[[1]]$path
-    ## [1] "/tmp/RtmpYudjWG/B.qs"
+    ## [1] "/tmp/RtmpvUC6iM/B.qs"
     ## 
     ## $parents[[1]]$version_id
-    ## [1] "a98f9d473c95b2e7"
+    ## [1] "777709478b2cc7fa"
 
 ### Takeaways
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
     <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
+    <li><a class="dropdown-item" href="../articles/partitions.html">Working with Partitioned Datasets</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -45,9 +46,66 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.5" id="stamp-005">stamp 0.0.5<a class="anchor" aria-label="anchor" href="#stamp-005"></a></h2>
+<div class="section level3">
+<h3 id="major-features-0-0-5">Major Features<a class="anchor" aria-label="anchor" href="#major-features-0-0-5"></a></h3>
+<div class="section level4">
+<h4 id="version-loading-0-0-5">Version Loading<a class="anchor" aria-label="anchor" href="#version-loading-0-0-5"></a></h4>
+<ul><li>
+<strong>NEW</strong>: <code><a href="../reference/st_load.html">st_load()</a></code> now accepts a <code>version</code> argument to load specific historical versions
+<ul><li>
+<code>version = NULL</code> or <code>0</code> loads the latest version (default behavior)</li>
+<li>
+<code>version = -1, -2, ...</code> loads relative versions (previous, two back, etc.)</li>
+<li>
+<code>version = "version_id"</code> loads a specific version by ID</li>
+<li>
+<code>version = "select"</code>, <code>"pick"</code>, or <code>"choose"</code> shows interactive menu in console</li>
+</ul></li>
+<li>Interactive version selection menu displays timestamps, file sizes, and version IDs</li>
+<li>New internal function <code><a href="../reference/dot-st_resolve_version.html">.st_resolve_version()</a></code> handles version resolution logic</li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="bug-fixes--improvements-0-0-5">Bug Fixes &amp; Improvements<a class="anchor" aria-label="anchor" href="#bug-fixes--improvements-0-0-5"></a></h3>
+<div class="section level4">
+<h4 id="timestamp-precision-0-0-5">Timestamp Precision<a class="anchor" aria-label="anchor" href="#timestamp-precision-0-0-5"></a></h4>
+<ul><li>
+<strong>FIXED</strong>: Timestamp precision increased from seconds to microseconds (ISO8601 format with <code>%OS6</code>)
+<ul><li>Resolves ordering issues when multiple versions are saved within the same second</li>
+<li>Format: <code>"2025-10-30T15:42:07.123456Z"</code> (backward compatible with old format)</li>
+<li>Ensures reliable version ordering in rapid-fire save scenarios (e.g., automated pipelines)</li>
+</ul></li>
+<li>Updated <code><a href="../reference/dot-st_now_utc.html">.st_now_utc()</a></code> to use microsecond precision</li>
+<li>Updated <code>.st_version_id()</code> to handle fractional seconds in timestamps</li>
+<li>Interactive menu timestamp parser handles both old (seconds) and new (microseconds) formats</li>
+</ul></div>
+<div class="section level4">
+<h4 id="data-loading-0-0-5">Data Loading<a class="anchor" aria-label="anchor" href="#data-loading-0-0-5"></a></h4>
+<ul><li>
+<code><a href="../reference/st_load_version.html">st_load_version()</a></code> now properly cleans loaded data, removing internal attributes (<code>st_original_format</code>, <code>stamp_sanitized</code>) and restoring <code>data.table</code> class when appropriate</li>
+<li>Consistent cleanup behavior between <code><a href="../reference/st_load.html">st_load()</a></code> and <code><a href="../reference/st_load_version.html">st_load_version()</a></code>
+</li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="documentation-0-0-5">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-0-5"></a></h3>
+<ul><li>Added vignette section demonstrating version loading workflows</li>
+<li>Examples showing interactive version selection and relative version indexing</li>
+<li>Updated documentation for <code><a href="../reference/st_load.html">st_load()</a></code> with comprehensive <code>@param version</code> details</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.5" id="stamp-005-1">stamp 0.0.5<a class="anchor" aria-label="anchor" href="#stamp-005-1"></a></h2>
+<ul><li>add ability to load specific versions via <code>st_load(version=...)</code>
+</li>
+<li>improve timestamp precision to microseconds to avoid ordering issues in versioning</li>
+<li>update <code><a href="../reference/st_load_version.html">st_load_version()</a></code> to clean loaded data properly</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.4" id="stamp-004">stamp 0.0.4<a class="anchor" aria-label="anchor" href="#stamp-004"></a></h2>
 <ul><li>add normalization of attributes</li>
-<li>Sanitize data.tables</li>
+<li>Sanitize data.tables for consistent hashing</li>
 <li>improve logic of <code><a href="../reference/st_hash_obj.html">st_hash_obj()</a></code>
 </li>
 <li>Avoid redundancies and make more efficient the use of <code><a href="../reference/st_hash_obj.html">st_hash_obj()</a></code>
@@ -73,7 +131,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by R.Andres Castaneda.</p>
+  <p>Developed by R.Andres Castaneda, Diana C. Garcia Rojas.</p>
 </div>
 
 <div class="pkgdown-footer-right">

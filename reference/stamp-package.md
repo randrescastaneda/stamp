@@ -18,3 +18,8 @@ Useful links:
 
 **Maintainer**: R.Andres Castaneda <acastanedaa@worldbank.org>
 ([ORCID](https://orcid.org/0000-0003-1154-1374))
+
+Authors:
+
+- Diana C. Garcia Rojas <dgarciarojas@worldbank.org>
+  ([ORCID](https://orcid.org/0000-0001-9423-3865))

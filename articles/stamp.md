@@ -27,8 +27,8 @@ on.exit(setwd(old_wd), add = TRUE)
 # Initialize stamp under this temp root
 st_init(root = root_dir)
 #> ✔ stamp initialized
-#>   root: /tmp/RtmpO7oKmz/s
-#>   state: /tmp/RtmpO7oKmz/s/.stamp
+#>   root: /tmp/Rtmp58GOFz/s
+#>   state: /tmp/Rtmp58GOFz/s/.stamp
 
 # Define subdirectories (they will be created as needed)
 welfare_dir <- fs::path(root_dir, "data", "welfare")
@@ -135,25 +135,25 @@ for (i in seq_len(nrow(welfare_specs))) {
   )
   welfare_paths[[length(welfare_paths) + 1]] <- fn
 }
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2 @ version
-#>   9ab89068a9c12e1b
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2 @ version
-#>   d629e7c115d149b4
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2 @ version
-#>   a48475587ad12ffc
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2 @ version
-#>   d5b9f35207e3b0c2
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2 @ version
-#>   5b4e29cfacc4a652
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2 @ version
-#>   6596a83d3e02a581
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2 @ version
+#>   339fd071a7f9372d
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2 @ version
+#>   573971de17126988
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2 @ version
+#>   f84226018c54f9de
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2 @ version
+#>   f1c752304bdebde9
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2 @ version
+#>   71dc6fbff42277d0
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2 @ version
+#>   6dbf00a370100c07
 unlist(welfare_paths)
-#> [1] "/tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2"
-#> [2] "/tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2"
-#> [3] "/tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2"
-#> [4] "/tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2"
-#> [5] "/tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2"
-#> [6] "/tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2"
+#> [1] "/tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2"
+#> [2] "/tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2"
+#> [3] "/tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2"
+#> [4] "/tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2"
+#> [5] "/tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2"
+#> [6] "/tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2"
 ```
 
 Each call to
@@ -167,13 +167,13 @@ Inspect one artifact:
 st_info(fs::path(welfare_dir, "COL_2010.qs2"))
 #> $sidecar
 #> $sidecar$path
-#> [1] "/tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2"
+#> [1] "/tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2"
 #> 
 #> $sidecar$format
 #> [1] "qs2"
 #> 
 #> $sidecar$created_at
-#> [1] "2025-11-24T19:28:48Z"
+#> [1] "2025-12-01T15:25:04.174916Z"
 #> 
 #> $sidecar$size_bytes
 #> [1] 4803
@@ -207,14 +207,14 @@ st_info(fs::path(welfare_dir, "COL_2010.qs2"))
 #> 
 #> $catalog
 #> $catalog$latest_version_id
-#> [1] "9ab89068a9c12e1b"
+#> [1] "339fd071a7f9372d"
 #> 
 #> $catalog$n_versions
 #> [1] 1
 #> 
 #> 
 #> $snapshot_dir
-#> /tmp/RtmpO7oKmz/s/.stamp/versions/data/welfare/COL_2010.qs2/9ab89068a9c12e1b
+#> /tmp/Rtmp58GOFz/s/.stamp/versions/data/welfare/COL_2010.qs2/339fd071a7f9372d
 #> 
 #> $parents
 #> list()
@@ -268,15 +268,15 @@ st_save(
   domain = "macro"
 )
 #> ✔ Saved [qs2] →
-#> /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2 @ version e9df6eef66f02ba8
+#> /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2 @ version 6ffc5ad32796f419
 st_save(
   pop,
   fs::path(macro_dir, "population.qs2"),
   pk = c("country", "year", "reporting_level"),
   domain = "macro"
 )
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/data/macro/population.qs2 @ version
-#>   0fca53a012387873
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/data/macro/population.qs2 @ version
+#>   72cced3e90c2afb7
 st_save(
   gdp,
   fs::path(macro_dir, "gdp.qs2"),
@@ -284,7 +284,7 @@ st_save(
   domain = "macro"
 )
 #> ✔ Saved [qs2] →
-#> /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2 @ version ee2d8408466b9a5f
+#> /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2 @ version 33539951f5b4849a
 ```
 
 Version listing for CPI:
@@ -352,15 +352,15 @@ foo <- function() {
 }
 
 summary_table <- foo()
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/population.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/population.qs2
 head(summary_table)
 #> Key: <country, year>
 #>    country  year reporting_level welfare_mean welfare_median welfare_sd
@@ -403,29 +403,29 @@ st_save(
   parents = parents,
   domain = "summary"
 )
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 @ version
-#>   cae2b8ce29391f1d
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 @ version
+#>   ec1b78a3cd11ebf6
 st_lineage(out_summary_path, depth = 1)
 #>   level                                    child_path    child_version
-#> 1     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
-#> 2     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
-#> 3     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
-#> 4     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
-#> 5     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
-#> 6     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
-#> 7     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
-#> 8     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
-#> 9     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 cae2b8ce29391f1d
+#> 1     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
+#> 2     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
+#> 3     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
+#> 4     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
+#> 5     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
+#> 6     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
+#> 7     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
+#> 8     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
+#> 9     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ec1b78a3cd11ebf6
 #>                                   parent_path   parent_version
-#> 1 /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2 9ab89068a9c12e1b
-#> 2 /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2 d629e7c115d149b4
-#> 3 /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2 a48475587ad12ffc
-#> 4 /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2 d5b9f35207e3b0c2
-#> 5 /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2 5b4e29cfacc4a652
-#> 6 /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2 6596a83d3e02a581
-#> 7        /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2 e9df6eef66f02ba8
-#> 8        /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2 ee2d8408466b9a5f
-#> 9 /tmp/RtmpO7oKmz/s/data/macro/population.qs2 0fca53a012387873
+#> 1 /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2 339fd071a7f9372d
+#> 2 /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2 573971de17126988
+#> 3 /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2 f84226018c54f9de
+#> 4 /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2 f1c752304bdebde9
+#> 5 /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2 71dc6fbff42277d0
+#> 6 /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2 6dbf00a370100c07
+#> 7        /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2 6ffc5ad32796f419
+#> 8        /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2 33539951f5b4849a
+#> 9 /tmp/Rtmp58GOFz/s/data/macro/population.qs2 72cced3e90c2afb7
 ```
 
 Note: to make provenance explicit, pass the producing function as
@@ -483,21 +483,21 @@ bar <- function(welfare_list, cpi_tbl, gdp_tbl, pop_tbl) {
 # Example: load inputs outside the worker and call bar()
 welfare_files <- data_files(welfare_dir)
 welfare_list <- lapply(welfare_files, st_load)
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2
 cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
 #> ✔ Loaded [qs2] ←
-#> /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2
+#> /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2
 gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
 #> ✔ Loaded [qs2] ←
-#> /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2
+#> /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2
 pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
 #> ✔ Loaded [qs2] ←
-#> /tmp/RtmpO7oKmz/s/data/macro/population.qs2
+#> /tmp/Rtmp58GOFz/s/data/macro/population.qs2
 
 summary_table2 <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
 st_save(
@@ -508,29 +508,29 @@ st_save(
   code = bar, # addition the function as parent so st_save() can track it
   domain = "summary"
 )
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 @ version
-#>   90ddfbd86f3d6340
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 @ version
+#>   58556d7849b04371
 st_lineage(out_summary_path, depth = 1)
 #>   level                                    child_path    child_version
-#> 1     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
-#> 2     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
-#> 3     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
-#> 4     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
-#> 5     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
-#> 6     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
-#> 7     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
-#> 8     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
-#> 9     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 90ddfbd86f3d6340
+#> 1     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
+#> 2     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
+#> 3     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
+#> 4     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
+#> 5     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
+#> 6     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
+#> 7     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
+#> 8     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
+#> 9     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 58556d7849b04371
 #>                                   parent_path   parent_version
-#> 1 /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2 9ab89068a9c12e1b
-#> 2 /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2 d629e7c115d149b4
-#> 3 /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2 a48475587ad12ffc
-#> 4 /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2 d5b9f35207e3b0c2
-#> 5 /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2 5b4e29cfacc4a652
-#> 6 /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2 6596a83d3e02a581
-#> 7        /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2 e9df6eef66f02ba8
-#> 8        /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2 ee2d8408466b9a5f
-#> 9 /tmp/RtmpO7oKmz/s/data/macro/population.qs2 0fca53a012387873
+#> 1 /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2 339fd071a7f9372d
+#> 2 /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2 573971de17126988
+#> 3 /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2 f84226018c54f9de
+#> 4 /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2 f1c752304bdebde9
+#> 5 /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2 71dc6fbff42277d0
+#> 6 /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2 6dbf00a370100c07
+#> 7        /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2 6ffc5ad32796f419
+#> 8        /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2 33539951f5b4849a
+#> 9 /tmp/Rtmp58GOFz/s/data/macro/population.qs2 72cced3e90c2afb7
 ```
 
 Handling multiple function dependencies
@@ -562,22 +562,22 @@ version and stale downstream artifact.
 ``` r
 cpi2 <- st_load(fs::path(macro_dir, "cpi.qs2"))
 #> ✔ Loaded [qs2] ←
-#> /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2
+#> /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2
 cpi2[country == "COL" & year == 2012, cpi := cpi * 1.05] # 5% adjustment
 st_save(cpi2, fs::path(macro_dir, "cpi.qs2")) # new version recorded
 #> ✔ Saved [qs2] →
-#> /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2 @ version cfbc3421626f94e8
+#> /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2 @ version 8ed8eb28019447b3
 st_versions(fs::path(macro_dir, "cpi.qs2"))[1:3]
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: cfbc3421626f94e8 db3fbe3c9ed4d3ad 7ecab5cc3c1c678f      <NA>        890
-#> 2: e9df6eef66f02ba8 db3fbe3c9ed4d3ad a0a1d1f0acc4fb3a      <NA>        874
+#> 1: 8ed8eb28019447b3 165fdfeeeb90911f 7ecab5cc3c1c678f      <NA>        890
+#> 2: 6ffc5ad32796f419 165fdfeeeb90911f a0a1d1f0acc4fb3a      <NA>        874
 #> 3:             <NA>             <NA>             <NA>      <NA>         NA
-#>              created_at sidecar_format
-#>                  <char>         <char>
-#> 1: 2025-11-24T19:28:49Z           json
-#> 2: 2025-11-24T19:28:48Z           json
-#> 3:                 <NA>           <NA>
+#>                     created_at sidecar_format
+#>                         <char>         <char>
+#> 1: 2025-12-01T15:25:05.919717Z           json
+#> 2: 2025-12-01T15:25:04.778532Z           json
+#> 3:                        <NA>           <NA>
 st_is_stale(out_summary_path) # should be TRUE
 #> [1] TRUE
 ```
@@ -679,7 +679,7 @@ st_register_builder(out_summary_path, function(path, parents) {
     code_label = "aggregate_welfare_partitioned"
   )
 })
-#> ✔ Registered builder for /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2
+#> ✔ Registered builder for /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2
 #>   (default)
 ```
 
@@ -693,9 +693,9 @@ plan <- st_plan_rebuild(
 )
 print(plan)
 #>   level                                          path         reason
-#> 1     0 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 parent_changed
+#> 1     0 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 parent_changed
 #>   latest_version_before
-#> 1      90ddfbd86f3d6340
+#> 1      58556d7849b04371
 ```
 
 Run the plan to execute the builders and record new versions:
@@ -703,19 +703,19 @@ Run the plan to execute the builders and record new versions:
 ``` r
 st_rebuild(plan)
 #> ✔ Rebuild level 0: 1 artifact
-#>   • /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 (parent_changed)
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/population.qs2
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 @ version
-#>   7f21fed3174c381b
-#> OK @ version 7f21fed3174c381b
+#>   • /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 (parent_changed)
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/population.qs2
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 @ version
+#>   ff41e8ba5bc6488d
+#> OK @ version ff41e8ba5bc6488d
 #> ✔ Rebuild summary
 #>   built 1
 ```
@@ -732,7 +732,7 @@ Plan & rebuild using a registered builder for the summary artifact.
 st_register_builder(out_summary_path, function(path, parents) {
   list(x = foo(), code = foo, code_label = "aggregate_welfare")
 })
-#> ✔ Registered builder for /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2
+#> ✔ Registered builder for /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2
 #>   (default)
 
 plan <- st_plan_rebuild(
@@ -748,25 +748,25 @@ st_rebuild(plan)
 #> ✔ Nothing to rebuild (empty plan).
 st_lineage(out_summary_path, depth = 1)
 #>   level                                    child_path    child_version
-#> 1     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
-#> 2     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
-#> 3     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
-#> 4     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
-#> 5     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
-#> 6     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
-#> 7     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
-#> 8     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
-#> 9     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7f21fed3174c381b
+#> 1     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
+#> 2     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
+#> 3     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
+#> 4     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
+#> 5     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
+#> 6     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
+#> 7     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
+#> 8     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
+#> 9     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 ff41e8ba5bc6488d
 #>                                   parent_path   parent_version
-#> 1 /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2 9ab89068a9c12e1b
-#> 2 /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2 d629e7c115d149b4
-#> 3 /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2 a48475587ad12ffc
-#> 4 /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2 d5b9f35207e3b0c2
-#> 5 /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2 5b4e29cfacc4a652
-#> 6 /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2 6596a83d3e02a581
-#> 7        /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2 cfbc3421626f94e8
-#> 8        /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2 ee2d8408466b9a5f
-#> 9 /tmp/RtmpO7oKmz/s/data/macro/population.qs2 0fca53a012387873
+#> 1 /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2 339fd071a7f9372d
+#> 2 /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2 573971de17126988
+#> 3 /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2 f84226018c54f9de
+#> 4 /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2 f1c752304bdebde9
+#> 5 /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2 71dc6fbff42277d0
+#> 6 /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2 6dbf00a370100c07
+#> 7        /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2 8ed8eb28019447b3
+#> 8        /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2 33539951f5b4849a
+#> 9 /tmp/Rtmp58GOFz/s/data/macro/population.qs2 72cced3e90c2afb7
 ```
 
 ### 5. Add New Data (ARG 2015 Welfare)
@@ -782,8 +782,8 @@ st_save(
   pk = c("country", "year", "reporting_level", "hh_id"),
   domain = "welfare"
 )
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/data/welfare/ARG_2015.qs2 @ version
-#>   5ab342ca4f66786f
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/data/welfare/ARG_2015.qs2 @ version
+#>   d2578f54fdb6d46d
 
 parents2 <- lapply(
   c(
@@ -801,21 +801,21 @@ st_save(
   parents = parents2,
   domain = "summary"
 )
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/ARG_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpO7oKmz/s/data/macro/population.qs2
-#> ✔ Saved [qs2] → /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 @ version
-#>   7e152c312fdf0091
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/ARG_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmp58GOFz/s/data/macro/population.qs2
+#> ✔ Saved [qs2] → /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 @ version
+#>   592e69dcd446c967
 head(st_load(out_summary_path))
 #> ✔ Loaded [qs2] ←
-#> /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2
+#> /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2
 #>    country  year reporting_level welfare_mean welfare_median welfare_sd
 #>     <char> <int>          <char>        <num>          <num>      <num>
 #> 1:     ARG  2015        national     3.100148          2.510   1.700340
@@ -861,43 +861,43 @@ for (i in seq_len(nrow(welfare_specs))) {
   }
 }
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
-#>   @ version 98c908317cc1426b
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
+#>   @ version 94458171a6437d8b
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
-#>   @ version 8d3ea342717d716a
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
+#>   @ version 35fd8b443b770bee
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
-#>   @ version f4afd6e64dac4a4a
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
+#>   @ version 0bb811de1b3f4c7c
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
-#>   @ version 3d35dd61dcfd125b
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
+#>   @ version 9fd1b4f16dc1b9de
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2010/part.qs2
-#>   @ version 93b2a3e013aa8454
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2010/part.qs2
+#>   @ version 8bd704f8ef39ca6f
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
-#>   @ version 81118de18a5425bd
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
+#>   @ version 887c4d226efed66b
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2015/part.qs2
-#>   @ version d9671ceb02155e98
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2015/part.qs2
+#>   @ version 1792eba0f1e8a611
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
-#>   @ version 95ee36022ad12878
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
+#>   @ version 8aa4fe4f49b97635
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=PRY/reporting_level=national/year=2011/part.qs2
-#>   @ version 398ed400de19cb79
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=PRY/reporting_level=national/year=2011/part.qs2
+#>   @ version 560f40e6c5de34ef
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpO7oKmz/s/data/welfare_parts/country=PRY/reporting_level=national/year=2014/part.qs2
-#>   @ version bb6254db660acca7
+#>   /tmp/Rtmp58GOFz/s/data/welfare_parts/country=PRY/reporting_level=national/year=2014/part.qs2
+#>   @ version 6fc37868e859b5d1
 st_list_parts(welfare_parts_dir)[1:6, ]
 #>                                                                                        path
-#> 1 /tmp/RtmpO7oKmz/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
-#> 2 /tmp/RtmpO7oKmz/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
-#> 3 /tmp/RtmpO7oKmz/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
-#> 4 /tmp/RtmpO7oKmz/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
-#> 5 /tmp/RtmpO7oKmz/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
-#> 6 /tmp/RtmpO7oKmz/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
+#> 1 /tmp/Rtmp58GOFz/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
+#> 2 /tmp/Rtmp58GOFz/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
+#> 3 /tmp/Rtmp58GOFz/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
+#> 4 /tmp/Rtmp58GOFz/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
+#> 5 /tmp/Rtmp58GOFz/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
+#> 6 /tmp/Rtmp58GOFz/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
 #>   country reporting_level year
 #> 1     COL           rural 2010
 #> 2     COL           rural 2012
@@ -1003,11 +1003,11 @@ COL 2012 across reporting levels.
 # Modify CPI again (COL 2012) to trigger staleness
 cpi3 <- st_load(fs::path(macro_dir, "cpi.qs2"))
 #> ✔ Loaded [qs2] ←
-#> /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2
+#> /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2
 cpi3[country == "COL" & year == 2012, cpi := cpi * 1.02]
 st_save(cpi3, fs::path(macro_dir, "cpi.qs2"))
 #> ✔ Saved [qs2] →
-#> /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2 @ version e2ab22194badaee5
+#> /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2 @ version 96573433b9243172
 
 # Detect which partition outputs are stale (simple check: those whose parent CPI version differs)
 summary_parts <- st_list_parts(summary_parts_dir)
@@ -1075,27 +1075,27 @@ Explore lineage further:
 ``` r
 st_lineage(out_summary_path, depth = 2)[1:10, ]
 #>    level                                    child_path    child_version
-#> 1      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 2      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 3      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 4      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 5      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 6      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 7      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 8      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 9      1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
-#> 10     1 /tmp/RtmpO7oKmz/s/outputs/welfare_summary.qs2 7e152c312fdf0091
+#> 1      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 2      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 3      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 4      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 5      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 6      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 7      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 8      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 9      1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
+#> 10     1 /tmp/Rtmp58GOFz/s/outputs/welfare_summary.qs2 592e69dcd446c967
 #>                                    parent_path   parent_version
-#> 1  /tmp/RtmpO7oKmz/s/data/welfare/ARG_2015.qs2 5ab342ca4f66786f
-#> 2  /tmp/RtmpO7oKmz/s/data/welfare/COL_2010.qs2 9ab89068a9c12e1b
-#> 3  /tmp/RtmpO7oKmz/s/data/welfare/COL_2012.qs2 d629e7c115d149b4
-#> 4  /tmp/RtmpO7oKmz/s/data/welfare/MEX_2010.qs2 a48475587ad12ffc
-#> 5  /tmp/RtmpO7oKmz/s/data/welfare/MEX_2015.qs2 d5b9f35207e3b0c2
-#> 6  /tmp/RtmpO7oKmz/s/data/welfare/PRY_2011.qs2 5b4e29cfacc4a652
-#> 7  /tmp/RtmpO7oKmz/s/data/welfare/PRY_2014.qs2 6596a83d3e02a581
-#> 8         /tmp/RtmpO7oKmz/s/data/macro/cpi.qs2 cfbc3421626f94e8
-#> 9         /tmp/RtmpO7oKmz/s/data/macro/gdp.qs2 ee2d8408466b9a5f
-#> 10 /tmp/RtmpO7oKmz/s/data/macro/population.qs2 0fca53a012387873
+#> 1  /tmp/Rtmp58GOFz/s/data/welfare/ARG_2015.qs2 d2578f54fdb6d46d
+#> 2  /tmp/Rtmp58GOFz/s/data/welfare/COL_2010.qs2 339fd071a7f9372d
+#> 3  /tmp/Rtmp58GOFz/s/data/welfare/COL_2012.qs2 573971de17126988
+#> 4  /tmp/Rtmp58GOFz/s/data/welfare/MEX_2010.qs2 f84226018c54f9de
+#> 5  /tmp/Rtmp58GOFz/s/data/welfare/MEX_2015.qs2 f1c752304bdebde9
+#> 6  /tmp/Rtmp58GOFz/s/data/welfare/PRY_2011.qs2 71dc6fbff42277d0
+#> 7  /tmp/Rtmp58GOFz/s/data/welfare/PRY_2014.qs2 6dbf00a370100c07
+#> 8         /tmp/Rtmp58GOFz/s/data/macro/cpi.qs2 8ed8eb28019447b3
+#> 9         /tmp/Rtmp58GOFz/s/data/macro/gdp.qs2 33539951f5b4849a
+#> 10 /tmp/Rtmp58GOFz/s/data/macro/population.qs2 72cced3e90c2afb7
 ```
 
 **Warning: The code below will permanently delete the temporary vignette

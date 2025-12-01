@@ -15,3 +15,5 @@
   Rebuilds](https://randrescastaneda.github.io/stamp/articles/builders-plans.md):
 - [Version Retention, Pruning, and Table
   Metadata](https://randrescastaneda.github.io/stamp/articles/version_retention_prune.md):
+- [Working with Partitioned
+  Datasets](https://randrescastaneda.github.io/stamp/articles/partitions.md):

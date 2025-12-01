@@ -5,6 +5,7 @@
 <url><loc>https://randrescastaneda.github.io/stamp/articles/hashing-and-versions.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/articles/index.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/articles/lineage-rebuilds.html</loc></url>
+<url><loc>https://randrescastaneda.github.io/stamp/articles/partitions.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/articles/setup-and-basics.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/articles/stamp.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/articles/version_retention_prune.html</loc></url>
@@ -26,6 +27,7 @@
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_parents_normalize.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_parse_utc_times.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_policy_keep_ids.html</loc></url>
+<url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_resolve_version.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_root_dir.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_sidecar_path.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_state_dir_abs.html</loc></url>
@@ -77,6 +79,7 @@
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_should_save.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_versions.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_with_pk.html</loc></url>
+<url><loc>https://randrescastaneda.github.io/stamp/reference/st_write_parts.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/stamp-package.html</loc></url>
 </urlset>
 

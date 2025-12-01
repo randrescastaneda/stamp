@@ -2,16 +2,15 @@
 
 ``` r
 # ---- setup, include=FALSE ----------------------------------------------------
-# Use development build when interactive *and* explicitly enabled via env var.
-dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 
-if (dev_mode && requireNamespace("pkgload", quietly = TRUE)) {
-  pkgload::load_all(export_all = FALSE, helpers = FALSE, attach_testthat = FALSE)
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(".")
 } else {
-  # fall back to the installed package (the path CRAN, CI, and pkgdown take)
   library(stamp)
 }
 ```
+
+    ## ℹ Loading stamp
 
 Let’s initialize a lightweight project and walk through the most common
 workflows: formats, saving/loading, sidecars, versions/lineage,
@@ -34,8 +33,8 @@ st_init(tdir)
 ```
 
     ## ✔ stamp initialized
-    ##   root: /tmp/RtmpBCJjgP/stamp-vignette
-    ##   state: /tmp/RtmpBCJjgP/stamp-vignette/.stamp
+    ##   root: /tmp/RtmpoTSGjW/stamp-vignette
+    ##   state: /tmp/RtmpoTSGjW/stamp-vignette/.stamp
 
 ``` r
 # Inspect created structure
@@ -43,7 +42,7 @@ fs::path(tdir, ".stamp") |>
   fs::dir_tree(recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/RtmpBCJjgP/stamp-vignette/.stamp
+    ## /tmp/RtmpoTSGjW/stamp-vignette/.stamp
     ## ├── logs
     ## └── temp
 
@@ -149,7 +148,7 @@ p1
 st_formats()  # built-in handlers: qs2, rds, csv, fst, json
 ```
 
-    ## [1] "csv"  "fst"  "json" "qs2"  "rds"
+    ## [1] "csv"     "fst"     "json"    "parquet" "qs2"     "rds"
 
 You can extend the registry with
 [`st_register_format()`](https://randrescastaneda.github.io/stamp/reference/st_register_format.md)
@@ -175,25 +174,25 @@ fs::dir_create(outdir)
 res <- st_save(x, fs::path(outdir, "example.qs2"), metadata = list(description = "toy"))
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpBCJjgP/stamp-output/example.qs2 @ version
-    ##   9ae8121b3c1d9351
+    ## ✔ Saved [qs2] → /tmp/RtmpoTSGjW/stamp-output/example.qs2 @ version
+    ##   9146f62bcbb85c04
 
 ``` r
 res$path
 ```
 
-    ## /tmp/RtmpBCJjgP/stamp-output/example.qs2
+    ## /tmp/RtmpoTSGjW/stamp-output/example.qs2
 
 ``` r
 # load back (format auto-detected)
 y <- st_load(res$path)
 ```
 
-    ## Warning: No primary key recorded for /tmp/RtmpBCJjgP/stamp-output/example.qs2.
+    ## Warning: No primary key recorded for /tmp/RtmpoTSGjW/stamp-output/example.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpBCJjgP/stamp-output/example.qs2
+    ## /tmp/RtmpoTSGjW/stamp-output/example.qs2
 
 ``` r
 identical(x, y)
@@ -210,6 +209,147 @@ accepts additional arguments useful for provenance:
   version_id=…), …)) to record provenance.
 - `code_label`: a short human label for the producing code.
 
+### 4.1 Loading specific versions
+
+The `version` argument in
+[`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)
+allows you to load historical versions of artifacts. This is useful for
+comparing changes over time or recovering from mistakes.
+
+``` r
+# Create multiple versions by modifying and saving
+v_path <- fs::path(outdir, "versioned.qs2")
+
+# Version 1
+v1 <- data.frame(x = 1:3, y = c("a", "b", "c"))
+st_save(v1, v_path, code_label = "initial")
+```
+
+    ## ✔ Saved [qs2] → /tmp/RtmpoTSGjW/stamp-output/versioned.qs2 @ version
+    ##   1fe6fa314fb99a25
+
+``` r
+Sys.sleep(0.15)  # ensure distinct timestamps
+
+# Version 2
+v2 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"))
+st_save(v2, v_path, code_label = "added rows")
+```
+
+    ## ✔ Saved [qs2] → /tmp/RtmpoTSGjW/stamp-output/versioned.qs2 @ version
+    ##   4b428e9494ea2a38
+
+``` r
+Sys.sleep(0.15)
+
+# Version 3
+v3 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"), z = 10:14)
+st_save(v3, v_path, code_label = "added column z")
+```
+
+    ## ✔ Saved [qs2] → /tmp/RtmpoTSGjW/stamp-output/versioned.qs2 @ version
+    ##   af5e7e702465dc1c
+
+``` r
+# Check available versions
+versions <- st_versions(v_path)
+print(versions[, .(version_id, created_at, size_bytes)])
+```
+
+    ##          version_id                  created_at size_bytes
+    ##              <char>                      <char>      <num>
+    ## 1: af5e7e702465dc1c 2025-12-01T15:25:00.044392Z        287
+    ## 2: 4b428e9494ea2a38 2025-12-01T15:24:59.820020Z        262
+    ## 3: 1fe6fa314fb99a25 2025-12-01T15:24:59.526948Z        261
+
+``` r
+# Load latest (default)
+current <- st_load(v_path)
+```
+
+    ## Warning: No primary key recorded for /tmp/RtmpoTSGjW/stamp-output/versioned.qs2.
+    ## ℹ You can add one with `st_add_pk()`.
+
+    ## ✔ Loaded [qs2] ←
+    ## /tmp/RtmpoTSGjW/stamp-output/versioned.qs2
+
+``` r
+nrow(current)  # 5 rows, 3 columns
+```
+
+    ## [1] 5
+
+``` r
+# Load previous version (version = -1)
+previous <- st_load(v_path, version = -1)
+```
+
+    ## ✔ Loaded ← /tmp/RtmpoTSGjW/stamp-output/versioned.qs2 @
+    ## 4b428e9494ea2a38 [qs2]
+
+``` r
+nrow(previous)  # 5 rows, 2 columns (before adding z)
+```
+
+    ## [1] 5
+
+``` r
+# Load two versions back (version = -2)
+older <- st_load(v_path, version = -2)
+```
+
+    ## ✔ Loaded ← /tmp/RtmpoTSGjW/stamp-output/versioned.qs2 @
+    ## 1fe6fa314fb99a25 [qs2]
+
+``` r
+nrow(older)  # 3 rows, 2 columns (original)
+```
+
+    ## [1] 3
+
+``` r
+# Load specific version by ID
+vid <- versions$version_id[1]  # oldest version
+specific <- st_load(v_path, version = vid)
+```
+
+    ## ✔ Loaded ← /tmp/RtmpoTSGjW/stamp-output/versioned.qs2 @
+    ## af5e7e702465dc1c [qs2]
+
+``` r
+identical(specific, older)
+```
+
+    ## [1] FALSE
+
+The `version` argument supports several modes:
+
+- `NULL` (default): loads the current artifact file
+- `0`: same as NULL, loads latest version
+- Negative integers (`-1`, `-2`, etc.): load versions relative to latest
+- Character string: specific version ID (from
+  [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md))
+- `"select"`, `"pick"`, or `"choose"`: interactive menu (in interactive
+  sessions)
+
+``` r
+# Interactive menu to choose a version (only works in interactive R sessions)
+# This will display a menu with formatted timestamps and file sizes
+selected <- st_load(v_path, version = "select")
+
+# The menu looks like:
+# ℹ Select a version to load from versioned.qs2:
+#   Latest version is [1]
+# 
+# Available versions:
+# 
+# 1: [1] 2025-11-26 10:30:15 (0.12 MB) - 20251126T103015Z
+# 2: [2] 2025-11-26 10:30:10 (0.10 MB) - 20251126T103010Z
+# 3: [3] 2025-11-26 10:30:05 (0.08 MB) - 20251126T103005Z
+# 
+# Selection: _
+```
+
 ## 5. Sidecars (quick metadata)
 
 Sidecars live in an `stmeta/` sibling directory next to the artifact and
@@ -223,9 +363,9 @@ str(sc)
 ```
 
     ## List of 11
-    ##  $ path        : chr "/tmp/RtmpBCJjgP/stamp-output/example.qs2"
+    ##  $ path        : chr "/tmp/RtmpoTSGjW/stamp-output/example.qs2"
     ##  $ format      : chr "qs2"
-    ##  $ created_at  : chr "2025-11-24T19:28:44Z"
+    ##  $ created_at  : chr "2025-12-01T15:24:59.301871Z"
     ##  $ size_bytes  : int 256
     ##  $ content_hash: chr "99235ac79dea7ab0"
     ##  $ code_hash   : NULL
@@ -265,8 +405,8 @@ in_path <- fs::path(outdir, "upstream.qs")
 st_save(data.frame(id=1:3), in_path)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpBCJjgP/stamp-output/upstream.qs @ version
-    ##   af66777da4272b01
+    ## ✔ Saved [qs2] → /tmp/RtmpoTSGjW/stamp-output/upstream.qs @ version
+    ##   cacf89c7e8b1c70a
 
 ``` r
 in_vid <- st_latest(in_path)
@@ -277,21 +417,21 @@ parents <- list(list(path = in_path, version_id = in_vid))
 st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpBCJjgP/stamp-output/derived.qs @ version
-    ##   2508a07aab59ed4a
+    ## ✔ Saved [qs2] → /tmp/RtmpoTSGjW/stamp-output/derived.qs @ version
+    ##   4eedb026cc6c30ac
 
 ``` r
 st_info(out_path)$sidecar
 ```
 
     ## $path
-    ## [1] "/tmp/RtmpBCJjgP/stamp-output/derived.qs"
+    ## [1] "/tmp/RtmpoTSGjW/stamp-output/derived.qs"
     ## 
     ## $format
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2025-11-24T19:28:44Z"
+    ## [1] "2025-12-01T15:25:00.569872Z"
     ## 
     ## $size_bytes
     ## [1] 256
@@ -310,7 +450,7 @@ st_info(out_path)$sidecar
     ## 
     ## $parents
     ##                                       path       version_id
-    ## 1 /tmp/RtmpBCJjgP/stamp-output/upstream.qs af66777da4272b01
+    ## 1 /tmp/RtmpoTSGjW/stamp-output/upstream.qs cacf89c7e8b1c70a
     ## 
     ## $attrs
     ## list()
@@ -320,9 +460,9 @@ st_lineage(out_path, depth = 1)
 ```
 
     ##   level                              child_path    child_version
-    ## 1     1 /tmp/RtmpBCJjgP/stamp-output/derived.qs 2508a07aab59ed4a
+    ## 1     1 /tmp/RtmpoTSGjW/stamp-output/derived.qs 4eedb026cc6c30ac
     ##                                parent_path   parent_version
-    ## 1 /tmp/RtmpBCJjgP/stamp-output/upstream.qs af66777da4272b01
+    ## 1 /tmp/RtmpoTSGjW/stamp-output/upstream.qs cacf89c7e8b1c70a
 
 Notes on behavior - The sidecar always contains `parents` for quick
 inspection. However, in the default `versioning = "content"` mode a new
@@ -353,11 +493,11 @@ st_add_pk(out_path, keys = c("id"))
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
-    ## Warning: No primary key recorded for /tmp/RtmpBCJjgP/stamp-output/derived.qs.
+    ## Warning: No primary key recorded for /tmp/RtmpoTSGjW/stamp-output/derived.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/RtmpBCJjgP/stamp-output/derived.qs
-    ## ✔ Recorded primary key for /tmp/RtmpBCJjgP/stamp-output/derived.qs --> id
+    ## ✔ Loaded [qs2] ← /tmp/RtmpoTSGjW/stamp-output/derived.qs
+    ## ✔ Recorded primary key for /tmp/RtmpoTSGjW/stamp-output/derived.qs --> id
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
@@ -373,7 +513,7 @@ df <- st_load(out_path)
 ```
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpBCJjgP/stamp-output/derived.qs
+    ## /tmp/RtmpoTSGjW/stamp-output/derived.qs
 
 ``` r
 st_filter(df, list(id = 1))
