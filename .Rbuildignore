@@ -9,3 +9,4 @@
 ^vignettes/articles$
 ^codecov\.yml$
 ^cran-comments\.md$
+^copilot_logs$
