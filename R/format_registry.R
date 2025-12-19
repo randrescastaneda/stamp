@@ -7,56 +7,42 @@
 #' @param x R object to save.
 #' @param path Destination file path.
 #' @param ... Additional arguments passed to the underlying writer.
-#' @name st_qs
+#' @name st_qs2
 #' @keywords internal
 NULL
 
-#' Write using qs2/q (internal)
+#' Write using qs2 (internal)
 #'
-#' Attempts to write `x` to `path` using `qs2::qs_save()` or `qs2::qsave()` when available,
-#' otherwise falls back to `qs::qsave()`. Errors if neither package is installed.
+#' Write `x` to `path` using `qs2` APIs. Errors if the {.pkg qs2}
+#' package is not installed or required entrypoints are unavailable.
 #'
 #' @return Invisibly returns what the underlying writer returns.
-#' @rdname st_qs
+#' @rdname st_qs2
 .st_write_qs2 <- function(x, path, ...) {
-  if (requireNamespace("qs2", quietly = TRUE)) {
-    ns <- asNamespace("qs2")
-    for (cand in c("qs_save", "qsave")) {
-      if (exists(cand, envir = ns, inherits = FALSE)) {
-        return(get(cand, envir = ns)(x, path, ...))
-      }
-    }
+  if (!requireNamespace("qs2", quietly = TRUE)) {
+    cli::cli_abort(
+      "{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}."
+    )
   }
-  if (requireNamespace("qs", quietly = TRUE)) {
-    return(qs::qsave(x, path, ...))
-  }
-  cli::cli_abort(
-    "Neither {.pkg qs2} nor {.pkg qs} is installed; cannot write {.field qs2} format."
-  )
+  ns <- asNamespace("qs2")
+  qs2::qs_save(x, path, ...)
 }
 
-#' Read using qs2/q (internal)
+#' Read using qs2 (internal)
 #'
-#' Reads an object from `path` using `qs2::qs_read()` or `qs2::qread()` when available,
-#' otherwise falls back to `qs::qread()`. Errors if neither package is installed.
+#' Read an object from `path` using `qs2` APIs. Errors if the {.pkg qs2}
+#' package is not installed or required entrypoints are unavailable.
 #'
 #' @return The R object read from `path`.
-#' @rdname st_qs
+#' @rdname st_qs2
 .st_read_qs2 <- function(path, ...) {
-  if (requireNamespace("qs2", quietly = TRUE)) {
-    ns <- asNamespace("qs2")
-    for (cand in c("qs_read", "qread")) {
-      if (exists(cand, envir = ns, inherits = FALSE)) {
-        return(get(cand, envir = ns)(path, ...))
-      }
-    }
+  if (!requireNamespace("qs2", quietly = TRUE)) {
+    cli::cli_abort(
+      "{.pkg qs2} is required to read {.field qs2} format. Please install {.pkg qs2}."
+    )
   }
-  if (requireNamespace("qs", quietly = TRUE)) {
-    return(qs::qread(path, ...))
-  }
-  cli::cli_abort(
-    "Neither {.pkg qs2} nor {.pkg qs} is installed; cannot read {.field qs2} format."
-  )
+  ns <- asNamespace("qs2")
+  qs2::qs_read(path, ...)
 }
 
 # Seed built-ins
@@ -259,6 +245,7 @@ st_formats <- function() {
       tmp_dir = fs::path_dir(scq),
       pattern = fs::path_file(scq)
     )
+    # write QS2 sidecar (qs2 is required)
     .st_write_qs2(meta, tmp)
     if (fs::file_exists(scq)) {
       fs::file_delete(scq)
@@ -268,12 +255,16 @@ st_formats <- function() {
   invisible(NULL)
 }
 
+
+## Helper: decide which backend to use for qs2-format operations
+## Note: no backend fallback; qs2 is required for qs2-format operations.
+
 #' Read sidecar metadata (internal)
 #'
 #' Read the sidecar metadata for `path` if it exists, returning `NULL`
 #' when no sidecar file is present. Preference order is JSON first,
 #' then QS2. When a QS2 variant is encountered the function will try
-#' `qs2` and fall back to `qs`.
+#' `qs2` (qs2 is required for QS2 sidecars).
 #'
 #' @param path Character path of the data file whose sidecar will be read.
 #' @return A list (parsed JSON / qs object) or `NULL` if not found.
