@@ -1,3 +1,5 @@
+skip_if_not_installed("qs2")
+
 test_that("file locking fallback and rapid consecutive saves do not error", {
   skip_on_cran()
   td <- withr::local_tempdir()

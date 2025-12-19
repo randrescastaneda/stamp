@@ -1,3 +1,5 @@
+skip_if_not_installed("qs2")
+
 st_opts(warn_missing_pk_on_load = FALSE)
 test_that("st_save and st_load create artifact, sidecar and versions", {
   skip_on_cran()
@@ -49,7 +51,12 @@ test_that("atomic write creates temp then moves into place", {
   res <- st_save(x, p, code = function(z) z)
   expect_true(fs::file_exists(p))
   # Ensure no lingering .tmp files in same dir
-  tmpfiles <- fs::dir_ls(fs::path_dir(p), glob = "*tmp-*", recurse = FALSE, fail = FALSE)
+  tmpfiles <- fs::dir_ls(
+    fs::path_dir(p),
+    glob = "*tmp-*",
+    recurse = FALSE,
+    fail = FALSE
+  )
   expect_true(length(tmpfiles) == 0)
 })
 

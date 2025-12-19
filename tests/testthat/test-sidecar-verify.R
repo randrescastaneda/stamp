@@ -1,3 +1,5 @@
+skip_if_not_installed("qs2")
+
 st_opts(warn_missing_pk_on_load = FALSE)
 test_that("verify_on_load warns when file hash or content hash mismatch", {
   skip_on_cran()
@@ -23,9 +25,9 @@ test_that("verify_on_load warns when file hash or content hash mismatch", {
   }
   st_opts(warn_missing_pk_on_load = TRUE)
   st_load(p) |>
-  expect_warning(
-    regexp = "mismatch|File hash mismatch|Loaded object hash mismatch"
-  ) |>
+    expect_warning(
+      regexp = "mismatch|File hash mismatch|Loaded object hash mismatch"
+    ) |>
     expect_warning(regexp = "No primary key recorded")
   st_opts(warn_missing_pk_on_load = FALSE)
 })

@@ -1,3 +1,5 @@
+skip_if_not_installed("qs2")
+
 test_that("st_write_parts auto-partitions and saves data", {
   skip_if_not_installed("data.table")
   library(data.table)
@@ -148,7 +150,6 @@ test_that("st_write_parts with filter allows selective loading", {
   )
   expect_equal(nrow(loaded_2020), 2)
   expect_true(all(loaded_2020$year == "2020"))
-
 })
 
 test_that("st_load_parts supports column selection for parquet", {
