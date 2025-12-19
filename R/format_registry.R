@@ -19,12 +19,20 @@ NULL
 #' @return Invisibly returns what the underlying writer returns.
 #' @rdname stamp-format-helpers
 .st_write_qs2 <- function(x, path, ...) {
+  # Add tryCatch for package-specific failures
   if (!requireNamespace("qs2", quietly = TRUE)) {
-    cli::cli_abort(
-      "{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}."
-    )
+    cli::cli_abort("{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}.")
   }
-  qs2::qs_save(x, path, ...)
+  tryCatch(
+    qs2::qs_save(x, path, ...),
+    error = function(e) {
+      cli::cli_abort(c(
+        "Failed to write qs2 format",
+        "i" = "Ensure {.pkg qs2} is properly installed",
+        "x" = conditionMessage(e)
+      ))
+    }
+  )
 }
 
 #' Read using qs2 (internal)
@@ -44,20 +52,19 @@ NULL
 }
 
 # Helper factory to create format handlers with package requirement checks
-.require_pkg_handler <- function(pkg, read_fn, write_fn, fmt_name, ...) {
-  extra_args <- list(...)
+.require_pkg_handler <- function(pkg, read_fn, write_fn, fmt_name) {
   list(
     read = function(path, ...) {
       if (!requireNamespace(pkg, quietly = TRUE)) {
         cli::cli_abort("{.pkg {pkg}} is required for {fmt_name} read.")
       }
-      do.call(read_fn, c(list(path), list(...)))
+      read_fn(path, ...) # Direct call - no do.call overhead
     },
     write = function(x, path, ...) {
       if (!requireNamespace(pkg, quietly = TRUE)) {
         cli::cli_abort("{.pkg {pkg}} is required for {fmt_name} write.")
       }
-      do.call(write_fn, c(list(x, path), extra_args, list(...)))
+      write_fn(x, path, ...) # Direct call - no do.call overhead
     }
   )
 }
@@ -154,6 +161,14 @@ st_register_format <- function(name, read, write, extensions = NULL) {
 
 # Map extensions -> format (helper)
 .st_extmap_set <- function(extensions, format) {
+  # Validate format exists
+  if (!rlang::env_has(.st_formats_env, format)) {
+    cli::cli_abort(c(
+      "Format {.field {format}} is not registered",
+      "i" = "Register it first with {.fn st_register_format}"
+    ))
+  }
+  
   exts <- unique(tolower(extensions[nzchar(extensions)]))
   for (ext in exts) {
     rlang::env_poke(.st_extmap_env, ext, format)
@@ -218,7 +233,7 @@ st_formats <- function() {
     fs::dir_create(fs::path_dir(scj), recurse = TRUE)
     tmp <- fs::file_temp(
       tmp_dir = fs::path_dir(scj),
-      pattern = fs::path_file(scj)
+      pattern = "stmeta-" # Fixed prefix only
     )
     jsonlite::write_json(
       meta,

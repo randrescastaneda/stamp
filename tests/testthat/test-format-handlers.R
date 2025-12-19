@@ -60,22 +60,20 @@ test_that(".require_pkg_handler forwards extra args correctly", {
   skip_on_cran()
   skip_if_not_installed("jsonlite")
 
-  # Test with extra_args including quoted expressions (parquet pattern)
+  # Test: extra args must be supplied at write-time (factory no longer captures ...)
   handler <- stamp:::.require_pkg_handler(
     pkg = "jsonlite",
     read_fn = jsonlite::read_json,
     write_fn = jsonlite::write_json,
-    fmt_name = "JSON",
-    auto_unbox = TRUE,
-    digits = NA
+    fmt_name = "JSON"
   )
 
   td <- withr::local_tempdir()
   p <- fs::path(td, "test.json")
   obj <- list(x = c(1, 2, 3), y = "text")
 
-  # Extra args should be passed to write function
-  expect_silent(handler$write(obj, p))
+  # Extra args should be passed to write function at call-time
+  expect_silent(handler$write(obj, p, auto_unbox = TRUE, digits = NA))
   result <- handler$read(p, simplifyVector = TRUE)
   expect_equal(result$x, c(1, 2, 3))
 })
