@@ -76,12 +76,19 @@ rlang::env_bind(
     write = function(x, path, ...) data.table::fwrite(x, path, ...)
   ),
   fst = .require_pkg_handler("fst", fst::read_fst, fst::write_fst, "FST"),
-  parquet = .require_pkg_handler(
-    "nanoparquet",
-    nanoparquet::read_parquet,
-    nanoparquet::write_parquet,
-    "Parquet",
-    file = quote(path)
+  parquet = list(
+    read = function(path, ...) {
+      if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+        cli::cli_abort("{.pkg nanoparquet} is required for Parquet read.")
+      }
+      nanoparquet::read_parquet(path, ...)
+    },
+    write = function(x, path, ...) {
+      if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+        cli::cli_abort("{.pkg nanoparquet} is required for Parquet write.")
+      }
+      nanoparquet::write_parquet(x, file = path, ...)
+    }
   ),
   json = .require_pkg_handler(
     "jsonlite",

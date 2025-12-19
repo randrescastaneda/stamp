@@ -1,4 +1,5 @@
 testthat::test_that("st_save accepts pk and domain without forwarding to writer", {
+  skip_if_not_installed("qs2")
   td <- fs::path_temp("stamp_test_vs1") |> fs::dir_create()
   old <- setwd(td)
   on.exit(setwd(old), add = TRUE)

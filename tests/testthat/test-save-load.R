@@ -1,8 +1,7 @@
-skip_if_not_installed("qs2")
-
 st_opts(warn_missing_pk_on_load = FALSE)
 test_that("st_save and st_load create artifact, sidecar and versions", {
   skip_on_cran()
+  skip_if_not_installed("qs2")
   td <- withr::local_tempdir()
   root <- td
   st_init(root)

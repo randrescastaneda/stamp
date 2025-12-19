@@ -1,8 +1,8 @@
-skip_if_not_installed("qs2")
-
 st_opts(warn_missing_pk_on_load = FALSE)
 test_that("verify_on_load warns when file hash or content hash mismatch", {
   skip_on_cran()
+  skip_if_not_installed("qs2")
+
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
@@ -28,6 +28,7 @@ test_that("verify_on_load warns when file hash or content hash mismatch", {
 
 test_that("sidecar parents shaped as data.frame are normalized and used for first-level lineage", {
   skip_on_cran()
+  skip_if_not_installed("qs")
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
