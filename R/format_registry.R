@@ -259,9 +259,8 @@ st_formats <- function() {
     fs::dir_create(fs::path_dir(scq), recurse = TRUE)
     tmp <- fs::file_temp(
       tmp_dir = fs::path_dir(scq),
-      pattern = fs::path_file(scq)
+      pattern = "stmeta-" # CHANGED: fixed prefix like JSON
     )
-    # write QS2 sidecar (qs2 is required)
     .st_write_qs2(meta, tmp)
     if (fs::file_exists(scq)) {
       fs::file_delete(scq)
