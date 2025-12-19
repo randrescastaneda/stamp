@@ -8,7 +8,7 @@ test_that("st_save and st_load create artifact, sidecar and versions", {
   st_init(root)
   st_opts(default_format = "rds")
 
-  p_qs <- fs::path(root, "demo.qs")
+  p_qs <- fs::path(root, "demo.qs2")
   x <- data.frame(a = 1:3)
 
   # write and assert artifact + sidecar

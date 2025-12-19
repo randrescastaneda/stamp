@@ -49,6 +49,20 @@ NULL
 rlang::env_bind(
   .st_formats_env,
   qs2 = list(read = .st_read_qs2, write = .st_write_qs2),
+  qs = list(
+    read = function(path, ...) {
+      if (!requireNamespace("qs", quietly = TRUE)) {
+        cli::cli_abort("{.pkg qs} is required for QS read.")
+      }
+      qs::qread(path, ...)
+    },
+    write = function(x, path, ...) {
+      if (!requireNamespace("qs", quietly = TRUE)) {
+        cli::cli_abort("{.pkg qs} is required for QS write.")
+      }
+      qs::qsave(x, path, ...)
+    }
+  ),
   rds = list(
     read = function(path, ...) readRDS(path, ...),
     write = function(x, path, ...) saveRDS(x, path, ...)
