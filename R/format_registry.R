@@ -19,20 +19,12 @@ NULL
 #' @return Invisibly returns what the underlying writer returns.
 #' @rdname stamp-format-helpers
 .st_write_qs2 <- function(x, path, ...) {
-  # Add tryCatch for package-specific failures
   if (!requireNamespace("qs2", quietly = TRUE)) {
-    cli::cli_abort("{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}.")
+    cli::cli_abort(
+      "{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}."
+    )
   }
-  tryCatch(
-    qs2::qs_save(x, path, ...),
-    error = function(e) {
-      cli::cli_abort(c(
-        "Failed to write qs2 format",
-        "i" = "Ensure {.pkg qs2} is properly installed",
-        "x" = conditionMessage(e)
-      ))
-    }
-  )
+  qs2::qs_save(x, path, ...)
 }
 
 #' Read using qs2 (internal)
@@ -51,29 +43,24 @@ NULL
   qs2::qs_read(path, ...)
 }
 
-# Helper factory to create format handlers with package requirement checks
-.require_pkg_handler <- function(pkg, read_fn, write_fn, fmt_name) {
-  list(
-    read = function(path, ...) {
-      if (!requireNamespace(pkg, quietly = TRUE)) {
-        cli::cli_abort("{.pkg {pkg}} is required for {fmt_name} read.")
-      }
-      read_fn(path, ...) # Direct call - no do.call overhead
-    },
-    write = function(x, path, ...) {
-      if (!requireNamespace(pkg, quietly = TRUE)) {
-        cli::cli_abort("{.pkg {pkg}} is required for {fmt_name} write.")
-      }
-      write_fn(x, path, ...) # Direct call - no do.call overhead
-    }
-  )
-}
-
-# Seed built-ins
+# Seed built-ins with explicit closures for all format handlers
 rlang::env_bind(
   .st_formats_env,
   qs2 = list(read = .st_read_qs2, write = .st_write_qs2),
-  qs = .require_pkg_handler("qs", qs::qread, qs::qsave, "QS"),
+  qs = list(
+    read = function(path, ...) {
+      if (!requireNamespace("qs", quietly = TRUE)) {
+        cli::cli_abort("{.pkg qs} is required for QS read.")
+      }
+      qs::qread(path, ...)
+    },
+    write = function(x, path, ...) {
+      if (!requireNamespace("qs", quietly = TRUE)) {
+        cli::cli_abort("{.pkg qs} is required for QS write.")
+      }
+      qs::qsave(x, path, ...)
+    }
+  ),
   rds = list(
     read = function(path, ...) readRDS(path, ...),
     write = function(x, path, ...) saveRDS(x, path, ...)
@@ -82,7 +69,20 @@ rlang::env_bind(
     read = function(path, ...) data.table::fread(path, ...),
     write = function(x, path, ...) data.table::fwrite(x, path, ...)
   ),
-  fst = .require_pkg_handler("fst", fst::read_fst, fst::write_fst, "FST"),
+  fst = list(
+    read = function(path, ...) {
+      if (!requireNamespace("fst", quietly = TRUE)) {
+        cli::cli_abort("{.pkg fst} is required for FST read.")
+      }
+      fst::read_fst(path, ...)
+    },
+    write = function(x, path, ...) {
+      if (!requireNamespace("fst", quietly = TRUE)) {
+        cli::cli_abort("{.pkg fst} is required for FST write.")
+      }
+      fst::write_fst(x, path, ...)
+    }
+  ),
   parquet = list(
     read = function(path, ...) {
       if (!requireNamespace("nanoparquet", quietly = TRUE)) {
@@ -97,13 +97,19 @@ rlang::env_bind(
       nanoparquet::write_parquet(x, file = path, ...)
     }
   ),
-  json = .require_pkg_handler(
-    "jsonlite",
-    function(path, ...) jsonlite::read_json(path, simplifyVector = TRUE, ...),
-    function(x, path, ...) {
-      jsonlite::write_json(x, path, auto_unbox = TRUE, digits = NA, ...)
+  json = list(
+    read = function(path, ...) {
+      if (!requireNamespace("jsonlite", quietly = TRUE)) {
+        cli::cli_abort("{.pkg jsonlite} is required for JSON read.")
+      }
+      jsonlite::read_json(path, simplifyVector = TRUE, ...)
     },
-    "JSON"
+    write = function(x, path, ...) {
+      if (!requireNamespace("jsonlite", quietly = TRUE)) {
+        cli::cli_abort("{.pkg jsonlite} is required for JSON write.")
+      }
+      jsonlite::write_json(x, path, auto_unbox = TRUE, digits = NA, ...)
+    }
   )
 )
 
@@ -168,7 +174,7 @@ st_register_format <- function(name, read, write, extensions = NULL) {
       "i" = "Register it first with {.fn st_register_format}"
     ))
   }
-  
+
   exts <- unique(tolower(extensions[nzchar(extensions)]))
   for (ext in exts) {
     rlang::env_poke(.st_extmap_env, ext, format)
