@@ -1,3 +1,5 @@
+# stamp 0.0.6
+
 # stamp 0.0.5
 
 ## Major Features
