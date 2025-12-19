@@ -2,12 +2,12 @@
 # Internal registry lives in .st_formats_env; users can extend via st_register_format().
 # Each entry: list(read = function(path, ...), write = function(x, path, ...))
 
-#' saving in qs2 format in stamps
+#' Internal format handlers for stamp
 #'
 #' @param x R object to save.
 #' @param path Destination file path.
-#' @param ... Additional arguments passed to the underlying writer.
-#' @name st_qs2
+#' @param ... Additional arguments passed to the underlying writer/reader.
+#' @name stamp-format-helpers
 #' @keywords internal
 NULL
 
@@ -17,14 +17,13 @@ NULL
 #' package is not installed or required entrypoints are unavailable.
 #'
 #' @return Invisibly returns what the underlying writer returns.
-#' @rdname st_qs2
+#' @rdname stamp-format-helpers
 .st_write_qs2 <- function(x, path, ...) {
   if (!requireNamespace("qs2", quietly = TRUE)) {
     cli::cli_abort(
       "{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}."
     )
   }
-  ns <- asNamespace("qs2")
   qs2::qs_save(x, path, ...)
 }
 
@@ -34,88 +33,63 @@ NULL
 #' package is not installed or required entrypoints are unavailable.
 #'
 #' @return The R object read from `path`.
-#' @rdname st_qs2
+#' @rdname stamp-format-helpers
 .st_read_qs2 <- function(path, ...) {
   if (!requireNamespace("qs2", quietly = TRUE)) {
     cli::cli_abort(
       "{.pkg qs2} is required to read {.field qs2} format. Please install {.pkg qs2}."
     )
   }
-  ns <- asNamespace("qs2")
   qs2::qs_read(path, ...)
+}
+
+# Helper factory to create format handlers with package requirement checks
+.require_pkg_handler <- function(pkg, read_fn, write_fn, fmt_name, ...) {
+  extra_args <- list(...)
+  list(
+    read = function(path, ...) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        cli::cli_abort("{.pkg {pkg}} is required for {fmt_name} read.")
+      }
+      do.call(read_fn, c(list(path), list(...)))
+    },
+    write = function(x, path, ...) {
+      if (!requireNamespace(pkg, quietly = TRUE)) {
+        cli::cli_abort("{.pkg {pkg}} is required for {fmt_name} write.")
+      }
+      do.call(write_fn, c(list(x, path), extra_args, list(...)))
+    }
+  )
 }
 
 # Seed built-ins
 rlang::env_bind(
   .st_formats_env,
   qs2 = list(read = .st_read_qs2, write = .st_write_qs2),
-  qs = list(
-    read = function(path, ...) {
-      if (!requireNamespace("qs", quietly = TRUE)) {
-        cli::cli_abort("{.pkg qs} is required for QS read.")
-      }
-      qs::qread(path, ...)
-    },
-    write = function(x, path, ...) {
-      if (!requireNamespace("qs", quietly = TRUE)) {
-        cli::cli_abort("{.pkg qs} is required for QS write.")
-      }
-      qs::qsave(x, path, ...)
-    }
-  ),
+  qs = .require_pkg_handler("qs", qs::qread, qs::qsave, "QS"),
   rds = list(
     read = function(path, ...) readRDS(path, ...),
     write = function(x, path, ...) saveRDS(x, path, ...)
   ),
   csv = list(
-    read = function(path, ...) {
-      data.table::fread(path, ...)
-    },
-    write = function(x, path, ...) {
-      data.table::fwrite(x, path, ...)
-    }
+    read = function(path, ...) data.table::fread(path, ...),
+    write = function(x, path, ...) data.table::fwrite(x, path, ...)
   ),
-  fst = list(
-    read = function(path, ...) {
-      if (!requireNamespace("fst", quietly = TRUE)) {
-        cli::cli_abort("{.pkg fst} is required for FST read.")
-      }
-      fst::read_fst(path, ...)
-    },
-    write = function(x, path, ...) {
-      if (!requireNamespace("fst", quietly = TRUE)) {
-        cli::cli_abort("{.pkg fst} is required for FST write.")
-      }
-      fst::write_fst(x, path, ...)
-    }
+  fst = .require_pkg_handler("fst", fst::read_fst, fst::write_fst, "FST"),
+  parquet = .require_pkg_handler(
+    "nanoparquet",
+    nanoparquet::read_parquet,
+    nanoparquet::write_parquet,
+    "Parquet",
+    file = quote(path)
   ),
-  parquet = list(
-    read = function(path, ...) {
-      if (!requireNamespace("nanoparquet", quietly = TRUE)) {
-        cli::cli_abort("{.pkg nanoparquet} is required for Parquet read.")
-      }
-      nanoparquet::read_parquet(path, ...)
-    },
-    write = function(x, path, ...) {
-      if (!requireNamespace("nanoparquet", quietly = TRUE)) {
-        cli::cli_abort("{.pkg nanoparquet} is required for Parquet write.")
-      }
-      nanoparquet::write_parquet(x, file = path, ...)
-    }
-  ),
-  json = list(
-    read = function(path, ...) {
-      if (!requireNamespace("jsonlite", quietly = TRUE)) {
-        cli::cli_abort("{.pkg jsonlite} is required for JSON read.")
-      }
-      jsonlite::read_json(path, simplifyVector = TRUE, ...)
-    },
-    write = function(x, path, ...) {
-      if (!requireNamespace("jsonlite", quietly = TRUE)) {
-        cli::cli_abort("{.pkg jsonlite} is required for JSON write.")
-      }
+  json = .require_pkg_handler(
+    "jsonlite",
+    function(path, ...) jsonlite::read_json(path, simplifyVector = TRUE, ...),
+    function(x, path, ...) {
       jsonlite::write_json(x, path, auto_unbox = TRUE, digits = NA, ...)
-    }
+    },
+    "JSON"
   )
 )
 
@@ -269,9 +243,6 @@ st_formats <- function() {
   invisible(NULL)
 }
 
-
-## Helper: decide which backend to use for qs2-format operations
-## Note: no backend fallback; qs2 is required for qs2-format operations.
 
 #' Read sidecar metadata (internal)
 #'

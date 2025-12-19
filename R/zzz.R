@@ -48,7 +48,7 @@ st_extmap_report <- function() {
     ext = defaults$ext,
     default_format = defaults$format,
     current_format = vapply(
-      tolower(defaults$ext),
+      defaults$ext,
       function(e) {
         if (rlang::env_has(.st_extmap_env, e)) {
           rlang::env_get(.st_extmap_env, e)
