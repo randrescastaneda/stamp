@@ -1,4 +1,3 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # stamp
@@ -97,3 +96,52 @@ Retention: keep latest N and/or recent days.
 Partitions: Hive-style directories, easy bind & filter.
 
 See vignettes for retention + partition details.
+
+## File Formats
+
+`stamp` supports multiple serialization formats. The two binary formats have distinct implementations:
+
+| Extension | Format | Package Required | Notes |
+|-----------|--------|------------------|-------|
+| `.qs2` | qs2 | `{qs2}` | New qs2 binary format (recommended for new projects) |
+| `.qs` | qs | `{qs}` | Legacy qs binary format |
+| `.rds` | rds | (base R) | R serialized format |
+| `.csv` | csv | `{data.table}` | Comma-separated values |
+| `.fst` | fst | `{fst}` | Fast columnar format |
+| `.json` | json | `{jsonlite}` | JSON format |
+
+**Important**: `.qs` and `.qs2` are **different formats** and require their respective packages. There is no automatic fallback between them. If you attempt to save/load a `.qs2` file without `{qs2}` installed, `stamp` will abort with a clear error message.
+
+### Installing Format Packages
+
+```r
+# For qs2 format support
+install.packages("qs2")
+
+# For legacy qs format support
+install.packages("qs")
+
+# For fst format support
+install.packages("fst")
+```
+
+### Format Selection
+
+`stamp` infers format from file extension by default:
+
+```r
+# Uses qs2 format (requires {qs2})
+st_save(data, "output.qs2")
+
+# Uses qs format (requires {qs})
+st_save(data, "output.qs")
+
+# Uses RDS (base R, always available)
+st_save(data, "output.rds")
+```
+
+You can also specify format explicitly:
+
+```r
+st_save(data, "output", format = "qs2")
+```
