@@ -10,25 +10,58 @@
 .st_cli_old_theme <- NULL
 
 .seed_extmap <- function() {
-  # idempotent extension -> format hints
-  if (!rlang::env_has(.st_extmap_env, "qs")) {
-    rlang::env_poke(.st_extmap_env, "qs", "qs2")
+  # Seed mapping from canonical defaults table (idempotent)
+  for (i in seq_len(nrow(.st_extmap_defaults))) {
+    ext <- tolower(.st_extmap_defaults$ext[i])
+    fmt <- .st_extmap_defaults$format[i]
+    if (!rlang::env_has(.st_extmap_env, ext)) {
+      rlang::env_poke(.st_extmap_env, ext, fmt)
+    }
   }
-  if (!rlang::env_has(.st_extmap_env, "qs2")) {
-    rlang::env_poke(.st_extmap_env, "qs2", "qs2")
-  }
-  if (!rlang::env_has(.st_extmap_env, "rds")) {
-    rlang::env_poke(.st_extmap_env, "rds", "rds")
-  }
-  if (!rlang::env_has(.st_extmap_env, "csv")) {
-    rlang::env_poke(.st_extmap_env, "csv", "csv")
-  }
-  if (!rlang::env_has(.st_extmap_env, "fst")) {
-    rlang::env_poke(.st_extmap_env, "fst", "fst")
-  }
-  if (!rlang::env_has(.st_extmap_env, "json")) {
-    rlang::env_poke(.st_extmap_env, "json", "json")
-  }
+}
+
+# Canonical extension -> logical format mapping (maintainer-visible)
+.st_extmap_defaults <- data.frame(
+  ext = c("qs", "qs2", "rds", "csv", "fst", "json"),
+  format = c("qs", "qs2", "rds", "csv", "fst", "json"),
+  desc = c(
+    "Legacy qs binary format (uses package 'qs')",
+    "New qs2 binary format (uses package 'qs2')",
+    "R serialized RDS",
+    "Comma-separated values (data.table::fread/fwrite)",
+    "fst columnar format (package 'fst')",
+    "JSON sidecars / small objects"
+  ),
+  stringsAsFactors = FALSE,
+  row.names = NULL
+)
+
+# Accessor for maintainers to inspect the canonical mapping table
+st_extmap_defaults <- function() {
+  .st_extmap_defaults
+}
+
+# Diagnostic report comparing defaults vs runtime mapping
+st_extmap_report <- function() {
+  defaults <- .st_extmap_defaults
+  data.frame(
+    ext = defaults$ext,
+    default_format = defaults$format,
+    current_format = vapply(
+      defaults$ext,
+      function(e) {
+        if (rlang::env_has(.st_extmap_env, e)) {
+          rlang::env_get(.st_extmap_env, e)
+        } else {
+          NA_character_
+        }
+      },
+      FUN.VALUE = ""
+    ),
+    desc = defaults$desc,
+    stringsAsFactors = FALSE,
+    row.names = NULL
+  )
 }
 
 .mirror_opts_to_base <- function() {
@@ -76,4 +109,3 @@
   }
   invisible()
 }
-

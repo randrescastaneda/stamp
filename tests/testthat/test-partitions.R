@@ -26,6 +26,7 @@ test_that("st_save_part and st_list_parts work and st_load_parts binds", {
 
 test_that("st_list_parts returns empty for missing base and st_load_parts dt mode works", {
   skip_on_cran()
+  skip_if_not_installed("data.table")
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
@@ -35,7 +36,7 @@ test_that("st_list_parts returns empty for missing base and st_load_parts dt mod
 
   # create some parts and test dt mode if data.table available
   base2 <- fs::path(td, "parts2")
-  st_save_part(data.frame(x=1:2), base2, list(k=1), code = function(z) z)
+  st_save_part(data.frame(x = 1:2), base2, list(k = 1), code = function(z) z)
   dt <- st_load_parts(base2, as = "dt")
   expect_s3_class(dt, "data.table")
 })

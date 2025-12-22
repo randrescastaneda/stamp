@@ -72,29 +72,40 @@
   if (!length(kv)) {
     return(out)
   }
+
   for (s in kv) {
     m <- regmatches(s, regexec("^([^=]+)=(.*)$", s))[[1]]
     if (length(m) == 3L) {
       key_name <- m[2]
       key_val <- m[3]
 
-      # Try to intelligently convert types (numeric, logical, or keep as string)
-      converted_val <- tryCatch(
-        {
-          # Try numeric conversion
-          num_val <- suppressWarnings(as.numeric(key_val))
-          if (!is.na(num_val) && as.character(num_val) == key_val) {
-            num_val
-          } else if (key_val %in% c("TRUE", "FALSE")) {
-            # Boolean conversion
-            as.logical(key_val)
+      # Improved type conversion:
+      # 1. Check for boolean first (cheap and unambiguous)
+      if (key_val %in% c("TRUE", "FALSE")) {
+        converted_val <- as.logical(key_val)
+      } else {
+        # 2. Try numeric conversion
+        num_val <- suppressWarnings(as.numeric(key_val))
+        if (!is.na(num_val)) {
+          # 3. Verify round-trip to avoid "02020" → 2020 issues
+          # Use formatC for consistent representation
+          roundtrip <- format(num_val, scientific = FALSE, trim = TRUE)
+          if (roundtrip == key_val) {
+            # 4. Use integer if appropriate (no decimal part)
+            if (num_val == as.integer(num_val)) {
+              converted_val <- as.integer(num_val)
+            } else {
+              converted_val <- num_val
+            }
           } else {
-            # Keep as string
-            key_val
+            # Not a clean numeric round-trip, keep as string
+            converted_val <- key_val
           }
-        },
-        error = function(e) key_val
-      )
+        } else {
+          # Not numeric at all, keep as string
+          converted_val <- key_val
+        }
+      }
 
       out[[key_name]] <- converted_val
     }

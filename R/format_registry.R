@@ -2,78 +2,72 @@
 # Internal registry lives in .st_formats_env; users can extend via st_register_format().
 # Each entry: list(read = function(path, ...), write = function(x, path, ...))
 
-#' saving in qs2 format in stamps
+#' Internal format handlers for stamp
 #'
 #' @param x R object to save.
 #' @param path Destination file path.
-#' @param ... Additional arguments passed to the underlying writer.
-#' @name st_qs
+#' @param ... Additional arguments passed to the underlying writer/reader.
+#' @name stamp-format-helpers
 #' @keywords internal
 NULL
 
-#' Write using qs2/q (internal)
+#' Write using qs2 (internal)
 #'
-#' Attempts to write `x` to `path` using `qs2::qs_save()` or `qs2::qsave()` when available,
-#' otherwise falls back to `qs::qsave()`. Errors if neither package is installed.
+#' Write `x` to `path` using `qs2` APIs. Errors if the {.pkg qs2}
+#' package is not installed or required entrypoints are unavailable.
 #'
 #' @return Invisibly returns what the underlying writer returns.
-#' @rdname st_qs
+#' @rdname stamp-format-helpers
 .st_write_qs2 <- function(x, path, ...) {
-  if (requireNamespace("qs2", quietly = TRUE)) {
-    ns <- asNamespace("qs2")
-    for (cand in c("qs_save", "qsave")) {
-      if (exists(cand, envir = ns, inherits = FALSE)) {
-        return(get(cand, envir = ns)(x, path, ...))
-      }
-    }
+  if (!requireNamespace("qs2", quietly = TRUE)) {
+    cli::cli_abort(
+      "{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}."
+    )
   }
-  if (requireNamespace("qs", quietly = TRUE)) {
-    return(qs::qsave(x, path, ...))
-  }
-  cli::cli_abort(
-    "Neither {.pkg qs2} nor {.pkg qs} is installed; cannot write {.field qs2} format."
-  )
+  qs2::qs_save(x, path, ...)
 }
 
-#' Read using qs2/q (internal)
+#' Read using qs2 (internal)
 #'
-#' Reads an object from `path` using `qs2::qs_read()` or `qs2::qread()` when available,
-#' otherwise falls back to `qs::qread()`. Errors if neither package is installed.
+#' Read an object from `path` using `qs2` APIs. Errors if the {.pkg qs2}
+#' package is not installed or required entrypoints are unavailable.
 #'
 #' @return The R object read from `path`.
-#' @rdname st_qs
+#' @rdname stamp-format-helpers
 .st_read_qs2 <- function(path, ...) {
-  if (requireNamespace("qs2", quietly = TRUE)) {
-    ns <- asNamespace("qs2")
-    for (cand in c("qs_read", "qread")) {
-      if (exists(cand, envir = ns, inherits = FALSE)) {
-        return(get(cand, envir = ns)(path, ...))
-      }
-    }
+  if (!requireNamespace("qs2", quietly = TRUE)) {
+    cli::cli_abort(
+      "{.pkg qs2} is required to read {.field qs2} format. Please install {.pkg qs2}."
+    )
   }
-  if (requireNamespace("qs", quietly = TRUE)) {
-    return(qs::qread(path, ...))
-  }
-  cli::cli_abort(
-    "Neither {.pkg qs2} nor {.pkg qs} is installed; cannot read {.field qs2} format."
-  )
+  qs2::qs_read(path, ...)
 }
 
-# Seed built-ins
+# Seed built-ins with explicit closures for all format handlers
 rlang::env_bind(
   .st_formats_env,
   qs2 = list(read = .st_read_qs2, write = .st_write_qs2),
+  qs = list(
+    read = function(path, ...) {
+      if (!requireNamespace("qs", quietly = TRUE)) {
+        cli::cli_abort("{.pkg qs} is required for QS read.")
+      }
+      qs::qread(path, ...)
+    },
+    write = function(x, path, ...) {
+      if (!requireNamespace("qs", quietly = TRUE)) {
+        cli::cli_abort("{.pkg qs} is required for QS write.")
+      }
+      qs::qsave(x, path, ...)
+    }
+  ),
   rds = list(
     read = function(path, ...) readRDS(path, ...),
     write = function(x, path, ...) saveRDS(x, path, ...)
   ),
   csv = list(
-    read = function(path, ...) {
-      data.table::fread(path, ...)
-    },
-    write = function(x, path, ...) {
-      data.table::fwrite(x, path, ...)
-    }
+    read = function(path, ...) data.table::fread(path, ...),
+    write = function(x, path, ...) data.table::fwrite(x, path, ...)
   ),
   fst = list(
     read = function(path, ...) {
@@ -173,6 +167,14 @@ st_register_format <- function(name, read, write, extensions = NULL) {
 
 # Map extensions -> format (helper)
 .st_extmap_set <- function(extensions, format) {
+  # Validate format exists
+  if (!rlang::env_has(.st_formats_env, format)) {
+    cli::cli_abort(c(
+      "Format {.field {format}} is not registered",
+      "i" = "Register it first with {.fn st_register_format}"
+    ))
+  }
+
   exts <- unique(tolower(extensions[nzchar(extensions)]))
   for (ext in exts) {
     rlang::env_poke(.st_extmap_env, ext, format)
@@ -237,7 +239,7 @@ st_formats <- function() {
     fs::dir_create(fs::path_dir(scj), recurse = TRUE)
     tmp <- fs::file_temp(
       tmp_dir = fs::path_dir(scj),
-      pattern = fs::path_file(scj)
+      pattern = "stmeta-" # Fixed prefix only
     )
     jsonlite::write_json(
       meta,
@@ -257,7 +259,7 @@ st_formats <- function() {
     fs::dir_create(fs::path_dir(scq), recurse = TRUE)
     tmp <- fs::file_temp(
       tmp_dir = fs::path_dir(scq),
-      pattern = fs::path_file(scq)
+      pattern = "stmeta-" # CHANGED: fixed prefix like JSON
     )
     .st_write_qs2(meta, tmp)
     if (fs::file_exists(scq)) {
@@ -268,12 +270,12 @@ st_formats <- function() {
   invisible(NULL)
 }
 
+
 #' Read sidecar metadata (internal)
 #'
 #' Read the sidecar metadata for `path` if it exists, returning `NULL`
 #' when no sidecar file is present. Preference order is JSON first,
-#' then QS2. When a QS2 variant is encountered the function will try
-#' `qs2` and fall back to `qs`.
+#' then QS2.
 #'
 #' @param path Character path of the data file whose sidecar will be read.
 #' @return A list (parsed JSON / qs object) or `NULL` if not found.

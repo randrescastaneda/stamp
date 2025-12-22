@@ -84,7 +84,7 @@ test_that("catalog corruption is detectable and removing it allows repair via sa
   expect_true(fs::file_exists(catp))
 
   # corrupt the catalog file
-  writeLines("not a qs2 file", catp)
+  writeLines("not a qs file", catp)
   expect_error(.st_catalog_read())
 
   # remove corrupted file and save should recreate catalog correctly

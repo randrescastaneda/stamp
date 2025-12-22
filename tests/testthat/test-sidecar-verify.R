@@ -1,6 +1,8 @@
 st_opts(warn_missing_pk_on_load = FALSE)
 test_that("verify_on_load warns when file hash or content hash mismatch", {
   skip_on_cran()
+  skip_if_not_installed("qs2")
+
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
@@ -8,30 +10,25 @@ test_that("verify_on_load warns when file hash or content hash mismatch", {
   withr::defer(st_opts(verify_on_load = old))
 
   st_opts(verify_on_load = TRUE)
-  p <- fs::path(td, "v.qs")
+  p <- fs::path(td, "v.qs2")
   df <- data.frame(a = 1:3)
   st_save(df, p, code = function(z) z)
 
   # Tamper the file by writing different content directly
-  if (requireNamespace("qs2", quietly = TRUE)) {
-    qs2::qs_save(data.frame(a = 9), p)
-  } else if (requireNamespace("qs", quietly = TRUE)) {
-    qs::qsave(data.frame(a = 9), p)
-  } else {
-    # fallback: overwrite with saveRDS (still should change content hash)
-    saveRDS(data.frame(a = 9), p)
-  }
+  qs2::qs_save(data.frame(a = 9), p)
+
   st_opts(warn_missing_pk_on_load = TRUE)
   st_load(p) |>
-  expect_warning(
-    regexp = "mismatch|File hash mismatch|Loaded object hash mismatch"
-  ) |>
+    expect_warning(
+      regexp = "mismatch|File hash mismatch|Loaded object hash mismatch"
+    ) |>
     expect_warning(regexp = "No primary key recorded")
   st_opts(warn_missing_pk_on_load = FALSE)
 })
 
 test_that("sidecar parents shaped as data.frame are normalized and used for first-level lineage", {
   skip_on_cran()
+  skip_if_not_installed("qs")
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")

@@ -208,9 +208,7 @@ test_that("st_load version works with multiple formats", {
 
 test_that("st_load version preserves data.table class", {
   skip_on_cran()
-  if (!requireNamespace("data.table", quietly = TRUE)) {
-    skip("data.table not available")
-  }
+  skip_if_not_installed("data.table")
 
   td <- withr::local_tempdir()
   st_init(td)

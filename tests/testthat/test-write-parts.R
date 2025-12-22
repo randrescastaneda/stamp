@@ -148,7 +148,6 @@ test_that("st_write_parts with filter allows selective loading", {
   )
   expect_equal(nrow(loaded_2020), 2)
   expect_true(all(loaded_2020$year == "2020"))
-
 })
 
 test_that("st_load_parts supports column selection for parquet", {
@@ -211,6 +210,7 @@ test_that("st_load_parts warns for non-columnar formats", {
 
   parts_dir <- file.path(tdir, "parts")
 
+  skip_if_not_installed("qs2")
   # Save as qs2 (non-columnar)
   st_write_parts(
     dt,
