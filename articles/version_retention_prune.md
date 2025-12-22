@@ -72,8 +72,8 @@ st_init(root)
 ```
 
     ## ✔ stamp initialized
-    ##   root: /tmp/RtmpSJvnMp/stamp-retention-example
-    ##   state: /tmp/RtmpSJvnMp/stamp-retention-example/.stamp
+    ##   root: /tmp/Rtmptt4cHP/stamp-retention-example
+    ##   state: /tmp/Rtmptt4cHP/stamp-retention-example/.stamp
 
 We’ll create a few artifacts and multiple versions to demonstrate
 pruning:
@@ -103,43 +103,43 @@ st_opts(retain_versions = Inf)
 st_save(xA1, pA, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpSJvnMp/stamp-retention-example/A.qs @ version
-    ##   20718b2688d42571
+    ## ✔ Saved [qs] → /tmp/Rtmptt4cHP/stamp-retention-example/A.qs @ version
+    ##   bc784010ff6f932a
 
 ``` r
 st_save(xA2, pA, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpSJvnMp/stamp-retention-example/A.qs @ version
-    ##   231dfeb146dc325a
+    ## ✔ Saved [qs] → /tmp/Rtmptt4cHP/stamp-retention-example/A.qs @ version
+    ##   504e63f1c081532c
 
 ``` r
 st_save(xA3, pA, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpSJvnMp/stamp-retention-example/A.qs @ version
-    ##   9548e28e566ac612
+    ## ✔ Saved [qs] → /tmp/Rtmptt4cHP/stamp-retention-example/A.qs @ version
+    ##   4d65fae9bcf5794c
 
 ``` r
 st_save(xB1, pB, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpSJvnMp/stamp-retention-example/B.qs @ version
-    ##   09b09dc9a7c68122
+    ## ✔ Saved [qs] → /tmp/Rtmptt4cHP/stamp-retention-example/B.qs @ version
+    ##   2d113d9213ff7961
 
 ``` r
 st_save(xB2, pB, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpSJvnMp/stamp-retention-example/B.qs @ version
-    ##   426aaf6f1b3505e1
+    ## ✔ Saved [qs] → /tmp/Rtmptt4cHP/stamp-retention-example/B.qs @ version
+    ##   04131fd06a58fbd8
 
 ``` r
 st_save(xC1, pC, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpSJvnMp/stamp-retention-example/C.qs @ version
-    ##   d5c170b297456260
+    ## ✔ Saved [qs] → /tmp/Rtmptt4cHP/stamp-retention-example/C.qs @ version
+    ##   50fdaa4d57130485
 
 Inspect store & catalog:
 
@@ -148,7 +148,7 @@ vroot <- stamp:::.st_versions_root()
 fs::dir_tree(vroot, recurse = FALSE, all = TRUE)
 ```
 
-    ## /tmp/RtmpSJvnMp/stamp-retention-example/.stamp/versions
+    ## /tmp/Rtmptt4cHP/stamp-retention-example/.stamp/versions
     ## ├── A.qs
     ## ├── B.qs
     ## └── C.qs
@@ -175,7 +175,7 @@ st_prune_versions(path = pA, policy = 2, dry_run = TRUE)
 ```
 
     ## ✔ DRY RUN: 1 version would be pruned across 1 artifact.
-    ##   Estimated space reclaimed: ~244 bytes
+    ##   Estimated space reclaimed: ~137 bytes
 
 ``` r
 # Apply pruning
@@ -185,10 +185,10 @@ repA
 
     ##         artifact_id                                artifact_path
     ##              <char>                                       <char>
-    ## 1: 8a780a2497435434 /tmp/RtmpSJvnMp/stamp-retention-example/A.qs
+    ## 1: 63e45c63cc8f01d1 /tmp/Rtmptt4cHP/stamp-retention-example/A.qs
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: 20718b2688d42571 2025-12-01T15:25:11.818599Z        244
+    ## 1: bc784010ff6f932a 2025-12-22T11:01:33.860502Z        137
 
 ``` r
 nrow(st_versions(pA)) # <= 2; latest always protected
@@ -209,7 +209,7 @@ st_prune_versions(policy = list(days = 14), dry_run = TRUE)
 ```
 
     ## ✔ DRY RUN: 1 version would be pruned across 1 artifact.
-    ##   Estimated space reclaimed: ~243 bytes
+    ##   Estimated space reclaimed: ~137 bytes
 
 ``` r
 # Apply
@@ -217,7 +217,7 @@ repAll <- st_prune_versions(policy = list(days = 14))
 ```
 
     ## ✔ DRY RUN: 1 version would be pruned across 1 artifact.
-    ##   Estimated space reclaimed: ~243 bytes
+    ##   Estimated space reclaimed: ~137 bytes
 
 ``` r
 head(repAll)
@@ -225,10 +225,10 @@ head(repAll)
 
     ##         artifact_id                                artifact_path
     ##              <char>                                       <char>
-    ## 1: 8a780a2497435434 /tmp/RtmpSJvnMp/stamp-retention-example/A.qs
+    ## 1: 63e45c63cc8f01d1 /tmp/Rtmptt4cHP/stamp-retention-example/A.qs
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: 231dfeb146dc325a 2025-12-01T15:25:11.878565Z        243
+    ## 1: 504e63f1c081532c 2025-12-22T11:01:33.929365Z        137
 
 ### Combine **count + recency** (union semantics)
 
@@ -276,8 +276,8 @@ xA4 <- data.frame(a = 4:6)
 st_save(xA4, pA, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpSJvnMp/stamp-retention-example/A.qs @ version
-    ##   d34add8f67ae7edd
+    ## ✔ Saved [qs] → /tmp/Rtmptt4cHP/stamp-retention-example/A.qs @ version
+    ##   2f53f752ca705878
 
 ``` r
 nrow(st_versions(pA)) # <= 2
@@ -335,8 +335,8 @@ p_pop <- fs::path(root, "inputs/population.qs")
 st_save(pop, p_pop, pk = c("country", "year", "reporting_level"))
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpSJvnMp/stamp-retention-example/inputs/population.qs @
-    ##   version d76e1ff62cbfdb57
+    ## ✔ Saved [qs] → /tmp/Rtmptt4cHP/stamp-retention-example/inputs/population.qs @
+    ##   version 8690a33643ea3c60
 
 **Effects**
 
@@ -361,9 +361,9 @@ st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
 
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
-    ## ✔ Loaded [qs2] ← /tmp/RtmpSJvnMp/stamp-retention-example/inputs/population.qs
+    ## ✔ Loaded [qs] ← /tmp/Rtmptt4cHP/stamp-retention-example/inputs/population.qs
     ## ✔ Recorded primary key for
-    ##   /tmp/RtmpSJvnMp/stamp-retention-example/inputs/population.qs --> country,
+    ##   /tmp/Rtmptt4cHP/stamp-retention-example/inputs/population.qs --> country,
     ##   year, reporting_level
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
@@ -374,8 +374,8 @@ st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
 obj <- st_load(p_pop)
 ```
 
-    ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpSJvnMp/stamp-retention-example/inputs/population.qs
+    ## ✔ Loaded [qs] ←
+    ## /tmp/Rtmptt4cHP/stamp-retention-example/inputs/population.qs
 
 ``` r
 attr(obj, "stamp_pk") # keys attached on load
@@ -534,8 +534,8 @@ st_save_part(
 ```
 
     ## ✔ Saved [qs2] →
-    ##   /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
-    ##   @ version 67485b0388bd89a6
+    ##   /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
+    ##   @ version 625eeee9cf0bd3a3
 
 ``` r
 st_save_part(
@@ -547,8 +547,8 @@ st_save_part(
 ```
 
     ## ✔ Saved [qs2] →
-    ##   /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
-    ##   @ version 8159ed86194cf786
+    ##   /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
+    ##   @ version 30dbe0a5f6f67aa2
 
 > [`st_save_part()`](https://randrescastaneda.github.io/stamp/reference/st_save_part.md)
 > uses
@@ -564,8 +564,8 @@ st_list_parts(base)
 ```
 
     ##                                                                                         path
-    ## 1 /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
-    ## 2 /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
+    ## 1 /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
+    ## 2 /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
     ##   country year
     ## 1     MEX 2022
     ## 2     PER 2023
@@ -575,7 +575,7 @@ st_list_parts(base, filter = list(country = "PER"))
 ```
 
     ##                                                                                         path
-    ## 1 /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
+    ## 1 /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
     ##   country year
     ## 1     PER 2023
 
@@ -585,9 +585,9 @@ all_parts <- st_load_parts(base, as = "rbind")
 ```
 
     ## ✔ Loaded [qs2] ←
-    ##   /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
+    ##   /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
     ## ✔ Loaded [qs2] ←
-    ##   /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
+    ##   /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
 
 ``` r
 all_parts
@@ -606,9 +606,9 @@ if (requireNamespace("data.table", quietly = TRUE)) {
 ```
 
     ## ✔ Loaded [qs2] ←
-    ##   /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
+    ##   /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
     ## ✔ Loaded [qs2] ←
-    ##   /tmp/RtmpSJvnMp/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
+    ##   /tmp/Rtmptt4cHP/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
 
     ##    country   year   pop
     ##     <char> <char> <num>

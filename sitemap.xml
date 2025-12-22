@@ -68,7 +68,6 @@
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_pk.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_plan_rebuild.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_prune_versions.html</loc></url>
-<url><loc>https://randrescastaneda.github.io/stamp/reference/st_qs.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_read_sidecar.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_rebuild.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_register_builder.html</loc></url>
@@ -80,6 +79,7 @@
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_versions.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_with_pk.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/st_write_parts.html</loc></url>
+<url><loc>https://randrescastaneda.github.io/stamp/reference/stamp-format-helpers.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/stamp-package.html</loc></url>
 </urlset>
 

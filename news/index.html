@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +45,43 @@
       <small>Source: <a href="https://github.com/randrescastaneda/stamp/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.6" id="stamp-006">stamp 0.0.6<a class="anchor" aria-label="anchor" href="#stamp-006"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-0-0-6">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-0-6"></a></h3>
+<div class="section level4">
+<h4 id="format-handling-qs-vs-qs2-0-0-6">Format Handling: qs vs qs2<a class="anchor" aria-label="anchor" href="#format-handling-qs-vs-qs2-0-0-6"></a></h4>
+<ul><li>
+<strong>BREAKING</strong>: <code>.qs</code> and <code>.qs2</code> are now treated as distinct formats with separate handlers
+<ul><li>
+<code>.qs</code> files use the <a href="https://github.com/qsbase/qs" class="external-link">qs</a> package (<code><a href="https://rdrr.io/pkg/qs/man/qread.html" class="external-link">qs::qread</a></code> / <code><a href="https://rdrr.io/pkg/qs/man/qsave.html" class="external-link">qs::qsave</a></code>)</li>
+<li>
+<code>.qs2</code> files use the <a href="https://github.com/qsbase/qs2" class="external-link">qs2</a> package (<code><a href="https://rdrr.io/pkg/qs2/man/qs_read.html" class="external-link">qs2::qs_read</a></code> / <code><a href="https://rdrr.io/pkg/qs2/man/qs_save.html" class="external-link">qs2::qs_save</a></code>)</li>
+<li>
+<strong>No automatic fallback</strong> from <code>qs2</code> to <code>qs</code> when <a href="https://github.com/qsbase/qs2" class="external-link">qs2</a> is not installed</li>
+<li>Operations requiring a missing package will abort with a clear error message</li>
+</ul></li>
+<li>
+<a href="https://github.com/qsbase/qs2" class="external-link">qs2</a> moved from <code>Imports</code> to <code>Suggests</code> in DESCRIPTION
+<ul><li>Install <a href="https://github.com/qsbase/qs2" class="external-link">qs2</a> explicitly if you need <code>.qs2</code> format support</li>
+<li>Tests that require <a href="https://github.com/qsbase/qs2" class="external-link">qs2</a> now skip gracefully when the package is unavailable</li>
+</ul></li>
+</ul></div>
+<div class="section level4">
+<h4 id="extension-mapping-0-0-6">Extension Mapping<a class="anchor" aria-label="anchor" href="#extension-mapping-0-0-6"></a></h4>
+<ul><li>Centralized extension-to-format mapping in <code>.st_extmap_defaults</code> table</li>
+<li>Added maintainer helpers: <code>st_extmap_defaults()</code> and <code>st_extmap_report()</code>
+</li>
+<li>Extension mapping now explicit and documented for easier maintenance</li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="internal-changes-0-0-6">Internal Changes<a class="anchor" aria-label="anchor" href="#internal-changes-0-0-6"></a></h3>
+<ul><li>Removed all qs2→qs fallback logic from format registry and I/O functions</li>
+<li>Format handlers in <code>.st_formats_env</code> now independently check for required packages</li>
+<li>Improved error messages when format-specific packages are missing</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.5" id="stamp-005">stamp 0.0.5<a class="anchor" aria-label="anchor" href="#stamp-005"></a></h2>
 <div class="section level3">

@@ -13,7 +13,7 @@ same R version and object structure) and suitable for change detection."></head>
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,8 +81,8 @@ same R version and object structure) and suitable for change detection.</p>
 
 
 <p>Before hashing, this function normalizes the order of object attributes to
-ensure consistent hashes even when operations (like <code><a href="https://sebkrantz.github.io/collapse/reference/rowbind.html" class="external-link">collapse::rowbind()</a></code> +
-<code><a href="https://sebkrantz.github.io/collapse/reference/funique.html" class="external-link">collapse::funique()</a></code>) leave attributes in different orders.</p>
+ensure consistent hashes even when operations (like <code><a href="https://rdrr.io/pkg/collapse/man/rowbind.html" class="external-link">collapse::rowbind()</a></code> +
+<code><a href="https://rdrr.io/pkg/collapse/man/funique.html" class="external-link">collapse::funique()</a></code>) leave attributes in different orders.</p>
 <p>The normalization reorders attributes to a canonical form:</p><ol><li><p>Priority attributes: names, row.names, class, .internal.selfref</p></li>
 <li><p>Other attributes: alphabetically sorted</p></li>
 </ol><p>This ensures that logically identical objects produce identical hashes
@@ -111,7 +111,7 @@ incorrectly flagged as changed.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Two ways to create the "same" data</span></span></span>
 <span class="r-in"><span><span class="va">dt_a</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">dt_b</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">collapse</span><span class="fu">::</span><span class="fu"><a href="https://sebkrantz.github.io/collapse/reference/rowbind.html" class="external-link">rowbind</a></span><span class="op">(</span><span class="fu">data.table</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">collapse</span><span class="fu">::</span><span class="fu"><a href="https://sebkrantz.github.io/collapse/reference/funique.html" class="external-link">funique</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">dt_b</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">collapse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/collapse/man/rowbind.html" class="external-link">rowbind</a></span><span class="op">(</span><span class="fu">data.table</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">collapse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/collapse/man/funique.html" class="external-link">funique</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># They're identical in content</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">dt_a</span>, <span class="va">dt_b</span><span class="op">)</span>  <span class="co"># TRUE</span></span></span>

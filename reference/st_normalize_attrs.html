@@ -11,7 +11,7 @@ R does not allow reordering attributes in-place."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,7 +78,7 @@ The class is preserved.</p>
     <h2 id="problem">Problem<a class="anchor" aria-label="anchor" href="#problem"></a></h2>
 
 
-<p>Operations like <code><a href="https://sebkrantz.github.io/collapse/reference/rowbind.html" class="external-link">collapse::rowbind()</a></code> + <code><a href="https://sebkrantz.github.io/collapse/reference/funique.html" class="external-link">collapse::funique()</a></code> can leave
+<p>Operations like <code><a href="https://rdrr.io/pkg/collapse/man/rowbind.html" class="external-link">collapse::rowbind()</a></code> + <code><a href="https://rdrr.io/pkg/collapse/man/funique.html" class="external-link">collapse::funique()</a></code> can leave
 attributes in different orders even when content is identical. Since
 <code><a href="https://rdrr.io/r/base/serialize.html" class="external-link">serialize()</a></code> includes attribute order, this causes different byte streams
 and thus different hashes for logically identical objects.</p>

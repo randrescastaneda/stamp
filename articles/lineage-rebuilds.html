@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -144,15 +144,15 @@ while preserving reproducible history once snapshots are written.</p>
 <code class="sourceCode R"><span><span class="va">root</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">root</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
-<span><span class="co">##   root: /tmp/RtmpvUC6iM</span></span>
-<span><span class="co">##   state: /tmp/RtmpvUC6iM/.stamp</span></span></code></pre>
+<span><span class="co">##   root: /tmp/RtmpPqoLT7</span></span>
+<span><span class="co">##   state: /tmp/RtmpPqoLT7/.stamp</span></span></code></pre>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># A</span></span>
 <span><span class="va">pA</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"A.qs"</span><span class="op">)</span></span>
 <span><span class="va">xA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpvUC6iM/A.qs</span> @ version</span></span>
-<span><span class="co">## <span style="color: #00BB00;">e042cbe3da0ab9c3</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/RtmpPqoLT7/A.qs</span> @ version</span></span>
+<span><span class="co">## <span style="color: #00BB00;">95d472cafdc64ac7</span></span></span></code></pre>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># B depends on A</span></span>
 <span><span class="va">pB</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"B.qs"</span><span class="op">)</span></span>
@@ -163,8 +163,8 @@ while preserving reproducible history once snapshots are written.</p>
 <span>  code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>,</span>
 <span>  parents <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">pA</span>, version_id <span class="op">=</span> <span class="fu"><a href="../reference/st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">pA</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpvUC6iM/B.qs</span> @ version</span></span>
-<span><span class="co">## <span style="color: #00BB00;">777709478b2cc7fa</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/RtmpPqoLT7/B.qs</span> @ version</span></span>
+<span><span class="co">## <span style="color: #00BB00;">c15db8dc94ca21f4</span></span></span></code></pre>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># C depends on B</span></span>
 <span><span class="va">pC</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"C.qs"</span><span class="op">)</span></span>
@@ -175,8 +175,8 @@ while preserving reproducible history once snapshots are written.</p>
 <span>  code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>,</span>
 <span>  parents <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">pB</span>, version_id <span class="op">=</span> <span class="fu"><a href="../reference/st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">pB</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpvUC6iM/C.qs</span> @ version</span></span>
-<span><span class="co">## <span style="color: #00BB00;">8f1de0db2d09cc80</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/RtmpPqoLT7/C.qs</span> @ version</span></span>
+<span><span class="co">## <span style="color: #00BB00;">9450641f526cadb3</span></span></span></code></pre>
 <p>Note: after these saves each artifact has a sidecar (in
 <code>stmeta/</code>) and snapshots under
 <code>.stamp/versions/</code>.</p>
@@ -199,16 +199,16 @@ level 1 only uses snapshot-backed parents.</p>
 <span><span class="fu"><a href="../reference/st_info.html">st_info</a></span><span class="op">(</span><span class="va">pB</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $sidecar</span></span>
 <span><span class="co">## $sidecar$path</span></span>
-<span><span class="co">## [1] "/tmp/RtmpvUC6iM/B.qs"</span></span>
+<span><span class="co">## [1] "/tmp/RtmpPqoLT7/B.qs"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$format</span></span>
-<span><span class="co">## [1] "qs2"</span></span>
+<span><span class="co">## [1] "qs"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$created_at</span></span>
-<span><span class="co">## [1] "2025-12-01T15:24:37.864045Z"</span></span>
+<span><span class="co">## [1] "2025-12-22T11:01:00.241735Z"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$size_bytes</span></span>
-<span><span class="co">## [1] 255</span></span>
+<span><span class="co">## [1] 148</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$content_hash</span></span>
 <span><span class="co">## [1] "bba6fe40c1133df8"</span></span>
@@ -217,14 +217,14 @@ level 1 only uses snapshot-backed parents.</p>
 <span><span class="co">## [1] "488e8fa49c740261"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$file_hash</span></span>
-<span><span class="co">## [1] "ac85d598b2d2346f"</span></span>
+<span><span class="co">## [1] "aedd22253abcd70c"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$code_label</span></span>
 <span><span class="co">## NULL</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$parents</span></span>
 <span><span class="co">##                   path       version_id</span></span>
-<span><span class="co">## 1 /tmp/RtmpvUC6iM/A.qs e042cbe3da0ab9c3</span></span>
+<span><span class="co">## 1 /tmp/RtmpPqoLT7/A.qs 95d472cafdc64ac7</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$attrs</span></span>
 <span><span class="co">## list()</span></span>
@@ -232,7 +232,7 @@ level 1 only uses snapshot-backed parents.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## $catalog</span></span>
 <span><span class="co">## $catalog$latest_version_id</span></span>
-<span><span class="co">## [1] "777709478b2cc7fa"</span></span>
+<span><span class="co">## [1] "c15db8dc94ca21f4"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $catalog$n_versions</span></span>
 <span><span class="co">## [1] 1</span></span>
@@ -243,22 +243,22 @@ level 1 only uses snapshot-backed parents.</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## $parents</span></span>
 <span><span class="co">##                   path       version_id</span></span>
-<span><span class="co">## 1 /tmp/RtmpvUC6iM/A.qs e042cbe3da0ab9c3</span></span></code></pre>
+<span><span class="co">## 1 /tmp/RtmpPqoLT7/A.qs 95d472cafdc64ac7</span></span></code></pre>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># st_lineage will fall back to the sidecar for immediate parents (level 1)</span></span>
 <span><span class="fu"><a href="../reference/st_lineage.html">st_lineage</a></span><span class="op">(</span><span class="va">pB</span>, depth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   level           child_path    child_version          parent_path</span></span>
-<span><span class="co">## 1     1 /tmp/RtmpvUC6iM/B.qs 777709478b2cc7fa /tmp/RtmpvUC6iM/A.qs</span></span>
+<span><span class="co">## 1     1 /tmp/RtmpPqoLT7/B.qs c15db8dc94ca21f4 /tmp/RtmpPqoLT7/A.qs</span></span>
 <span><span class="co">##     parent_version</span></span>
-<span><span class="co">## 1 e042cbe3da0ab9c3</span></span></code></pre>
+<span><span class="co">## 1 95d472cafdc64ac7</span></span></code></pre>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># But recursive lineage (depth &gt; 1) will only follow snapshot-backed parents</span></span>
 <span><span class="co"># (no recursive walk available once snapshots are missing)</span></span>
 <span><span class="fu"><a href="../reference/st_lineage.html">st_lineage</a></span><span class="op">(</span><span class="va">pB</span>, depth <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   level           child_path    child_version          parent_path</span></span>
-<span><span class="co">## 1     1 /tmp/RtmpvUC6iM/B.qs 777709478b2cc7fa /tmp/RtmpvUC6iM/A.qs</span></span>
+<span><span class="co">## 1     1 /tmp/RtmpPqoLT7/B.qs c15db8dc94ca21f4 /tmp/RtmpPqoLT7/A.qs</span></span>
 <span><span class="co">##     parent_version</span></span>
-<span><span class="co">## 1 e042cbe3da0ab9c3</span></span></code></pre>
+<span><span class="co">## 1 95d472cafdc64ac7</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="inspect-lineage">Inspect lineage<a class="anchor" aria-label="anchor" href="#inspect-lineage"></a>
@@ -272,9 +272,9 @@ level 1 only uses snapshot-backed parents.</p>
 <code class="sourceCode R"><span><span class="co"># Full lineage (parents of an artifact)</span></span>
 <span><span class="fu"><a href="../reference/st_lineage.html">st_lineage</a></span><span class="op">(</span><span class="va">pC</span>, depth <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   level           child_path    child_version          parent_path</span></span>
-<span><span class="co">## 1     1 /tmp/RtmpvUC6iM/C.qs 8f1de0db2d09cc80 /tmp/RtmpvUC6iM/B.qs</span></span>
+<span><span class="co">## 1     1 /tmp/RtmpPqoLT7/C.qs 9450641f526cadb3 /tmp/RtmpPqoLT7/B.qs</span></span>
 <span><span class="co">##     parent_version</span></span>
-<span><span class="co">## 1 777709478b2cc7fa</span></span></code></pre>
+<span><span class="co">## 1 c15db8dc94ca21f4</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="make-a-change-upstream-detect-staleness">Make a change upstream &amp; detect staleness<a class="anchor" aria-label="anchor" href="#make-a-change-upstream-detect-staleness"></a>
@@ -283,8 +283,8 @@ level 1 only uses snapshot-backed parents.</p>
 <code class="sourceCode R"><span><span class="co"># Change A → new version</span></span>
 <span><span class="va">xA2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">xA</span>, a <span class="op">=</span> <span class="va">a</span> <span class="op">+</span> <span class="fl">10L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA2</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpvUC6iM/A.qs</span> @ version</span></span>
-<span><span class="co">## <span style="color: #00BB00;">ce3bca45ff50ddd0</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/RtmpPqoLT7/A.qs</span> @ version</span></span>
+<span><span class="co">## <span style="color: #00BB00;">13eda2d427672bb9</span></span></span></code></pre>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Strict staleness</span></span>
 <span><span class="fu"><a href="../reference/st_is_stale.html">st_is_stale</a></span><span class="op">(</span><span class="va">pB</span><span class="op">)</span> <span class="co"># TRUE (B's recorded A version is now old)</span></span></code></pre></div>
@@ -341,7 +341,7 @@ list with at least <code>x = &lt;object&gt;</code>.</p>
 <span>    code_label <span class="op">=</span> <span class="st">"B &lt;- A * 2"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Registered builder for <span style="color: #00BB00;">/tmp/RtmpvUC6iM/B.qs</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Registered builder for <span style="color: #00BB00;">/tmp/RtmpPqoLT7/B.qs</span></span></span>
 <span><span class="co">## (<span style="color: #00BB00;">default</span>)</span></span></code></pre>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Register a builder for C: rebuild from B's committed version</span></span>
@@ -353,7 +353,7 @@ list with at least <code>x = &lt;object&gt;</code>.</p>
 <span>    code_label <span class="op">=</span> <span class="st">"C &lt;- B + 1"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Registered builder for <span style="color: #00BB00;">/tmp/RtmpvUC6iM/C.qs</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Registered builder for <span style="color: #00BB00;">/tmp/RtmpPqoLT7/C.qs</span></span></span>
 <span><span class="co">## (<span style="color: #00BB00;">default</span>)</span></span></code></pre>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Dry run first (uses registered builders found by st_rebuild when rebuild_fun is NULL)</span></span>
@@ -381,7 +381,7 @@ propagating:</p>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_plan_rebuild.html">st_plan_rebuild</a></span><span class="op">(</span><span class="va">pB</span>, depth <span class="op">=</span> <span class="cn">Inf</span>, mode <span class="op">=</span> <span class="st">"propagate"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   level                 path           reason latest_version_before</span></span>
-<span><span class="co">## 1     1 /tmp/RtmpvUC6iM/C.qs upstream_changed      8f1de0db2d09cc80</span></span></code></pre>
+<span><span class="co">## 1     1 /tmp/RtmpPqoLT7/C.qs upstream_changed      9450641f526cadb3</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="inspect-snapshots-on-disk">Inspect snapshots on disk<a class="anchor" aria-label="anchor" href="#inspect-snapshots-on-disk"></a>
@@ -389,19 +389,19 @@ propagating:</p>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vroot</span> <span class="op">&lt;-</span> <span class="fu">stamp</span><span class="fu">:::</span><span class="fu"><a href="../reference/dot-st_versions_root.html">.st_versions_root</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">vroot</span>, recurse <span class="op">=</span> <span class="cn">TRUE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpvUC6iM/.stamp/versions</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpPqoLT7/.stamp/versions</span></span></span>
 <span><span class="co">## ├── <span style="color: #0000BB; font-weight: bold;">A.qs</span></span></span>
-<span><span class="co">## │   ├── <span style="color: #0000BB; font-weight: bold;">ce3bca45ff50ddd0</span></span></span>
+<span><span class="co">## │   ├── <span style="color: #0000BB; font-weight: bold;">13eda2d427672bb9</span></span></span>
 <span><span class="co">## │   │   ├── artifact</span></span>
 <span><span class="co">## │   │   ├── sidecar.json</span></span>
 <span><span class="co">## │   │   └── sidecar.qs2</span></span>
-<span><span class="co">## │   └── <span style="color: #0000BB; font-weight: bold;">e042cbe3da0ab9c3</span></span></span>
+<span><span class="co">## │   └── <span style="color: #0000BB; font-weight: bold;">95d472cafdc64ac7</span></span></span>
 <span><span class="co">## │       ├── artifact</span></span>
 <span><span class="co">## │       ├── sidecar.json</span></span>
 <span><span class="co">## │       └── sidecar.qs2</span></span>
 <span><span class="co">## ├── <span style="color: #0000BB; font-weight: bold;">B.qs</span></span></span>
 <span><span class="co">## └── <span style="color: #0000BB; font-weight: bold;">C.qs</span></span></span>
-<span><span class="co">##     └── <span style="color: #0000BB; font-weight: bold;">8f1de0db2d09cc80</span></span></span>
+<span><span class="co">##     └── <span style="color: #0000BB; font-weight: bold;">9450641f526cadb3</span></span></span>
 <span><span class="co">##         ├── artifact</span></span>
 <span><span class="co">##         ├── parents.json</span></span>
 <span><span class="co">##         ├── sidecar.json</span></span>
@@ -413,16 +413,16 @@ catalog status, and the latest snapshot dir, plus parsed
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_info.html">st_info</a></span><span class="op">(</span><span class="va">pC</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $sidecar</span></span>
 <span><span class="co">## $sidecar$path</span></span>
-<span><span class="co">## [1] "/tmp/RtmpvUC6iM/C.qs"</span></span>
+<span><span class="co">## [1] "/tmp/RtmpPqoLT7/C.qs"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$format</span></span>
-<span><span class="co">## [1] "qs2"</span></span>
+<span><span class="co">## [1] "qs"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$created_at</span></span>
-<span><span class="co">## [1] "2025-12-01T15:24:37.922419Z"</span></span>
+<span><span class="co">## [1] "2025-12-22T11:01:00.296869Z"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$size_bytes</span></span>
-<span><span class="co">## [1] 266</span></span>
+<span><span class="co">## [1] 159</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$content_hash</span></span>
 <span><span class="co">## [1] "28e3e19ddcccd8c6"</span></span>
@@ -431,14 +431,14 @@ catalog status, and the latest snapshot dir, plus parsed
 <span><span class="co">## [1] "488e8fa49c740261"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$file_hash</span></span>
-<span><span class="co">## [1] "fefe26c9df86a402"</span></span>
+<span><span class="co">## [1] "4286965c99aa6527"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$code_label</span></span>
 <span><span class="co">## NULL</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$parents</span></span>
 <span><span class="co">##                   path       version_id</span></span>
-<span><span class="co">## 1 /tmp/RtmpvUC6iM/B.qs 777709478b2cc7fa</span></span>
+<span><span class="co">## 1 /tmp/RtmpPqoLT7/B.qs c15db8dc94ca21f4</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $sidecar$attrs</span></span>
 <span><span class="co">## list()</span></span>
@@ -446,22 +446,22 @@ catalog status, and the latest snapshot dir, plus parsed
 <span><span class="co">## </span></span>
 <span><span class="co">## $catalog</span></span>
 <span><span class="co">## $catalog$latest_version_id</span></span>
-<span><span class="co">## [1] "8f1de0db2d09cc80"</span></span>
+<span><span class="co">## [1] "9450641f526cadb3"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $catalog$n_versions</span></span>
 <span><span class="co">## [1] 1</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $snapshot_dir</span></span>
-<span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpvUC6iM/.stamp/versions/C.qs/8f1de0db2d09cc80</span></span></span>
+<span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpPqoLT7/.stamp/versions/C.qs/9450641f526cadb3</span></span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $parents</span></span>
 <span><span class="co">## $parents[[1]]</span></span>
 <span><span class="co">## $parents[[1]]$path</span></span>
-<span><span class="co">## [1] "/tmp/RtmpvUC6iM/B.qs"</span></span>
+<span><span class="co">## [1] "/tmp/RtmpPqoLT7/B.qs"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $parents[[1]]$version_id</span></span>
-<span><span class="co">## [1] "777709478b2cc7fa"</span></span></code></pre>
+<span><span class="co">## [1] "c15db8dc94ca21f4"</span></span></code></pre>
 <div class="section level3">
 <h3 id="takeaways">Takeaways<a class="anchor" aria-label="anchor" href="#takeaways"></a>
 </h3>

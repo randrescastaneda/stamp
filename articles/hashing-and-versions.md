@@ -67,8 +67,8 @@ st_init(root)
 ```
 
     ## ✔ stamp initialized
-    ##   root: /tmp/RtmpObAFni
-    ##   state: /tmp/RtmpObAFni/.stamp
+    ##   root: /tmp/RtmpF4xZDt
+    ##   state: /tmp/RtmpF4xZDt/.stamp
 
 ``` r
 p <- fs::path(root, "demo.qs")
@@ -78,8 +78,8 @@ x <- data.frame(a = 1:3)
 st_save(x, p, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpObAFni/demo.qs @
-    ## version 22112242e3af13d8
+    ## ✔ Saved [qs] → /tmp/RtmpF4xZDt/demo.qs @ version
+    ## 17789658836fb198
 
 ``` r
 # Second write, same content & same code: skipped (no new version)
@@ -87,7 +87,7 @@ st_save(x, p, code = function(z) z)
 ```
 
     ## ✔ Skip save (reason: no_change_policy) for
-    ## /tmp/RtmpObAFni/demo.qs
+    ## /tmp/RtmpF4xZDt/demo.qs
 
 ``` r
 nrow(st_versions(p)) # should be 1
@@ -114,8 +114,8 @@ x2 <- transform(x, a = a + 1L)
 st_save(x2, p, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpObAFni/demo.qs @
-    ## version c7ffca5b8372c47c
+    ## ✔ Saved [qs] → /tmp/RtmpF4xZDt/demo.qs @ version
+    ## 1946b8e377d9c8d0
 
 ``` r
 nrow(st_versions(p)) # now 2
@@ -127,7 +127,7 @@ nrow(st_versions(p)) # now 2
 st_latest(p) # latest version id (string)
 ```
 
-    ## [1] "c7ffca5b8372c47c"
+    ## [1] "1946b8e377d9c8d0"
 
 > **Policy:** By design, changing the `code=` you pass to
 > [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md)
@@ -161,13 +161,13 @@ meta[c(
 ```
 
     ## $format
-    ## [1] "qs2"
+    ## [1] "qs"
     ## 
     ## $created_at
-    ## [1] "2025-12-01T15:24:35.143035Z"
+    ## [1] "2025-12-22T11:00:57.492275Z"
     ## 
     ## $size_bytes
-    ## [1] 195
+    ## [1] 137
     ## 
     ## $content_hash
     ## [1] "7e25cdd35cd37239"
@@ -176,7 +176,7 @@ meta[c(
     ## [1] "488e8fa49c740261"
     ## 
     ## $file_hash
-    ## [1] "50ed8c23167ce3ac"
+    ## [1] "28d069cce24a86f3"
 
 Explanation:
 
@@ -304,20 +304,20 @@ head(vids)
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: c7ffca5b8372c47c faa924da3e68d3ea 7e25cdd35cd37239 488e8fa49c740261
-    ## 2: 22112242e3af13d8 faa924da3e68d3ea 1811ba4b2bd2a26a 488e8fa49c740261
+    ## 1: 1946b8e377d9c8d0 fed38ae263aeddbc 7e25cdd35cd37239 488e8fa49c740261
+    ## 2: 17789658836fb198 fed38ae263aeddbc 1811ba4b2bd2a26a 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        195 2025-12-01T15:24:35.143035Z           both
-    ## 2:        244 2025-12-01T15:24:34.980180Z           both
+    ## 1:        137 2025-12-22T11:00:57.492275Z           both
+    ## 2:        137 2025-12-22T11:00:57.325872Z           both
 
 ``` r
 vid_latest <- st_latest(p)
 obj_latest <- st_load_version(p, vid_latest)
 ```
 
-    ## ✔ Loaded ← /tmp/RtmpObAFni/demo.qs @
-    ## c7ffca5b8372c47c [qs2]
+    ## ✔ Loaded ← /tmp/RtmpF4xZDt/demo.qs @
+    ## 1946b8e377d9c8d0 [qs]
 
 ``` r
 # Load an older version by id
@@ -327,8 +327,8 @@ if (nrow(vids) > 1L) {
 }
 ```
 
-    ## ✔ Loaded ← /tmp/RtmpObAFni/demo.qs @
-    ## 22112242e3af13d8 [qs2]
+    ## ✔ Loaded ← /tmp/RtmpF4xZDt/demo.qs @
+    ## 17789658836fb198 [qs]
 
 [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md)
 returns a table of version metadata. Each row includes the `version_id`,
@@ -349,8 +349,8 @@ x <- data.frame(a = 1:5)
 st_save(x, p, code = function(z) z)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpObAFni/demo.qs @
-    ## version 720b48bff65e8f4d
+    ## ✔ Saved [qs] → /tmp/RtmpF4xZDt/demo.qs @ version
+    ## ff201adba0a15f08
 
 ``` r
 # Now list the versions tree
@@ -358,17 +358,17 @@ vroot <- stamp:::.st_versions_root()
 fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/RtmpObAFni/.stamp/versions
+    ## /tmp/RtmpF4xZDt/.stamp/versions
     ## └── demo.qs
-    ##     ├── 22112242e3af13d8
+    ##     ├── 17789658836fb198
     ##     │   ├── artifact
     ##     │   ├── sidecar.json
     ##     │   └── sidecar.qs2
-    ##     ├── 720b48bff65e8f4d
+    ##     ├── 1946b8e377d9c8d0
     ##     │   ├── artifact
     ##     │   ├── sidecar.json
     ##     │   └── sidecar.qs2
-    ##     └── c7ffca5b8372c47c
+    ##     └── ff201adba0a15f08
     ##         ├── artifact
     ##         ├── sidecar.json
     ##         └── sidecar.qs2
@@ -395,10 +395,13 @@ file changed outside **stamp**).
 invisible(st_load(p)) # triggers optional verify; warns on mismatch
 ```
 
-    ## Warning: No primary key recorded for /tmp/RtmpObAFni/demo.qs.
+    ## Warning: Loaded object hash mismatch for /tmp/RtmpF4xZDt/demo.qs (content hash differs
+    ## from sidecar).
+
+    ## Warning: No primary key recorded for /tmp/RtmpF4xZDt/demo.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/RtmpObAFni/demo.qs
+    ## ✔ Loaded [qs] ← /tmp/RtmpF4xZDt/demo.qs
 
 If `verify_on_load = TRUE`,
 [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)

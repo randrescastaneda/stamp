@@ -26,8 +26,8 @@ Lowercase hex string (16 hex characters) from siphash13().
 
 Before hashing, this function normalizes the order of object attributes
 to ensure consistent hashes even when operations (like
-[`collapse::rowbind()`](https://sebkrantz.github.io/collapse/reference/rowbind.html) +
-[`collapse::funique()`](https://sebkrantz.github.io/collapse/reference/funique.html))
+[`collapse::rowbind()`](https://rdrr.io/pkg/collapse/man/rowbind.html) +
+[`collapse::funique()`](https://rdrr.io/pkg/collapse/man/funique.html))
 leave attributes in different orders.
 
 The normalization reorders attributes to a canonical form:

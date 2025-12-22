@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,24 +83,25 @@
 <span><span class="va">root</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">root</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ stamp initialized</span></span>
-<span><span class="co">#&gt;   root: C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa</span></span>
-<span><span class="co">#&gt;   state: C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/.stamp</span></span>
+<span><span class="co">#&gt;   root: C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS</span></span>
+<span><span class="co">#&gt;   state: C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/.stamp</span></span>
 <span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"demo.qs"</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, val <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span>, pk <span class="op">=</span> <span class="st">"id"</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ✔ Saved [qs2] → 'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/demo.qs' @</span></span>
-<span><span class="co">#&gt;   version 127affba57484657</span></span>
+<span><span class="co">#&gt; ✔ Saved [qs] → 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs' @</span></span>
+<span><span class="co">#&gt;   version 9f17a32f99df9990</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ✔ Loaded [qs2] ← 'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/demo.qs'</span></span>
-<span><span class="fu"><a href="reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ✔ Loaded [qs] ← 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs'</span></span>
+<span><span class="va">vrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">vrs</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          version_id      artifact_id     content_hash        code_hash</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1: 127affba57484657 e7350537ff428064 2ba92a4feeebbf98 f61faf5f16af2f9f</span></span>
-<span><span class="co">#&gt;    size_bytes           created_at sidecar_format</span></span>
-<span><span class="co">#&gt;         &lt;num&gt;               &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1:        255 2025-11-06T22:43:15Z           json</span></span>
+<span><span class="co">#&gt; 1: 9f17a32f99df9990 526fcbc6552f1098 cdbe771e53841cf7 488e8fa49c740261</span></span>
+<span><span class="co">#&gt;    size_bytes                  created_at sidecar_format</span></span>
+<span><span class="co">#&gt;         &lt;num&gt;                      &lt;char&gt;         &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:        170 2025-12-22T10:40:28.932216Z           json</span></span>
 <span></span>
 <span><span class="co"># Retention</span></span>
 <span><span class="fu"><a href="reference/st_opts.html">st_opts</a></span><span class="op">(</span>retain_versions <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -108,17 +109,18 @@
 <span><span class="co">#&gt;   retain_versions = "2"</span></span>
 <span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">x</span>, val <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="va">val</span><span class="op">)</span><span class="op">)</span>, <span class="va">p</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ Retention policy matched zero versions; nothing to prune.</span></span>
-<span><span class="co">#&gt; ✔ Saved [qs2] → 'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/demo.qs' @</span></span>
-<span><span class="co">#&gt;   version 66a5ca432fe09e5a</span></span>
-<span><span class="fu"><a href="reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ✔ Saved [qs] → 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs' @</span></span>
+<span><span class="co">#&gt;   version 68b91238470c74fc</span></span>
+<span><span class="va">vrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">vrs</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          version_id      artifact_id     content_hash        code_hash</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1: 66a5ca432fe09e5a e7350537ff428064 ac6d1caaa0c15f0e f61faf5f16af2f9f</span></span>
-<span><span class="co">#&gt; 2: 127affba57484657 e7350537ff428064 2ba92a4feeebbf98 f61faf5f16af2f9f</span></span>
-<span><span class="co">#&gt;    size_bytes           created_at sidecar_format</span></span>
-<span><span class="co">#&gt;         &lt;num&gt;               &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1:        228 2025-11-06T22:43:16Z           json</span></span>
-<span><span class="co">#&gt; 2:        255 2025-11-06T22:43:15Z           json</span></span>
+<span><span class="co">#&gt; 1: 68b91238470c74fc 526fcbc6552f1098 d2b54b7e265bb11f 488e8fa49c740261</span></span>
+<span><span class="co">#&gt; 2: 9f17a32f99df9990 526fcbc6552f1098 cdbe771e53841cf7 488e8fa49c740261</span></span>
+<span><span class="co">#&gt;    size_bytes                  created_at sidecar_format</span></span>
+<span><span class="co">#&gt;         &lt;num&gt;                      &lt;char&gt;         &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:        149 2025-12-22T10:40:29.104312Z           json</span></span>
+<span><span class="co">#&gt; 2:        170 2025-12-22T10:40:28.932216Z           json</span></span>
 <span></span>
 <span><span class="co"># Partitions</span></span>
 <span><span class="va">base</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"inputs/country_year"</span><span class="op">)</span></span>
@@ -130,22 +132,110 @@
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ Retention policy matched zero versions; nothing to prune.</span></span>
 <span><span class="co">#&gt; ✔ Saved [qs2] →</span></span>
-<span><span class="co">#&gt;   'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/inputs/country_year/country=PER/year=2023/part.qs2'</span></span>
-<span><span class="co">#&gt;   @ version b79b777eef2607f4</span></span>
+<span><span class="co">#&gt;   'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2'</span></span>
+<span><span class="co">#&gt;   @ version 2201f3bf291ca2f2</span></span>
 <span><span class="fu"><a href="reference/st_list_parts.html">st_list_parts</a></span><span class="op">(</span><span class="va">base</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                                                                                 path</span></span>
-<span><span class="co">#&gt; 1 C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/inputs/country_year/country=PER/year=2023/part.qs2</span></span>
+<span><span class="co">#&gt;                                                                                                   path</span></span>
+<span><span class="co">#&gt; 1 C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2</span></span>
 <span><span class="co">#&gt;   country year</span></span>
 <span><span class="co">#&gt; 1     PER 2023</span></span>
 <span><span class="fu"><a href="reference/st_load_parts.html">st_load_parts</a></span><span class="op">(</span><span class="va">base</span>, as <span class="op">=</span> <span class="st">"rbind"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ Loaded [qs2] ←</span></span>
-<span><span class="co">#&gt;   'C:/Users/wb384996/AppData/Local/Temp/Rtmpama7Fa/inputs/country_year/country=PER/year=2023/part.qs2'</span></span>
+<span><span class="co">#&gt;   'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2'</span></span>
 <span><span class="co">#&gt;   country year  pop</span></span>
 <span><span class="co">#&gt; 1     PER 2023 34.5</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="file-formats">File Formats<a class="anchor" aria-label="anchor" href="#file-formats"></a>
+</h2>
+<p><code>stamp</code> supports multiple serialization formats. The two binary formats have distinct implementations:</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th>Extension</th>
+<th>Format</th>
+<th>Package Required</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>.qs2</code></td>
+<td>qs2</td>
+<td><a href="https://github.com/qsbase/qs2" class="external-link">qs2</a></td>
+<td>New qs2 binary format (recommended for new projects)</td>
+</tr>
+<tr class="even">
+<td><code>.qs</code></td>
+<td>qs</td>
+<td><a href="https://github.com/qsbase/qs" class="external-link">qs</a></td>
+<td>Legacy qs binary format</td>
+</tr>
+<tr class="odd">
+<td><code>.rds</code></td>
+<td>rds</td>
+<td>(base R)</td>
+<td>R serialized format</td>
+</tr>
+<tr class="even">
+<td><code>.csv</code></td>
+<td>csv</td>
+<td><a href="https://r-datatable.com" class="external-link">data.table</a></td>
+<td>Comma-separated values</td>
+</tr>
+<tr class="odd">
+<td><code>.fst</code></td>
+<td>fst</td>
+<td><a href="http://www.fstpackage.org" class="external-link">fst</a></td>
+<td>Fast columnar format</td>
+</tr>
+<tr class="even">
+<td><code>.json</code></td>
+<td>json</td>
+<td><a href="https://jeroen.r-universe.dev/jsonlite" class="external-link">jsonlite</a></td>
+<td>JSON format</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Important</strong>: <code>.qs</code> and <code>.qs2</code> are <strong>different formats</strong> and require their respective packages. There is no automatic fallback between them. If you attempt to save/load a <code>.qs2</code> file without <a href="https://github.com/qsbase/qs2" class="external-link">qs2</a> installed, <code>stamp</code> will abort with a clear error message.</p>
+<div class="section level3">
+<h3 id="installing-format-packages">Installing Format Packages<a class="anchor" aria-label="anchor" href="#installing-format-packages"></a>
+</h3>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># For qs2 format support</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"qs2"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># For legacy qs format support</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"qs"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># For fst format support</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"fst"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="format-selection">Format Selection<a class="anchor" aria-label="anchor" href="#format-selection"></a>
+</h3>
+<p><code>stamp</code> infers format from file extension by default:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Uses qs2 format (requires {qs2})</span></span>
+<span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output.qs2"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Uses qs format (requires {qs})</span></span>
+<span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output.qs"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Uses RDS (base R, always available)</span></span>
+<span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output.rds"</span><span class="op">)</span></span></code></pre></div>
+<p>You can also specify format explicitly:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output"</span>, format <span class="op">=</span> <span class="st">"qs2"</span><span class="op">)</span></span></code></pre></div>
 <p>Why stamp? Sidecars: hashes, provenance, PKs.</p>
 <p>Retention: keep latest N and/or recent days.</p>
 <p>Partitions: Hive-style directories, easy bind &amp; filter.</p>
 <p>See vignettes for retention + partition details.</p>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

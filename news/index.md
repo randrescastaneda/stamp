@@ -1,5 +1,45 @@
 # Changelog
 
+## stamp 0.0.6
+
+### Breaking Changes
+
+#### Format Handling: qs vs qs2
+
+- **BREAKING**: `.qs` and `.qs2` are now treated as distinct formats
+  with separate handlers
+  - `.qs` files use the [qs](https://github.com/qsbase/qs) package
+    ([`qs::qread`](https://rdrr.io/pkg/qs/man/qread.html) /
+    [`qs::qsave`](https://rdrr.io/pkg/qs/man/qsave.html))
+  - `.qs2` files use the [qs2](https://github.com/qsbase/qs2) package
+    ([`qs2::qs_read`](https://rdrr.io/pkg/qs2/man/qs_read.html) /
+    [`qs2::qs_save`](https://rdrr.io/pkg/qs2/man/qs_save.html))
+  - **No automatic fallback** from `qs2` to `qs` when
+    [qs2](https://github.com/qsbase/qs2) is not installed
+  - Operations requiring a missing package will abort with a clear error
+    message
+- [qs2](https://github.com/qsbase/qs2) moved from `Imports` to
+  `Suggests` in DESCRIPTION
+  - Install [qs2](https://github.com/qsbase/qs2) explicitly if you need
+    `.qs2` format support
+  - Tests that require [qs2](https://github.com/qsbase/qs2) now skip
+    gracefully when the package is unavailable
+
+#### Extension Mapping
+
+- Centralized extension-to-format mapping in `.st_extmap_defaults` table
+- Added maintainer helpers: `st_extmap_defaults()` and
+  `st_extmap_report()`
+- Extension mapping now explicit and documented for easier maintenance
+
+### Internal Changes
+
+- Removed all qs2→qs fallback logic from format registry and I/O
+  functions
+- Format handlers in `.st_formats_env` now independently check for
+  required packages
+- Improved error messages when format-specific packages are missing
+
 ## stamp 0.0.5
 
 ### Major Features
