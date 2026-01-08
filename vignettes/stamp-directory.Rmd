@@ -1,0 +1,828 @@
+---
+title: "The .stamp Directory: Structure and Internals"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The .stamp Directory: Structure and Internals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(".")
+} else {
+  library(stamp)
+}
+```
+
+## Overview
+
+The `.stamp/` directory is the **persistent storage backend** for the `stamp` package's versioning system. This vignette explains:
+
+1. How and when `.stamp/` is created
+2. Its internal directory structure
+3. How versioning and metadata work under the hood
+4. Troubleshooting common issues
+
+**Audience:** This vignette serves both **users** (understanding what `.stamp` does) and **developers** (understanding internal implementation details).
+
+---
+
+## 1. Creation and Initialization
+
+### 1.1 Creating `.stamp/` with `st_init()`
+
+The `.stamp/` directory is created when you call `st_init()`:
+
+```{r init-demo}
+# Create a temporary project directory for demonstration
+demo_dir <- fs::path_temp("stamp-demo")
+fs::dir_create(demo_dir)
+
+# Initialize stamp
+st_init(demo_dir)
+
+# Inspect what was created
+fs::dir_tree(fs::path(demo_dir, ".stamp"), recurse = TRUE, all = TRUE)
+```
+
+**What happens during initialization:**
+
+1. **Creates directory structure** (if it doesn't exist):
+   - `.stamp/` - Root state directory
+   - `.stamp/temp/` - Temporary files during atomic writes
+   - `.stamp/logs/` - Future use for logging (currently unused)
+
+2. **Records project root** in package state (in-memory reference)
+
+3. **Does NOT create or initialize** the catalog yet - that happens on first save
+
+### 1.2 Re-running `st_init()`: Safe and Non-Destructive
+
+**Important:** Running `st_init()` multiple times is **safe** and will **NOT** delete or overwrite existing version history.
+
+```{r reinit-demo}
+# Save an artifact to create version history
+test_data <- data.frame(x = 1:5, y = letters[1:5])
+test_path <- fs::path(demo_dir, "data", "test.qs2")
+st_save(test_data, test_path)
+
+# Check versions exist
+versions_before <- st_versions(test_path)
+nrow(versions_before)
+
+# Re-initialize (this is safe!)
+st_init(demo_dir)
+
+# Version history is preserved
+versions_after <- st_versions(test_path)
+identical(versions_before, versions_after)
+```
+
+**Why is this safe?**
+
+- `st_init()` only creates directories that don't exist
+- The catalog file (`catalog.qs2`) is read if present, never deleted
+- Version snapshots in `versions/` are never touched by initialization
+
+---
+
+## 2. Directory Structure Explained
+
+### 2.1 High-Level Layout
+
+```
+.stamp/                          # Root state directory
+├── catalog.qs2                  # Central version registry (created on first save)
+├── catalog.lock                 # Lock file for concurrent access control
+├── temp/                        # Temporary files during atomic writes
+├── logs/                        # Reserved for future logging features
+└── versions/                    # Version snapshots (created on first save)
+    ├── data/                    # Mirrors your project structure
+    │   └── test.qs2/            # One folder per artifact
+    │       ├── 20250108T121500Z-abc12345/   # Version snapshot directory
+    │       │   ├── artifact                  # Snapshot of the file itself
+    │       │   ├── sidecar.json              # Metadata at save time
+    │       │   ├── sidecar.qs2               # (optional) Binary metadata
+    │       │   └── parents.json              # Lineage information
+    │       └── 20250108T143000Z-def67890/   # Another version
+    │           └── ...
+    └── external/                # Artifacts outside project root
+        └── a1b2c3d4-external.csv/
+            └── ...
+```
+
+Let's explore each component:
+
+### 2.2 The Catalog: `catalog.qs2`
+
+The catalog is a **central registry** tracking all artifacts and their versions. It's a QS2-serialized list containing two `data.table` objects:
+
+```{r catalog-structure, eval=FALSE}
+catalog <- list(
+  artifacts = data.table(
+    artifact_id,          # Stable hash of normalized path
+    path,                 # Current canonical path
+    format,               # File format (rds, qs2, csv, etc.)
+    latest_version_id,    # Most recent version identifier
+    n_versions            # Total number of saved versions
+  ),
+  versions = data.table(
+    version_id,           # Unique version identifier
+    artifact_id,          # Links to artifacts table
+    content_hash,         # Hash of file contents
+    code_hash,            # Hash of generating code (if tracked)
+    size_bytes,           # File size in bytes
+    created_at,           # ISO8601 UTC timestamp
+    sidecar_format        # "json", "qs2", "both", or "none"
+  )
+)
+```
+
+**Key functions that read the catalog:**
+
+```{r catalog-functions}
+# List all versions of an artifact
+versions <- st_versions(test_path)
+str(versions)
+
+# Get latest version ID
+latest_id <- st_latest(test_path)
+latest_id
+
+# Get comprehensive info (catalog + sidecar + snapshot location)
+info <- st_info(test_path)
+str(info, max.level = 1)
+```
+
+### 2.3 Version Snapshots: `versions/`
+
+Each time you save an artifact (and versioning is enabled), a new **immutable snapshot** is created:
+
+```{r version-snapshot-demo}
+# Save the same artifact multiple times with changes
+v1 <- data.frame(x = 1:3)
+st_save(v1, test_path, code_label = "initial")
+Sys.sleep(0.2)
+
+v2 <- data.frame(x = 1:5)
+st_save(v2, test_path, code_label = "added rows")
+Sys.sleep(0.2)
+
+v3 <- data.frame(x = 1:5, y = 10:14)
+st_save(v3, test_path, code_label = "added column")
+
+# Each version gets its own directory
+fs::dir_tree(fs::path(demo_dir, ".stamp", "versions"), recurse = 2)
+```
+
+**What's inside a version snapshot directory?**
+
+1. **`artifact`** - A complete copy of the file at that point in time
+2. **`sidecar.json` / `sidecar.qs2`** - Metadata including:
+   - Content hash
+   - Code hash (if tracked)
+   - File size
+   - Timestamp
+   - Custom metadata tags
+   - Parent references (quick view)
+3. **`parents.json`** - Immutable provenance chain showing which artifacts this version depends on (only present if parents were specified)
+
+```{r inspect-snapshot}
+# Get the latest version directory path
+latest_vdir <- st_info(test_path)$snapshot_dir
+
+# List contents - note: parents.json only exists if parents were specified
+fs::dir_ls(latest_vdir)
+
+# Read the sidecar from the snapshot
+sidecar_path <- fs::path(latest_vdir, "sidecar.json")
+if (fs::file_exists(sidecar_path)) {
+  sidecar <- jsonlite::read_json(sidecar_path)
+  str(sidecar[c("path", "format", "created_at", "size_bytes", "code_label")])
+}
+```
+
+**Example of specifying parents during save:**
+
+Notice that the `parents.json` file is not present in the example above. This is because it is only created when parents are specified.
+
+```{r parents-demo}
+# First, create an upstream artifact
+upstream_path <- fs::path(demo_dir, "data", "upstream.qs2")
+upstream_data <- data.frame(id = 1:10, value = rnorm(10))
+st_save(upstream_data, upstream_path, code_label = "upstream data")
+upstream_version <- st_latest(upstream_path)
+
+# Now create a derived artifact with parent reference
+derived_path <- fs::path(demo_dir, "data", "derived.qs2")
+derived_data <- data.frame(id = 1:10, transformed = upstream_data$value * 2)
+st_save(
+  derived_data, 
+  derived_path,
+  parents = list(list(path = upstream_path, version_id = upstream_version)),
+  code_label = "derived from upstream"
+)
+
+# Now check the derived artifact's snapshot - parents.json will be present
+derived_vdir <- st_info(derived_path)$snapshot_dir
+fs::dir_ls(derived_vdir)
+
+# Read parents.json
+parents_file <- fs::path(derived_vdir, "parents.json")
+if (fs::file_exists(parents_file)) {
+  parents <- jsonlite::read_json(parents_file)
+  str(parents)
+}
+```
+
+### 2.4 Artifact Organization: Path-Based vs. External Storage
+
+The `versions/` directory organizes snapshots differently depending on whether the artifact is **inside or outside your project directory**. This affects how you'll find version snapshots on disk.
+
+#### Artifacts Inside Project Root (Path-Based Organization)
+
+When you save an artifact that lives inside your project directory, stamp mirrors the **relative path** structure:
+
+**Example:** Project root is `/home/user/myproject/`, and you save `/home/user/myproject/data/cleaned.rds`
+
+```
+.stamp/versions/
+└── data/                        # Mirrors the relative path "data/"
+    └── cleaned.rds/             # One directory per artifact
+        ├── 20250108T121500Z-abc12345/  # Version 1
+        ├── 20250108T143000Z-def67890/  # Version 2
+        └── 20250108T165500Z-ghi13579/  # Version 3
+```
+
+The path `data/cleaned.rds/` mirrors your project structure, making versions easy to locate.
+
+#### Artifacts Outside Project Root (Hash-Based Organization)
+
+When you save an artifact **outside** your project directory (e.g., in a temp folder or shared drive), stamp cannot use a relative path. Instead, it uses a **hash-based identifier** to prevent naming collisions:
+
+**Example:** Project root is `/home/user/myproject/`, but you save `/tmp/external_data.csv`
+
+```
+.stamp/versions/
+└── external/                    # Special folder for out-of-project artifacts
+    └── a1b2c3d4-external_data.csv/   # Hash prefix + basename
+        ├── 20250108T121500Z-abc12345/
+        └── 20250108T143000Z-def67890/
+```
+
+Here `a1b2c3d4` is the first 8 characters of the artifact's unique ID (hash of its absolute path). This ensures that two files with the same name but different absolute paths don't collide.
+
+#### Real-World Example
+
+```{r artifact-organization-demo, eval=FALSE}
+# Scenario 1: File inside project (uses relative path)
+project_file <- fs::path(demo_dir, "outputs", "results.qs2")
+st_save(data.frame(x = 1:5), project_file)
+
+# Versions stored at: .stamp/versions/outputs/results.qs2/
+# ✓ Easy to navigate - mirrors your project structure
+
+# Scenario 2: File outside project (uses hash + basename)
+external_file <- fs::path_temp("temp_results.qs2")
+st_save(data.frame(y = 6:10), external_file)
+
+# Versions stored at: .stamp/versions/external/<hash>-temp_results.qs2/
+# ✓ Collision-free - different absolute paths get different hashes
+```
+
+#### Why This Matters
+
+1. **Inside project**: Intuitive navigation - version directories match your project structure
+2. **Outside project**: Still tracked, but requires using `st_info()` to find the exact snapshot location
+3. **Collision safety**: Two files named `data.csv` at different absolute paths never conflict
+
+**Best practice:** Keep artifacts inside your project directory when possible for easier manual inspection of the `.stamp/versions/` tree.
+
+---
+
+## 3. How Versioning Works
+
+### 3.1 The Version Creation Process
+
+When you call `st_save()`, here's what happens internally:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       st_save(data, path)                       │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────────┐
+         │  1. Decide if save is needed           │
+         │     (st_should_save)                   │
+         ├────────────────────────────────────────┤
+         │  • Check if file exists                │
+         │  • Compare content hash                │
+         │  • Compare code hash                   │
+         │  • Check versioning policy             │
+         └────────────────┬───────────────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────────┐
+         │  2. Write artifact atomically          │
+         ├────────────────────────────────────────┤
+         │  • Write to temp file                  │
+         │  • Move to destination (atomic)        │
+         └────────────────┬───────────────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────────┐
+         │  3. Write sidecar metadata             │
+         ├────────────────────────────────────────┤
+         │  • Compute hashes                      │
+         │  • Record timestamp                    │
+         │  • Store in stmeta/ directory          │
+         └────────────────┬───────────────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────────┐
+         │  4. Update catalog                     │
+         ├────────────────────────────────────────┤
+         │  • Add version row to catalog          │
+         │  • Update artifact's latest_version_id │
+         │  • Increment n_versions counter        │
+         └────────────────┬───────────────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────────┐
+         │  5. Create version snapshot            │
+         ├────────────────────────────────────────┤
+         │  • Copy artifact to versions/          │
+         │  • Copy sidecars                       │
+         │  • Write parents.json                  │
+         └────────────────┬───────────────────────┘
+                          │
+                          ▼
+         ┌────────────────────────────────────────┐
+         │  6. Apply retention policy             │
+         │     (if configured)                    │
+         ├────────────────────────────────────────┤
+         │  • Prune old versions based on policy  │
+         └────────────────────────────────────────┘
+```
+
+Each step is designed to be **atomic and crash-safe**, ensuring that partial writes never corrupt your version history.
+
+### 3.2 Version Identifiers
+
+Version IDs are deterministic hashes combining:
+
+- Timestamp (microsecond precision)
+- Content hash
+- Code hash (if available)
+- Artifact ID
+
+Example: `20250108T121507123456Z-abc12345`
+
+This ensures:
+
+- **Chronological ordering** - Timestamps sort naturally
+- **Uniqueness** - Hash suffix prevents collisions
+- **Traceability** - Hash links to specific content state
+
+### 3.3 Versioning Modes
+
+Control versioning behavior with `st_opts()`:
+
+```{r versioning-modes}
+# Show current versioning mode
+st_opts("versioning", .get = TRUE)
+
+# Available modes:
+# - "content" (default): Save version only when content or code changes
+# - "timestamp": Save version on every st_save() call
+# - "off": Disable versioning (only update current file + sidecar)
+
+# Example: Force version on every save
+st_opts(versioning = "timestamp")
+v_same <- data.frame(x = 1:3)
+st_save(v_same, test_path, code_label = "first")
+Sys.sleep(0.2)
+st_save(v_same, test_path, code_label = "second identical")  # Still creates version!
+
+# Check: two versions with identical content
+recent_versions <- st_versions(test_path)
+tail(recent_versions[, .(version_id, created_at, content_hash)], 2)
+
+# Reset to default
+st_opts(versioning = "content")
+```
+
+---
+
+## 4. Developer Details
+
+### 4.1 Key Internal Functions
+
+These functions power the `.stamp/` infrastructure (from `R/version_store.R`):
+
+**Path and ID Management:**
+```{r internal-funcs, eval=FALSE}
+.st_norm_path(path)           # Normalize path to absolute canonical form
+.st_artifact_id(path)         # Compute stable hash identifier from path
+.st_root_dir()                # Get project root from st_init()
+.st_state_dir_abs()           # Get absolute .stamp/ path
+```
+
+**Catalog Operations:**
+```{r catalog-ops, eval=FALSE}
+.st_catalog_path()            # Path to catalog.qs2
+.st_catalog_read()            # Read catalog (or create empty if missing)
+.st_catalog_write(cat)        # Atomic catalog write with locking
+.st_catalog_record_version()  # Add new version row to catalog
+```
+
+**Version Management:**
+```{r version-ops, eval=FALSE}
+.st_versions_root()           # Get versions/ directory path
+.st_version_dir(path, vid)    # Compute specific version snapshot path
+.st_version_commit_files()    # Copy artifact + sidecars to snapshot
+.st_version_read_parents()    # Read parents.json from snapshot
+.st_version_write_parents()   # Write parents.json to snapshot
+```
+
+### 4.2 Concurrency and Safety
+
+#### File-Based Locking Explained
+
+**The Problem:** Imagine two R sessions running simultaneously, both trying to save artifacts:
+
+```
+Session A: Reads catalog → Modifies → Writes back
+Session B: Reads catalog → Modifies → Writes back
+```
+
+Without coordination, Session B might overwrite Session A's changes, **losing version records**.
+
+**The Solution:** `stamp` uses **file-based locking** to ensure only one process modifies the catalog at a time:
+
+```
+Session A: Acquires lock → Reads → Modifies → Writes → Releases lock
+Session B: Waits for lock → Acquires lock → Reads → Modifies → Writes → Releases lock
+```
+
+This is implemented via a lock file (`.stamp/catalog.lock`):
+
+```{r locking-demo, eval=FALSE}
+# Internal locking mechanism (simplified)
+.st_with_lock(path, {
+  cat <- .st_catalog_read()     # Read catalog safely
+  # ... modify catalog ...       # Make changes
+  .st_catalog_write(cat)         # Write back safely
+})
+
+# Lock file: .stamp/catalog.lock
+# - Created automatically during catalog updates
+# - Uses filelock package if available (recommended)
+# - 5-second timeout prevents permanent deadlocks
+# - Automatically cleaned up after operation completes
+```
+
+**Real-world scenarios where locking matters:**
+
+1. **Parallel processing:** Running `future::plan(multisession)` with multiple workers saving artifacts
+2. **Shared filesystems:** Multiple analysts on a server saving to the same project
+3. **Background jobs:** RStudio background jobs running `st_save()` while you work interactively
+
+**What happens without the filelock package?**
+
+- `stamp` falls back to **advisory locking** (no enforcement, relies on cooperation)
+- Risk of corruption increases in high-concurrency scenarios
+- Install `filelock` for production use: `install.packages("filelock")`
+
+#### Atomic Operations
+
+Beyond locking, `stamp` uses **atomic operations** to prevent partial writes that could corrupt your data.
+
+**What "atomic" means:** An operation that either completes entirely or fails entirely, with no in-between state visible to other processes.
+
+**Why this matters:** Consider what could go wrong without atomicity:
+
+```
+# Bad scenario (non-atomic):
+1. Start writing new data to file
+2. ❌ CRASH (power outage, R session killed, etc.)
+3. File now contains partial/corrupt data
+4. Version history references a broken file
+```
+
+**How stamp ensures atomicity:**
+
+- **File writes:** Always write to temp file → move to final location (filesystem-level atomic operation)
+- **Catalog updates:** Read-modify-write under lock ensures serialized updates
+- **Version snapshots:** Immutable once created (copy operations, never modified)
+
+---
+
+## 5. Inspecting `.stamp/` Programmatically
+
+### 5.1 User-Level Inspection
+
+```{r user-inspection}
+# List all versions of an artifact
+versions <- st_versions(test_path)
+versions[, .(version_id, created_at, size_bytes)]
+
+# Get comprehensive info
+info <- st_info(test_path)
+info$catalog  # Latest version and count
+info$snapshot_dir  # Path to latest snapshot
+
+# Load a specific historical version
+if (nrow(versions) > 1) {
+  old_version <- st_load(test_path, version = -1)  # Previous version
+  str(old_version)
+}
+```
+
+### 5.2 Direct Catalog Access (Advanced)
+
+```{r direct-catalog, eval=FALSE}
+# NOT recommended for users, but useful for debugging
+catalog_path <- fs::path(demo_dir, ".stamp", "catalog.qs2")
+if (fs::file_exists(catalog_path)) {
+  cat <- qs2::qs_read(catalog_path)
+  
+  # View all artifacts
+  print(cat$artifacts)
+  
+  # View all versions
+  print(cat$versions)
+}
+```
+
+### 5.3 Exploring Snapshots
+
+```{r explore-snapshots}
+# Get all version directories for an artifact
+versions_root <- fs::path(demo_dir, ".stamp", "versions")
+artifact_dir <- fs::path(versions_root, "data", "test.qs2")
+
+if (fs::dir_exists(artifact_dir)) {
+  # List all version snapshots
+  snapshot_dirs <- fs::dir_ls(artifact_dir, type = "directory")
+  
+  # Inspect contents of latest snapshot
+  if (length(snapshot_dirs) > 0) {
+    latest <- snapshot_dirs[length(snapshot_dirs)]
+    fs::dir_tree(latest)
+    
+    # Read parents.json if present
+    parents_file <- fs::path(latest, "parents.json")
+    if (fs::file_exists(parents_file)) {
+      parents <- jsonlite::read_json(parents_file)
+      str(parents)
+    }
+  }
+}
+```
+
+---
+
+## 6. Troubleshooting
+
+### 6.1 Missing or Corrupt `.stamp/` Directory
+
+**Symptom:** Functions like `st_versions()` return empty results or error.
+
+**Diagnosis:**
+```{r diagnose-missing, eval=FALSE}
+# Check if .stamp exists
+stamp_dir <- fs::path(demo_dir, ".stamp")
+fs::dir_exists(stamp_dir)
+
+# Check if catalog exists
+catalog_path <- fs::path(stamp_dir, "catalog.qs2")
+fs::file_exists(catalog_path)
+```
+
+**Solution:**
+```{r fix-missing, eval=FALSE}
+# Re-initialize (safe, won't delete existing data)
+st_init(demo_dir)
+
+# If catalog is corrupt, it will be recreated empty on first st_save()
+# Note: This means version history is lost - restore from backup if available
+```
+
+### 6.2 Catalog Schema Mismatch
+
+**Symptom:** Error: "Catalog schema mismatch in versions table."
+
+**Cause:** Package upgrade changed catalog structure, or manual corruption.
+
+**Solution:**
+```{r fix-schema, eval=FALSE}
+# Back up existing catalog
+backup_path <- fs::path(stamp_dir, "catalog_backup.qs2")
+fs::file_copy(catalog_path, backup_path, overwrite = TRUE)
+
+# Option 1: Delete catalog and rebuild (LOSES VERSION HISTORY)
+fs::file_delete(catalog_path)
+# Next st_save() will create fresh catalog
+
+# Option 2: Manual migration (advanced - contact package maintainer)
+```
+
+### 6.3 Disk Space Issues
+
+**Symptom:** `.stamp/versions/` grows very large.
+
+**Diagnosis:**
+```{r disk-usage, eval=FALSE}
+# Check total size of .stamp directory
+stamp_size <- fs::dir_info(stamp_dir, recurse = TRUE) |>
+  dplyr::summarise(total_mb = sum(size) / 1024^2)
+stamp_size
+
+# Find largest version directories
+fs::dir_info(fs::path(stamp_dir, "versions"), recurse = TRUE) |>
+  dplyr::arrange(desc(size)) |>
+  head(10)
+```
+
+**Solution:**
+```{r fix-disk, eval=FALSE}
+# Configure retention policy to auto-prune old versions
+st_opts(retention_policy = list(n = 10, days = 90))
+
+# Manually prune versions for specific artifact
+st_prune_versions(test_path, policy = list(n = 5), dry_run = FALSE)
+
+# Prune all artifacts (use with caution!)
+catalog <- stamp:::.st_catalog_read()
+for (aid in unique(catalog$versions$artifact_id)) {
+  artifact_path <- catalog$artifacts[artifact_id == aid]$path[1]
+  st_prune_versions(artifact_path, policy = list(n = 5), dry_run = FALSE)
+}
+```
+
+### 6.4 Version Timestamp Issues
+
+**Symptom:** Timestamps appear corrupted or versions won't load.
+
+**Diagnosis:**
+```{r diagnose-timestamps}
+# Check for invalid timestamps
+vers <- st_versions(test_path)
+bad_timestamps <- vers[is.na(created_at) | created_at == ""]
+nrow(bad_timestamps)
+```
+
+**Solution:**
+The package automatically drops corrupt version rows when reading. If this happens frequently, check for:
+
+- System clock issues
+- Concurrent access without proper locking
+- Manual modification of catalog files
+
+### 6.5 Artifacts Outside Project Root
+
+**Symptom:** Can't find version snapshots for artifacts outside the project directory.
+
+**Explanation:** These are stored in `versions/external/` with a special naming convention.
+
+```{r external-artifacts, eval=FALSE}
+# Artifact outside project root
+external_path <- fs::path_temp("external_data.csv")
+st_save(data.frame(a = 1:3), external_path)
+
+# Snapshot is under external/
+aid <- stamp:::.st_artifact_id(external_path)
+substr(aid, 1, 8)  # First 8 chars used in directory name
+
+external_dir <- fs::path(stamp_dir, "versions", "external")
+fs::dir_ls(external_dir)
+```
+
+### 6.6 Lock File Issues
+
+**Symptom:** `catalog.lock` file persists after crash.
+
+**Solution:**
+```{r fix-lock, eval=FALSE}
+# Safe to delete if no stamp operations are running
+lock_file <- fs::path(stamp_dir, "catalog.lock")
+if (fs::file_exists(lock_file)) {
+  fs::file_delete(lock_file)
+}
+```
+
+---
+
+## 7. Best Practices
+
+### 7.1 Version Control Integration
+
+**Include in `.gitignore`:**
+```
+.stamp/temp/
+.stamp/logs/
+.stamp/catalog.lock
+```
+
+**Consider including:**
+- `.stamp/catalog.qs2` - Enables version history tracking across team
+- `.stamp/versions/` - Useful for small datasets, prohibitive for large files
+
+**For large projects:**
+```
+# .gitignore
+.stamp/versions/  # Too large for git
+.stamp/catalog.qs2  # Local catalog only
+```
+
+### 7.2 Backup Strategy
+
+```{r backup-strategy, eval=FALSE}
+# Periodic catalog backup
+backup_dir <- fs::path(demo_dir, "_backups")
+fs::dir_create(backup_dir)
+
+catalog_src <- fs::path(stamp_dir, "catalog.qs2")
+catalog_dst <- fs::path(backup_dir, sprintf("catalog_%s.qs2", Sys.Date()))
+fs::file_copy(catalog_src, catalog_dst, overwrite = TRUE)
+
+# For critical projects, also backup versions/
+versions_src <- fs::path(stamp_dir, "versions")
+versions_dst <- fs::path(backup_dir, sprintf("versions_%s", Sys.Date()))
+fs::dir_copy(versions_src, versions_dst, overwrite = TRUE)
+```
+
+### 7.3 Monitoring and Maintenance
+
+```{r monitoring, eval=FALSE}
+# Regular health check
+check_stamp_health <- function(root) {
+  stamp_dir <- fs::path(root, ".stamp")
+  
+  checks <- list(
+    stamp_exists = fs::dir_exists(stamp_dir),
+    catalog_exists = fs::file_exists(fs::path(stamp_dir, "catalog.qs2")),
+    versions_exists = fs::dir_exists(fs::path(stamp_dir, "versions")),
+    total_size_mb = sum(fs::dir_info(stamp_dir, recurse = TRUE)$size) / 1024^2
+  )
+  
+  # Count total versions
+  if (checks$catalog_exists) {
+    cat <- stamp:::.st_catalog_read()
+    checks$total_versions <- nrow(cat$versions)
+    checks$total_artifacts <- nrow(cat$artifacts)
+  }
+  
+  checks
+}
+
+check_stamp_health(demo_dir)
+```
+
+---
+
+## 8. Summary
+
+The `.stamp/` directory is a **robust, append-only version store** that:
+
+✅ **Persists across sessions** - Re-running `st_init()` is safe  
+✅ **Tracks complete version history** - Every save creates an immutable snapshot  
+✅ **Enables lineage tracking** - Parent relationships preserved in `parents.json`  
+✅ **Supports concurrent access** - File-based locking prevents corruption  
+✅ **Scales with retention policies** - Auto-prune old versions to manage disk space  
+
+**Key takeaways for users:**
+
+- `.stamp/` is created once and grows with each version
+- Safe to re-initialize without losing history
+- Use `st_versions()`, `st_info()`, and `st_load(version=...)` to explore history
+- Configure retention policies to manage disk usage
+
+**Key takeaways for developers:**
+
+- Catalog is the source of truth (two tables: artifacts, versions)
+- Version snapshots are immutable and organized by relative path
+- All writes use atomic operations + locking for safety
+- Internal functions prefixed with `.st_` provide infrastructure
+
+---
+
+```{r cleanup, include=FALSE}
+# Clean up demo directory
+fs::dir_delete(demo_dir)
+```
+
+## Further Reading
+
+- **Setup and Basics** - General introduction to stamp workflows
+- **Hashing and Versions** - Deep dive into content hashing
+- **Lineage and Rebuilds** - Using parent tracking for reproducibility
+- **Version Retention and Pruning** - Managing disk space with retention policies
