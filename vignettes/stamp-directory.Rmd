@@ -641,15 +641,15 @@ fs::file_delete(catalog_path)
 
 **Diagnosis:**
 ```{r disk-usage, eval=FALSE}
-# Check total size of .stamp directory
-stamp_size <- fs::dir_info(stamp_dir, recurse = TRUE) |>
-  dplyr::summarise(total_mb = sum(size) / 1024^2)
-stamp_size
+# Check total size
+info <- fs::dir_info(stamp_dir, recurse = TRUE)
+data.table::data.table(total_mb = sum(info$size) / 1024^2)
 
-# Find largest version directories
-fs::dir_info(fs::path(stamp_dir, "versions"), recurse = TRUE) |>
-  dplyr::arrange(desc(size)) |>
-  head(10)
+# Find largest directories
+info <- data.table::as.data.table(
+  fs::dir_info(fs::path(stamp_dir, "versions"), recurse = TRUE)
+)
+info[order(-size)][1:10]
 ```
 
 **Solution:**
@@ -760,32 +760,7 @@ versions_dst <- fs::path(backup_dir, sprintf("versions_%s", Sys.Date()))
 fs::dir_copy(versions_src, versions_dst, overwrite = TRUE)
 ```
 
-### 7.3 Monitoring and Maintenance
 
-```{r monitoring, eval=FALSE}
-# Regular health check
-check_stamp_health <- function(root) {
-  stamp_dir <- fs::path(root, ".stamp")
-  
-  checks <- list(
-    stamp_exists = fs::dir_exists(stamp_dir),
-    catalog_exists = fs::file_exists(fs::path(stamp_dir, "catalog.qs2")),
-    versions_exists = fs::dir_exists(fs::path(stamp_dir, "versions")),
-    total_size_mb = sum(fs::dir_info(stamp_dir, recurse = TRUE)$size) / 1024^2
-  )
-  
-  # Count total versions
-  if (checks$catalog_exists) {
-    cat <- stamp:::.st_catalog_read()
-    checks$total_versions <- nrow(cat$versions)
-    checks$total_artifacts <- nrow(cat$artifacts)
-  }
-  
-  checks
-}
-
-check_stamp_health(demo_dir)
-```
 
 ---
 
@@ -822,7 +797,5 @@ fs::dir_delete(demo_dir)
 
 ## Further Reading
 
-- **Setup and Basics** - General introduction to stamp workflows
-- **Hashing and Versions** - Deep dive into content hashing
-- **Lineage and Rebuilds** - Using parent tracking for reproducibility
-- **Version Retention and Pruning** - Managing disk space with retention policies
+- `vignette("setup-and-basics", package = "stamp")` - General introduction
+- `vignette("hashing-and-versions", package = "stamp")` - Deep dive into content hashing
