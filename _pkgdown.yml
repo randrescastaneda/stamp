@@ -83,6 +83,7 @@ articles:
     navbar: Basics
     contents:
     - setup-and-basics
+    - stamp-directory
     - hashing-and-versions
     - lineage-rebuilds
 
