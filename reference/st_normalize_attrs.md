@@ -24,8 +24,8 @@ class is preserved.
 ## Problem
 
 Operations like
-[`collapse::rowbind()`](https://rdrr.io/pkg/collapse/man/rowbind.html) +
-[`collapse::funique()`](https://rdrr.io/pkg/collapse/man/funique.html)
+[`collapse::rowbind()`](https://fastverse.org/collapse/reference/rowbind.html) +
+[`collapse::funique()`](https://fastverse.org/collapse/reference/funique.html)
 can leave attributes in different orders even when content is identical.
 Since [`serialize()`](https://rdrr.io/r/base/serialize.html) includes
 attribute order, this causes different byte streams and thus different

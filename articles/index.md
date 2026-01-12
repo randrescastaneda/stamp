@@ -4,6 +4,8 @@
 
 - [Setup and
   Basics](https://randrescastaneda.github.io/stamp/articles/setup-and-basics.md):
+- [The .stamp Directory: Structure and
+  Internals](https://randrescastaneda.github.io/stamp/articles/stamp-directory.md):
 - [Hashing, Change Detection and
   Versions](https://randrescastaneda.github.io/stamp/articles/hashing-and-versions.md):
 - [Lineage and

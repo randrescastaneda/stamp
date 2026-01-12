@@ -26,6 +26,7 @@ R does not allow reordering attributes in-place."></head><body>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Basics</h6></li>
     <li><a class="dropdown-item" href="../articles/setup-and-basics.html">Setup and Basics</a></li>
+    <li><a class="dropdown-item" href="../articles/stamp-directory.html">The .stamp Directory: Structure and Internals</a></li>
     <li><a class="dropdown-item" href="../articles/hashing-and-versions.html">Hashing, Change Detection and Versions</a></li>
     <li><a class="dropdown-item" href="../articles/lineage-rebuilds.html">Lineage and Rebuilds</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -78,7 +79,7 @@ The class is preserved.</p>
     <h2 id="problem">Problem<a class="anchor" aria-label="anchor" href="#problem"></a></h2>
 
 
-<p>Operations like <code><a href="https://rdrr.io/pkg/collapse/man/rowbind.html" class="external-link">collapse::rowbind()</a></code> + <code><a href="https://rdrr.io/pkg/collapse/man/funique.html" class="external-link">collapse::funique()</a></code> can leave
+<p>Operations like <code><a href="https://fastverse.org/collapse/reference/rowbind.html" class="external-link">collapse::rowbind()</a></code> + <code><a href="https://fastverse.org/collapse/reference/funique.html" class="external-link">collapse::funique()</a></code> can leave
 attributes in different orders even when content is identical. Since
 <code><a href="https://rdrr.io/r/base/serialize.html" class="external-link">serialize()</a></code> includes attribute order, this causes different byte streams
 and thus different hashes for logically identical objects.</p>

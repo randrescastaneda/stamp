@@ -13,14 +13,14 @@
 Source:
 [`DESCRIPTION`](https://github.com/randrescastaneda/stamp/blob/master/DESCRIPTION)
 
-Castaneda R, Garcia Rojas D (2025). *stamp: Reproducible Artifact Store
+Castaneda R, Garcia Rojas D (2026). *stamp: Reproducible Artifact Store
 with Sidecars, Versions, and Partitions*. R package version 0.0.6,
 <https://randrescastaneda.github.io/stamp/>.
 
     @Manual{,
       title = {stamp: Reproducible Artifact Store with Sidecars, Versions, and Partitions},
       author = {R.Andres Castaneda and Diana C. {Garcia Rojas}},
-      year = {2025},
+      year = {2026},
       note = {R package version 0.0.6},
       url = {https://randrescastaneda.github.io/stamp/},
     }
