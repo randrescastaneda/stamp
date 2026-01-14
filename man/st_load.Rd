@@ -4,7 +4,7 @@
 \alias{st_load}
 \title{Load an object from disk (format auto-detected; optional integrity checks)}
 \usage{
-st_load(file, format = NULL, version = NULL, ...)
+st_load(file, format = NULL, version = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{file}{path or st_path}
@@ -13,6 +13,10 @@ st_load(file, format = NULL, version = NULL, ...)
 
 \item{version}{An integer or a quoted directive. Retrieve a specific version
 of an artifact. See details.}
+
+\item{verbose}{logical; if FALSE, suppress informational messages and package-generated
+warnings (default TRUE). When \code{FALSE}, warnings about file/content hash
+mismatches and a missing primary key recorded by \code{st_load()} will not be shown.}
 
 \item{...}{forwarded to format reader}
 }
