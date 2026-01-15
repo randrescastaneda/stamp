@@ -1,3 +1,36 @@
+test_that("st_save and st_load respect verbose flag", {
+  tmp <- tempfile(fileext = ".rds")
+
+  # Save with verbose = TRUE (should emit message)
+  expect_message(
+    st_save(mtcars, tmp, format = "rds", verbose = TRUE),
+    "Saved \["
+  )
+
+  # Load with verbose = TRUE (should emit message)
+  expect_message(
+    st_load(tmp, verbose = TRUE),
+    "Loaded \["
+  )
+
+  # Save with verbose = FALSE (should be silent for package messages)
+  expect_silent(
+    st_save(mtcars, tmp, format = "rds", verbose = FALSE)
+  )
+
+  # Load with verbose = FALSE (should be silent for package messages)
+  expect_silent(
+    st_load(tmp, verbose = FALSE)
+  )
+
+  # Ensure PK-missing warning is suppressed when verbose = FALSE
+  old_warn <- st_opts("warn_missing_pk_on_load", .get = TRUE)
+  on.exit(st_opts(warn_missing_pk_on_load = old_warn), add = TRUE)
+  st_opts(warn_missing_pk_on_load = TRUE)
+  expect_silent({
+    st_load(tmp, verbose = FALSE)
+  })
+})
 st_opts(warn_missing_pk_on_load = FALSE)
 test_that("st_save and st_load create artifact, sidecar and versions", {
   skip_on_cran()
