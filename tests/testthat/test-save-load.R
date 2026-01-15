@@ -1,16 +1,18 @@
 test_that("st_save and st_load respect verbose flag", {
-  tmp <- tempfile(fileext = ".rds")
+  td <- withr::local_tempdir()
+  st_init(td)
+  tmp <- fs::path(td, "test.rds")
 
   # Save with verbose = TRUE (should emit message)
   expect_message(
     st_save(mtcars, tmp, format = "rds", verbose = TRUE),
-    "Saved \["
+    "Saved \\["
   )
 
   # Load with verbose = TRUE (should emit message)
   expect_message(
     st_load(tmp, verbose = TRUE),
-    "Loaded \["
+    "Loaded \\["
   )
 
   # Save with verbose = FALSE (should be silent for package messages)

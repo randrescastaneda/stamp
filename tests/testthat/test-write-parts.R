@@ -2,8 +2,7 @@ test_that("st_write_parts auto-partitions and saves data", {
   skip_if_not_installed("data.table")
   library(data.table)
 
-  tdir <- tempfile("stamp-write-parts-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -56,8 +55,7 @@ test_that("st_write_parts auto-partitions and saves data", {
 })
 
 test_that("st_write_parts handles missing partition columns", {
-  tdir <- tempfile("stamp-write-parts-err-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -72,8 +70,7 @@ test_that("st_write_parts handles missing partition columns", {
 })
 
 test_that("st_write_parts works with base data.frame", {
-  tdir <- tempfile("stamp-write-parts-df-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -101,8 +98,7 @@ test_that("st_write_parts with filter allows selective loading", {
   skip_if_not_installed("data.table")
   library(data.table)
 
-  tdir <- tempfile("stamp-write-parts-filter-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -155,8 +151,7 @@ test_that("st_load_parts supports column selection for parquet", {
   skip_if_not_installed("nanoparquet")
   library(data.table)
 
-  tdir <- tempfile("stamp-load-cols-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -195,8 +190,7 @@ test_that("st_load_parts warns for non-columnar formats", {
   skip_if_not_installed("data.table")
   library(data.table)
 
-  tdir <- tempfile("stamp-load-warn-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -235,8 +229,7 @@ test_that("st_load_parts supports expression-based filtering", {
   skip_if_not_installed("data.table")
   library(data.table)
 
-  tdir <- tempfile("stamp-filter-expr-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -302,8 +295,7 @@ test_that("st_load_parts backward compatible with list filter", {
   skip_if_not_installed("data.table")
   library(data.table)
 
-  tdir <- tempfile("stamp-filter-list-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -338,8 +330,7 @@ test_that("st_list_parts supports expression filtering", {
   skip_if_not_installed("data.table")
   library(data.table)
 
-  tdir <- tempfile("stamp-list-expr-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
@@ -388,8 +379,7 @@ test_that("filter expressions handle numeric comparisons correctly", {
   skip_if_not_installed("data.table")
   library(data.table)
 
-  tdir <- tempfile("stamp-filter-numeric-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)

@@ -16,8 +16,7 @@ test_that("data.table hashing ignores volatile internals", {
 })
 
 test_that("saving + loading restores data.table class", {
-  tdir <- tempfile("stamp-sanitize-test-")
-  dir.create(tdir)
+  tdir <- withr::local_tempdir()
   old_opts <- options()
   on.exit(options(old_opts), add = TRUE)
   st_init(tdir)
