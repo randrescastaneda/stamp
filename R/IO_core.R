@@ -325,7 +325,7 @@ st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
         "Could not resolve version {.val {version}} for {.file {sp$path}}"
       )
     }
-    return(st_load_version(sp$path, version_id, ...))
+    return(st_load_version(sp$path, version_id, ..., verbose = verbose))
   }
 
   # Existence check
