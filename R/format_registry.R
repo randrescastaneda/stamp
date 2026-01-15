@@ -11,175 +11,139 @@
 #' @keywords internal
 NULL
 
-#' Write using qs2 (internal)
-#'
-#' Write `x` to `path` using `qs2` APIs. Errors if the {.pkg qs2}
-#' package is not installed or required entrypoints are unavailable.
-#'
-#' @return Invisibly returns what the underlying writer returns.
-#' @rdname stamp-format-helpers
-.st_write_qs2 <- function(x, path, verbose = TRUE, ...) {
+# ---- helpers: verbose-aware wrappers ----------------------------------------
+
+# Wrap a reader: adds verbose arg and suppresses warnings when FALSE
+.st_wrap_reader <- function(read_fn) {
+  function(path, verbose = TRUE, ...) {
+    if (isTRUE(verbose)) {
+      read_fn(path, ...)
+    } else {
+      suppressWarnings(read_fn(path, ...))
+    }
+  }
+}
+
+# Wrap a writer: adds verbose arg and suppresses warnings when FALSE
+.st_wrap_writer <- function(write_fn) {
+  function(x, path, verbose = TRUE, ...) {
+    if (isTRUE(verbose)) {
+      write_fn(x, path, ...)
+    } else {
+      suppressWarnings(write_fn(x, path, ...))
+    }
+  }
+}
+
+# ---- base handlers (no verbose logic inside) --------------------------------
+
+.st_write_qs2 <- function(x, path, ...) {
   if (!requireNamespace("qs2", quietly = TRUE)) {
     cli::cli_abort(
       "{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}."
     )
   }
-  if (isTRUE(verbose)) {
-    qs2::qs_save(x, path, ...)
-  } else {
-    suppressWarnings(qs2::qs_save(x, path, ...))
-  }
+  qs2::qs_save(x, path, ...)
 }
 
-#' Read using qs2 (internal)
-#'
-#' Read an object from `path` using `qs2` APIs. Errors if the {.pkg qs2}
-#' package is not installed or required entrypoints are unavailable.
-#'
-#' @return The R object read from `path`.
-#' @rdname stamp-format-helpers
-.st_read_qs2 <- function(path, verbose = TRUE, ...) {
+.st_read_qs2 <- function(path, ...) {
   if (!requireNamespace("qs2", quietly = TRUE)) {
     cli::cli_abort(
       "{.pkg qs2} is required to read {.field qs2} format. Please install {.pkg qs2}."
     )
   }
-  if (isTRUE(verbose)) {
-    qs2::qs_read(path, ...)
-  } else {
-    suppressWarnings(qs2::qs_read(path, ...))
-  }
+  qs2::qs_read(path, ...)
 }
 
-# Seed built-ins with explicit closures for all format handlers
+.st_qs_read <- function(path, ...) {
+  qs::qread(path, ...)
+}
+.st_qs_write <- function(x, path, ...) {
+  qs::qsave(x, path, ...)
+}
+.st_rds_read <- function(path, ...) {
+  readRDS(path, ...)
+}
+.st_rds_write <- function(x, path, ...) {
+  saveRDS(x, path, ...)
+}
+.st_csv_read <- function(path, ...) {
+  data.table::fread(path, ...)
+}
+.st_csv_write <- function(x, path, ...) {
+  data.table::fwrite(x, path, ...)
+}
+
+.st_fst_read <- function(path, ...) {
+  if (!requireNamespace("fst", quietly = TRUE)) {
+    cli::cli_abort("{.pkg fst} is required for FST read.")
+  }
+  fst::read_fst(path, ...)
+}
+.st_fst_write <- function(x, path, ...) {
+  if (!requireNamespace("fst", quietly = TRUE)) {
+    cli::cli_abort("{.pkg fst} is required for FST write.")
+  }
+  fst::write_fst(x, path, ...)
+}
+
+.st_parquet_read <- function(path, ...) {
+  if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+    cli::cli_abort("{.pkg nanoparquet} is required for Parquet read.")
+  }
+  nanoparquet::read_parquet(path, ...)
+}
+.st_parquet_write <- function(x, path, ...) {
+  if (!requireNamespace("nanoparquet", quietly = TRUE)) {
+    cli::cli_abort("{.pkg nanoparquet} is required for Parquet write.")
+  }
+  nanoparquet::write_parquet(x, file = path, ...)
+}
+
+.st_json_read <- function(path, ...) {
+  if (!requireNamespace("jsonlite", quietly = TRUE)) {
+    cli::cli_abort("{.pkg jsonlite} is required for JSON read.")
+  }
+  jsonlite::read_json(path, simplifyVector = TRUE, ...)
+}
+.st_json_write <- function(x, path, ...) {
+  if (!requireNamespace("jsonlite", quietly = TRUE)) {
+    cli::cli_abort("{.pkg jsonlite} is required for JSON write.")
+  }
+  jsonlite::write_json(x, path, auto_unbox = TRUE, digits = NA, ...)
+}
+
+# ---- bind wrapped handlers into registry ------------------------------------
+
 rlang::env_bind(
   .st_formats_env,
-  qs2 = list(read = .st_read_qs2, write = .st_write_qs2),
+  qs2 = list(
+    read = .st_wrap_reader(.st_read_qs2),
+    write = .st_wrap_writer(.st_write_qs2)
+  ),
   qs = list(
-    read = function(path, verbose = TRUE, ...) {
-      if (!requireNamespace("qs", quietly = TRUE)) {
-        cli::cli_abort("{.pkg qs} is required for QS read.")
-      }
-      if (isTRUE(verbose)) {
-        qs::qread(path, ...)
-      } else {
-        suppressWarnings(qs::qread(path, ...))
-      }
-    },
-    write = function(x, path, verbose = TRUE, ...) {
-      if (!requireNamespace("qs", quietly = TRUE)) {
-        cli::cli_abort("{.pkg qs} is required for QS write.")
-      }
-      if (isTRUE(verbose)) {
-        qs::qsave(x, path, ...)
-      } else {
-        suppressWarnings(qs::qsave(x, path, ...))
-      }
-    }
+    read = .st_wrap_reader(.st_qs_read),
+    write = .st_wrap_writer(.st_qs_write)
   ),
   rds = list(
-    read = function(path, verbose = TRUE, ...) {
-      if (isTRUE(verbose)) {
-        readRDS(path, ...)
-      } else {
-        suppressWarnings(readRDS(path, ...))
-      }
-    },
-    write = function(x, path, verbose = TRUE, ...) {
-      if (isTRUE(verbose)) {
-        saveRDS(x, path, ...)
-      } else {
-        suppressWarnings(saveRDS(x, path, ...))
-      }
-    }
+    read = .st_wrap_reader(.st_rds_read),
+    write = .st_wrap_writer(.st_rds_write)
   ),
   csv = list(
-    read = function(path, verbose = TRUE, ...) {
-      if (isTRUE(verbose)) {
-        data.table::fread(path, ...)
-      } else {
-        suppressWarnings(data.table::fread(path, ...))
-      }
-    },
-    write = function(x, path, verbose = TRUE, ...) {
-      if (isTRUE(verbose)) {
-        data.table::fwrite(x, path, ...)
-      } else {
-        suppressWarnings(data.table::fwrite(x, path, ...))
-      }
-    }
+    read = .st_wrap_reader(.st_csv_read),
+    write = .st_wrap_writer(.st_csv_write)
   ),
   fst = list(
-    read = function(path, verbose = TRUE, ...) {
-      if (!requireNamespace("fst", quietly = TRUE)) {
-        cli::cli_abort("{.pkg fst} is required for FST read.")
-      }
-      if (isTRUE(verbose)) {
-        fst::read_fst(path, ...)
-      } else {
-        suppressWarnings(fst::read_fst(path, ...))
-      }
-    },
-    write = function(x, path, verbose = TRUE, ...) {
-      if (!requireNamespace("fst", quietly = TRUE)) {
-        cli::cli_abort("{.pkg fst} is required for FST write.")
-      }
-      if (isTRUE(verbose)) {
-        fst::write_fst(x, path, ...)
-      } else {
-        suppressWarnings(fst::write_fst(x, path, ...))
-      }
-    }
+    read = .st_wrap_reader(.st_fst_read),
+    write = .st_wrap_writer(.st_fst_write)
   ),
   parquet = list(
-    read = function(path, verbose = TRUE, ...) {
-      if (!requireNamespace("nanoparquet", quietly = TRUE)) {
-        cli::cli_abort("{.pkg nanoparquet} is required for Parquet read.")
-      }
-      if (isTRUE(verbose)) {
-        nanoparquet::read_parquet(path, ...)
-      } else {
-        suppressWarnings(nanoparquet::read_parquet(path, ...))
-      }
-    },
-    write = function(x, path, verbose = TRUE, ...) {
-      if (!requireNamespace("nanoparquet", quietly = TRUE)) {
-        cli::cli_abort("{.pkg nanoparquet} is required for Parquet write.")
-      }
-      if (isTRUE(verbose)) {
-        nanoparquet::write_parquet(x, file = path, ...)
-      } else {
-        suppressWarnings(nanoparquet::write_parquet(x, file = path, ...))
-      }
-    }
+    read = .st_wrap_reader(.st_parquet_read),
+    write = .st_wrap_writer(.st_parquet_write)
   ),
   json = list(
-    read = function(path, verbose = TRUE, ...) {
-      if (!requireNamespace("jsonlite", quietly = TRUE)) {
-        cli::cli_abort("{.pkg jsonlite} is required for JSON read.")
-      }
-      if (isTRUE(verbose)) {
-        jsonlite::read_json(path, simplifyVector = TRUE, ...)
-      } else {
-        suppressWarnings(jsonlite::read_json(path, simplifyVector = TRUE, ...))
-      }
-    },
-    write = function(x, path, verbose = TRUE, ...) {
-      if (!requireNamespace("jsonlite", quietly = TRUE)) {
-        cli::cli_abort("{.pkg jsonlite} is required for JSON write.")
-      }
-      if (isTRUE(verbose)) {
-        jsonlite::write_json(x, path, auto_unbox = TRUE, digits = NA, ...)
-      } else {
-        suppressWarnings(jsonlite::write_json(
-          x,
-          path,
-          auto_unbox = TRUE,
-          digits = NA,
-          ...
-        ))
-      }
-    }
+    read = .st_wrap_reader(.st_json_read),
+    write = .st_wrap_writer(.st_json_write)
   )
 )
 
@@ -213,7 +177,11 @@ st_register_format <- function(name, read, write, extensions = NULL) {
   )
 
   replacing <- rlang::env_has(.st_formats_env, name)
-  rlang::env_poke(.st_formats_env, name, list(read = read, write = write))
+  rlang::env_poke(
+    .st_formats_env,
+    name,
+    list(read = .st_wrap_reader(read), write = .st_wrap_writer(write))
+  )
 
   if (!is.null(extensions)) {
     .st_extmap_set(extensions, name)

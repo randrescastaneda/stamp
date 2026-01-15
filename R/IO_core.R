@@ -162,16 +162,16 @@ st_save <- function(
           args_local <- list(...)
           writer_formals <- names(formals(h$write))
 
-          # Always include verbose in the call
-          writer_args <- c(list(obj, pth, verbose = verbose), args_local)
-
-          if (!is.null(writer_formals)) {
-            # Keep only args that the writer accepts
-            named <- names(writer_args)
-            named <- if (is.null(named)) rep("", length(writer_args)) else named
+          if (!is.null(writer_formals) && length(args_local)) {
+            # Keep only named args that the writer accepts
+            named <- names(args_local)
+            named <- if (is.null(named)) rep("", length(args_local)) else named
             keep_idx <- which(named != "" & named %in% writer_formals)
             if (length(keep_idx)) {
-              do.call(h$write, writer_args[keep_idx])
+              do.call(
+                h$write,
+                c(list(obj, pth, verbose = verbose), args_local[keep_idx])
+              )
             } else {
               h$write(obj, pth, verbose = verbose)
             }
