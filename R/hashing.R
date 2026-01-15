@@ -133,6 +133,20 @@ st_normalize_attrs <- function(x) {
 #' @keywords internal
 .st_is_dt <- function(x) inherits(x, "data.table")
 
+#' Check if object has custom (non-default) row names (internal)
+#'
+#' R's default row.names are integer sequences stored efficiently via
+#' .set_row_names(). This helper checks if an object has custom row.names
+#' (e.g., character names) that differ from the default representation.
+#'
+#' @param x A data.frame or similar object
+#' @return Logical: TRUE if custom row.names exist, FALSE otherwise
+#' @keywords internal
+.st_has_custom_rownames <- function(x) {
+  orig_rownames <- attr(x, "row.names")
+  !is.null(orig_rownames) && !identical(orig_rownames, .set_row_names(NROW(x)))
+}
+
 #' Sanitize object prior to hashing
 #'
 #' For tabular data we want hashing to depend only on the data/frame content,
@@ -150,7 +164,9 @@ st_normalize_attrs <- function(x) {
 #' NOTE: The returned object is a shallow copy; column data is not duplicated.
 #' @keywords internal
 st_sanitize_for_hash <- function(x) {
-  # Skip if already sanitized
+  # Skip re-sanitization for non-data.table objects (performance optimization)
+  # Note: data.tables are excluded because as.data.frame() must run each time
+  # to ensure .internal.selfref and other DT internals are properly stripped
   if (isTRUE(attr(x, "stamp_sanitized")) && !.st_is_dt(x)) {
     return(x)
   }
@@ -161,14 +177,14 @@ st_sanitize_for_hash <- function(x) {
       x <- as.data.frame(x)
     }
     attr(x, "st_original_format") <- orig_class
-    # Save original row names before sanitizing
-    orig_rownames <- attr(x, "row.names")
-    if (
-      !is.null(orig_rownames) &&
-        !identical(orig_rownames, .set_row_names(NROW(x)))
-    ) {
-      attr(x, "st_original_rownames") <- orig_rownames
+
+    # Preserve original row.names before sanitization if they're non-default
+    # (R's default row.names are integer sequences stored via .set_row_names)
+    if (.st_has_custom_rownames(x)) {
+      # Save custom row.names (e.g., character names) for restoration after load
+      attr(x, "st_original_rownames") <- attr(x, "row.names")
     }
+    # Normalize to integer sequence for consistent hashing
     attr(x, "row.names") <- .set_row_names(NROW(x))
     attr(x, "stamp_sanitized") <- TRUE
     return(x)
@@ -328,6 +344,66 @@ st_hash_file <- function(path) {
   # secretbase::siphash13(file = ...) streams the file without loading into memory
   # This is more efficient than readBin() + hash for large files
   secretbase::siphash13(file = path)
+}
+
+#' Restore original object attributes after sanitization (internal)
+#'
+#' Reverse the transformations applied by st_sanitize_for_hash() to return
+#' the object to its original user-facing form. This includes:
+#' - Restoring data.table class if it was a data.table originally
+#' - Restoring original row.names if they were preserved
+#' - Removing internal stamp attributes
+#'
+#' @param res Object to restore (typically just read from disk)
+#' @return The restored object with original attributes
+#' @keywords internal
+.st_restore_sanitized_object <- function(res) {
+  if (!is.data.frame(res)) {
+    # Only clean up stamp_sanitized for non-dataframes
+    if (!is.null(attr(res, "stamp_sanitized"))) {
+      attr(res, "stamp_sanitized") <- NULL
+    }
+    if (!is.null(attr(res, "st_original_format"))) {
+      attr(res, "st_original_format") <- NULL
+    }
+    return(res)
+  }
+
+  # Step 1: Restore data.table class first (affects how we set attributes)
+  if (
+    !is.null(attr(res, "st_original_format")) &&
+      "data.table" %in% attr(res, "st_original_format")
+  ) {
+    res <- as.data.table(res)
+  }
+
+  # Step 2: Restore original row.names
+  if (!is.null(attr(res, "st_original_rownames"))) {
+    orig_rn <- attr(res, "st_original_rownames")
+    if (inherits(res, "data.table")) {
+      setattr(res, "row.names", orig_rn)
+    } else {
+      attr(res, "row.names") <- orig_rn
+    }
+  }
+
+  # Step 3: Clean up internal attributes
+  attrs_to_remove <- c(
+    "st_original_format",
+    "st_original_rownames",
+    "stamp_sanitized"
+  )
+  if (inherits(res, "data.table")) {
+    for (attr_name in attrs_to_remove) {
+      setattr(res, attr_name, NULL)
+    }
+  } else {
+    for (attr_name in attrs_to_remove) {
+      attr(res, attr_name) <- NULL
+    }
+  }
+
+  res
 }
 
 

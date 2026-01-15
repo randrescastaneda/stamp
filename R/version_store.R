@@ -445,44 +445,8 @@ st_load_version <- function(path, version_id, verbose = TRUE, ...) {
   # Read the artifact with the registered reader
   res <- h$read(art, verbose = verbose, ...)
 
-  # Restore original tabular format if it was a data.table at save time
-  if (
-    is.data.frame(res) &&
-      !is.null(attr(res, "st_original_format")) &&
-      "data.table" %in% attr(res, "st_original_format")
-  ) {
-    res <- as.data.table(res)
-  }
-
-  # Restore original row names if they were preserved
-  if (is.data.frame(res) && !is.null(attr(res, "st_original_rownames"))) {
-    orig_rn <- attr(res, "st_original_rownames")
-    if (inherits(res, "data.table")) {
-      setattr(res, "row.names", orig_rn)
-      setattr(res, "st_original_rownames", NULL)
-    } else {
-      attr(res, "row.names") <- orig_rn
-      attr(res, "st_original_rownames") <- NULL
-    }
-  }
-
-  # Remove st_original_format attribute (internal marker, not part of user object)
-  if (!is.null(attr(res, "st_original_format"))) {
-    if (inherits(res, "data.table")) {
-      setattr(res, "st_original_format", NULL)
-    } else {
-      attr(res, "st_original_format") <- NULL
-    }
-  }
-
-  # Remove stamp_sanitized attribute (not part of user-visible object) after any verification
-  if (!is.null(attr(res, "stamp_sanitized"))) {
-    if (inherits(res, "data.table")) {
-      setattr(res, "stamp_sanitized", NULL)
-    } else {
-      attr(res, "stamp_sanitized") <- NULL
-    }
-  }
+  # Restore original object attributes (data.table class, row.names, etc.)
+  res <- .st_restore_sanitized_object(res)
 
   if (isTRUE(verbose)) {
     cli::cli_inform(c(
