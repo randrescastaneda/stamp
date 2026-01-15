@@ -4,12 +4,14 @@
 \alias{st_load_version}
 \title{Load a specific version of an artifact}
 \usage{
-st_load_version(path, version_id, ...)
+st_load_version(path, version_id, verbose = TRUE, ...)
 }
 \arguments{
 \item{path}{Character path to the artifact (same value used with \code{st_save}/\code{st_load}).}
 
 \item{version_id}{Character version identifier (as returned by \code{st_save} or present in the catalog).}
+
+\item{verbose}{Logical; if TRUE (default), print informational messages.}
 
 \item{...}{Additional arguments forwarded to the format's read function (e.g. \code{read} options).}
 }

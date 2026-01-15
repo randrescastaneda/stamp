@@ -84,8 +84,8 @@ print.st_path <- function(x, ...) {
 #' @param domain optional character scalar or vector label(s) for the dataset
 #' @param unique logical; enforce uniqueness of pk at save time (default TRUE)
 #' @param ... forwarded to format writer
-#' @param verbose logical; if FALSE, suppress informational messages and package-generated
-#'   warnings (default TRUE). When ` FALSE`, messages about skipped saves or save
+#' @param verbose logical; if `FALSE`, suppress informational messages and package-generated
+#'   warnings (default TRUE). When `FALSE`, messages about skipped saves or save
 #'   failures emitted by `st_save()` will not be shown.
 #' @return invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
 #' @export

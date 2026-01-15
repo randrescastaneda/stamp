@@ -13,7 +13,8 @@ row name representations. Strategy:
 \itemize{
 \item If \code{x} is a data.table: coerce to plain data.frame (drops DT internals).
 \item If \code{x} is a data.frame (including coerced DT): enforce deterministic
-row.names via \code{.set_row_names(NROW(x))}.
+row.names via \code{.set_row_names(NROW(x))} and preserve original row.names
+in \code{st_original_rownames} attribute for later restoration.
 \item Record original class in \code{st_original_format} so a loader can restore it.
 }
 }
