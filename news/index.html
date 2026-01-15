@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +46,57 @@
       <small>Source: <a href="https://github.com/randrescastaneda/stamp/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.7" id="stamp-007">stamp 0.0.7<a class="anchor" aria-label="anchor" href="#stamp-007"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-0-7">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-0-7"></a></h3>
+<div class="section level4">
+<h4 id="verbose-argument-support-0-0-7">Verbose Argument Support<a class="anchor" aria-label="anchor" href="#verbose-argument-support-0-0-7"></a></h4>
+<ul><li>
+<strong>NEW</strong>: <code><a href="../reference/st_save.html">st_save()</a></code>, <code><a href="../reference/st_load.html">st_load()</a></code>, and <code><a href="../reference/st_load_version.html">st_load_version()</a></code> now accept a <code>verbose</code> argument
+<ul><li>
+<code>verbose = TRUE</code> (default): displays informational messages (backward compatible)</li>
+<li>
+<code>verbose = FALSE</code>: suppresses all stamp messages and format warnings</li>
+<li>Useful for batch processing and automated scripts</li>
+</ul></li>
+<li>Format wrappers automatically suppress warnings when <code>verbose = FALSE</code>
+</li>
+<li>Consistent verbose handling across all save/load functions</li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="internal-improvements-0-0-7">Internal Improvements<a class="anchor" aria-label="anchor" href="#internal-improvements-0-0-7"></a></h3>
+<div class="section level4">
+<h4 id="restoration-logic-refactor-0-0-7">Restoration Logic Refactor<a class="anchor" aria-label="anchor" href="#restoration-logic-refactor-0-0-7"></a></h4>
+<ul><li>
+<strong>Refactored</strong>: Consolidated duplicated restoration code into shared helper functions
+<ul><li>New internal helper <code><a href="../reference/dot-st_restore_sanitized_object.html">.st_restore_sanitized_object()</a></code> restores sanitized objects (data.frames, data.tables)</li>
+<li>New internal helper <code><a href="../reference/dot-st_has_custom_rownames.html">.st_has_custom_rownames()</a></code> detects custom vs. default row.names</li>
+<li>Both <code><a href="../reference/st_load.html">st_load()</a></code> and <code><a href="../reference/st_load_version.html">st_load_version()</a></code> now use the same restoration logic</li>
+</ul></li>
+<li>
+<strong>Improved</strong>: Row.names handling now treats all default representations equivalently
+<ul><li>Compact form: <code>c(NA, -n)</code>, expanded integer: <code>1:n</code>, expanded character: <code>"1":"n"</code>
+</li>
+<li>Sanitization uses <code>.set_row_names(as.integer(NROW(x)))</code> for consistent compact representation</li>
+</ul></li>
+<li>
+<strong>Enhanced</strong>: Full round-trip fidelity for data.frames with custom row.names and data.table objects</li>
+<li>
+<strong>Tested</strong>: Comprehensive test suite added in <code>tests/testthat/test-restoration-helpers.R</code>
+<ul><li>70+ tests covering helpers, edge cases, integration, and performance</li>
+<li>Tests validate no internal attribute leakage to user code</li>
+</ul></li>
+</ul></div>
+<div class="section level4">
+<h4 id="test-infrastructure-0-0-7">Test Infrastructure<a class="anchor" aria-label="anchor" href="#test-infrastructure-0-0-7"></a></h4>
+<ul><li>Integration tests use isolated temporary directories to prevent artifact reuse</li>
+<li>Format wrapper tests added in <code>tests/testthat/test-format-wrappers.R</code>
+</li>
+</ul></div>
+</div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.6" id="stamp-006">stamp 0.0.6<a class="anchor" aria-label="anchor" href="#stamp-006"></a></h2>
 <div class="section level3">

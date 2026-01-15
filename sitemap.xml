@@ -23,12 +23,14 @@
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_children_once.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_delete_version_dir_safe.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_dir_create.html</loc></url>
+<url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_has_custom_rownames.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_norm_path.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_now_utc.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_parents_normalize.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_parse_utc_times.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_policy_keep_ids.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_resolve_version.html</loc></url>
+<url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_restore_sanitized_object.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_root_dir.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_sidecar_path.html</loc></url>
 <url><loc>https://randrescastaneda.github.io/stamp/reference/dot-st_state_dir_abs.html</loc></url>

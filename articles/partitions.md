@@ -21,8 +21,8 @@ tdir <- tempfile("stamp-partitions-")
 dir.create(tdir)
 st_init(tdir)
 #> ✔ stamp initialized
-#>   root: /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb
-#>   state: /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/.stamp
+#>   root: /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4
+#>   state: /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/.stamp
 
 # Create sample welfare data
 set.seed(123)  # for reproducible vignette output
@@ -49,146 +49,148 @@ manifest <- st_write_parts(
   code_label = "welfare_data"
 )
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
-#>   @ version 261088049130a989
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
+#>   @ version 86e8ae3811058a37
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
-#>   @ version 2eb1f36c167a90f6
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
+#>   @ version 08859e1b42f27244
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
-#>   @ version 4bcd99bed1268d41
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
+#>   @ version 3967e9a21519636c
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
-#>   @ version f1507b3a6ba6568f
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
+#>   @ version f08d21d7d65c84ed
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
-#>   @ version d6467c7a8d20b67d
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
+#>   @ version 0b3133563b53ab25
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
-#>   @ version 9f97ad7ccfea9a52
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
+#>   @ version 224fc5187a939c08
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
-#>   @ version 314aa19feb4a6e9c
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
+#>   @ version 6b9d86b93e25692b
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
-#>   @ version 3d171a6fd7ec064b
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
+#>   @ version ccb5a9a8293682e2
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
-#>   @ version a0eb250fdc53ebde
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
+#>   @ version 2d8e6f2de58c3548
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
-#>   @ version c66d4bf96b665617
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   @ version 4711af086bd681f5
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
-#>   @ version 03f786d463c1b557
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
+#>   @ version 92841ba34653228a
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
-#>   @ version 98c86730b36a21ee
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
+#>   @ version 80eee6778813e1e5
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
-#>   @ version 642c8c741e0818a8
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
+#>   @ version 4e36dbb4392c49c9
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
-#>   @ version 42eea9710e4d04e0
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
+#>   @ version 2160d240268152fe
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
-#>   @ version ecff08d843da15f3
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   @ version 3dc117e677d8ec9a
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet
-#>   @ version adb1aa412248e1c1
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet
+#>   @ version b69f7822f3e664b8
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2021/part.parquet
-#>   @ version e05c653876f64a9a
-#> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet
-#>   @ version f037f5b839c2ac2a
-#> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet
-#>   @ version fe00ee29dc7d3cda
-#> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet
-#>   @ version 2933d24fa6c3f9f2
-#> ⠙ Saving 20/45 partitions [1s]
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2021/part.parquet
+#>   @ version 4ad8aff59cf93a9e
+#> ⠙ Saving 17/45 partitions [1s]
 #> 
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet
-#>   @ version 1c6104df2c90f8a4
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet
+#>   @ version e9635121be841e38
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2021/part.parquet
-#>   @ version 0640591935d3ec67
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet
+#>   @ version 63e98a8505ef8174
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet
-#>   @ version 193a2ef603f001d3
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet
+#>   @ version c554e39a05e324de
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet
-#>   @ version 230c5ed7e22328f5
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet
+#>   @ version 2856f4d81a1fa98d
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet
-#>   @ version 9651fb50b44aba6d
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2021/part.parquet
+#>   @ version 1dfcfca1c261078d
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet
-#>   @ version af672ed87ad2de07
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet
+#>   @ version dc370d52a461c0b3
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet
-#>   @ version ac2b185c885a6d1e
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet
+#>   @ version d3391adc3a367817
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet
-#>   @ version 67600650cf92e9ee
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet
+#>   @ version 0987234f46b2ce8d
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2021/part.parquet
-#>   @ version 8ef9660f5e24e884
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet
+#>   @ version 4f64bf302417ad6d
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet
-#>   @ version 426bf104eca9f918
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet
+#>   @ version 6dac06a722e5ff7e
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2020/part.parquet
-#>   @ version 157b2d4c0e773c4c
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet
+#>   @ version a3d5601dee1a9264
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet
-#>   @ version 6c0d5305feba7306
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2021/part.parquet
+#>   @ version a9d99ff0540e4c4b
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
-#>   @ version 5e247eb2c76f343a
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet
+#>   @ version b0e9684e026116ea
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
-#>   @ version 577795c698fdebf1
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2020/part.parquet
+#>   @ version 87534004b629244c
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
-#>   @ version 632e5bda7f248f79
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet
+#>   @ version 7b14818e9ac45529
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2020/part.parquet
-#>   @ version 8ea6a0dd679f885c
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
+#>   @ version afab9e09625e6243
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet
-#>   @ version cb4e85e80c5b9456
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
+#>   @ version 81308eef2dfb8f80
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
-#>   @ version cb82ceb3ce513d0a
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
+#>   @ version 7558a8f80b40f2b8
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
-#>   @ version b15dc296b5f60960
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2020/part.parquet
+#>   @ version a377d96344a564bd
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2020/part.parquet
-#>   @ version 3306a1d92edbb11c
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet
+#>   @ version c60e910ebf1cbdfb
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
-#>   @ version a64d42471608a4ef
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
+#>   @ version 1f3f49e643dea51f
+#> ⠹ Saving 38/45 partitions [2s]
+#> 
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
-#>   @ version 7ce61201951040cb
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
+#>   @ version a64cf0352fe117da
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
-#>   @ version 4373f3e90ac33c45
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2020/part.parquet
+#>   @ version 80ec7e0aa4f08369
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
-#>   @ version 34f7230a59a8eff3
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
+#>   @ version f38f79e31cb0e942
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet
-#>   @ version 56067e60c3ad2c5a
-#> ⠙ Saving 45/45 partitions [2s]
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
+#>   @ version 5e9dee8e5bbd472f
+#> ✔ Saved [parquet] →
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
+#>   @ version 58d7ccdca72cebb6
+#> ✔ Saved [parquet] →
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
+#>   @ version 2ea9f3c563d491e8
+#> ✔ Saved [parquet] →
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet
+#>   @ version 451f98a22fc3b780
+#> ⠹ Saving 45/45 partitions [2.3s]
 #> 
 #> ✔ Saved 45 partitions to
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts
 
 # View manifest
 head(manifest, 3)
@@ -197,13 +199,13 @@ head(manifest, 3)
 #> 2  USA, 202....
 #> 3  USA, 202....
 #>                                                                                                                   path
-#> 1 /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
-#> 2 /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
-#> 3 /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
+#> 1 /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
+#> 2 /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
+#> 3 /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
 #>         version_id n_rows
-#> 1 261088049130a989      3
-#> 2 2eb1f36c167a90f6      9
-#> 3 4bcd99bed1268d41     10
+#> 1 86e8ae3811058a37      3
+#> 2 08859e1b42f27244      9
+#> 3 3967e9a21519636c     10
 ```
 
 The manifest shows: - `partition_key`: List of key-value pairs for each
@@ -271,97 +273,97 @@ manifest <- st_write_parts(
   .progress = FALSE # Disable progress bar for vignette
 )
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2021/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2021/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2021/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2020/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
 #> ✔ Skip save (reason: no_change_policy) for
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet
 #> ✔ Saved 45 partitions to
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts
   
 cat(sprintf("Saved %d partitions\n", nrow(manifest)))
 #> Saved 45 partitions
@@ -395,10 +397,10 @@ format_manifest <- st_write_parts(
   .progress = FALSE
 )
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/test_format/country=USA/part.parquet
-#>   @ version 1b508c41ce1abe80
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/test_format/country=USA/part.parquet
+#>   @ version f4c39384b3304c0f
 #> ✔ Saved 1 partition to
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/test_format
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/test_format
 
 # Check file extension
 basename(format_manifest$path[1])
@@ -417,9 +419,9 @@ manifest_fst <- st_write_parts(
   .progress = FALSE
 )
 #> ✔ Saved [fst] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/test_fst/country=USA/part.fst @
-#>   version 71f6893a3597df06
-#> ✔ Saved 1 partition to /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/test_fst
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/test_fst/country=USA/part.fst @
+#>   version df72a96c4b86f049
+#> ✔ Saved 1 partition to /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/test_fst
 
 basename(manifest_fst$path[1])
 #> [1] "part.fst"
@@ -433,230 +435,230 @@ basename(manifest_fst$path[1])
 # Load all partitions and row-bind
 all_data <- st_load_parts(parts_dir, as = "dt")
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
 
 cat(sprintf(
   "Loaded %d rows from %d partitions\n",
@@ -686,80 +688,80 @@ usa_data <- st_load_parts(
   as = "dt"
 )
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
 
 cat(sprintf("USA data: %d rows\n", nrow(usa_data)))
 #> USA data: 100 rows
@@ -775,20 +777,20 @@ usa_2020 <- st_load_parts(
   as = "dt"
 )
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
 
 cat(sprintf("USA 2020: %d rows\n", nrow(usa_2020)))
 #> USA 2020: 20 rows
@@ -815,140 +817,140 @@ recent_data <- st_load_parts(
   as = "dt"
 )
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
 
 cat(sprintf("Recent data (year > 2021): %d rows\n", nrow(recent_data)))
 #> Recent data (year > 2021): 180 rows
@@ -967,50 +969,50 @@ complex_filter <- st_load_parts(
   as = "dt"
 )
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=national/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=rural/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=CAN/reporting_level=urban/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
 
 cat(sprintf("Complex filter: %d rows\n", nrow(complex_filter)))
 #> Complex filter: 60 rows
@@ -1030,125 +1032,125 @@ selected_countries <- st_load_parts(
   as = "dt"
 )
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=MEX/reporting_level=urban/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
 
 cat(sprintf("USA/MEX (not 2020): %d rows\n", nrow(selected_countries)))
 #> USA/MEX (not 2020): 160 rows
@@ -1311,8 +1313,8 @@ st_save_part(
   code_label = "manual_partition"
 )
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/manual_parts/country=USA/reporting_level=urban/year=2024/part.qs2
-#>   @ version 5daa2987cf81d6d5
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/manual_parts/country=USA/reporting_level=urban/year=2024/part.qs2
+#>   @ version 2ee07ede4e6f9812
 
 # Get expected path for a partition
 expected_path <- st_part_path(
@@ -1322,7 +1324,7 @@ expected_path <- st_part_path(
 
 cat("Expected path:\n", expected_path, "\n")
 #> Expected path:
-#>  /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/manual_parts/country=USA/reporting_level=urban/year=2024/part.qs2
+#>  /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/manual_parts/country=USA/reporting_level=urban/year=2024/part.qs2
 file.exists(expected_path)
 #> [1] TRUE
 ```
@@ -1342,52 +1344,52 @@ pk_manifest <- st_write_parts(
   .progress = FALSE
 )
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=USA/year=2020/part.parquet
-#>   @ version b940d3b716df5966
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=USA/year=2020/part.parquet
+#>   @ version de3a8e8af5be5145
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=USA/year=2021/part.parquet
-#>   @ version f447e32a32ef2b3e
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=USA/year=2021/part.parquet
+#>   @ version ba4fc03aa085ee8e
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=USA/year=2022/part.parquet
-#>   @ version 245646207cb76a93
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=USA/year=2022/part.parquet
+#>   @ version 4b49777a9f5970e6
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=USA/year=2023/part.parquet
-#>   @ version 0fdee97a1ad8d080
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=USA/year=2023/part.parquet
+#>   @ version 2777890a1b87a296
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=USA/year=2024/part.parquet
-#>   @ version 9d80ff720d9e976b
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=USA/year=2024/part.parquet
+#>   @ version 6f9d14045ee04d50
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=CAN/year=2020/part.parquet
-#>   @ version 799a2654187dcfdf
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=CAN/year=2020/part.parquet
+#>   @ version 9387910c9b42b18c
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=CAN/year=2021/part.parquet
-#>   @ version 934512e8aa638718
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=CAN/year=2021/part.parquet
+#>   @ version 61c9e6ec8668f4c3
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=CAN/year=2022/part.parquet
-#>   @ version 55bc34908409bc11
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=CAN/year=2022/part.parquet
+#>   @ version 555cc66b636070a2
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=CAN/year=2023/part.parquet
-#>   @ version 16a7b72b4efc09be
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=CAN/year=2023/part.parquet
+#>   @ version 41cb31af79efa143
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=CAN/year=2024/part.parquet
-#>   @ version 7e17f9e59402261c
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=CAN/year=2024/part.parquet
+#>   @ version 96f901de1d532175
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=MEX/year=2020/part.parquet
-#>   @ version be15f3bd0a457791
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=MEX/year=2020/part.parquet
+#>   @ version 26851a145b55043d
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=MEX/year=2021/part.parquet
-#>   @ version bcda757d48afc18e
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=MEX/year=2021/part.parquet
+#>   @ version 3101f97172478c37
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=MEX/year=2022/part.parquet
-#>   @ version 5695ec8c08c2b3e3
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=MEX/year=2022/part.parquet
+#>   @ version fe106107d221573c
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=MEX/year=2023/part.parquet
-#>   @ version 9ad3ff061457af47
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=MEX/year=2023/part.parquet
+#>   @ version e461d38df0822e35
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk/country=MEX/year=2024/part.parquet
-#>   @ version 82accf28e9619710
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk/country=MEX/year=2024/part.parquet
+#>   @ version ad2c8c8748beaff3
 #> ✔ Saved 15 partitions to
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_pk
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_pk
 
 # Each partition file has PK validation in sidecar metadata
 ```
@@ -1457,80 +1459,80 @@ usa_data <- st_load_parts(
   filter = ~ country == "USA" # ✅ Only loads USA partitions
 )
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=rural/year=2024/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2020/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2021/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2022/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2023/part.parquet
 #> Warning: No primary key recorded for
-#> /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
+#> /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet.
 #> ℹ You can add one with `st_add_pk()`.
 #> ✔ Loaded [parquet] ←
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
 
 # Better: Also select columns
 usa_income <- st_load_parts(
@@ -1566,13 +1568,13 @@ st_write_parts(
   .progress = FALSE
 )
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
-#>   @ version 5c8805f117fe22be
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=national/year=2024/part.parquet
+#>   @ version 688c63ff32f2009a
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
-#>   @ version 69d81e15e30c26cd
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts/country=USA/reporting_level=urban/year=2024/part.parquet
+#>   @ version 7a4add4967cb5a0a
 #> ✔ Saved 2 partitions to
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/welfare_parts
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/welfare_parts
 
 # Other partitions remain unchanged
 ```
@@ -1609,34 +1611,34 @@ st_write_parts(
   .progress = FALSE
 )
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=CAN/year=2022/part.parquet
-#>   @ version c6635a797e5ebdc6
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=CAN/year=2022/part.parquet
+#>   @ version c6d2f81c02129c13
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=CAN/year=2023/part.parquet
-#>   @ version a713861c6fc69edc
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=CAN/year=2023/part.parquet
+#>   @ version 6a4ff83d7fd85df2
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=CAN/year=2024/part.parquet
-#>   @ version ee6e5cb66f18ce41
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=CAN/year=2024/part.parquet
+#>   @ version ff70118d0e5d2e9f
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=MEX/year=2022/part.parquet
-#>   @ version 994d6088ae4bcab4
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=MEX/year=2022/part.parquet
+#>   @ version 447de7d092244cf3
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=MEX/year=2023/part.parquet
-#>   @ version 7a88703f01bb8d5a
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=MEX/year=2023/part.parquet
+#>   @ version d75284cd6383ab4e
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=MEX/year=2024/part.parquet
-#>   @ version 246b00e2f9902f72
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=MEX/year=2024/part.parquet
+#>   @ version 5d95207f1141bb42
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=USA/year=2022/part.parquet
-#>   @ version 94ecbb4528dc3153
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=USA/year=2022/part.parquet
+#>   @ version a4bfc943f24b8f0e
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=USA/year=2023/part.parquet
-#>   @ version 8922fb8ff8d99235
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=USA/year=2023/part.parquet
+#>   @ version cdfd600e881dd5db
 #> ✔ Saved [parquet] →
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare/country=USA/year=2024/part.parquet
-#>   @ version a16a5452f73c6732
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare/country=USA/year=2024/part.parquet
+#>   @ version df91b74cbc3d9f7c
 #> ✔ Saved 9 partitions to
-#>   /tmp/Rtmp2KmiyV/stamp-partitions-226b5d4254cb/processed_welfare
+#>   /tmp/RtmpWhfyQX/stamp-partitions-1fa915130ec4/processed_welfare
 ```
 
 ## Comparison with Arrow/DuckDB

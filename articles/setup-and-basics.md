@@ -33,8 +33,8 @@ st_init(tdir)
 ```
 
     ## ✔ stamp initialized
-    ##   root: /tmp/Rtmpk4ZM8o/stamp-vignette
-    ##   state: /tmp/Rtmpk4ZM8o/stamp-vignette/.stamp
+    ##   root: /tmp/RtmppjgeV2/stamp-vignette
+    ##   state: /tmp/RtmppjgeV2/stamp-vignette/.stamp
 
 ``` r
 # Inspect created structure
@@ -42,7 +42,7 @@ fs::path(tdir, ".stamp") |>
   fs::dir_tree(recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/Rtmpk4ZM8o/stamp-vignette/.stamp
+    ## /tmp/RtmppjgeV2/stamp-vignette/.stamp
     ## ├── logs
     ## └── temp
 
@@ -174,25 +174,25 @@ fs::dir_create(outdir)
 res <- st_save(x, fs::path(outdir, "example.qs2"), metadata = list(description = "toy"))
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpk4ZM8o/stamp-output/example.qs2 @ version
-    ##   02a5a22f15346e49
+    ## ✔ Saved [qs2] → /tmp/RtmppjgeV2/stamp-output/example.qs2 @ version
+    ##   6292eb7ca0dde8b7
 
 ``` r
 res$path
 ```
 
-    ## /tmp/Rtmpk4ZM8o/stamp-output/example.qs2
+    ## /tmp/RtmppjgeV2/stamp-output/example.qs2
 
 ``` r
 # load back (format auto-detected)
 y <- st_load(res$path)
 ```
 
-    ## Warning: No primary key recorded for /tmp/Rtmpk4ZM8o/stamp-output/example.qs2.
+    ## Warning: No primary key recorded for /tmp/RtmppjgeV2/stamp-output/example.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/Rtmpk4ZM8o/stamp-output/example.qs2
+    ## /tmp/RtmppjgeV2/stamp-output/example.qs2
 
 ``` r
 identical(x, y)
@@ -225,8 +225,8 @@ v1 <- data.frame(x = 1:3, y = c("a", "b", "c"))
 st_save(v1, v_path, code_label = "initial")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpk4ZM8o/stamp-output/versioned.qs2 @ version
-    ##   189aa82ea7c6017b
+    ## ✔ Saved [qs2] → /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @ version
+    ##   5d2ed2542e7dfd53
 
 ``` r
 Sys.sleep(0.15)  # ensure distinct timestamps
@@ -236,8 +236,8 @@ v2 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"))
 st_save(v2, v_path, code_label = "added rows")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpk4ZM8o/stamp-output/versioned.qs2 @ version
-    ##   549c19e662778f5a
+    ## ✔ Saved [qs2] → /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @ version
+    ##   090b4b384827db4f
 
 ``` r
 Sys.sleep(0.15)
@@ -247,8 +247,8 @@ v3 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"), z = 10:14)
 st_save(v3, v_path, code_label = "added column z")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpk4ZM8o/stamp-output/versioned.qs2 @ version
-    ##   954334affb5da38b
+    ## ✔ Saved [qs2] → /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @ version
+    ##   8696ba3158f1b6ad
 
 ``` r
 # Check available versions
@@ -258,20 +258,20 @@ print(versions[, .(version_id, created_at, size_bytes)])
 
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: 954334affb5da38b 2026-01-12T22:55:48.147594Z        287
-    ## 2: 549c19e662778f5a 2026-01-12T22:55:47.928481Z        262
-    ## 3: 189aa82ea7c6017b 2026-01-12T22:55:47.655686Z        261
+    ## 1: 8696ba3158f1b6ad 2026-01-15T22:48:54.003835Z        287
+    ## 2: 090b4b384827db4f 2026-01-15T22:48:53.781500Z        262
+    ## 3: 5d2ed2542e7dfd53 2026-01-15T22:48:53.485910Z        261
 
 ``` r
 # Load latest (default)
 current <- st_load(v_path)
 ```
 
-    ## Warning: No primary key recorded for /tmp/Rtmpk4ZM8o/stamp-output/versioned.qs2.
+    ## Warning: No primary key recorded for /tmp/RtmppjgeV2/stamp-output/versioned.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/Rtmpk4ZM8o/stamp-output/versioned.qs2
+    ## /tmp/RtmppjgeV2/stamp-output/versioned.qs2
 
 ``` r
 nrow(current)  # 5 rows, 3 columns
@@ -284,8 +284,8 @@ nrow(current)  # 5 rows, 3 columns
 previous <- st_load(v_path, version = -1)
 ```
 
-    ## ✔ Loaded ← /tmp/Rtmpk4ZM8o/stamp-output/versioned.qs2 @
-    ## 549c19e662778f5a [qs2]
+    ## ✔ Loaded ← /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @
+    ## 090b4b384827db4f [qs2]
 
 ``` r
 nrow(previous)  # 5 rows, 2 columns (before adding z)
@@ -298,8 +298,8 @@ nrow(previous)  # 5 rows, 2 columns (before adding z)
 older <- st_load(v_path, version = -2)
 ```
 
-    ## ✔ Loaded ← /tmp/Rtmpk4ZM8o/stamp-output/versioned.qs2 @
-    ## 189aa82ea7c6017b [qs2]
+    ## ✔ Loaded ← /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @
+    ## 5d2ed2542e7dfd53 [qs2]
 
 ``` r
 nrow(older)  # 3 rows, 2 columns (original)
@@ -313,8 +313,8 @@ vid <- versions$version_id[1]  # oldest version
 specific <- st_load(v_path, version = vid)
 ```
 
-    ## ✔ Loaded ← /tmp/Rtmpk4ZM8o/stamp-output/versioned.qs2 @
-    ## 954334affb5da38b [qs2]
+    ## ✔ Loaded ← /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @
+    ## 8696ba3158f1b6ad [qs2]
 
 ``` r
 identical(specific, older)
@@ -363,9 +363,9 @@ str(sc)
 ```
 
     ## List of 11
-    ##  $ path        : chr "/tmp/Rtmpk4ZM8o/stamp-output/example.qs2"
+    ##  $ path        : chr "/tmp/RtmppjgeV2/stamp-output/example.qs2"
     ##  $ format      : chr "qs2"
-    ##  $ created_at  : chr "2026-01-12T22:55:47.460690Z"
+    ##  $ created_at  : chr "2026-01-15T22:48:53.257448Z"
     ##  $ size_bytes  : int 256
     ##  $ content_hash: chr "99235ac79dea7ab0"
     ##  $ code_hash   : NULL
@@ -405,8 +405,8 @@ in_path <- fs::path(outdir, "upstream.qs")
 st_save(data.frame(id=1:3), in_path)
 ```
 
-    ## ✔ Saved [qs] → /tmp/Rtmpk4ZM8o/stamp-output/upstream.qs @ version
-    ##   de4362c851a4c072
+    ## ✔ Saved [qs] → /tmp/RtmppjgeV2/stamp-output/upstream.qs @ version
+    ##   720f8ee224d56044
 
 ``` r
 in_vid <- st_latest(in_path)
@@ -417,21 +417,21 @@ parents <- list(list(path = in_path, version_id = in_vid))
 st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply")
 ```
 
-    ## ✔ Saved [qs] → /tmp/Rtmpk4ZM8o/stamp-output/derived.qs @ version
-    ##   a9a6213cead3fa10
+    ## ✔ Saved [qs] → /tmp/RtmppjgeV2/stamp-output/derived.qs @ version
+    ##   4da08b74396a9e82
 
 ``` r
 st_info(out_path)$sidecar
 ```
 
     ## $path
-    ## [1] "/tmp/Rtmpk4ZM8o/stamp-output/derived.qs"
+    ## [1] "/tmp/RtmppjgeV2/stamp-output/derived.qs"
     ## 
     ## $format
     ## [1] "qs"
     ## 
     ## $created_at
-    ## [1] "2026-01-12T22:55:48.618234Z"
+    ## [1] "2026-01-15T22:48:54.521163Z"
     ## 
     ## $size_bytes
     ## [1] 150
@@ -450,7 +450,7 @@ st_info(out_path)$sidecar
     ## 
     ## $parents
     ##                                       path       version_id
-    ## 1 /tmp/Rtmpk4ZM8o/stamp-output/upstream.qs de4362c851a4c072
+    ## 1 /tmp/RtmppjgeV2/stamp-output/upstream.qs 720f8ee224d56044
     ## 
     ## $attrs
     ## list()
@@ -460,9 +460,9 @@ st_lineage(out_path, depth = 1)
 ```
 
     ##   level                              child_path    child_version
-    ## 1     1 /tmp/Rtmpk4ZM8o/stamp-output/derived.qs a9a6213cead3fa10
+    ## 1     1 /tmp/RtmppjgeV2/stamp-output/derived.qs 4da08b74396a9e82
     ##                                parent_path   parent_version
-    ## 1 /tmp/Rtmpk4ZM8o/stamp-output/upstream.qs de4362c851a4c072
+    ## 1 /tmp/RtmppjgeV2/stamp-output/upstream.qs 720f8ee224d56044
 
 Notes on behavior - The sidecar always contains `parents` for quick
 inspection. However, in the default `versioning = "content"` mode a new
@@ -493,11 +493,11 @@ st_add_pk(out_path, keys = c("id"))
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
-    ## Warning: No primary key recorded for /tmp/Rtmpk4ZM8o/stamp-output/derived.qs.
+    ## Warning: No primary key recorded for /tmp/RtmppjgeV2/stamp-output/derived.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs] ← /tmp/Rtmpk4ZM8o/stamp-output/derived.qs
-    ## ✔ Recorded primary key for /tmp/Rtmpk4ZM8o/stamp-output/derived.qs --> id
+    ## ✔ Loaded [qs] ← /tmp/RtmppjgeV2/stamp-output/derived.qs
+    ## ✔ Recorded primary key for /tmp/RtmppjgeV2/stamp-output/derived.qs --> id
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
@@ -513,7 +513,7 @@ df <- st_load(out_path)
 ```
 
     ## ✔ Loaded [qs] ←
-    ## /tmp/Rtmpk4ZM8o/stamp-output/derived.qs
+    ## /tmp/RtmppjgeV2/stamp-output/derived.qs
 
 ``` r
 st_filter(df, list(id = 1))

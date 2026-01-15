@@ -1,5 +1,60 @@
 # Changelog
 
+## stamp 0.0.7
+
+### New Features
+
+#### Verbose Argument Support
+
+- **NEW**:
+  [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md),
+  [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md),
+  and
+  [`st_load_version()`](https://randrescastaneda.github.io/stamp/reference/st_load_version.md)
+  now accept a `verbose` argument
+  - `verbose = TRUE` (default): displays informational messages
+    (backward compatible)
+  - `verbose = FALSE`: suppresses all stamp messages and format warnings
+  - Useful for batch processing and automated scripts
+- Format wrappers automatically suppress warnings when `verbose = FALSE`
+- Consistent verbose handling across all save/load functions
+
+### Internal Improvements
+
+#### Restoration Logic Refactor
+
+- **Refactored**: Consolidated duplicated restoration code into shared
+  helper functions
+  - New internal helper
+    [`.st_restore_sanitized_object()`](https://randrescastaneda.github.io/stamp/reference/dot-st_restore_sanitized_object.md)
+    restores sanitized objects (data.frames, data.tables)
+  - New internal helper
+    [`.st_has_custom_rownames()`](https://randrescastaneda.github.io/stamp/reference/dot-st_has_custom_rownames.md)
+    detects custom vs. default row.names
+  - Both
+    [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)
+    and
+    [`st_load_version()`](https://randrescastaneda.github.io/stamp/reference/st_load_version.md)
+    now use the same restoration logic
+- **Improved**: Row.names handling now treats all default
+  representations equivalently
+  - Compact form: `c(NA, -n)`, expanded integer: `1:n`, expanded
+    character: `"1":"n"`
+  - Sanitization uses `.set_row_names(as.integer(NROW(x)))` for
+    consistent compact representation
+- **Enhanced**: Full round-trip fidelity for data.frames with custom
+  row.names and data.table objects
+- **Tested**: Comprehensive test suite added in
+  `tests/testthat/test-restoration-helpers.R`
+  - 70+ tests covering helpers, edge cases, integration, and performance
+  - Tests validate no internal attribute leakage to user code
+
+#### Test Infrastructure
+
+- Integration tests use isolated temporary directories to prevent
+  artifact reuse
+- Format wrapper tests added in `tests/testthat/test-format-wrappers.R`
+
 ## stamp 0.0.6
 
 ### Breaking Changes

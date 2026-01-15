@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -151,8 +151,8 @@ explicitly.</p>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">root</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
-<span><span class="co">##   root: /tmp/Rtmp4c6yJw/stamp-retention-example</span></span>
-<span><span class="co">##   state: /tmp/Rtmp4c6yJw/stamp-retention-example/.stamp</span></span></code></pre>
+<span><span class="co">##   root: /tmp/Rtmpd6kAHJ/stamp-retention-example</span></span>
+<span><span class="co">##   state: /tmp/Rtmpd6kAHJ/stamp-retention-example/.stamp</span></span></code></pre>
 <p>We’ll create a few artifacts and multiple versions to demonstrate
 pruning:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -175,33 +175,33 @@ pruning:</p>
 <span><span class="co">##   retain_versions = <span style="color: #0000BB;">"Inf"</span></span></span></code></pre>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA1</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/A.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">74934fa0589274b9</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/A.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">cfc0a5cba63107b5</span></span></span></code></pre>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA2</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/A.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">a10a7d82d7cab448</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/A.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">d45b344513edfdd3</span></span></span></code></pre>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA3</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/A.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">15d05c5b283db5f5</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/A.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">0f741d8131f733f1</span></span></span></code></pre>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xB1</span>, <span class="va">pB</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/B.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">da7a6fb36d4a50d9</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/B.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">9d7d631272acccc1</span></span></span></code></pre>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xB2</span>, <span class="va">pB</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/B.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">ce82388a990e0010</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/B.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">21ab4ca401055bbc</span></span></span></code></pre>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xC1</span>, <span class="va">pC</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/C.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">89252abb406b02bb</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/C.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">6200225abcc04677</span></span></span></code></pre>
 <p>Inspect store &amp; catalog:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vroot</span> <span class="op">&lt;-</span> <span class="fu">stamp</span><span class="fu">:::</span><span class="fu"><a href="../reference/dot-st_versions_root.html">.st_versions_root</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">vroot</span>, recurse <span class="op">=</span> <span class="cn">FALSE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/Rtmp4c6yJw/stamp-retention-example/.stamp/versions</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/Rtmpd6kAHJ/stamp-retention-example/.stamp/versions</span></span></span>
 <span><span class="co">## ├── <span style="color: #0000BB; font-weight: bold;">A.qs</span></span></span>
 <span><span class="co">## ├── <span style="color: #0000BB; font-weight: bold;">B.qs</span></span></span>
 <span><span class="co">## └── <span style="color: #0000BB; font-weight: bold;">C.qs</span></span></span></code></pre>
@@ -231,10 +231,10 @@ auto-retention into <code><a href="../reference/st_save.html">st_save()</a></cod
 <span><span class="va">repA</span></span></code></pre></div>
 <pre><code><span><span class="co">##         artifact_id                                artifact_path</span></span>
 <span><span class="co">##              &lt;char&gt;                                       &lt;char&gt;</span></span>
-<span><span class="co">## 1: 902f9a4c3415f246 /tmp/Rtmp4c6yJw/stamp-retention-example/A.qs</span></span>
+<span><span class="co">## 1: a768155fec865f4f /tmp/Rtmpd6kAHJ/stamp-retention-example/A.qs</span></span>
 <span><span class="co">##          version_id                  created_at size_bytes</span></span>
 <span><span class="co">##              &lt;char&gt;                      &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">## 1: 74934fa0589274b9 2026-01-12T22:56:04.250272Z        137</span></span></code></pre>
+<span><span class="co">## 1: cfc0a5cba63107b5 2026-01-15T22:49:12.294543Z        137</span></span></code></pre>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pA</span><span class="op">)</span><span class="op">)</span> <span class="co"># &lt;= 2; latest always protected</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 2</span></span></code></pre>
@@ -262,10 +262,10 @@ catalog<a class="anchor" aria-label="anchor" href="#keep-by-recency-window-acros
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">repAll</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         artifact_id                                artifact_path</span></span>
 <span><span class="co">##              &lt;char&gt;                                       &lt;char&gt;</span></span>
-<span><span class="co">## 1: 902f9a4c3415f246 /tmp/Rtmp4c6yJw/stamp-retention-example/A.qs</span></span>
+<span><span class="co">## 1: a768155fec865f4f /tmp/Rtmpd6kAHJ/stamp-retention-example/A.qs</span></span>
 <span><span class="co">##          version_id                  created_at size_bytes</span></span>
 <span><span class="co">##              &lt;char&gt;                      &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">## 1: a10a7d82d7cab448 2026-01-12T22:56:04.310627Z        137</span></span></code></pre>
+<span><span class="co">## 1: d45b344513edfdd3 2026-01-15T22:49:12.361594Z        137</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="combine-count-recency-union-semantics">Combine <strong>count + recency</strong> (union semantics)<a class="anchor" aria-label="anchor" href="#combine-count-recency-union-semantics"></a>
@@ -308,8 +308,8 @@ thinking about it:</p>
 <code class="sourceCode R"><span><span class="co"># New save writes + immediate prune</span></span>
 <span><span class="va">xA4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA4</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/A.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">02539f280f8f9b86</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/A.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">5c0664cc3df3f01b</span></span></span></code></pre>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pA</span><span class="op">)</span><span class="op">)</span> <span class="co"># &lt;= 2</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 2</span></span></code></pre>
@@ -357,8 +357,8 @@ reproducibility, and downstream tooling (e.g., merge validation).</p>
 <span><span class="co"># Note: `st_save(..., pk = ...)` validates the keys against the provided data</span></span>
 <span><span class="co"># and persists the `pk` element into the artifact's sidecar (stmeta/).</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">p_pop</span>, pk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span>, <span class="st">"reporting_level"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/population.qs</span> @</span></span>
-<span><span class="co">##   version <span style="color: #00BB00;">f76b938fa538128e</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs</span>] → <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/population.qs</span> @</span></span>
+<span><span class="co">##   version <span style="color: #00BB00;">5599f69166d3bb6f</span></span></span></code></pre>
 <p><strong>Effects</strong></p>
 <ul>
 <li>Validates that PK columns exist and are unique (unless you disable
@@ -380,9 +380,9 @@ uniqueness).</li>
 <span><span class="fu"><a href="../reference/st_add_pk.html">st_add_pk</a></span><span class="op">(</span><span class="va">p_pop</span>, keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span>, <span class="st">"reporting_level"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> stamp options updated</span></span>
 <span><span class="co">##   require_pk_on_load = <span style="color: #0000BB;">"FALSE"</span></span></span>
-<span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs</span>] ← <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/population.qs</span></span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs</span>] ← <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/population.qs</span></span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> Recorded primary key for</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/population.qs</span> --&gt; country,</span></span>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/population.qs</span> --&gt; country,</span></span>
 <span><span class="co">##   year, reporting_level</span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> stamp options updated</span></span>
 <span><span class="co">##   require_pk_on_load = <span style="color: #0000BB;">"FALSE"</span></span></span></code></pre>
@@ -393,7 +393,7 @@ uniqueness).</li>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">p_pop</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs</span>] ←</span></span>
-<span><span class="co">## <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/population.qs</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/population.qs</span></span></span></code></pre>
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">obj</span>, <span class="st">"stamp_pk"</span><span class="op">)</span> <span class="co"># keys attached on load</span></span></code></pre></div>
 <pre><code><span><span class="co">## $keys</span></span>
@@ -542,8 +542,8 @@ country/year), use the partition helpers. Layout:</p>
 <span>  pk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span></span>
-<span><span class="co">##   @ version <span style="color: #00BB00;">69be2eca9cac0677</span></span></span></code></pre>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span></span>
+<span><span class="co">##   @ version <span style="color: #00BB00;">e754a762e6f88ee8</span></span></span></code></pre>
 <div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save_part.html">st_save_part</a></span><span class="op">(</span></span>
 <span>  <span class="va">mex_tbl</span>,</span>
@@ -552,8 +552,8 @@ country/year), use the partition helpers. Layout:</p>
 <span>  pk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span></span>
-<span><span class="co">##   @ version <span style="color: #00BB00;">70b114775706ef77</span></span></span></code></pre>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span></span>
+<span><span class="co">##   @ version <span style="color: #00BB00;">b7c25090b92b9566</span></span></span></code></pre>
 <blockquote>
 <p><code><a href="../reference/st_save_part.html">st_save_part()</a></code> uses <code><a href="../reference/st_save.html">st_save()</a></code> under the
 hood and writes sidecars in a local <code>stmeta/</code> directory
@@ -567,24 +567,24 @@ inside each partition.</p>
 <code class="sourceCode R"><span><span class="co"># List artifacts (sidecars under stmeta/ are ignored)</span></span>
 <span><span class="fu"><a href="../reference/st_list_parts.html">st_list_parts</a></span><span class="op">(</span><span class="va">base</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                                                                                         path</span></span>
-<span><span class="co">## 1 /tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span>
-<span><span class="co">## 2 /tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span>
+<span><span class="co">## 1 /tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span>
+<span><span class="co">## 2 /tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span>
 <span><span class="co">##   country year</span></span>
 <span><span class="co">## 1     MEX 2022</span></span>
 <span><span class="co">## 2     PER 2023</span></span></code></pre>
 <div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_list_parts.html">st_list_parts</a></span><span class="op">(</span><span class="va">base</span>, filter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"PER"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                                                                                         path</span></span>
-<span><span class="co">## 1 /tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span>
+<span><span class="co">## 1 /tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span>
 <span><span class="co">##   country year</span></span>
 <span><span class="co">## 1     PER 2023</span></span></code></pre>
 <div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Bind rows (adds key columns as ordinary columns)</span></span>
 <span><span class="va">all_parts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load_parts.html">st_load_parts</a></span><span class="op">(</span><span class="va">base</span>, as <span class="op">=</span> <span class="st">"rbind"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span></span>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span></span></code></pre>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span></span></code></pre>
 <div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">all_parts</span></span></code></pre></div>
 <pre><code><span><span class="co">##   country year   pop</span></span>
@@ -597,9 +597,9 @@ inside each partition.</p>
 <span>  <span class="va">dt</span><span class="op">[</span><span class="op">]</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span></span>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp4c6yJw/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span></span></code></pre>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpd6kAHJ/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span></span></code></pre>
 <pre><code><span><span class="co">##    country   year   pop</span></span>
 <span><span class="co">##     &lt;char&gt; &lt;char&gt; &lt;num&gt;</span></span>
 <span><span class="co">## 1:     MEX   2022 126.7</span></span>

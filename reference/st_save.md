@@ -16,6 +16,7 @@ st_save(
   pk = NULL,
   domain = NULL,
   unique = TRUE,
+  verbose = TRUE,
   ...
 )
 ```
@@ -63,6 +64,13 @@ st_save(
 - unique:
 
   logical; enforce uniqueness of pk at save time (default TRUE)
+
+- verbose:
+
+  logical; if `FALSE`, suppress informational messages and
+  package-generated warnings (default TRUE). When `FALSE`, messages
+  about skipped saves or save failures emitted by `st_save()` will not
+  be shown.
 
 - ...:
 

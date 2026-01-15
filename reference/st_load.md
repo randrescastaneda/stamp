@@ -6,7 +6,7 @@ checks)
 ## Usage
 
 ``` r
-st_load(file, format = NULL, version = NULL, ...)
+st_load(file, format = NULL, version = NULL, verbose = TRUE, ...)
 ```
 
 ## Arguments
@@ -23,6 +23,13 @@ st_load(file, format = NULL, version = NULL, ...)
 
   An integer or a quoted directive. Retrieve a specific version of an
   artifact. See details.
+
+- verbose:
+
+  logical; if FALSE, suppress informational messages and
+  package-generated warnings (default TRUE). When `FALSE`, warnings
+  about file/content hash mismatches and a missing primary key recorded
+  by `st_load()` will not be shown.
 
 - ...:
 

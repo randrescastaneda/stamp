@@ -9,7 +9,7 @@ restoring historical versions of artifacts.
 ## Usage
 
 ``` r
-st_load_version(path, version_id, ...)
+st_load_version(path, version_id, verbose = TRUE, ...)
 ```
 
 ## Arguments
@@ -23,6 +23,10 @@ st_load_version(path, version_id, ...)
 
   Character version identifier (as returned by `st_save` or present in
   the catalog).
+
+- verbose:
+
+  Logical; if TRUE (default), print informational messages.
 
 - ...:
 

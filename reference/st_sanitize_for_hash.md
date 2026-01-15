@@ -8,7 +8,8 @@ or differing row name representations. Strategy:
   internals).
 
 - If `x` is a data.frame (including coerced DT): enforce deterministic
-  row.names via `.set_row_names(NROW(x))`.
+  row.names via `.set_row_names(NROW(x))` and preserve original
+  row.names in `st_original_rownames` attribute for later restoration.
 
 - Record original class in `st_original_format` so a loader can restore
   it.

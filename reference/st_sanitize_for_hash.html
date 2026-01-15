@@ -4,7 +4,8 @@ not on volatile data.table internals (e.g. .internal.selfref) or differing
 row name representations. Strategy:
 If x is a data.table: coerce to plain data.frame (drops DT internals).
 If x is a data.frame (including coerced DT): enforce deterministic
-row.names via .set_row_names(NROW(x)).
+row.names via .set_row_names(NROW(x)) and preserve original row.names
+in st_original_rownames attribute for later restoration.
 Record original class in st_original_format so a loader can restore it.
 
 "><meta property="og:description" content="For tabular data we want hashing to depend only on the data/frame content,
@@ -12,7 +13,8 @@ not on volatile data.table internals (e.g. .internal.selfref) or differing
 row name representations. Strategy:
 If x is a data.table: coerce to plain data.frame (drops DT internals).
 If x is a data.frame (including coerced DT): enforce deterministic
-row.names via .set_row_names(NROW(x)).
+row.names via .set_row_names(NROW(x)) and preserve original row.names
+in st_original_rownames attribute for later restoration.
 Record original class in st_original_format so a loader can restore it.
 
 "></head><body>
@@ -23,7 +25,7 @@ Record original class in st_original_format so a loader can restore it.
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +70,8 @@ Record original class in st_original_format so a loader can restore it.
 not on volatile data.table internals (e.g. <code>.internal.selfref</code>) or differing
 row name representations. Strategy:</p><ul><li><p>If <code>x</code> is a data.table: coerce to plain data.frame (drops DT internals).</p></li>
 <li><p>If <code>x</code> is a data.frame (including coerced DT): enforce deterministic
-row.names via <code>.set_row_names(NROW(x))</code>.</p></li>
+row.names via <code>.set_row_names(NROW(x))</code> and preserve original row.names
+in <code>st_original_rownames</code> attribute for later restoration.</p></li>
 <li><p>Record original class in <code>st_original_format</code> so a loader can restore it.</p></li>
 </ul></div>
 

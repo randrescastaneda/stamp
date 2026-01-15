@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -109,12 +109,12 @@ details).</p>
 <span><span class="co"># Initialize stamp</span></span>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">demo_dir</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
-<span><span class="co">#&gt;   root: /tmp/RtmpfskHSq/stamp-demo</span></span>
-<span><span class="co">#&gt;   state: /tmp/RtmpfskHSq/stamp-demo/.stamp</span></span>
+<span><span class="co">#&gt;   root: /tmp/RtmpMf7Yu1/stamp-demo</span></span>
+<span><span class="co">#&gt;   state: /tmp/RtmpMf7Yu1/stamp-demo/.stamp</span></span>
 <span></span>
 <span><span class="co"># Inspect what was created</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">demo_dir</span>, <span class="st">".stamp"</span><span class="op">)</span>, recurse <span class="op">=</span> <span class="cn">TRUE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpfskHSq/stamp-demo/.stamp</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpMf7Yu1/stamp-demo/.stamp</span></span></span>
 <span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">logs</span></span></span>
 <span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">temp</span></span></span></code></pre></div>
 <p><strong>What happens during initialization:</strong></p>
@@ -150,8 +150,8 @@ overwrite existing version history.</p>
 <span><span class="va">test_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, y <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">test_path</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">demo_dir</span>, <span class="st">"data"</span>, <span class="st">"test.qs2"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">test_data</span>, <span class="va">test_path</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpfskHSq/stamp-demo/data/test.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">85a7ee1efbbb2bec</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpMf7Yu1/stamp-demo/data/test.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">1b5b0bd1fc1a260f</span></span></span>
 <span></span>
 <span><span class="co"># Check versions exist</span></span>
 <span><span class="va">versions_before</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">test_path</span><span class="op">)</span></span>
@@ -161,8 +161,8 @@ overwrite existing version history.</p>
 <span><span class="co"># Re-initialize (this is safe!)</span></span>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">demo_dir</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
-<span><span class="co">#&gt;   root: /tmp/RtmpfskHSq/stamp-demo</span></span>
-<span><span class="co">#&gt;   state: /tmp/RtmpfskHSq/stamp-demo/.stamp</span></span>
+<span><span class="co">#&gt;   root: /tmp/RtmpMf7Yu1/stamp-demo</span></span>
+<span><span class="co">#&gt;   state: /tmp/RtmpMf7Yu1/stamp-demo/.stamp</span></span>
 <span></span>
 <span><span class="co"># Version history is preserved</span></span>
 <span><span class="va">versions_after</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">test_path</span><span class="op">)</span></span>
@@ -238,19 +238,19 @@ artifacts and their versions. It’s a QS2-serialized list containing two
 <span><span class="va">versions</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">test_path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">versions</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Classes 'data.table' and 'data.frame':   1 obs. of  7 variables:</span></span>
-<span><span class="co">#&gt;  $ version_id    : chr "85a7ee1efbbb2bec"</span></span>
-<span><span class="co">#&gt;  $ artifact_id   : chr "0a9be1ded6025310"</span></span>
+<span><span class="co">#&gt;  $ version_id    : chr "1b5b0bd1fc1a260f"</span></span>
+<span><span class="co">#&gt;  $ artifact_id   : chr "ca522ace929b250f"</span></span>
 <span><span class="co">#&gt;  $ content_hash  : chr "2d26c6e5d9121bfd"</span></span>
 <span><span class="co">#&gt;  $ code_hash     : chr NA</span></span>
 <span><span class="co">#&gt;  $ size_bytes    : num 262</span></span>
-<span><span class="co">#&gt;  $ created_at    : chr "2026-01-12T22:55:51.445941Z"</span></span>
+<span><span class="co">#&gt;  $ created_at    : chr "2026-01-15T22:48:57.747827Z"</span></span>
 <span><span class="co">#&gt;  $ sidecar_format: chr "json"</span></span>
 <span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;externalptr&gt;</span></span>
 <span></span>
 <span><span class="co"># Get latest version ID</span></span>
 <span><span class="va">latest_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">test_path</span><span class="op">)</span></span>
 <span><span class="va">latest_id</span></span>
-<span><span class="co">#&gt; [1] "85a7ee1efbbb2bec"</span></span>
+<span><span class="co">#&gt; [1] "1b5b0bd1fc1a260f"</span></span>
 <span></span>
 <span><span class="co"># Get comprehensive info (catalog + sidecar + snapshot location)</span></span>
 <span><span class="va">info</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_info.html">st_info</a></span><span class="op">(</span><span class="va">test_path</span><span class="op">)</span></span>
@@ -258,7 +258,7 @@ artifacts and their versions. It’s a QS2-serialized list containing two
 <span><span class="co">#&gt; List of 4</span></span>
 <span><span class="co">#&gt;  $ sidecar     :List of 10</span></span>
 <span><span class="co">#&gt;  $ catalog     :List of 2</span></span>
-<span><span class="co">#&gt;  $ snapshot_dir: 'fs_path' chr "/tmp/RtmpfskHSq/stamp-demo/.stamp/versions/data/test.qs2/85a7ee1efbbb2bec"</span></span>
+<span><span class="co">#&gt;  $ snapshot_dir: 'fs_path' chr "/tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions/data/test.qs2/1b5b0bd1fc1a260f"</span></span>
 <span><span class="co">#&gt;  $ parents     : list()</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -270,30 +270,30 @@ artifacts and their versions. It’s a QS2-serialized list containing two
 <code class="sourceCode R"><span><span class="co"># Save the same artifact multiple times with changes</span></span>
 <span><span class="va">v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">v1</span>, <span class="va">test_path</span>, code_label <span class="op">=</span> <span class="st">"initial"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpfskHSq/stamp-demo/data/test.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">7e0a85ef12d60814</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpMf7Yu1/stamp-demo/data/test.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">9e03d6d8445546b6</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.sleep.html" class="external-link">Sys.sleep</a></span><span class="op">(</span><span class="fl">0.2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">v2</span>, <span class="va">test_path</span>, code_label <span class="op">=</span> <span class="st">"added rows"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpfskHSq/stamp-demo/data/test.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">5c5d86ee8313573d</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpMf7Yu1/stamp-demo/data/test.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">230cd8b7bd38f700</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.sleep.html" class="external-link">Sys.sleep</a></span><span class="op">(</span><span class="fl">0.2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">v3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, y <span class="op">=</span> <span class="fl">10</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">v3</span>, <span class="va">test_path</span>, code_label <span class="op">=</span> <span class="st">"added column"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpfskHSq/stamp-demo/data/test.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">fda5655bac7a27aa</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpMf7Yu1/stamp-demo/data/test.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">413bc3ef258e4c86</span></span></span>
 <span></span>
 <span><span class="co"># Each version gets its own directory</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">demo_dir</span>, <span class="st">".stamp"</span>, <span class="st">"versions"</span><span class="op">)</span>, recurse <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpfskHSq/stamp-demo/.stamp/versions</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions</span></span></span>
 <span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">data</span></span></span>
 <span><span class="co">#&gt;     └── <span style="color: #0000BB; font-weight: bold;">test.qs2</span></span></span>
-<span><span class="co">#&gt;         ├── <span style="color: #0000BB; font-weight: bold;">5c5d86ee8313573d</span></span></span>
-<span><span class="co">#&gt;         ├── <span style="color: #0000BB; font-weight: bold;">7e0a85ef12d60814</span></span></span>
-<span><span class="co">#&gt;         ├── <span style="color: #0000BB; font-weight: bold;">85a7ee1efbbb2bec</span></span></span>
-<span><span class="co">#&gt;         └── <span style="color: #0000BB; font-weight: bold;">fda5655bac7a27aa</span></span></span></code></pre></div>
+<span><span class="co">#&gt;         ├── <span style="color: #0000BB; font-weight: bold;">1b5b0bd1fc1a260f</span></span></span>
+<span><span class="co">#&gt;         ├── <span style="color: #0000BB; font-weight: bold;">230cd8b7bd38f700</span></span></span>
+<span><span class="co">#&gt;         ├── <span style="color: #0000BB; font-weight: bold;">413bc3ef258e4c86</span></span></span>
+<span><span class="co">#&gt;         └── <span style="color: #0000BB; font-weight: bold;">9e03d6d8445546b6</span></span></span></code></pre></div>
 <p><strong>What’s inside a version snapshot directory?</strong></p>
 <ol style="list-style-type: decimal">
 <li>
@@ -322,8 +322,8 @@ parents were specified)</li>
 <span></span>
 <span><span class="co"># List contents - note: parents.json only exists if parents were specified</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_ls.html" class="external-link">dir_ls</a></span><span class="op">(</span><span class="va">latest_vdir</span><span class="op">)</span></span>
-<span><span class="co">#&gt; /tmp/RtmpfskHSq/stamp-demo/.stamp/versions/data/test.qs2/fda5655bac7a27aa/artifact</span></span>
-<span><span class="co">#&gt; /tmp/RtmpfskHSq/stamp-demo/.stamp/versions/data/test.qs2/fda5655bac7a27aa/sidecar.json</span></span>
+<span><span class="co">#&gt; /tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions/data/test.qs2/413bc3ef258e4c86/artifact</span></span>
+<span><span class="co">#&gt; /tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions/data/test.qs2/413bc3ef258e4c86/sidecar.json</span></span>
 <span></span>
 <span><span class="co"># Read the sidecar from the snapshot</span></span>
 <span><span class="va">sidecar_path</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">latest_vdir</span>, <span class="st">"sidecar.json"</span><span class="op">)</span></span>
@@ -332,9 +332,9 @@ parents were specified)</li>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">sidecar</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"path"</span>, <span class="st">"format"</span>, <span class="st">"created_at"</span>, <span class="st">"size_bytes"</span>, <span class="st">"code_label"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt; List of 5</span></span>
-<span><span class="co">#&gt;  $ path      : chr "/tmp/RtmpfskHSq/stamp-demo/data/test.qs2"</span></span>
+<span><span class="co">#&gt;  $ path      : chr "/tmp/RtmpMf7Yu1/stamp-demo/data/test.qs2"</span></span>
 <span><span class="co">#&gt;  $ format    : chr "qs2"</span></span>
-<span><span class="co">#&gt;  $ created_at: chr "2026-01-12T22:55:52.386253Z"</span></span>
+<span><span class="co">#&gt;  $ created_at: chr "2026-01-15T22:48:58.780020Z"</span></span>
 <span><span class="co">#&gt;  $ size_bytes: int 265</span></span>
 <span><span class="co">#&gt;  $ code_label: chr "added column"</span></span></code></pre></div>
 <p><strong>Example of specifying parents during save:</strong></p>
@@ -346,8 +346,8 @@ specified.</p>
 <span><span class="va">upstream_path</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">demo_dir</span>, <span class="st">"data"</span>, <span class="st">"upstream.qs2"</span><span class="op">)</span></span>
 <span><span class="va">upstream_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">upstream_data</span>, <span class="va">upstream_path</span>, code_label <span class="op">=</span> <span class="st">"upstream data"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpfskHSq/stamp-demo/data/upstream.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">8263c131d1c3c3fd</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpMf7Yu1/stamp-demo/data/upstream.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">4857e6d31d9982e7</span></span></span>
 <span><span class="va">upstream_version</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">upstream_path</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Now create a derived artifact with parent reference</span></span>
@@ -359,15 +359,15 @@ specified.</p>
 <span>  parents <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">upstream_path</span>, version_id <span class="op">=</span> <span class="va">upstream_version</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  code_label <span class="op">=</span> <span class="st">"derived from upstream"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpfskHSq/stamp-demo/data/derived.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">d9a34af045c614c3</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpMf7Yu1/stamp-demo/data/derived.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">c24245407a03110f</span></span></span>
 <span></span>
 <span><span class="co"># Now check the derived artifact's snapshot - parents.json will be present</span></span>
 <span><span class="va">derived_vdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_info.html">st_info</a></span><span class="op">(</span><span class="va">derived_path</span><span class="op">)</span><span class="op">$</span><span class="va">snapshot_dir</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_ls.html" class="external-link">dir_ls</a></span><span class="op">(</span><span class="va">derived_vdir</span><span class="op">)</span></span>
-<span><span class="co">#&gt; /tmp/RtmpfskHSq/stamp-demo/.stamp/versions/data/derived.qs2/d9a34af045c614c3/artifact</span></span>
-<span><span class="co">#&gt; /tmp/RtmpfskHSq/stamp-demo/.stamp/versions/data/derived.qs2/d9a34af045c614c3/parents.json</span></span>
-<span><span class="co">#&gt; /tmp/RtmpfskHSq/stamp-demo/.stamp/versions/data/derived.qs2/d9a34af045c614c3/sidecar.json</span></span>
+<span><span class="co">#&gt; /tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions/data/derived.qs2/c24245407a03110f/artifact</span></span>
+<span><span class="co">#&gt; /tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions/data/derived.qs2/c24245407a03110f/parents.json</span></span>
+<span><span class="co">#&gt; /tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions/data/derived.qs2/c24245407a03110f/sidecar.json</span></span>
 <span></span>
 <span><span class="co"># Read parents.json</span></span>
 <span><span class="va">parents_file</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">derived_vdir</span>, <span class="st">"parents.json"</span><span class="op">)</span></span>
@@ -377,8 +377,8 @@ specified.</p>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt; List of 1</span></span>
 <span><span class="co">#&gt;  $ :List of 2</span></span>
-<span><span class="co">#&gt;   ..$ path      : chr "/tmp/RtmpfskHSq/stamp-demo/data/upstream.qs2"</span></span>
-<span><span class="co">#&gt;   ..$ version_id: chr "8263c131d1c3c3fd"</span></span></code></pre></div>
+<span><span class="co">#&gt;   ..$ path      : chr "/tmp/RtmpMf7Yu1/stamp-demo/data/upstream.qs2"</span></span>
+<span><span class="co">#&gt;   ..$ version_id: chr "4857e6d31d9982e7"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="artifact-organization-path-based-vs--external-storage">2.4 Artifact Organization: Path-Based vs. External Storage<a class="anchor" aria-label="anchor" href="#artifact-organization-path-based-vs--external-storage"></a>
@@ -573,20 +573,20 @@ state</li>
 <span><span class="co">#&gt;   versioning = <span style="color: #0000BB;">"timestamp"</span></span></span>
 <span><span class="va">v_same</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">v_same</span>, <span class="va">test_path</span>, code_label <span class="op">=</span> <span class="st">"first"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpfskHSq/stamp-demo/data/test.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">c8346a160e2ed778</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpMf7Yu1/stamp-demo/data/test.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">8b41e2e2c3acbedd</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.sleep.html" class="external-link">Sys.sleep</a></span><span class="op">(</span><span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">v_same</span>, <span class="va">test_path</span>, code_label <span class="op">=</span> <span class="st">"second identical"</span><span class="op">)</span>  <span class="co"># Still creates version!</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpfskHSq/stamp-demo/data/test.qs2</span> @ version</span></span>
-<span><span class="co">#&gt;   <span style="color: #00BB00;">3f8ac5c84006610d</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpMf7Yu1/stamp-demo/data/test.qs2</span> @ version</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">a927cada2ac74987</span></span></span>
 <span></span>
 <span><span class="co"># Check: two versions with identical content</span></span>
 <span><span class="va">recent_versions</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">test_path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">recent_versions</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">version_id</span>, <span class="va">created_at</span>, <span class="va">content_hash</span><span class="op">)</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          version_id                  created_at     content_hash</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;                      &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1: 7e0a85ef12d60814 2026-01-12T22:55:51.837927Z 41c16cfe6598913b</span></span>
-<span><span class="co">#&gt; 2: 85a7ee1efbbb2bec 2026-01-12T22:55:51.445941Z 2d26c6e5d9121bfd</span></span>
+<span><span class="co">#&gt; 1: 9e03d6d8445546b6 2026-01-15T22:48:58.212397Z 41c16cfe6598913b</span></span>
+<span><span class="co">#&gt; 2: 1b5b0bd1fc1a260f 2026-01-15T22:48:57.747827Z 2d26c6e5d9121bfd</span></span>
 <span></span>
 <span><span class="co"># Reset to default</span></span>
 <span><span class="fu"><a href="../reference/st_opts.html">st_opts</a></span><span class="op">(</span>versioning <span class="op">=</span> <span class="st">"content"</span><span class="op">)</span></span>
@@ -723,31 +723,31 @@ operations, never modified)</li>
 <span><span class="va">versions</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">version_id</span>, <span class="va">created_at</span>, <span class="va">size_bytes</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;          version_id                  created_at size_bytes</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;                      &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: 3f8ac5c84006610d 2026-01-12T22:55:53.027700Z        245</span></span>
-<span><span class="co">#&gt; 2: c8346a160e2ed778 2026-01-12T22:55:52.787423Z        245</span></span>
-<span><span class="co">#&gt; 3: fda5655bac7a27aa 2026-01-12T22:55:52.386253Z        265</span></span>
-<span><span class="co">#&gt; 4: 5c5d86ee8313573d 2026-01-12T22:55:52.145704Z        246</span></span>
-<span><span class="co">#&gt; 5: 7e0a85ef12d60814 2026-01-12T22:55:51.837927Z        245</span></span>
-<span><span class="co">#&gt; 6: 85a7ee1efbbb2bec 2026-01-12T22:55:51.445941Z        262</span></span>
+<span><span class="co">#&gt; 1: a927cada2ac74987 2026-01-15T22:48:59.498747Z        245</span></span>
+<span><span class="co">#&gt; 2: 8b41e2e2c3acbedd 2026-01-15T22:48:59.258103Z        245</span></span>
+<span><span class="co">#&gt; 3: 413bc3ef258e4c86 2026-01-15T22:48:58.780020Z        265</span></span>
+<span><span class="co">#&gt; 4: 230cd8b7bd38f700 2026-01-15T22:48:58.533339Z        246</span></span>
+<span><span class="co">#&gt; 5: 9e03d6d8445546b6 2026-01-15T22:48:58.212397Z        245</span></span>
+<span><span class="co">#&gt; 6: 1b5b0bd1fc1a260f 2026-01-15T22:48:57.747827Z        262</span></span>
 <span></span>
 <span><span class="co"># Get comprehensive info</span></span>
 <span><span class="va">info</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_info.html">st_info</a></span><span class="op">(</span><span class="va">test_path</span><span class="op">)</span></span>
 <span><span class="va">info</span><span class="op">$</span><span class="va">catalog</span>  <span class="co"># Latest version and count</span></span>
 <span><span class="co">#&gt; $latest_version_id</span></span>
-<span><span class="co">#&gt; [1] "3f8ac5c84006610d"</span></span>
+<span><span class="co">#&gt; [1] "a927cada2ac74987"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $n_versions</span></span>
 <span><span class="co">#&gt; [1] 6</span></span>
 <span><span class="va">info</span><span class="op">$</span><span class="va">snapshot_dir</span>  <span class="co"># Path to latest snapshot</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpfskHSq/stamp-demo/.stamp/versions/data/test.qs2/3f8ac5c84006610d</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions/data/test.qs2/a927cada2ac74987</span></span></span>
 <span></span>
 <span><span class="co"># Load a specific historical version</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">versions</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">old_version</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">test_path</span>, version <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">)</span>  <span class="co"># Previous version</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">old_version</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">/tmp/RtmpfskHSq/stamp-demo/data/test.qs2</span> @</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">c8346a160e2ed778</span> [<span style="color: #00BB00;">qs2</span>]</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">/tmp/RtmpMf7Yu1/stamp-demo/data/test.qs2</span> @</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">8b41e2e2c3acbedd</span> [<span style="color: #00BB00;">qs2</span>]</span></span>
 <span><span class="co">#&gt; 'data.frame':    3 obs. of  1 variable:</span></span>
 <span><span class="co">#&gt;  $ x: int  1 2 3</span></span></code></pre></div>
 </div>
@@ -792,7 +792,7 @@ operations, never modified)</li>
 <span>    <span class="op">}</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpfskHSq/stamp-demo/.stamp/versions/data/test.qs2/fda5655bac7a27aa</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpMf7Yu1/stamp-demo/.stamp/versions/data/test.qs2/a927cada2ac74987</span></span></span>
 <span><span class="co">#&gt; ├── artifact</span></span>
 <span><span class="co">#&gt; └── sidecar.json</span></span></code></pre></div>
 <hr>
