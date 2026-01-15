@@ -15,6 +15,7 @@ st_save(
   pk = NULL,
   domain = NULL,
   unique = TRUE,
+  verbose = TRUE,
   ...
 )
 }
@@ -39,6 +40,10 @@ list(list(path = "\if{html}{\out{<path>}}", version_id = "\if{html}{\out{<id>}}"
 \item{domain}{optional character scalar or vector label(s) for the dataset}
 
 \item{unique}{logical; enforce uniqueness of pk at save time (default TRUE)}
+
+\item{verbose}{logical; if \code{FALSE}, suppress informational messages and package-generated
+warnings (default TRUE). When \code{FALSE}, messages about skipped saves or save
+failures emitted by \code{st_save()} will not be shown.}
 
 \item{...}{forwarded to format writer}
 }

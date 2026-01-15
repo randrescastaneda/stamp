@@ -84,6 +84,9 @@ print.st_path <- function(x, ...) {
 #' @param domain optional character scalar or vector label(s) for the dataset
 #' @param unique logical; enforce uniqueness of pk at save time (default TRUE)
 #' @param ... forwarded to format writer
+#' @param verbose logical; if `FALSE`, suppress informational messages and package-generated
+#'   warnings (default TRUE). When `FALSE`, messages about skipped saves or save
+#'   failures emitted by `st_save()` will not be shown.
 #' @return invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
 #' @export
 st_save <- function(
@@ -97,8 +100,11 @@ st_save <- function(
   pk = NULL,
   domain = NULL,
   unique = TRUE,
+  verbose = TRUE,
   ...
 ) {
+  # Input validation for verbose
+  stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
   # Normalize path + format selection
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
@@ -131,9 +137,11 @@ st_save <- function(
   # Use sanitized object so decision aligns with stored content
   dec <- st_should_save(sp$path, x = x_sanitized, code = code)
   if (!dec$save) {
-    cli::cli_inform(c(
-      "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {sp$path}}"
-    ))
+    if (isTRUE(verbose)) {
+      cli::cli_inform(c(
+        "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {sp$path}}"
+      ))
+    }
     return(invisible(list(path = sp$path, skipped = TRUE, reason = dec$reason)))
   }
 
@@ -148,22 +156,27 @@ st_save <- function(
         obj = x_sanitized,
         path = sp$path,
         writer = function(obj, pth) {
-          # Forward only writer args that the concrete writer accepts.
-          # This avoids passing st_save-specific args (e.g. pk, domain)
-          # to format writers that don't expect them.
+          # Forward writer args including verbose to the concrete writer.
+          # Filter out st_save-specific args (e.g. pk, domain) that format
+          # writers don't expect.
           args_local <- list(...)
           writer_formals <- names(formals(h$write))
-          if (length(args_local) && !is.null(writer_formals)) {
+
+          if (!is.null(writer_formals) && length(args_local)) {
+            # Keep only named args that the writer accepts
             named <- names(args_local)
             named <- if (is.null(named)) rep("", length(args_local)) else named
             keep_idx <- which(named != "" & named %in% writer_formals)
             if (length(keep_idx)) {
-              do.call(h$write, c(list(obj, pth), args_local[keep_idx]))
+              do.call(
+                h$write,
+                c(list(obj, pth, verbose = verbose), args_local[keep_idx])
+              )
             } else {
-              h$write(obj, pth)
+              h$write(obj, pth, verbose = verbose)
             }
           } else {
-            h$write(obj, pth)
+            h$write(obj, pth, verbose = verbose)
           }
         },
         overwrite = TRUE
@@ -235,18 +248,22 @@ st_save <- function(
       # 5) Optional retention for this artifact
       .st_apply_retention(sp$path)
 
-      cli::cli_inform(c(
-        "v" = "Saved [{.field {fmt}}] \u2192 {.file {sp$path}} @ version {.field {vid}}"
-      ))
+      if (isTRUE(verbose)) {
+        cli::cli_inform(c(
+          "v" = "Saved [{.field {fmt}}] \u2192 {.file {sp$path}} @ version {.field {vid}}"
+        ))
+      }
       list(path = sp$path, metadata = meta, version_id = vid)
     }),
     error = function(e) {
       # Best-effort: surface a warning and allow the function to fall back
       # to a safe return value rather than failing the whole process.
-      cli::cli_warn(c(
-        "x" = "Save failed for {.file {sp$path}}: {conditionMessage(e)}",
-        "i" = "Returning fallback result (no metadata/version)."
-      ))
+      if (isTRUE(verbose)) {
+        cli::cli_warn(c(
+          "x" = "Save failed for {.file {sp$path}}: {conditionMessage(e)}",
+          "i" = "Returning fallback result (no metadata/version)."
+        ))
+      }
       NULL
     }
   )
@@ -261,6 +278,9 @@ st_save <- function(
 #' @param version An integer or a quoted directive. Retrieve a specific version
 #'   of an artifact. See details.
 #' @param ... forwarded to format reader
+#' @param verbose logical; if FALSE, suppress informational messages and package-generated
+#'   warnings (default TRUE). When `FALSE`, warnings about file/content hash
+#'   mismatches and a missing primary key recorded by `st_load()` will not be shown.
 #' @return the loaded object
 #' @details
 #' The `version` argument allows you to load specific versions:
@@ -277,21 +297,23 @@ st_save <- function(
 #' \dontrun{
 #' # Basic usage: load latest version
 #' data <- st_load("data/mydata.rds")
-#' 
+#'
 #' # Load previous version
 #' old_data <- st_load("data/mydata.rds", version = -1)
-#' 
+#'
 #' # Load specific version by ID
 #' vid <- st_versions("data/mydata.rds")$version_id[3]
 #' specific <- st_load("data/mydata.rds", version = vid)
-#' 
+#'
 #' # Interactive menu (in interactive sessions only)
 #' selected <- st_load("data/mydata.rds", version = "select")
 #' # or use "pick" or "choose"
 #' selected <- st_load("data/mydata.rds", version = "pick")
 #' }
 #' @export
-st_load <- function(file, format = NULL, version = NULL, ...) {
+st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
+  # Input validation for verbose
+  stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
   # Normalize input into an st_path
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
@@ -299,9 +321,11 @@ st_load <- function(file, format = NULL, version = NULL, ...) {
   if (!is.null(version)) {
     version_id <- .st_resolve_version(sp$path, version)
     if (is.na(version_id)) {
-      cli::cli_abort("Could not resolve version {.val {version}} for {.file {sp$path}}")
+      cli::cli_abort(
+        "Could not resolve version {.val {version}} for {.file {sp$path}}"
+      )
     }
-    return(st_load_version(sp$path, version_id, ...))
+    return(st_load_version(sp$path, version_id, ..., verbose = verbose))
   }
 
   # Existence check
@@ -331,16 +355,18 @@ st_load <- function(file, format = NULL, version = NULL, ...) {
     ) {
       now <- tryCatch(st_hash_file(sp$path), error = function(e) NA_character_)
       if (!is.na(now) && !identical(now, meta$file_hash)) {
-        cli::cli_warn(c(
-          "File hash mismatch for {.file {sp$path}} (sidecar vs disk).",
-          "i" = "The file may have changed outside {.pkg stamp}."
-        ))
+        if (isTRUE(verbose)) {
+          cli::cli_warn(c(
+            "File hash mismatch for {.file {sp$path}} (sidecar vs disk).",
+            "i" = "The file may have changed outside {.pkg stamp}."
+          ))
+        }
       }
     }
   }
 
   # Read the artifact with the registered reader
-  res <- h$read(sp$path, ...)
+  res <- h$read(sp$path, verbose = verbose, ...)
 
   # (2) Optional CONTENT integrity check: sidecar$content_hash vs rehash of loaded object
   if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
@@ -351,21 +377,17 @@ st_load <- function(file, format = NULL, version = NULL, ...) {
     ) {
       h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
       if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
-        cli::cli_warn(
-          "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
-        )
+        if (isTRUE(verbose)) {
+          cli::cli_warn(
+            "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
+          )
+        }
       }
     }
   }
 
-  # Restore original tabular format if it was a data.table at save time
-  if (
-    is.data.frame(res) &&
-      !is.null(attr(res, "st_original_format")) &&
-      "data.table" %in% attr(res, "st_original_format")
-  ) {
-    res <- as.data.table(res)
-  }
+  # Restore original object attributes (data.table class, row.names, etc.)
+  res <- .st_restore_sanitized_object(res)
 
   #  pk presence check on load (warn or error depending on options) \
   pk_keys <- character(0)
@@ -384,16 +406,17 @@ st_load <- function(file, format = NULL, version = NULL, ...) {
         "i" = "Record it with {.code st_add_pk({.file {sp$path}}, keys = c('...'))}."
       ))
     } else if (isTRUE(st_opts("warn_missing_pk_on_load", .get = TRUE))) {
-      cli::cli_warn(c(
-        "No primary key recorded for {.file {sp$path}}.",
-        "i" = "You can add one with {.fn st_add_pk}."
-      ))
+      if (isTRUE(verbose)) {
+        cli::cli_warn(c(
+          "No primary key recorded for {.file {sp$path}}.",
+          "i" = "You can add one with {.fn st_add_pk}."
+        ))
+      }
     }
   } else if (is.data.frame(res)) {
     # Attach pk keys as a convenience attribute
     attr(res, "stamp_pk") <- list(keys = pk_keys)
   }
-
 
   # Reattach schema if present and not already attached
   if (
@@ -413,25 +436,9 @@ st_load <- function(file, format = NULL, version = NULL, ...) {
     attr(res, "stamp_domain") <- meta$domain
   }
 
-  # Remove st_original_format attribute (internal marker, not part of user object)
-  if (!is.null(attr(res, "st_original_format"))) {
-    if (inherits(res, "data.table")) {
-      setattr(res, "st_original_format", NULL)
-    } else {
-      attr(res, "st_original_format") <- NULL
-    }
+  if (isTRUE(verbose)) {
+    cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.file {sp$path}}"))
   }
-
-  # Remove stamp_sanitized attribute (not part of user-visible object) after any verification
-  if (!is.null(attr(res, "stamp_sanitized"))) {
-    if (inherits(res, "data.table")) {
-      setattr(res, "stamp_sanitized", NULL)
-    } else {
-      attr(res, "stamp_sanitized") <- NULL
-    }
-  }
-
-  cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.file {sp$path}}"))
   res
 }
 

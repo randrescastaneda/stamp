@@ -282,7 +282,7 @@ st_latest <- function(path) {
 #' Resolve version specification to a concrete version_id (internal)
 #'
 #' @param path artifact path
-#' @param version NULL (latest), integer (relative), character (specific version ID), 
+#' @param version NULL (latest), integer (relative), character (specific version ID),
 #'   or "select"/"pick"/"choose" to show interactive menu
 #' @return character version_id or NA_character_
 #' @keywords internal
@@ -291,7 +291,7 @@ st_latest <- function(path) {
   if (is.null(version) || (is.numeric(version) && version == 0)) {
     return(st_latest(path))
   }
-  
+
   # Positive integers are not allowed
   if (is.numeric(version) && version > 0) {
     cli::cli_abort(c(
@@ -299,14 +299,14 @@ st_latest <- function(path) {
       "i" = "Use NULL for latest, 0 for current, or negative integers for relative versions."
     ))
   }
-  
+
   # Negative integers: relative to latest
   if (is.numeric(version) && version < 0) {
     vers <- st_versions(path)
     if (nrow(vers) == 0L) {
       cli::cli_abort("No versions found for {.file {path}}")
     }
-    
+
     # vers is already sorted by created_at descending (newest first)
     # version=-1 means "one version back from latest" -> index 2
     # version=-2 means "two versions back from latest" -> index 3
@@ -317,17 +317,17 @@ st_latest <- function(path) {
         "i" = "Only {nrow(vers)} version{?s} available for {.file {path}}"
       ))
     }
-    
+
     return(as.character(vers$version_id[idx]))
   }
-  
+
   # Character: check for interactive menu request or specific version ID
   if (is.character(version)) {
     vers <- st_versions(path)
     if (nrow(vers) == 0L) {
       cli::cli_abort("No versions found for {.file {path}}")
     }
-    
+
     # Interactive menu
     if (tolower(version) %in% c("select", "pick", "choose")) {
       if (!interactive()) {
@@ -336,45 +336,59 @@ st_latest <- function(path) {
           "i" = "Specify a version explicitly or use NULL for latest."
         ))
       }
-      
+
       # Build menu choices with formatted dates and metadata
       choices <- character(nrow(vers))
       for (i in seq_len(nrow(vers))) {
         row <- vers[i, ]
         # Format timestamp - handle both old (seconds) and new (microseconds) formats
-        ts <- tryCatch({
-          # Try parsing with microseconds first
-          dt <- as.POSIXct(row$created_at, format = "%Y-%m-%dT%H:%M:%OSZ", tz = "UTC")
-          if (is.na(dt)) {
-            # Fallback to seconds-only format for backward compatibility
-            dt <- as.POSIXct(row$created_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
-          }
-          format(dt, "%Y-%m-%d %H:%M:%OS3")  # Display with milliseconds
-        },
-        error = function(e) row$created_at
+        ts <- tryCatch(
+          {
+            # Try parsing with microseconds first
+            dt <- as.POSIXct(
+              row$created_at,
+              format = "%Y-%m-%dT%H:%M:%OSZ",
+              tz = "UTC"
+            )
+            if (is.na(dt)) {
+              # Fallback to seconds-only format for backward compatibility
+              dt <- as.POSIXct(
+                row$created_at,
+                format = "%Y-%m-%dT%H:%M:%SZ",
+                tz = "UTC"
+              )
+            }
+            format(dt, "%Y-%m-%d %H:%M:%OS3") # Display with milliseconds
+          },
+          error = function(e) row$created_at
         )
         # Format size
         size_mb <- round(as.numeric(row$size_bytes) / (1024^2), 2)
         # Construct choice string
-        choices[i] <- sprintf("[%d] %s (%.2f MB) - %s", 
-                              i, ts, size_mb, substr(row$version_id, 1, 16))
+        choices[i] <- sprintf(
+          "[%d] %s (%.2f MB) - %s",
+          i,
+          ts,
+          size_mb,
+          substr(row$version_id, 1, 16)
+        )
       }
-      
+
       # Show menu
       cli::cli_inform(c(
         "i" = "Select a version to load from {.file {path}}:",
         " " = "Latest version is [1]"
       ))
-      
+
       selection <- utils::menu(choices, title = "Available versions:")
-      
+
       if (selection == 0) {
         cli::cli_abort("Version selection cancelled by user.")
       }
-      
+
       return(as.character(vers$version_id[selection]))
     }
-    
+
     # Specific version ID
     if (!version %in% vers$version_id) {
       cli::cli_abort(c(
@@ -382,10 +396,10 @@ st_latest <- function(path) {
         "i" = "Use {.fn st_versions} to see available versions or 'select' for a menu."
       ))
     }
-    
+
     return(as.character(version))
   }
-  
+
   cli::cli_abort("Invalid version specification: {.val {version}}")
 }
 
@@ -405,6 +419,7 @@ st_latest <- function(path) {
 #' @param path Character path to the artifact (same value used with `st_save`/`st_load`).
 #' @param version_id Character version identifier (as returned by `st_save` or present in the catalog).
 #' @param ... Additional arguments forwarded to the format's read function (e.g. `read` options).
+#' @param verbose Logical; if TRUE (default), print informational messages.
 #' @return The object produced by the format-specific read handler (typically an R object loaded from disk).
 #' @examples
 #' \dontrun{
@@ -412,7 +427,7 @@ st_latest <- function(path) {
 #' old <- st_load_version("data/cleaned.rds", "20250101T000000Z-abcdef01")
 #' }
 #' @export
-st_load_version <- function(path, version_id, ...) {
+st_load_version <- function(path, version_id, verbose = TRUE, ...) {
   vdir <- .st_version_dir(path, version_id)
   art <- fs::path(vdir, "artifact")
   if (!fs::file_exists(art)) {
@@ -428,38 +443,16 @@ st_load_version <- function(path, version_id, ...) {
   }
 
   # Read the artifact with the registered reader
-  res <- h$read(art, ...)
+  res <- h$read(art, verbose = verbose, ...)
 
-  # Restore original tabular format if it was a data.table at save time
-  if (
-    is.data.frame(res) &&
-      !is.null(attr(res, "st_original_format")) &&
-      "data.table" %in% attr(res, "st_original_format")
-  ) {
-    res <- as.data.table(res)
+  # Restore original object attributes (data.table class, row.names, etc.)
+  res <- .st_restore_sanitized_object(res)
+
+  if (isTRUE(verbose)) {
+    cli::cli_inform(c(
+      "v" = "Loaded \u2190 {.field {path}} @ {.field {version_id}} [{.field {fmt}}]"
+    ))
   }
-
-  # Remove st_original_format attribute (internal marker, not part of user object)
-  if (!is.null(attr(res, "st_original_format"))) {
-    if (inherits(res, "data.table")) {
-      setattr(res, "st_original_format", NULL)
-    } else {
-      attr(res, "st_original_format") <- NULL
-    }
-  }
-
-  # Remove stamp_sanitized attribute (not part of user-visible object) after any verification
-  if (!is.null(attr(res, "stamp_sanitized"))) {
-    if (inherits(res, "data.table")) {
-      setattr(res, "stamp_sanitized", NULL)
-    } else {
-      attr(res, "stamp_sanitized") <- NULL
-    }
-  }
-
-  cli::cli_inform(c(
-    "v" = "Loaded \u2190 {.field {path}} @ {.field {version_id}} [{.field {fmt}}]"
-  ))
   res
 }
 
