@@ -395,6 +395,18 @@ st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
     res <- as.data.table(res)
   }
 
+  # Restore original row names if they were preserved
+  if (is.data.frame(res) && !is.null(attr(res, "st_original_rownames"))) {
+    orig_rn <- attr(res, "st_original_rownames")
+    if (inherits(res, "data.table")) {
+      setattr(res, "row.names", orig_rn)
+      setattr(res, "st_original_rownames", NULL)
+    } else {
+      attr(res, "row.names") <- orig_rn
+      attr(res, "st_original_rownames") <- NULL
+    }
+  }
+
   #  pk presence check on load (warn or error depending on options) \
   pk_keys <- character(0)
   if (is.list(meta) && !is.null(meta$pk)) {

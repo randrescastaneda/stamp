@@ -454,6 +454,18 @@ st_load_version <- function(path, version_id, verbose = TRUE, ...) {
     res <- as.data.table(res)
   }
 
+  # Restore original row names if they were preserved
+  if (is.data.frame(res) && !is.null(attr(res, "st_original_rownames"))) {
+    orig_rn <- attr(res, "st_original_rownames")
+    if (inherits(res, "data.table")) {
+      setattr(res, "row.names", orig_rn)
+      setattr(res, "st_original_rownames", NULL)
+    } else {
+      attr(res, "row.names") <- orig_rn
+      attr(res, "st_original_rownames") <- NULL
+    }
+  }
+
   # Remove st_original_format attribute (internal marker, not part of user object)
   if (!is.null(attr(res, "st_original_format"))) {
     if (inherits(res, "data.table")) {

@@ -66,13 +66,11 @@ st_normalize_attrs <- function(x) {
 
   # --- Path 1: data.tables ---
   if (inherits(x, "data.table")) {
-
     # Warn that sanitation is required
     cli::cli_abort(c(
       "!" = "data.table objects require sanitation before hashing.",
       "i" = "Please run `st_sanitize_for_hash()` on the object before hashing."
     ))
-
   }
   # --- Path 2: regular data.frames (not data.table) ---
   # Create a new object with normalized attributes
@@ -106,13 +104,11 @@ st_normalize_attrs <- function(x) {
   # Short-circuit S4 objects: unclass() is not safe for S4 instances.
   # Return S4 objects unchanged (caller can handle S4-specific normalization if needed).
   if (isS4(x)) {
-
     cli::cli_warn(c(
       "!" = "S4 objects cannot be normalized for hashing; returning object unchanged."
     ))
 
     return(x)
-
   }
 
   # Build canonical attributes list
@@ -144,7 +140,8 @@ st_normalize_attrs <- function(x) {
 #' row name representations. Strategy:
 #' - If `x` is a data.table: coerce to plain data.frame (drops DT internals).
 #' - If `x` is a data.frame (including coerced DT): enforce deterministic
-#'   row.names via `.set_row_names(NROW(x))`.
+#'   row.names via `.set_row_names(NROW(x))` and preserve original row.names
+#'   in `st_original_rownames` attribute for later restoration.
 #' - Record original class in `st_original_format` so a loader can restore it.
 #'
 #' Non-tabular objects are returned unchanged (attribute normalization handles
@@ -164,6 +161,14 @@ st_sanitize_for_hash <- function(x) {
       x <- as.data.frame(x)
     }
     attr(x, "st_original_format") <- orig_class
+    # Save original row names before sanitizing
+    orig_rownames <- attr(x, "row.names")
+    if (
+      !is.null(orig_rownames) &&
+        !identical(orig_rownames, .set_row_names(NROW(x)))
+    ) {
+      attr(x, "st_original_rownames") <- orig_rownames
+    }
     attr(x, "row.names") <- .set_row_names(NROW(x))
     attr(x, "stamp_sanitized") <- TRUE
     return(x)
@@ -222,7 +227,6 @@ st_sanitize_for_hash <- function(x) {
 #' st_hash_obj(dt_a) == st_hash_obj(dt_b)  # TRUE
 #' }
 st_hash_obj <- function(x) {
-
   # 1) Sanitize (content-only for tabular data); skip if already sanitized
   x_clean <- st_sanitize_for_hash(x)
 
