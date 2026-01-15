@@ -144,7 +144,34 @@ st_normalize_attrs <- function(x) {
 #' @keywords internal
 .st_has_custom_rownames <- function(x) {
   orig_rownames <- attr(x, "row.names")
-  !is.null(orig_rownames) && !identical(orig_rownames, .set_row_names(NROW(x)))
+  if (is.null(orig_rownames)) {
+    return(FALSE)
+  }
+  
+  n <- NROW(x)
+  # .set_row_names() requires integer; ensure we pass one
+  default_compact <- .set_row_names(as.integer(n))
+  
+  # Check both compact form c(NA, -n) and expanded form 1:n
+  if (identical(orig_rownames, default_compact)) {
+    return(FALSE)
+  }
+  
+  # Also check if it's the integer sequence 1:n (expanded default form)
+  if (is.integer(orig_rownames) && length(orig_rownames) == n) {
+    if (identical(orig_rownames, seq_len(n))) {
+      return(FALSE)
+    }
+  }
+  
+  # Also check character representation of default sequence
+  if (is.character(orig_rownames) && length(orig_rownames) == n) {
+    if (identical(orig_rownames, as.character(seq_len(n)))) {
+      return(FALSE)
+    }
+  }
+  
+  TRUE
 }
 
 #' Sanitize object prior to hashing
@@ -185,7 +212,8 @@ st_sanitize_for_hash <- function(x) {
       attr(x, "st_original_rownames") <- attr(x, "row.names")
     }
     # Normalize to integer sequence for consistent hashing
-    attr(x, "row.names") <- .set_row_names(NROW(x))
+    # .set_row_names() requires integer input
+    attr(x, "row.names") <- .set_row_names(as.integer(NROW(x)))
     attr(x, "stamp_sanitized") <- TRUE
     return(x)
   }
