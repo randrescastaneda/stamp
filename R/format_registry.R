@@ -18,13 +18,17 @@ NULL
 #'
 #' @return Invisibly returns what the underlying writer returns.
 #' @rdname stamp-format-helpers
-.st_write_qs2 <- function(x, path, ...) {
+.st_write_qs2 <- function(x, path, verbose = TRUE, ...) {
   if (!requireNamespace("qs2", quietly = TRUE)) {
     cli::cli_abort(
       "{.pkg qs2} is required to write {.field qs2} format. Please install {.pkg qs2}."
     )
   }
-  qs2::qs_save(x, path, ...)
+  if (isTRUE(verbose)) {
+    qs2::qs_save(x, path, ...)
+  } else {
+    suppressWarnings(qs2::qs_save(x, path, ...))
+  }
 }
 
 #' Read using qs2 (internal)
@@ -34,13 +38,17 @@ NULL
 #'
 #' @return The R object read from `path`.
 #' @rdname stamp-format-helpers
-.st_read_qs2 <- function(path, ...) {
+.st_read_qs2 <- function(path, verbose = TRUE, ...) {
   if (!requireNamespace("qs2", quietly = TRUE)) {
     cli::cli_abort(
       "{.pkg qs2} is required to read {.field qs2} format. Please install {.pkg qs2}."
     )
   }
-  qs2::qs_read(path, ...)
+  if (isTRUE(verbose)) {
+    qs2::qs_read(path, ...)
+  } else {
+    suppressWarnings(qs2::qs_read(path, ...))
+  }
 }
 
 # Seed built-ins with explicit closures for all format handlers
@@ -48,67 +56,129 @@ rlang::env_bind(
   .st_formats_env,
   qs2 = list(read = .st_read_qs2, write = .st_write_qs2),
   qs = list(
-    read = function(path, ...) {
+    read = function(path, verbose = TRUE, ...) {
       if (!requireNamespace("qs", quietly = TRUE)) {
         cli::cli_abort("{.pkg qs} is required for QS read.")
       }
-      qs::qread(path, ...)
+      if (isTRUE(verbose)) {
+        qs::qread(path, ...)
+      } else {
+        suppressWarnings(qs::qread(path, ...))
+      }
     },
-    write = function(x, path, ...) {
+    write = function(x, path, verbose = TRUE, ...) {
       if (!requireNamespace("qs", quietly = TRUE)) {
         cli::cli_abort("{.pkg qs} is required for QS write.")
       }
-      qs::qsave(x, path, ...)
+      if (isTRUE(verbose)) {
+        qs::qsave(x, path, ...)
+      } else {
+        suppressWarnings(qs::qsave(x, path, ...))
+      }
     }
   ),
   rds = list(
-    read = function(path, ...) readRDS(path, ...),
-    write = function(x, path, ...) saveRDS(x, path, ...)
+    read = function(path, verbose = TRUE, ...) {
+      if (isTRUE(verbose)) {
+        readRDS(path, ...)
+      } else {
+        suppressWarnings(readRDS(path, ...))
+      }
+    },
+    write = function(x, path, verbose = TRUE, ...) {
+      if (isTRUE(verbose)) {
+        saveRDS(x, path, ...)
+      } else {
+        suppressWarnings(saveRDS(x, path, ...))
+      }
+    }
   ),
   csv = list(
-    read = function(path, ...) data.table::fread(path, ...),
-    write = function(x, path, ...) data.table::fwrite(x, path, ...)
+    read = function(path, verbose = TRUE, ...) {
+      if (isTRUE(verbose)) {
+        data.table::fread(path, ...)
+      } else {
+        suppressWarnings(data.table::fread(path, ...))
+      }
+    },
+    write = function(x, path, verbose = TRUE, ...) {
+      if (isTRUE(verbose)) {
+        data.table::fwrite(x, path, ...)
+      } else {
+        suppressWarnings(data.table::fwrite(x, path, ...))
+      }
+    }
   ),
   fst = list(
-    read = function(path, ...) {
+    read = function(path, verbose = TRUE, ...) {
       if (!requireNamespace("fst", quietly = TRUE)) {
         cli::cli_abort("{.pkg fst} is required for FST read.")
       }
-      fst::read_fst(path, ...)
+      if (isTRUE(verbose)) {
+        fst::read_fst(path, ...)
+      } else {
+        suppressWarnings(fst::read_fst(path, ...))
+      }
     },
-    write = function(x, path, ...) {
+    write = function(x, path, verbose = TRUE, ...) {
       if (!requireNamespace("fst", quietly = TRUE)) {
         cli::cli_abort("{.pkg fst} is required for FST write.")
       }
-      fst::write_fst(x, path, ...)
+      if (isTRUE(verbose)) {
+        fst::write_fst(x, path, ...)
+      } else {
+        suppressWarnings(fst::write_fst(x, path, ...))
+      }
     }
   ),
   parquet = list(
-    read = function(path, ...) {
+    read = function(path, verbose = TRUE, ...) {
       if (!requireNamespace("nanoparquet", quietly = TRUE)) {
         cli::cli_abort("{.pkg nanoparquet} is required for Parquet read.")
       }
-      nanoparquet::read_parquet(path, ...)
+      if (isTRUE(verbose)) {
+        nanoparquet::read_parquet(path, ...)
+      } else {
+        suppressWarnings(nanoparquet::read_parquet(path, ...))
+      }
     },
-    write = function(x, path, ...) {
+    write = function(x, path, verbose = TRUE, ...) {
       if (!requireNamespace("nanoparquet", quietly = TRUE)) {
         cli::cli_abort("{.pkg nanoparquet} is required for Parquet write.")
       }
-      nanoparquet::write_parquet(x, file = path, ...)
+      if (isTRUE(verbose)) {
+        nanoparquet::write_parquet(x, file = path, ...)
+      } else {
+        suppressWarnings(nanoparquet::write_parquet(x, file = path, ...))
+      }
     }
   ),
   json = list(
-    read = function(path, ...) {
+    read = function(path, verbose = TRUE, ...) {
       if (!requireNamespace("jsonlite", quietly = TRUE)) {
         cli::cli_abort("{.pkg jsonlite} is required for JSON read.")
       }
-      jsonlite::read_json(path, simplifyVector = TRUE, ...)
+      if (isTRUE(verbose)) {
+        jsonlite::read_json(path, simplifyVector = TRUE, ...)
+      } else {
+        suppressWarnings(jsonlite::read_json(path, simplifyVector = TRUE, ...))
+      }
     },
-    write = function(x, path, ...) {
+    write = function(x, path, verbose = TRUE, ...) {
       if (!requireNamespace("jsonlite", quietly = TRUE)) {
         cli::cli_abort("{.pkg jsonlite} is required for JSON write.")
       }
-      jsonlite::write_json(x, path, auto_unbox = TRUE, digits = NA, ...)
+      if (isTRUE(verbose)) {
+        jsonlite::write_json(x, path, auto_unbox = TRUE, digits = NA, ...)
+      } else {
+        suppressWarnings(jsonlite::write_json(
+          x,
+          path,
+          auto_unbox = TRUE,
+          digits = NA,
+          ...
+        ))
+      }
     }
   )
 )

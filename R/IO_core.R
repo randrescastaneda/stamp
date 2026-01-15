@@ -103,6 +103,8 @@ st_save <- function(
   verbose = TRUE,
   ...
 ) {
+  # Input validation for verbose
+  stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
   # Normalize path + format selection
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
@@ -154,22 +156,27 @@ st_save <- function(
         obj = x_sanitized,
         path = sp$path,
         writer = function(obj, pth) {
-          # Forward only writer args that the concrete writer accepts.
-          # This avoids passing st_save-specific args (e.g. pk, domain)
-          # to format writers that don't expect them.
+          # Forward writer args including verbose to the concrete writer.
+          # Filter out st_save-specific args (e.g. pk, domain) that format
+          # writers don't expect.
           args_local <- list(...)
           writer_formals <- names(formals(h$write))
-          if (length(args_local) && !is.null(writer_formals)) {
-            named <- names(args_local)
-            named <- if (is.null(named)) rep("", length(args_local)) else named
+
+          # Always include verbose in the call
+          writer_args <- c(list(obj, pth, verbose = verbose), args_local)
+
+          if (!is.null(writer_formals)) {
+            # Keep only args that the writer accepts
+            named <- names(writer_args)
+            named <- if (is.null(named)) rep("", length(writer_args)) else named
             keep_idx <- which(named != "" & named %in% writer_formals)
             if (length(keep_idx)) {
-              do.call(h$write, c(list(obj, pth), args_local[keep_idx]))
+              do.call(h$write, writer_args[keep_idx])
             } else {
-              h$write(obj, pth)
+              h$write(obj, pth, verbose = verbose)
             }
           } else {
-            h$write(obj, pth)
+            h$write(obj, pth, verbose = verbose)
           }
         },
         overwrite = TRUE
@@ -305,6 +312,8 @@ st_save <- function(
 #' }
 #' @export
 st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
+  # Input validation for verbose
+  stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
   # Normalize input into an st_path
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
@@ -357,7 +366,7 @@ st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
   }
 
   # Read the artifact with the registered reader
-  res <- h$read(sp$path, ...)
+  res <- h$read(sp$path, verbose = verbose, ...)
 
   # (2) Optional CONTENT integrity check: sidecar$content_hash vs rehash of loaded object
   if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
