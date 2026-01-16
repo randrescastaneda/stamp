@@ -775,21 +775,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' @param path Path to the artifact.
 #' @return A single-row `data.frame`/`data.table` with the version metadata, or `NULL`.
 #' @keywords internal
-.st_catalog_latest_version_row <- function(path) {
-  aid <- .st_artifact_id(path)
-  cat <- .st_catalog_read()
-  art <- cat$artifacts[artifact_id == aid]
-  if (!nrow(art)) {
-    return(NULL)
-  }
-  vid <- art$latest_version_id[[1L]]
-  ver <- cat$versions[version_id == vid]
-  if (!nrow(ver)) {
-    return(NULL)
-  }
-  ver[1L]
-}
-
+## Removed unused `.st_catalog_latest_version_row()` (alias-unaware) to avoid confusion
 
 # --- Provenance snapshot files inside each version dir ------------------------
 
@@ -946,7 +932,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
   rows <- list()
   # Iterate all recorded versions; check their committed parents.json
   for (k in seq_len(NROW(cat$versions))) {
-    vrow <- cat$versions[k, , drop = FALSE]
+    vrow <- cat$versions[k]
     aid <- vrow$artifact_id[[1L]]
     cvid <- vrow$version_id[[1L]]
     cpth <- .st_artifact_path_from_id(aid, cat = cat)

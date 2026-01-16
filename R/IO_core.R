@@ -14,6 +14,16 @@
 st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   root_abs <- fs::path_abs(root)
   alias <- alias %||% "default" # Backwards-compatible default alias
+  alias_trim <- trimws(alias)
+  if (!identical(alias_trim, alias)) {
+    cli::cli_warn(c(
+      "!" = "Alias had leading/trailing whitespace; using {.val {alias_trim}}."
+    ))
+  }
+  alias <- alias_trim
+  if (!is.character(alias) || length(alias) != 1L || !nzchar(alias)) {
+    cli::cli_abort("Alias must be a non-empty character scalar.")
+  }
 
   # Physical state directory (no alias embedded in filesystem paths)
   sd <- fs::path(root_abs, state_dir)
@@ -532,7 +542,7 @@ st_info <- function(path, alias = NULL) {
   aid <- .st_artifact_id(path)
 
   latest <- st_latest(path, alias = alias)
-  artrow <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
+  artrow <- cat$artifacts[artifact_id == aid]
   nvers <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
 
   vdir <- .st_version_dir_latest(path, alias = alias)
@@ -551,6 +561,82 @@ st_info <- function(path, alias = NULL) {
     snapshot_dir = vdir,
     parents = parents
   )
+}
+
+
+# ---- Alias utilities --------------------------------------------------------
+
+#' List registered stamp aliases in the current session
+#' @return data.frame with columns: alias, root, state_dir, stamp_path
+#' @export
+st_alias_list <- function() {
+  ns <- rlang::env_names(.stamp_aliases)
+  if (!length(ns)) {
+    return(data.frame(
+      alias = character(),
+      root = character(),
+      state_dir = character(),
+      stamp_path = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  rows <- lapply(ns, function(a) {
+    cfg <- rlang::env_get(.stamp_aliases, a, default = NULL)
+    if (is.null(cfg)) {
+      return(data.frame(
+        alias = a,
+        root = NA_character_,
+        state_dir = NA_character_,
+        stamp_path = NA_character_,
+        stringsAsFactors = FALSE
+      ))
+    }
+    data.frame(
+      alias = a,
+      root = as.character(cfg$root),
+      state_dir = as.character(cfg$state_dir),
+      stamp_path = as.character(cfg$stamp_path),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+#' Get a registered alias configuration
+#' @param alias Optional alias; if NULL, uses "default"
+#' @return list(root, state_dir, stamp_path) or NULL if not found
+#' @export
+st_alias_get <- function(alias = NULL) {
+  .st_alias_get(alias)
+}
+
+#' Switch the session's default alias
+#'
+#' Rebase the session "default" alias to the configuration stored under
+#' `alias`. This does not modify any on-disk paths; it only affects which
+#' stamp folder is used when functions are called without an explicit
+#' `alias` argument.
+#'
+#' @param alias Character alias to make the session default.
+#' @return Invisibly returns the alias.
+#' @export
+st_switch <- function(alias) {
+  stopifnot(is.character(alias), length(alias) == 1L, nzchar(alias))
+  cfg <- .st_alias_get(alias)
+  if (is.null(cfg)) {
+    cli::cli_abort("Alias not found: {.val {alias}}")
+  }
+  .st_alias_register(
+    "default",
+    root = cfg$root,
+    state_dir = cfg$state_dir,
+    stamp_path = cfg$stamp_path
+  )
+  cli::cli_inform(c(
+    "v" = "Switched default stamp alias",
+    " " = paste0("default \u2192 ", alias)
+  ))
+  invisible(alias)
 }
 
 

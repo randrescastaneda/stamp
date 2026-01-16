@@ -189,7 +189,7 @@ st_prune_versions <- function(
     # Use version_id as secondary key (descending) to avoid flakiness when multiple versions
     # share the identical created_at second.
     ord <- order(vers$created_at, vers$version_id, decreasing = TRUE)
-    vers <- vers[ord, , drop = FALSE]
+    vers <- vers[ord]
 
     # Group by artifact and choose which versions to KEEP under policy
     split_idx <- split(seq_len(nrow(vers)), vers$artifact_id)
@@ -200,11 +200,11 @@ st_prune_versions <- function(
 
     for (aid in names(split_idx)) {
       idx <- split_idx[[aid]]
-      block <- vers[idx, , drop = FALSE]
+      block <- vers[idx]
 
       # newest -> oldest (deterministic tie-breaker on version_id)
       bord <- order(block$created_at, block$version_id, decreasing = TRUE)
-      block <- block[bord, , drop = FALSE]
+      block <- block[bord]
 
       # Compute "keep" set from normalized policy
       kid <- .st_policy_keep_ids(block, pol)
