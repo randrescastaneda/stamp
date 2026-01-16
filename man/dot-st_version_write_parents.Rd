@@ -2,7 +2,7 @@
 % Please edit documentation in R/version_store.R
 \name{.st_version_write_parents}
 \alias{.st_version_write_parents}
-\title{Retrieve the latest version row for an artifact (internal)}
+\title{Write parents metadata for a version (internal)}
 \usage{
 .st_version_write_parents(version_dir, parents)
 }
@@ -10,46 +10,13 @@
 \item{version_dir}{Path to the version directory where parents.json will be written.}
 
 \item{parents}{List of parent descriptors (each a list with \code{path} and \code{version_id}).}
-
-\item{path}{Path to the artifact.}
 }
 \value{
-A single-row \code{data.frame}/\code{data.table} with the version metadata, or \code{NULL}.
-
 Invisibly \code{NULL}.
 }
 \description{
-Return the latest version record (a single-row data.frame or data.table)
-for the artifact identified by \code{path}. If no artifact or version exists,
-\code{NULL} is returned.
+Persist the list of parent descriptors for a version as JSON inside the
+version directory. The function performs an atomic write to avoid
+partial files on disk.
 }
-\keyword{(internal)}
-\keyword{JSON}
-\keyword{Persist}
-\keyword{The}
-\keyword{Write}
-\keyword{a}
-\keyword{an}
-\keyword{as}
-\keyword{atomic}
-\keyword{avoid}
-\keyword{descriptors}
-\keyword{directory.}
-\keyword{disk.}
-\keyword{files}
-\keyword{for}
-\keyword{function}
-\keyword{inside}
 \keyword{internal}
-\keyword{list}
-\keyword{metadata}
-\keyword{of}
-\keyword{on}
-\keyword{parent}
-\keyword{parents}
-\keyword{partial}
-\keyword{performs}
-\keyword{the}
-\keyword{to}
-\keyword{version}
-\keyword{write}
