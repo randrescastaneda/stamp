@@ -40,8 +40,8 @@ version, which is equivalent to \code{NULL}. If \code{-1}, it will load the vers
 right before the current one, \code{-2} loads two versions before, and so on.
 \item Positive numbers: Error.
 \item Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
-\item \code{"select"}, \code{"pick"}, or \code{"choose"}: displays an interactive menu to select from
-available versions (only in interactive R sessions).
+\item Interactive selection (e.g., \code{"select"}, \code{"pick"}, \code{"choose"}) is not supported.
+Callers must pass a concrete version id or a negative integer for relative selection.
 }
 }
 \examples{
@@ -57,8 +57,7 @@ vid <- st_versions("data/mydata.rds")$version_id[3]
 specific <- st_load("data/mydata.rds", version = vid)
 
 # Interactive menu (in interactive sessions only)
-selected <- st_load("data/mydata.rds", version = "select")
-# or use "pick" or "choose"
-selected <- st_load("data/mydata.rds", version = "pick")
+# Interactive selection is not supported in non-interactive contexts.
+# Pass explicit version id or a negative integer.
 }
 }

@@ -7,8 +7,10 @@ test_that("aliases isolate catalogs and versions", {
   fs::dir_create(root2, recurse = TRUE)
 
   # Initialize two stamp folders with aliases
-  st_init(root1, alias = "A")
-  st_init(root2, alias = "B")
+  aliasA <- paste0("A_", basename(root1))
+  aliasB <- paste0("B_", basename(root2))
+  st_init(root1, alias = aliasA)
+  st_init(root2, alias = aliasB)
 
   # Save artifacts into separate aliases
   pathA <- fs::path(root1, "A.qs")
@@ -16,17 +18,17 @@ test_that("aliases isolate catalogs and versions", {
   xA <- data.frame(a = 1:3)
   xB <- data.frame(b = 4:6)
 
-  resA <- st_save(xA, pathA, alias = "A")
-  resB <- st_save(xB, pathB, alias = "B")
+  resA <- st_save(xA, pathA, alias = aliasA)
+  resB <- st_save(xB, pathB, alias = aliasB)
 
   expect_true(is.list(resA))
   expect_true(is.list(resB))
 
   # Versions visible only within their alias
-  vaA <- st_versions(pathA, alias = "A")
-  vaB <- st_versions(pathA, alias = "B")
-  vbA <- st_versions(pathB, alias = "A")
-  vbB <- st_versions(pathB, alias = "B")
+  vaA <- st_versions(pathA, alias = aliasA)
+  vaB <- st_versions(pathA, alias = aliasB)
+  vbA <- st_versions(pathB, alias = aliasA)
+  vbB <- st_versions(pathB, alias = aliasB)
 
   expect_true(nrow(vaA) == 1L)
   expect_true(nrow(vbB) == 1L)
@@ -34,14 +36,14 @@ test_that("aliases isolate catalogs and versions", {
   expect_true(nrow(vbA) == 0L)
 
   # Latest resolves per alias
-  la <- st_latest(pathA, alias = "A")
-  lb <- st_latest(pathB, alias = "B")
+  la <- st_latest(pathA, alias = aliasA)
+  lb <- st_latest(pathB, alias = aliasB)
   expect_true(is.character(la) && nzchar(la))
   expect_true(is.character(lb) && nzchar(lb))
 
   # Load uses alias-specific version store
-  xa <- st_load(pathA, alias = "A")
-  xb <- st_load(pathB, alias = "B")
+  xa <- st_load(pathA, alias = aliasA)
+  xb <- st_load(pathB, alias = aliasB)
   expect_true(is.data.frame(xa))
   expect_true(is.data.frame(xb))
 })

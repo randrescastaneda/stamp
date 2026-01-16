@@ -13,15 +13,18 @@
 #' @export
 st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   root_abs <- fs::path_abs(root)
-  alias <- alias %||% "default" # Backwards-compatible default alias
-  alias_trim <- trimws(alias)
-  if (!identical(alias_trim, alias)) {
+  alias0 <- alias %||% "default" # Backwards-compatible default alias
+  if (!is.character(alias0) || length(alias0) != 1L) {
+    cli::cli_abort("Alias must be a non-empty character scalar.")
+  }
+  alias_trim <- trimws(alias0)
+  if (!identical(alias_trim, alias0)) {
     cli::cli_warn(c(
       "!" = "Alias had leading/trailing whitespace; using {.val {alias_trim}}."
     ))
   }
   alias <- alias_trim
-  if (!is.character(alias) || length(alias) != 1L || !nzchar(alias)) {
+  if (!nzchar(alias)) {
     cli::cli_abort("Alias must be a non-empty character scalar.")
   }
 
@@ -32,16 +35,26 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   # Enforce: same alias cannot map to different folders
   existing <- .st_alias_get(alias)
   if (!is.null(existing) && !identical(existing$stamp_path, sd_abs)) {
-    cli::cli_abort(c(
-      "x" = "Alias {.val {alias}} is already registered for a different folder.",
-      "i" = paste0(
-        "Existing: ",
-        existing$stamp_path,
-        "; Requested: ",
-        sd_abs,
-        ". Use a different alias or remove the conflict."
-      )
-    ))
+    if (identical(alias, "default")) {
+      # For backward compatibility, allow re-basing the default alias
+      # to a new folder rather than erroring.
+      cli::cli_inform(c(
+        "i" = "Rebasing default alias to new folder.",
+        " " = paste0("Existing: ", existing$stamp_path),
+        " " = paste0("Requested: ", sd_abs)
+      ))
+    } else {
+      cli::cli_abort(c(
+        "x" = "Alias {.val {alias}} is already registered for a different folder.",
+        "i" = paste0(
+          "Existing: ",
+          existing$stamp_path,
+          "; Requested: ",
+          sd_abs,
+          ". Use a different alias or remove the conflict."
+        )
+      ))
+    }
   }
 
   # Warn: different aliases pointing to the same folder
@@ -363,8 +376,8 @@ st_save <- function(
 #'     right before the current one, `-2` loads two versions before, and so on.
 #'   * Positive numbers: Error.
 #'   * Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
-#'   * `"select"`, `"pick"`, or `"choose"`: displays an interactive menu to select from
-#'     available versions (only in interactive R sessions).
+#'   * Interactive selection (e.g., `"select"`, `"pick"`, `"choose"`) is not supported.
+#'     Callers must pass a concrete version id or a negative integer for relative selection.
 #' @examples
 #' \dontrun{
 #' # Basic usage: load latest version
@@ -378,9 +391,8 @@ st_save <- function(
 #' specific <- st_load("data/mydata.rds", version = vid)
 #'
 #' # Interactive menu (in interactive sessions only)
-#' selected <- st_load("data/mydata.rds", version = "select")
-#' # or use "pick" or "choose"
-#' selected <- st_load("data/mydata.rds", version = "pick")
+#' # Interactive selection is not supported in non-interactive contexts.
+#' # Pass explicit version id or a negative integer.
 #' }
 #' @export
 st_load <- function(
@@ -632,10 +644,6 @@ st_switch <- function(alias) {
     state_dir = cfg$state_dir,
     stamp_path = cfg$stamp_path
   )
-  cli::cli_inform(c(
-    "v" = "Switched default stamp alias",
-    " " = paste0("default \u2192 ", alias)
-  ))
   invisible(alias)
 }
 

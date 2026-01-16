@@ -340,65 +340,12 @@ st_latest <- function(path, alias = NULL) {
       cli::cli_abort("No versions found for {.file {path}}")
     }
 
-    # Interactive menu
+    # Interactive menu keywords are not supported (non-interactive API)
     if (tolower(version) %in% c("select", "pick", "choose")) {
-      if (!interactive()) {
-        cli::cli_abort(c(
-          "x" = "Interactive menu requested but session is not interactive.",
-          "i" = "Specify a version explicitly or use NULL for latest."
-        ))
-      }
-
-      # Build menu choices with formatted dates and metadata
-      choices <- character(nrow(vers))
-      for (i in seq_len(nrow(vers))) {
-        row <- vers[i, ]
-        # Format timestamp - handle both old (seconds) and new (microseconds) formats
-        ts <- tryCatch(
-          {
-            # Try parsing with microseconds first
-            dt <- as.POSIXct(
-              row$created_at,
-              format = "%Y-%m-%dT%H:%M:%OSZ",
-              tz = "UTC"
-            )
-            if (is.na(dt)) {
-              # Fallback to seconds-only format for backward compatibility
-              dt <- as.POSIXct(
-                row$created_at,
-                format = "%Y-%m-%dT%H:%M:%SZ",
-                tz = "UTC"
-              )
-            }
-            format(dt, "%Y-%m-%d %H:%M:%OS3") # Display with milliseconds
-          },
-          error = function(e) row$created_at
-        )
-        # Format size
-        size_mb <- round(as.numeric(row$size_bytes) / (1024^2), 2)
-        # Construct choice string
-        choices[i] <- sprintf(
-          "[%d] %s (%.2f MB) - %s",
-          i,
-          ts,
-          size_mb,
-          substr(row$version_id, 1, 16)
-        )
-      }
-
-      # Show menu
-      cli::cli_inform(c(
-        "i" = "Select a version to load from {.file {path}}:",
-        " " = "Latest version is [1]"
+      cli::cli_abort(c(
+        "x" = "Interactive selection is not supported (not interactive).",
+        "i" = "Pass a specific version id (character) or a negative integer for relative selection (e.g., -1)."
       ))
-
-      selection <- utils::menu(choices, title = "Available versions:")
-
-      if (selection == 0) {
-        cli::cli_abort("Version selection cancelled by user.")
-      }
-
-      return(as.character(vers$version_id[selection]))
     }
 
     # Specific version ID
