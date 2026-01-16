@@ -8,6 +8,8 @@ st_is_stale(path, alias = NULL)
 }
 \arguments{
 \item{path}{Character path to the artifact to inspect.}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 Logical scalar. \code{TRUE} if any parent advanced, otherwise \code{FALSE}.

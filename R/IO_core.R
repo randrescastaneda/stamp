@@ -543,6 +543,7 @@ st_load <- function(
 
 #' Inspect an artifact's current status (sidecar + catalog + snapshot location)
 #' @param path Artifact path
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return A named list with fields:
 #'   - sidecar: sidecar list (or NULL)
 #'   - catalog: list(latest_version_id, n_versions)

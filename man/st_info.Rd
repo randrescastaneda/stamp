@@ -8,6 +8,8 @@ st_info(path, alias = NULL)
 }
 \arguments{
 \item{path}{Artifact path}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 A named list with fields:

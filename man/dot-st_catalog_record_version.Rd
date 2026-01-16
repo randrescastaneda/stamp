@@ -12,7 +12,8 @@
   code_hash,
   created_at,
   sidecar_format,
-  alias = NULL
+  alias = NULL,
+  parents = NULL
 )
 }
 \arguments{

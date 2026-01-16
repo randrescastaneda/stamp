@@ -8,6 +8,8 @@ st_versions(path, alias = NULL)
 }
 \arguments{
 \item{path}{file or directory path}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 A \code{data.frame} or \code{data.table} with columns:

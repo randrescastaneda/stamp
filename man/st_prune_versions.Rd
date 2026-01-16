@@ -19,6 +19,8 @@ newer than \emph{days}; union of the two conditions)
 }}
 
 \item{dry_run}{logical; if TRUE, only report what would be pruned.}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 Invisibly, a data.frame of pruned (or would-prune) versions with

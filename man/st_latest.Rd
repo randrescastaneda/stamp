@@ -8,6 +8,8 @@ st_latest(path, alias = NULL)
 }
 \arguments{
 \item{path}{file or directory path}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \description{
 Get the latest version_id for an artifact path

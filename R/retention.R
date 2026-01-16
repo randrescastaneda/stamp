@@ -10,6 +10,7 @@
 #'   - `list(n = <int>, days = <num>)` (keep most recent *n* and/or those
 #'     newer than *days*; union of the two conditions)
 #' @param dry_run logical; if TRUE, only report what would be pruned.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return Invisibly, a data.frame of pruned (or would-prune) versions with
 #'   columns: artifact_path, version_id, created_at, size_bytes.
 #' @details

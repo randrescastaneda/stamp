@@ -210,6 +210,7 @@
 #' ordered by `created_at` descending.
 #'
 #' @inheritParams st_path
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return A `data.frame` or `data.table` with columns:
 #'   \item{version_id}{Character version identifier.}
 #'   \item{artifact_id}{Character artifact identifier (hashed).}
@@ -287,6 +288,7 @@ st_versions <- function(path, alias = NULL) {
 
 #' Get the latest version_id for an artifact path
 #' @inheritParams st_path
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @export
 st_latest <- function(path, alias = NULL) {
   # Derive latest from the versions table ordering to avoid relying on
@@ -398,6 +400,7 @@ st_latest <- function(path, alias = NULL) {
 #' @param version_id Character version identifier (as returned by `st_save` or present in the catalog).
 #' @param ... Additional arguments forwarded to the format's read function (e.g. `read` options).
 #' @param verbose Logical; if TRUE (default), print informational messages.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return The object produced by the format-specific read handler (typically an R object loaded from disk).
 #' @examples
 #' \dontrun{
@@ -443,6 +446,7 @@ st_load_version <- function(
 #' Show immediate or recursive parents for an artifact
 #' @param path Artifact path (child)
 #' @param depth Integer depth >= 1. Use Inf to walk recursively.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return data.frame with columns: level, child_path, child_version, parent_path, parent_version
 #' @export
 st_lineage <- function(path, depth = 1L, alias = NULL) {
@@ -762,16 +766,8 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 
 
 # Return the latest version row (or NULL) for an artifact path
-#' Retrieve the latest version row for an artifact (internal)
-#'
-#' Return the latest version record (a single-row data.frame or data.table)
-#' for the artifact identified by `path`. If no artifact or version exists,
-#' `NULL` is returned.
-#'
-#' @param path Path to the artifact.
-#' @return A single-row `data.frame`/`data.table` with the version metadata, or `NULL`.
-#' @keywords internal
-## Removed unused `.st_catalog_latest_version_row()` (alias-unaware) to avoid confusion
+# (Removed unused `.st_catalog_latest_version_row()` helper; left here as
+# plain comments to avoid generating orphaned Rd documentation.)
 
 # --- Provenance snapshot files inside each version dir ------------------------
 
@@ -1027,6 +1023,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' @param path Character path to the parent artifact.
 #' @param version_id Optional version id of \code{path} to match. Default: any.
 #' @param depth Integer depth >= 1. Use \code{Inf} to recurse fully.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return \code{data.frame} with columns:
 #'   \code{level}, \code{child_path}, \code{child_version},
 #'   \code{parent_path}, \code{parent_version}.
@@ -1101,6 +1098,7 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
 #' determine whether any parent now has a different latest version id.
 #'
 #' @param path Character path to the artifact to inspect.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return Logical scalar. `TRUE` if any parent advanced, otherwise `FALSE`.
 #' @export
 st_is_stale <- function(path, alias = NULL) {

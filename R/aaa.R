@@ -124,5 +124,14 @@ utils::globalVariables(c(
   "version_id",
   "created_at",
   "n_versions",
-  "latest_version_id"
+  "latest_version_id",
+  "parent_artifact_id",
+  "parent_version_id",
+  "child_artifact_id",
+  "child_version_id",
+  "artifact_path",
+  "size_bytes",
+  "..available_cols",
+  "..partitioning",
+  "."
 ))
