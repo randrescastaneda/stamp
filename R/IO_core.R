@@ -8,16 +8,46 @@
 #' @export
 st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   root_abs <- fs::path_abs(root)
+  alias <- alias %||% "default" # Backwards-compatible default alias
 
-  # Backwards-compatible default alias
-  alias <- alias %||% "default"
+  sd <- fs::path(root_abs, state_dir)
+  sd_abs <- fs::path_abs(sd)
+
+  # Enforce: same alias cannot map to different folders
+  existing <- .st_alias_get(alias)
+  if (!is.null(existing) && !identical(existing$stamp_path, sd_abs)) {
+    cli::cli_abort(c(
+      "x" = "Alias {.val {alias}} is already registered for a different folder.",
+      "i" = paste0(
+        "Existing: ",
+        existing$stamp_path,
+        "; Requested: ",
+        sd_abs,
+        ". Use a different alias or remove the conflict."
+      )
+    ))
+  }
+
+  # Warn: different aliases pointing to the same folder
+  for (nm in rlang::env_names(.stamp_aliases)) {
+    if (identical(nm, alias)) {
+      next
+    }
+    cfg <- rlang::env_get(.stamp_aliases, nm, default = NULL)
+    if (!is.null(cfg) && identical(cfg$stamp_path, sd_abs)) {
+      cli::cli_warn(c(
+        "!" = "Alias {.val {alias}} points to the same folder as existing alias {.val {nm}}.",
+        "i" = "They will share the same catalog and versions."
+      ))
+    }
+  }
 
   # Maintain legacy single-folder state for default alias
   if (identical(alias, "default")) {
     st_state_set(root_dir = root_abs, state_dir = state_dir)
   }
 
-  sd <- fs::path(root_abs, state_dir)
+  # Ensure directories exist (idempotent)
   .st_dir_create(sd)
   .st_dir_create(fs::path(sd, "temp"))
   .st_dir_create(fs::path(sd, "logs"))
@@ -27,16 +57,16 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
     alias,
     root = root_abs,
     state_dir = state_dir,
-    stamp_path = fs::path_abs(sd)
+    stamp_path = sd_abs
   )
 
   cli::cli_inform(c(
     "v" = "stamp initialized",
     " " = paste0("alias: ", alias),
     " " = paste0("root: ", root_abs),
-    " " = paste0("state: ", fs::path_abs(sd))
+    " " = paste0("state: ", sd_abs)
   ))
-  invisible(fs::path_abs(sd))
+  invisible(sd_abs)
 }
 
 
