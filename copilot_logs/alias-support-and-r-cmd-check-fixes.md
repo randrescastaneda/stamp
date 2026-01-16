@@ -1,7 +1,5 @@
 # Alias Support + R CMD Check Alignment
 
-# Alias Support + R CMD Check Alignment
-
 Task Header
 - TASK_NAME: alias-support-and-r-cmd-check-fixes
 - TASK_DESCRIPTION: Implement alias support, non-interactive version resolution, performance improvements (parents index, ordering), and align documentation/metadata to clear R CMD check notes. Consolidate development logs and final report.
