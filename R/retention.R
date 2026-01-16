@@ -99,7 +99,7 @@
 #' # Next saves will write a new version and then prune older ones for that artifact.
 #' }
 #' @export
-st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
+st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE, alias = NULL) {
   stopifnot(is.logical(dry_run), length(dry_run) == 1L)
 
   # Normalize the policy using the internal helper (single source of truth)
@@ -112,11 +112,11 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
   }
 
   # Load catalog
-  catalog_path <- .st_catalog_path()
+  catalog_path <- .st_catalog_path(alias)
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
   result <- .st_with_lock(lock_path, {
-    cat <- .st_catalog_read() # already data.table invariant
+    cat <- .st_catalog_read(alias) # already data.table invariant
 
     # Schema guards
     req_art <- c(
@@ -247,7 +247,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     for (i in seq_len(nrow(candidates))) {
       a_path <- candidates$artifact_path[[i]]
       vid <- candidates$version_id[[i]]
-      vdir <- .st_version_dir(a_path, vid)
+      vdir <- .st_version_dir(a_path, vid, alias = alias)
       .st_delete_version_dir_safe(vdir)
     }
 
@@ -272,7 +272,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 
     # Optionally convert back to data.table for persistence consistency
     # Already data.table invariant
-    .st_catalog_write(cat)
+    .st_catalog_write(cat, alias)
     candidates
   })
 
@@ -341,14 +341,14 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 
 # Optionally invoked after st_save() to apply retention for a single artifact
 # (safe: no is.infinite() on lists; normalize first)
-.st_apply_retention <- function(artifact_path) {
+.st_apply_retention <- function(artifact_path, alias = NULL) {
   pol_raw <- st_opts("retain_versions", .get = TRUE) %||% Inf
   pol <- .st_normalize_policy(pol_raw)
   if (identical(pol$kind, "all")) {
     return(invisible(NULL)) # keep-everything → no-op
   }
   # Apply to just this artifact; st_prune_versions will also normalize internally
-  st_prune_versions(path = artifact_path, policy = pol_raw, dry_run = FALSE)
+  st_prune_versions(path = artifact_path, policy = pol_raw, dry_run = FALSE, alias = alias)
   invisible(NULL)
 }
 

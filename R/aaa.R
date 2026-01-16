@@ -29,6 +29,9 @@
   state_dir = ".stamp" # default; can be overridden via st_state_set()
 )
 
+# Alias registry: alias -> list(root, state_dir, stamp_path)
+.stamp_aliases <- rlang::env()
+
 # Builder registry (used by st_register_builder / st_rebuild)
 .st_builders_env <- rlang::env()
 
@@ -44,6 +47,29 @@ st_state_set <- function(...) {
 
 st_state_get <- function(key, default = NULL) {
   rlang::env_get(.stamp_state, key, default = default)
+}
+
+# ------------------------------------------------------------------------------
+# Alias helpers (internal)
+# ------------------------------------------------------------------------------
+
+#' Register or update an alias configuration (internal)
+#' @keywords internal
+.st_alias_register <- function(alias, root, state_dir, stamp_path) {
+  stopifnot(is.character(alias), length(alias) == 1L, nzchar(alias))
+  cfg <- list(root = root, state_dir = state_dir, stamp_path = stamp_path)
+  rlang::env_poke(.stamp_aliases, alias, cfg)
+  invisible(alias)
+}
+
+#' Retrieve alias configuration (internal)
+#' @keywords internal
+.st_alias_get <- function(alias) {
+  stopifnot(is.character(alias) || is.null(alias))
+  if (is.null(alias)) {
+    alias <- "default"
+  }
+  rlang::env_get(.stamp_aliases, alias, default = NULL)
 }
 
 # ------------------------------------------------------------------------------

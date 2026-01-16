@@ -3,18 +3,31 @@
 #' @param root project root (default ".")
 #' @param state_dir directory name for internal state (default ".stamp")
 #' @return (invisibly) the absolute state dir
+#' @param alias Optional character alias to identify this stamp folder.
+#'   If `NULL`, uses "default" for backwards compatibility.
 #' @export
-st_init <- function(root = ".", state_dir = ".stamp") {
+st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   root_abs <- fs::path_abs(root)
-  st_state_set(root_dir = root_abs, state_dir = state_dir)
+
+  # Backwards-compatible default alias
+  alias <- alias %||% "default"
+
+  # Maintain legacy single-folder state for default alias
+  if (identical(alias, "default")) {
+    st_state_set(root_dir = root_abs, state_dir = state_dir)
+  }
 
   sd <- fs::path(root_abs, state_dir)
   .st_dir_create(sd)
   .st_dir_create(fs::path(sd, "temp"))
   .st_dir_create(fs::path(sd, "logs"))
 
+  # Register alias configuration for multi-folder management
+  .st_alias_register(alias, root = root_abs, state_dir = state_dir, stamp_path = fs::path_abs(sd))
+
   cli::cli_inform(c(
     "v" = "stamp initialized",
+    " " = paste0("alias: ", alias),
     " " = paste0("root: ", root_abs),
     " " = paste0("state: ", fs::path_abs(sd))
   ))
@@ -87,6 +100,9 @@ print.st_path <- function(x, ...) {
 #' @param verbose logical; if `FALSE`, suppress informational messages and package-generated
 #'   warnings (default TRUE). When `FALSE`, messages about skipped saves or save
 #'   failures emitted by `st_save()` will not be shown.
+#' @param alias Optional stamp alias to target a specific stamp folder.
+#'   If `NULL` (default), uses the default/legacy stamp folder initialized
+#'   via `st_init()`. Use aliases to operate across multiple stamp folders.
 #' @return invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
 #' @export
 st_save <- function(
@@ -101,6 +117,7 @@ st_save <- function(
   domain = NULL,
   unique = TRUE,
   verbose = TRUE,
+  alias = NULL,
   ...
 ) {
   # Input validation for verbose
@@ -230,7 +247,8 @@ st_save <- function(
         content_hash = meta$content_hash,
         code_hash = meta$code_hash,
         created_at = meta$created_at,
-        sidecar_format = .st_sidecar_present(sp$path)
+        sidecar_format = .st_sidecar_present(sp$path),
+        alias = alias
       )
       # Defensive fallback: if for any reason the catalog helper returned
       # an empty or non-character id, compute a stable local version id
@@ -243,10 +261,10 @@ st_save <- function(
           meta$code_hash
         )
       }
-      .st_version_commit_files(sp$path, vid, parents = parents)
+      .st_version_commit_files(sp$path, vid, parents = parents, alias = alias)
 
       # 5) Optional retention for this artifact
-      .st_apply_retention(sp$path)
+      .st_apply_retention(sp$path, alias = alias)
 
       if (isTRUE(verbose)) {
         cli::cli_inform(c(
@@ -281,6 +299,9 @@ st_save <- function(
 #' @param verbose logical; if FALSE, suppress informational messages and package-generated
 #'   warnings (default TRUE). When `FALSE`, warnings about file/content hash
 #'   mismatches and a missing primary key recorded by `st_load()` will not be shown.
+#' @param alias Optional stamp alias to target a specific stamp folder.
+#'   If `NULL` (default), uses the default/legacy stamp folder initialized
+#'   via `st_init()`. Use aliases to operate across multiple stamp folders.
 #' @return the loaded object
 #' @details
 #' The `version` argument allows you to load specific versions:
@@ -311,7 +332,7 @@ st_save <- function(
 #' selected <- st_load("data/mydata.rds", version = "pick")
 #' }
 #' @export
-st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
+st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, alias = NULL, ...) {
   # Input validation for verbose
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
   # Normalize input into an st_path
@@ -319,13 +340,13 @@ st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
 
   # If a specific version is requested, resolve it and delegate to st_load_version
   if (!is.null(version)) {
-    version_id <- .st_resolve_version(sp$path, version)
+    version_id <- .st_resolve_version(sp$path, version, alias = alias)
     if (is.na(version_id)) {
       cli::cli_abort(
         "Could not resolve version {.val {version}} for {.file {sp$path}}"
       )
     }
-    return(st_load_version(sp$path, version_id, ..., verbose = verbose))
+    return(st_load_version(sp$path, version_id, ..., verbose = verbose, alias = alias))
   }
 
   # Existence check
@@ -451,16 +472,16 @@ st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
 #'   - snapshot_dir: absolute path to latest version dir (or NA)
 #'   - parents: list(...) parsed from latest version's parents.json (if any)
 #' @export
-st_info <- function(path) {
+st_info <- function(path, alias = NULL) {
   sc <- st_read_sidecar(path)
-  cat <- .st_catalog_read()
+  cat <- .st_catalog_read(alias = alias)
   aid <- .st_artifact_id(path)
 
-  latest <- st_latest(path)
+  latest <- st_latest(path, alias = alias)
   artrow <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
   nvers <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
 
-  vdir <- .st_version_dir_latest(path)
+  vdir <- .st_version_dir_latest(path, alias = alias)
   # Prefer committed snapshot parents (parents.json) when available.
   # If no snapshot exists, fall back to the artifact sidecar's quick parents
   # metadata so users can still inspect lineage even when a snapshot was not created.
