@@ -117,3 +117,12 @@ st_opts_init_defaults <- function() {
   }
   invisible(NULL)
 }
+
+# Declare data.table non-standard evaluation column names to avoid R CMD check NOTES
+utils::globalVariables(c(
+  "artifact_id",
+  "version_id",
+  "created_at",
+  "n_versions",
+  "latest_version_id"
+))

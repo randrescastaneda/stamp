@@ -312,7 +312,8 @@ st_save <- function(
         code_hash = meta$code_hash,
         created_at = meta$created_at,
         sidecar_format = .st_sidecar_present(sp$path),
-        alias = alias
+        alias = alias,
+        parents = parents
       )
       # Defensive fallback: if for any reason the catalog helper returned
       # an empty or non-character id, compute a stable local version id
@@ -644,6 +645,8 @@ st_switch <- function(alias) {
     state_dir = cfg$state_dir,
     stamp_path = cfg$stamp_path
   )
+  # Keep legacy state in sync for callers that still rely on st_state_get()
+  st_state_set(root_dir = cfg$root, state_dir = cfg$state_dir)
   invisible(alias)
 }
 
@@ -732,10 +735,8 @@ st_should_save <- function(path, x = NULL, code = NULL) {
 #' @keywords internal
 .st_with_lock <- function(path, expr) {
   # Best-effort lock: use filelock if available; otherwise just run expr.
-  lockfile <- paste0(
-    normalizePath(path, winslash = "/", mustWork = FALSE),
-    ".lock"
-  )
+  base <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  lockfile <- if (grepl("\\.lock$", base)) base else paste0(base, ".lock")
   # Evaluate the provided expression in the caller's environment so that
   # assignments using `<<-` inside the block affect variables in the
   # calling function (important for code that captures results by

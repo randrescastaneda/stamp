@@ -144,6 +144,12 @@
       size_bytes = numeric(),
       created_at = character(),
       sidecar_format = character()
+    ),
+    parents_index = data.table(
+      parent_artifact_id = character(),
+      parent_version_id = character(),
+      child_artifact_id = character(),
+      child_version_id = character()
     )
   )
 }
@@ -164,6 +170,11 @@
   }
   if (!is.data.table(cat$versions)) {
     cat$versions <- as.data.table(cat$versions)
+  }
+  if (is.null(cat$parents_index)) {
+    cat$parents_index <- as.data.table(.st_catalog_empty()$parents_index)
+  } else if (!is.data.table(cat$parents_index)) {
+    cat$parents_index <- as.data.table(cat$parents_index)
   }
   cat
 }
@@ -278,17 +289,13 @@ st_versions <- function(path, alias = NULL) {
 #' @inheritParams st_path
 #' @export
 st_latest <- function(path, alias = NULL) {
-  aid <- .st_artifact_id(path)
-  cat <- .st_catalog_read(alias = alias)
-  art <- cat$artifacts[artifact_id == aid]
-  if (nrow(art) == 0L) {
+  # Derive latest from the versions table ordering to avoid relying on
+  # artifacts.latest_version_id, which may be stale if a prior write failed.
+  vers <- st_versions(path, alias = alias)
+  if (nrow(vers) == 0L) {
     return(NA_character_)
   }
-  v <- art$latest_version_id[[1L]]
-  if (is.null(v) || !length(v) || is.na(v) || !nzchar(as.character(v))) {
-    return(NA_character_)
-  }
-  as.character(v)
+  as.character(vers$version_id[[1L]])
 }
 
 #' Resolve version specification to a concrete version_id (internal)
@@ -305,7 +312,7 @@ st_latest <- function(path, alias = NULL) {
   }
 
   # Positive integers are not allowed
-  if (is.numeric(version) && version > 0) {
+  if (is.numeric(version) && length(version) == 1L && version > 0) {
     cli::cli_abort(c(
       "x" = "Positive version numbers are not allowed.",
       "i" = "Use NULL for latest, 0 for current, or negative integers for relative versions."
@@ -313,28 +320,40 @@ st_latest <- function(path, alias = NULL) {
   }
 
   # Negative integers: relative to latest
-  if (is.numeric(version) && version < 0) {
-    vers <- st_versions(path, alias = alias)
-    if (nrow(vers) == 0L) {
-      cli::cli_abort("No versions found for {.file {path}}")
+  if (is.numeric(version)) {
+    if (length(version) != 1L || is.na(version)) {
+      cli::cli_abort(
+        "Invalid numeric version specification: must be a single non-NA value"
+      )
     }
+    if (version < 0) {
+      vers <- st_versions(path, alias = alias)
+      if (nrow(vers) == 0L) {
+        cli::cli_abort("No versions found for {.file {path}}")
+      }
 
-    # vers is already sorted by created_at descending (newest first)
-    # version=-1 means "one version back from latest" -> index 2
-    # version=-2 means "two versions back from latest" -> index 3
-    idx <- abs(version) + 1L
-    if (idx > nrow(vers)) {
-      cli::cli_abort(c(
-        "x" = "Version index {version} goes beyond available versions.",
-        "i" = "Only {nrow(vers)} version{?s} available for {.file {path}}"
-      ))
+      # vers is already sorted by created_at descending (newest first)
+      idx <- abs(as.integer(version)) + 1L
+      if (idx > nrow(vers)) {
+        cli::cli_abort(c(
+          "x" = "Version index {version} goes beyond available versions.",
+          "i" = "Only {nrow(vers)} version{?s} available for {.file {path}}"
+        ))
+      }
+
+      return(as.character(vers$version_id[idx]))
     }
-
-    return(as.character(vers$version_id[idx]))
+    # If numeric and non-negative (handled earlier for >0 and 0), treat as invalid
+    cli::cli_abort("Invalid numeric version specification: {.val {version}}")
   }
 
   # Character: check for interactive menu request or specific version ID
   if (is.character(version)) {
+    if (length(version) != 1L || is.na(version)) {
+      cli::cli_abort(
+        "Invalid character version specification: must be a single non-NA value"
+      )
+    }
     vers <- st_versions(path, alias = alias)
     if (nrow(vers) == 0L) {
       cli::cli_abort("No versions found for {.file {path}}")
@@ -606,25 +625,31 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
   latest_version_id
 ) {
   a <- cat$artifacts
-  idx <- which(a$artifact_id == artifact_id)
+  # Use base indexing to avoid data.table NSE shadowing of argument names
+  idx <- which(as.character(a$artifact_id) == as.character(artifact_id))
   if (!length(idx)) {
     a <- rbindlist(
       list(
         a,
         data.table(
-          artifact_id = artifact_id,
+          artifact_id = as.character(artifact_id),
           path = as.character(path),
-          format = format,
-          latest_version_id = latest_version_id,
-          n_versions = 1L
+          format = as.character(format),
+          latest_version_id = as.character(latest_version_id),
+          n_versions = as.integer(1L)
         )
       ),
       use.names = TRUE,
       fill = TRUE
     )
   } else {
-    a$latest_version_id[idx] <- latest_version_id
-    a$n_versions[idx] <- a$n_versions[idx] + 1L
+    a[
+      idx,
+      `:=`(
+        latest_version_id = as.character(latest_version_id),
+        n_versions = as.integer(n_versions) + 1L
+      )
+    ]
   }
   cat$artifacts <- a
   cat
@@ -665,7 +690,8 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
   code_hash,
   created_at,
   sidecar_format,
-  alias = NULL
+  alias = NULL,
+  parents = NULL
 ) {
   aid <- .st_artifact_id(artifact_path)
   vid <- secretbase::siphash13(
@@ -704,6 +730,29 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       sidecar_format = sidecar_format
     )
     cat <- .st_catalog_append_version(cat, new_v)
+
+    # Append parent relationships into parents_index (if provided)
+    if (!is.null(parents) && length(parents)) {
+      parents <- .st_parents_normalize(parents)
+      if (length(parents)) {
+        rows <- lapply(parents, function(p) {
+          data.table(
+            parent_artifact_id = .st_artifact_id(p$path),
+            parent_version_id = as.character(p$version_id),
+            child_artifact_id = aid,
+            child_version_id = vid
+          )
+        })
+        cat$parents_index <- rbindlist(
+          list(
+            cat$parents_index,
+            rbindlist(rows, use.names = TRUE, fill = TRUE)
+          ),
+          use.names = TRUE,
+          fill = TRUE
+        )
+      }
+    }
 
     .st_catalog_write(cat, alias)
   })
@@ -865,6 +914,41 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 # Result columns: child_path, child_version, parent_path, parent_version
 .st_children_once <- function(path, version_id = NULL, alias = NULL) {
   cat <- .st_catalog_read(alias)
+  # Prefer parents_index when available; fall back to scanning if empty
+  if (NROW(cat$parents_index) > 0L) {
+    pai <- .st_artifact_id(path)
+    idx <- if (!is.null(version_id) && nzchar(version_id)) {
+      cat$parents_index[
+        parent_artifact_id == pai &
+          parent_version_id == as.character(version_id)
+      ]
+    } else {
+      cat$parents_index[parent_artifact_id == pai]
+    }
+    if (NROW(idx) == 0L) {
+      return(data.frame(
+        child_path = character(),
+        child_version = character(),
+        parent_path = character(),
+        parent_version = character(),
+        stringsAsFactors = FALSE
+      ))
+    }
+    rows <- lapply(seq_len(NROW(idx)), function(i) {
+      c_aid <- idx$child_artifact_id[[i]]
+      c_vid <- idx$child_version_id[[i]]
+      data.frame(
+        child_path = .st_artifact_path_from_id(c_aid, cat = cat),
+        child_version = as.character(c_vid),
+        parent_path = .st_norm_path(path),
+        parent_version = as.character(idx$parent_version_id[[i]]),
+        stringsAsFactors = FALSE
+      )
+    })
+    return(do.call(rbind, rows))
+  }
+
+  # Fallback: scan committed parents.json files (legacy behavior)
   if (NROW(cat$versions) == 0L) {
     return(data.frame(
       child_path = character(),
@@ -877,7 +961,6 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
   target_path_abs <- .st_norm_path(path)
 
   rows <- list()
-  # Iterate all recorded versions; check their committed parents.json
   for (k in seq_len(NROW(cat$versions))) {
     vrow <- cat$versions[k]
     aid <- vrow$artifact_id[[1L]]
@@ -886,13 +969,11 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     if (!nzchar(cpth)) {
       next
     }
-
     vdir <- .st_version_dir(cpth, cvid, alias = alias)
     parents <- .st_version_read_parents(vdir)
     if (!length(parents)) {
       next
     }
-
     for (p in parents) {
       p_path_abs <- .st_norm_path(p$path)
       if (!identical(p_path_abs, target_path_abs)) {
