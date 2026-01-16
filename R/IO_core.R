@@ -23,7 +23,12 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   .st_dir_create(fs::path(sd, "logs"))
 
   # Register alias configuration for multi-folder management
-  .st_alias_register(alias, root = root_abs, state_dir = state_dir, stamp_path = fs::path_abs(sd))
+  .st_alias_register(
+    alias,
+    root = root_abs,
+    state_dir = state_dir,
+    stamp_path = fs::path_abs(sd)
+  )
 
   cli::cli_inform(c(
     "v" = "stamp initialized",
@@ -332,7 +337,14 @@ st_save <- function(
 #' selected <- st_load("data/mydata.rds", version = "pick")
 #' }
 #' @export
-st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, alias = NULL, ...) {
+st_load <- function(
+  file,
+  format = NULL,
+  version = NULL,
+  verbose = TRUE,
+  alias = NULL,
+  ...
+) {
   # Input validation for verbose
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
   # Normalize input into an st_path
@@ -346,7 +358,13 @@ st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, alias =
         "Could not resolve version {.val {version}} for {.file {sp$path}}"
       )
     }
-    return(st_load_version(sp$path, version_id, ..., verbose = verbose, alias = alias))
+    return(st_load_version(
+      sp$path,
+      version_id,
+      ...,
+      verbose = verbose,
+      alias = alias
+    ))
   }
 
   # Existence check

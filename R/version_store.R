@@ -435,7 +435,13 @@ st_latest <- function(path, alias = NULL) {
 #' old <- st_load_version("data/cleaned.rds", "20250101T000000Z-abcdef01")
 #' }
 #' @export
-st_load_version <- function(path, version_id, verbose = TRUE, ..., alias = NULL) {
+st_load_version <- function(
+  path,
+  version_id,
+  verbose = TRUE,
+  ...,
+  alias = NULL
+) {
   vdir <- .st_version_dir(path, version_id, alias = alias)
   art <- fs::path(vdir, "artifact")
   if (!fs::file_exists(art)) {

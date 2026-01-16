@@ -99,7 +99,12 @@
 #' # Next saves will write a new version and then prune older ones for that artifact.
 #' }
 #' @export
-st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE, alias = NULL) {
+st_prune_versions <- function(
+  path = NULL,
+  policy = Inf,
+  dry_run = TRUE,
+  alias = NULL
+) {
   stopifnot(is.logical(dry_run), length(dry_run) == 1L)
 
   # Normalize the policy using the internal helper (single source of truth)
@@ -348,7 +353,12 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE, alias =
     return(invisible(NULL)) # keep-everything → no-op
   }
   # Apply to just this artifact; st_prune_versions will also normalize internally
-  st_prune_versions(path = artifact_path, policy = pol_raw, dry_run = FALSE, alias = alias)
+  st_prune_versions(
+    path = artifact_path,
+    policy = pol_raw,
+    dry_run = FALSE,
+    alias = alias
+  )
   invisible(NULL)
 }
 
