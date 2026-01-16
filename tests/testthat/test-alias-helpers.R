@@ -6,7 +6,6 @@ test_that("st_init trims alias whitespace, validates, and registers", {
   expect_warning(
     st_init(root = root, state_dir = ".stampA", alias = alias_raw),
     regexp = "using .*myalias",
-    all = FALSE
   )
 
   cfg <- st_alias_get("myalias")
