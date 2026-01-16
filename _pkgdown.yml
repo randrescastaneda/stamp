@@ -75,6 +75,9 @@ reference:
       - st_is_stale
       - st_info
       - st_filter
+      - st_alias_get,
+      - st_alias_list,
+      - st_switch
 
 
 articles:
@@ -91,6 +94,7 @@ articles:
     navbar: Advanced Usage
     contents:
     - builders-plans
+    - using-alias
     - version_retention_prune
     - partitions
 
