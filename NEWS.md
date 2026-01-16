@@ -1,5 +1,47 @@
 # stamp 0.0.8
 
+## New Features
+
+### Alias Support
+* **NEW**: Alias support across the package to manage multiple independent stamp folders.
+  - Alias acts purely as a selector (not embedded in filesystem paths).
+  - Backward-compatible default alias retained.
+
+### Reverse Lineage Index
+* **NEW**: Catalog `parents_index` accelerates reverse lineage queries used by `st_children()`.
+  - Falls back to snapshot scanning when index is not present.
+
+## Behavior Changes
+
+### Non-Interactive Version Resolution
+* **Changed**: Interactive selection keywords (e.g., `"select"`, `"pick"`, `"choose"`) are no longer supported.
+  - Pass explicit version IDs or negative offsets (e.g., `-1`, `-2`) instead.
+  - Ensures CI-friendly, non-interactive behavior across APIs.
+
+## Internal Improvements
+
+### Latest Version Derivation
+* **Improved**: `st_latest()` derives latest from `st_versions()` ordering to avoid stale artifact rows.
+
+### Catalog Robustness & Concurrency
+* **Enhanced**: Deterministic upsert/append operations and idempotent file locks during catalog writes.
+* **Defensive**: Schema checks and coercions for loaded catalogs; atomic writes for integrity.
+
+### Lineage Traversal
+* **Refined**: `st_lineage()` prioritizes committed `parents.json`; level-1 fallback to sidecar parents for convenience.
+
+## Documentation & Metadata
+* **Vignette**: Added `vignettes/using-alias.Rmd` explaining alias usage, switching, constraints, and troubleshooting.
+* **README**: Trimmed alias section; linked to the dedicated vignette.
+* **Roxygen**: Added `alias` parameter documentation to public functions that accept it.
+* **Globals**: Expanded `utils::globalVariables` to cover `data.table` NSE symbols.
+* **DESCRIPTION**: Added `withr` and `pkgload` to `Suggests` for tests/vignettes.
+* **.Rbuildignore**: Now ignores `.vscode`.
+* **LICENSE**: Converted to CRAN-compliant stub for `MIT + file LICENSE`.
+
+## Bug Fixes
+* **Fixed**: Resolved `Rd \usage` mismatch for internal `.st_version_write_parents()`.
+
 # stamp 0.0.7
 
 ## New Features
