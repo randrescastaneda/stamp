@@ -4,7 +4,7 @@
 \alias{st_lineage}
 \title{Show immediate or recursive parents for an artifact}
 \usage{
-st_lineage(path, depth = 1L)
+st_lineage(path, depth = 1L, alias = NULL)
 }
 \arguments{
 \item{path}{Artifact path (child)}

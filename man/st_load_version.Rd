@@ -4,7 +4,7 @@
 \alias{st_load_version}
 \title{Load a specific version of an artifact}
 \usage{
-st_load_version(path, version_id, verbose = TRUE, ...)
+st_load_version(path, version_id, verbose = TRUE, ..., alias = NULL)
 }
 \arguments{
 \item{path}{Character path to the artifact (same value used with \code{st_save}/\code{st_load}).}

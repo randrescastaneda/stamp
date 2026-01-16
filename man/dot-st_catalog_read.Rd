@@ -4,7 +4,7 @@
 \alias{.st_catalog_read}
 \title{Read catalog from disk (internal)}
 \usage{
-.st_catalog_read()
+.st_catalog_read(alias = NULL)
 }
 \value{
 A list with elements \code{artifacts} and \code{versions}.

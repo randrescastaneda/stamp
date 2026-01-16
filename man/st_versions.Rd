@@ -4,7 +4,7 @@
 \alias{st_versions}
 \title{List versions for an artifact path}
 \usage{
-st_versions(path)
+st_versions(path, alias = NULL)
 }
 \arguments{
 \item{path}{file or directory path}

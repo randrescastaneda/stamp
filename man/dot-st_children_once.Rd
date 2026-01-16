@@ -4,7 +4,7 @@
 \alias{.st_children_once}
 \title{List children (reverse lineage) of an artifact (internal helper)}
 \usage{
-.st_children_once(path, version_id = NULL)
+.st_children_once(path, version_id = NULL, alias = NULL)
 }
 \arguments{
 \item{path}{Character path to the parent artifact.}

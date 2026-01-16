@@ -16,6 +16,7 @@ st_save(
   domain = NULL,
   unique = TRUE,
   verbose = TRUE,
+  alias = NULL,
   ...
 )
 }
@@ -44,6 +45,10 @@ list(list(path = "\if{html}{\out{<path>}}", version_id = "\if{html}{\out{<id>}}"
 \item{verbose}{logical; if \code{FALSE}, suppress informational messages and package-generated
 warnings (default TRUE). When \code{FALSE}, messages about skipped saves or save
 failures emitted by \code{st_save()} will not be shown.}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.
+If \code{NULL} (default), uses the default/legacy stamp folder initialized
+via \code{st_init()}. Use aliases to operate across multiple stamp folders.}
 
 \item{...}{forwarded to format writer}
 }

@@ -4,7 +4,7 @@
 \alias{st_is_stale}
 \title{Is a child artifact stale because its parents advanced?}
 \usage{
-st_is_stale(path)
+st_is_stale(path, alias = NULL)
 }
 \arguments{
 \item{path}{Character path to the artifact to inspect.}

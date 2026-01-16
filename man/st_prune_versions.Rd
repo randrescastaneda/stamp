@@ -4,7 +4,7 @@
 \alias{st_prune_versions}
 \title{Prune stored versions according to a retention policy}
 \usage{
-st_prune_versions(path = NULL, policy = Inf, dry_run = TRUE)
+st_prune_versions(path = NULL, policy = Inf, dry_run = TRUE, alias = NULL)
 }
 \arguments{
 \item{path}{Optional character vector of artifact paths to restrict pruning.

@@ -4,16 +4,22 @@
 \alias{st_init}
 \title{Initialize stamp project structure}
 \usage{
-st_init(root = ".", state_dir = ".stamp")
+st_init(root = ".", state_dir = ".stamp", alias = NULL)
 }
 \arguments{
 \item{root}{project root (default ".")}
 
 \item{state_dir}{directory name for internal state (default ".stamp")}
+
+\item{alias}{Optional character alias to identify this stamp folder.
+If \code{NULL}, uses "default" for backwards compatibility.}
 }
 \value{
 (invisibly) the absolute state dir
 }
 \description{
-Initialize stamp project structure
+Initialize a stamp folder under \code{root} using \code{state_dir} and optionally
+register it under an \code{alias}. Aliases allow multiple independent stamp
+folders to be managed in a single R session without changing any
+on-disk path structures.
 }

@@ -32,6 +32,7 @@
 #' @return Character scalar absolute path to project root.
 #' @keywords internal
 .st_root_dir <- function(alias = NULL) {
+  # Resolve project root via alias config; fall back to legacy state.
   cfg <- .st_alias_get(alias)
   if (!is.null(cfg)) {
     return(cfg$root)
@@ -48,6 +49,7 @@
 #' @return Character scalar absolute path to the state directory.
 #' @keywords internal
 .st_state_dir_abs <- function(alias = NULL) {
+  # Compute absolute state dir; alias only selects configuration.
   cfg <- .st_alias_get(alias)
   if (!is.null(cfg)) {
     return(cfg$stamp_path)
@@ -64,6 +66,7 @@
 #' @return Character scalar path to the versions root directory.
 #' @keywords internal
 .st_versions_root <- function(alias = NULL) {
+  # Versions root is under the resolved state dir; no alias in path names.
   vs <- fs::path(.st_state_dir_abs(alias), "versions")
   .st_dir_create(vs)
   vs
@@ -112,6 +115,7 @@
 #' @return Character scalar path to the catalog file.
 #' @keywords internal
 .st_catalog_path <- function(alias = NULL) {
+  # Alias selects which catalog file to read/write; path name unchanged.
   fs::path(.st_state_dir_abs(alias), "catalog.qs2")
 }
 

@@ -4,7 +4,7 @@
 \alias{.st_catalog_path}
 \title{Catalog file path (internal)}
 \usage{
-.st_catalog_path()
+.st_catalog_path(alias = NULL)
 }
 \value{
 Character scalar path to the catalog file.

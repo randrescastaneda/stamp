@@ -30,6 +30,9 @@
 )
 
 # Alias registry: alias -> list(root, state_dir, stamp_path)
+# Holds in-memory configurations for each initialized stamp folder.
+# Aliases do NOT affect on-disk paths; they only select which configuration
+# (root/state_dir) subsequent calls should use.
 .stamp_aliases <- rlang::env()
 
 # Builder registry (used by st_register_builder / st_rebuild)
@@ -56,6 +59,7 @@ st_state_get <- function(key, default = NULL) {
 #' Register or update an alias configuration (internal)
 #' @keywords internal
 .st_alias_register <- function(alias, root, state_dir, stamp_path) {
+  # Register or update an alias → used purely for selecting config.
   stopifnot(is.character(alias), length(alias) == 1L, nzchar(alias))
   cfg <- list(root = root, state_dir = state_dir, stamp_path = stamp_path)
   rlang::env_poke(.stamp_aliases, alias, cfg)
@@ -65,6 +69,7 @@ st_state_get <- function(key, default = NULL) {
 #' Retrieve alias configuration (internal)
 #' @keywords internal
 .st_alias_get <- function(alias) {
+  # Retrieve alias config; NULL alias resolves to "default".
   stopifnot(is.character(alias) || is.null(alias))
   if (is.null(alias)) {
     alias <- "default"

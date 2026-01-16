@@ -4,7 +4,7 @@
 \alias{st_load}
 \title{Load an object from disk (format auto-detected; optional integrity checks)}
 \usage{
-st_load(file, format = NULL, version = NULL, verbose = TRUE, ...)
+st_load(file, format = NULL, version = NULL, verbose = TRUE, alias = NULL, ...)
 }
 \arguments{
 \item{file}{path or st_path}
@@ -17,6 +17,10 @@ of an artifact. See details.}
 \item{verbose}{logical; if FALSE, suppress informational messages and package-generated
 warnings (default TRUE). When \code{FALSE}, warnings about file/content hash
 mismatches and a missing primary key recorded by \code{st_load()} will not be shown.}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.
+If \code{NULL} (default), uses the default/legacy stamp folder initialized
+via \code{st_init()}. Use aliases to operate across multiple stamp folders.}
 
 \item{...}{forwarded to format reader}
 }

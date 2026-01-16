@@ -4,7 +4,7 @@
 \alias{st_info}
 \title{Inspect an artifact's current status (sidecar + catalog + snapshot location)}
 \usage{
-st_info(path)
+st_info(path, alias = NULL)
 }
 \arguments{
 \item{path}{Artifact path}

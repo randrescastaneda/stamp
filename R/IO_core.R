@@ -2,6 +2,11 @@
 #' Initialize stamp project structure
 #' @param root project root (default ".")
 #' @param state_dir directory name for internal state (default ".stamp")
+#' @description
+#' Initialize a stamp folder under `root` using `state_dir` and optionally
+#' register it under an `alias`. Aliases allow multiple independent stamp
+#' folders to be managed in a single R session without changing any
+#' on-disk path structures.
 #' @return (invisibly) the absolute state dir
 #' @param alias Optional character alias to identify this stamp folder.
 #'   If `NULL`, uses "default" for backwards compatibility.
@@ -10,6 +15,7 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   root_abs <- fs::path_abs(root)
   alias <- alias %||% "default" # Backwards-compatible default alias
 
+  # Physical state directory (no alias embedded in filesystem paths)
   sd <- fs::path(root_abs, state_dir)
   sd_abs <- fs::path_abs(sd)
 
@@ -42,7 +48,7 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
     }
   }
 
-  # Maintain legacy single-folder state for default alias
+  # Maintain legacy single-folder state for default alias (back-compat)
   if (identical(alias, "default")) {
     st_state_set(root_dir = root_abs, state_dir = state_dir)
   }
