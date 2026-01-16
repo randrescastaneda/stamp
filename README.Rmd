@@ -67,37 +67,10 @@ st_load_parts(base, as = "rbind")
 
 ## Managing Multiple Stamp Folders with Aliases
 
-You can work with multiple independent stamp folders in the same R session by assigning aliases.
-Aliases select which folder configuration to use without changing on-disk paths.
+See the vignette "Using Aliases with stamp" for a comprehensive guide:
 
-```{r}
-# Initialize two projects with aliases
-root_a <- fs::path(tempdir(), "projA")
-root_b <- fs::path(tempdir(), "projB")
-fs::dir_create(root_a, recurse = TRUE)
-fs::dir_create(root_b, recurse = TRUE)
-
-st_init(root_a, alias = "A")
-st_init(root_b, alias = "B")
-
-# Save to each alias (artifact path stays the same; alias selects catalog/versions)
-pA <- fs::path(root_a, "A.qs")
-pB <- fs::path(root_b, "B.qs")
-st_save(data.frame(id = 1:2), pA, alias = "A")
-st_save(data.frame(id = 3:4), pB, alias = "B")
-
-# Inspect versions per alias
-st_versions(pA, alias = "A")
-st_versions(pB, alias = "B")
-
-# Load using the corresponding alias
-st_load(pA, alias = "A")
-st_load(pB, alias = "B")
-
-# Constraints:
-# - Reusing the same alias for different folders errors.
-# - Different aliases pointing to the same folder will warn and share catalog/versions.
-```
+- Online: https://randrescastaneda.github.io/stamp/articles/using-alias.html
+- Source: `vignettes/using-alias.Rmd`
 
 ## File Formats
 
