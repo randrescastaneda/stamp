@@ -370,7 +370,7 @@ st_latest <- function(path, alias = NULL) {
     if (!version %in% vers$version_id) {
       cli::cli_abort(c(
         "x" = "Version {.val {version}} not found for {.file {path}}",
-        "i" = "Use {.fn st_versions} to see available versions."
+        "i" = "Use {.fn st_versions} to see available versions or 'select' for a menu."
       ))
     }
 
@@ -388,7 +388,7 @@ st_latest <- function(path, alias = NULL) {
   }
   if (!interactive()) {
     cli::cli_abort(c(
-      "x" = "Interactive selection requested in a non-interactive session.",
+      "x" = "Interactive selection is not supported (not interactive).",
       "i" = "Pass a specific version id (character) or a negative integer for relative selection (e.g., -1)."
     ))
   }
