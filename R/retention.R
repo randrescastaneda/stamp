@@ -10,6 +10,7 @@
 #'   - `list(n = <int>, days = <num>)` (keep most recent *n* and/or those
 #'     newer than *days*; union of the two conditions)
 #' @param dry_run logical; if TRUE, only report what would be pruned.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return Invisibly, a data.frame of pruned (or would-prune) versions with
 #'   columns: artifact_path, version_id, created_at, size_bytes.
 #' @details
@@ -99,7 +100,12 @@
 #' # Next saves will write a new version and then prune older ones for that artifact.
 #' }
 #' @export
-st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
+st_prune_versions <- function(
+  path = NULL,
+  policy = Inf,
+  dry_run = TRUE,
+  alias = NULL
+) {
   stopifnot(is.logical(dry_run), length(dry_run) == 1L)
 
   # Normalize the policy using the internal helper (single source of truth)
@@ -112,11 +118,11 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
   }
 
   # Load catalog
-  catalog_path <- .st_catalog_path()
+  catalog_path <- .st_catalog_path(alias)
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
   result <- .st_with_lock(lock_path, {
-    cat <- .st_catalog_read() # already data.table invariant
+    cat <- .st_catalog_read(alias) # already data.table invariant
 
     # Schema guards
     req_art <- c(
@@ -184,7 +190,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     # Use version_id as secondary key (descending) to avoid flakiness when multiple versions
     # share the identical created_at second.
     ord <- order(vers$created_at, vers$version_id, decreasing = TRUE)
-    vers <- vers[ord, , drop = FALSE]
+    vers <- vers[ord]
 
     # Group by artifact and choose which versions to KEEP under policy
     split_idx <- split(seq_len(nrow(vers)), vers$artifact_id)
@@ -195,11 +201,11 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 
     for (aid in names(split_idx)) {
       idx <- split_idx[[aid]]
-      block <- vers[idx, , drop = FALSE]
+      block <- vers[idx]
 
       # newest -> oldest (deterministic tie-breaker on version_id)
       bord <- order(block$created_at, block$version_id, decreasing = TRUE)
-      block <- block[bord, , drop = FALSE]
+      block <- block[bord]
 
       # Compute "keep" set from normalized policy
       kid <- .st_policy_keep_ids(block, pol)
@@ -247,7 +253,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
     for (i in seq_len(nrow(candidates))) {
       a_path <- candidates$artifact_path[[i]]
       vid <- candidates$version_id[[i]]
-      vdir <- .st_version_dir(a_path, vid)
+      vdir <- .st_version_dir(a_path, vid, alias = alias)
       .st_delete_version_dir_safe(vdir)
     }
 
@@ -272,7 +278,7 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 
     # Optionally convert back to data.table for persistence consistency
     # Already data.table invariant
-    .st_catalog_write(cat)
+    .st_catalog_write(cat, alias)
     candidates
   })
 
@@ -341,14 +347,19 @@ st_prune_versions <- function(path = NULL, policy = Inf, dry_run = TRUE) {
 
 # Optionally invoked after st_save() to apply retention for a single artifact
 # (safe: no is.infinite() on lists; normalize first)
-.st_apply_retention <- function(artifact_path) {
+.st_apply_retention <- function(artifact_path, alias = NULL) {
   pol_raw <- st_opts("retain_versions", .get = TRUE) %||% Inf
   pol <- .st_normalize_policy(pol_raw)
   if (identical(pol$kind, "all")) {
     return(invisible(NULL)) # keep-everything → no-op
   }
   # Apply to just this artifact; st_prune_versions will also normalize internally
-  st_prune_versions(path = artifact_path, policy = pol_raw, dry_run = FALSE)
+  st_prune_versions(
+    path = artifact_path,
+    policy = pol_raw,
+    dry_run = FALSE,
+    alias = alias
+  )
   invisible(NULL)
 }
 

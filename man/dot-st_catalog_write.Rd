@@ -4,7 +4,7 @@
 \alias{.st_catalog_write}
 \title{Write catalog to disk (internal)}
 \usage{
-.st_catalog_write(cat)
+.st_catalog_write(cat, alias = NULL)
 }
 \arguments{
 \item{cat}{Catalog list to persist (with \code{artifacts} and \code{versions}).}

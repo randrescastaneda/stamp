@@ -29,6 +29,12 @@
   state_dir = ".stamp" # default; can be overridden via st_state_set()
 )
 
+# Alias registry: alias -> list(root, state_dir, stamp_path)
+# Holds in-memory configurations for each initialized stamp folder.
+# Aliases do NOT affect on-disk paths; they only select which configuration
+# (root/state_dir) subsequent calls should use.
+.stamp_aliases <- rlang::env()
+
 # Builder registry (used by st_register_builder / st_rebuild)
 .st_builders_env <- rlang::env()
 
@@ -44,6 +50,31 @@ st_state_set <- function(...) {
 
 st_state_get <- function(key, default = NULL) {
   rlang::env_get(.stamp_state, key, default = default)
+}
+
+# ------------------------------------------------------------------------------
+# Alias helpers (internal)
+# ------------------------------------------------------------------------------
+
+#' Register or update an alias configuration (internal)
+#' @keywords internal
+.st_alias_register <- function(alias, root, state_dir, stamp_path) {
+  # Register or update an alias → used purely for selecting config.
+  stopifnot(is.character(alias), length(alias) == 1L, nzchar(alias))
+  cfg <- list(root = root, state_dir = state_dir, stamp_path = stamp_path)
+  rlang::env_poke(.stamp_aliases, alias, cfg)
+  invisible(alias)
+}
+
+#' Retrieve alias configuration (internal)
+#' @keywords internal
+.st_alias_get <- function(alias) {
+  # Retrieve alias config; NULL alias resolves to "default".
+  stopifnot(is.character(alias) || is.null(alias))
+  if (is.null(alias)) {
+    alias <- "default"
+  }
+  rlang::env_get(.stamp_aliases, alias, default = NULL)
 }
 
 # ------------------------------------------------------------------------------
@@ -86,3 +117,21 @@ st_opts_init_defaults <- function() {
   }
   invisible(NULL)
 }
+
+# Declare data.table non-standard evaluation column names to avoid R CMD check NOTES
+utils::globalVariables(c(
+  "artifact_id",
+  "version_id",
+  "created_at",
+  "n_versions",
+  "latest_version_id",
+  "parent_artifact_id",
+  "parent_version_id",
+  "child_artifact_id",
+  "child_version_id",
+  "artifact_path",
+  "size_bytes",
+  "..available_cols",
+  "..partitioning",
+  "."
+))

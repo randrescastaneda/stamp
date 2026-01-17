@@ -65,6 +65,13 @@ st_list_parts(base)
 st_load_parts(base, as = "rbind")
 ```
 
+## Managing Multiple Stamp Folders with Aliases
+
+See the vignette "Using Aliases with stamp" for a comprehensive guide:
+
+- Online: https://randrescastaneda.github.io/stamp/articles/using-alias.html
+- Source: `vignettes/using-alias.Rmd`
+
 ## File Formats
 
 `stamp` supports multiple serialization formats. The two binary formats have distinct implementations:

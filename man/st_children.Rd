@@ -4,7 +4,7 @@
 \alias{st_children}
 \title{List children (reverse lineage) of an artifact}
 \usage{
-st_children(path, version_id = NULL, depth = 1L)
+st_children(path, version_id = NULL, depth = 1L, alias = NULL)
 }
 \arguments{
 \item{path}{Character path to the parent artifact.}
@@ -12,6 +12,8 @@ st_children(path, version_id = NULL, depth = 1L)
 \item{version_id}{Optional version id of \code{path} to match. Default: any.}
 
 \item{depth}{Integer depth >= 1. Use \code{Inf} to recurse fully.}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 \code{data.frame} with columns:

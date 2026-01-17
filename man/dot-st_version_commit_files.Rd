@@ -4,7 +4,12 @@
 \alias{.st_version_commit_files}
 \title{Commit artifact and sidecars into a version snapshot (internal)}
 \usage{
-.st_version_commit_files(artifact_path, version_id, parents = NULL)
+.st_version_commit_files(
+  artifact_path,
+  version_id,
+  parents = NULL,
+  alias = NULL
+)
 }
 \arguments{
 \item{artifact_path}{Path to the artifact file on disk.}

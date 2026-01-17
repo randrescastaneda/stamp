@@ -4,7 +4,7 @@
 \alias{.st_resolve_version}
 \title{Resolve version specification to a concrete version_id (internal)}
 \usage{
-.st_resolve_version(path, version = NULL)
+.st_resolve_version(path, version = NULL, alias = NULL)
 }
 \arguments{
 \item{path}{artifact path}

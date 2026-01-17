@@ -2,23 +2,100 @@
 #' Initialize stamp project structure
 #' @param root project root (default ".")
 #' @param state_dir directory name for internal state (default ".stamp")
+#' @description
+#' Initialize a stamp folder under `root` using `state_dir` and optionally
+#' register it under an `alias`. Aliases allow multiple independent stamp
+#' folders to be managed in a single R session without changing any
+#' on-disk path structures.
 #' @return (invisibly) the absolute state dir
+#' @param alias Optional character alias to identify this stamp folder.
+#'   If `NULL`, uses "default" for backwards compatibility.
 #' @export
-st_init <- function(root = ".", state_dir = ".stamp") {
+st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   root_abs <- fs::path_abs(root)
-  st_state_set(root_dir = root_abs, state_dir = state_dir)
+  alias0 <- alias %||% "default" # Backwards-compatible default alias
+  if (!is.character(alias0) || length(alias0) != 1L) {
+    cli::cli_abort("Alias must be a non-empty character scalar.")
+  }
+  alias_trim <- trimws(alias0)
+  if (!identical(alias_trim, alias0)) {
+    cli::cli_warn(c(
+      "!" = "Alias had leading/trailing whitespace; using {.val {alias_trim}}."
+    ))
+  }
+  alias <- alias_trim
+  if (!nzchar(alias)) {
+    cli::cli_abort("Alias must be a non-empty character scalar.")
+  }
 
+  # Physical state directory (no alias embedded in filesystem paths)
   sd <- fs::path(root_abs, state_dir)
+  sd_abs <- fs::path_abs(sd)
+
+  # Enforce: same alias cannot map to different folders
+  existing <- .st_alias_get(alias)
+  if (!is.null(existing) && !identical(existing$stamp_path, sd_abs)) {
+    if (identical(alias, "default")) {
+      # For backward compatibility, allow re-basing the default alias
+      # to a new folder rather than erroring.
+      cli::cli_inform(c(
+        "i" = "Rebasing default alias to new folder.",
+        " " = paste0("Existing: ", existing$stamp_path),
+        " " = paste0("Requested: ", sd_abs)
+      ))
+    } else {
+      cli::cli_abort(c(
+        "x" = "Alias {.val {alias}} is already registered for a different folder.",
+        "i" = paste0(
+          "Existing: ",
+          existing$stamp_path,
+          "; Requested: ",
+          sd_abs,
+          ". Use a different alias or remove the conflict."
+        )
+      ))
+    }
+  }
+
+  # Warn: different aliases pointing to the same folder
+  for (nm in rlang::env_names(.stamp_aliases)) {
+    if (identical(nm, alias)) {
+      next
+    }
+    cfg <- rlang::env_get(.stamp_aliases, nm, default = NULL)
+    if (!is.null(cfg) && identical(cfg$stamp_path, sd_abs)) {
+      cli::cli_warn(c(
+        "!" = "Alias {.val {alias}} points to the same folder as existing alias {.val {nm}}.",
+        "i" = "They will share the same catalog and versions."
+      ))
+    }
+  }
+
+  # Maintain legacy single-folder state for default alias (back-compat)
+  if (identical(alias, "default")) {
+    st_state_set(root_dir = root_abs, state_dir = state_dir)
+  }
+
+  # Ensure directories exist (idempotent)
   .st_dir_create(sd)
   .st_dir_create(fs::path(sd, "temp"))
   .st_dir_create(fs::path(sd, "logs"))
 
+  # Register alias configuration for multi-folder management
+  .st_alias_register(
+    alias,
+    root = root_abs,
+    state_dir = state_dir,
+    stamp_path = sd_abs
+  )
+
   cli::cli_inform(c(
     "v" = "stamp initialized",
+    " " = paste0("alias: ", alias),
     " " = paste0("root: ", root_abs),
-    " " = paste0("state: ", fs::path_abs(sd))
+    " " = paste0("state: ", sd_abs)
   ))
-  invisible(fs::path_abs(sd))
+  invisible(sd_abs)
 }
 
 
@@ -87,6 +164,9 @@ print.st_path <- function(x, ...) {
 #' @param verbose logical; if `FALSE`, suppress informational messages and package-generated
 #'   warnings (default TRUE). When `FALSE`, messages about skipped saves or save
 #'   failures emitted by `st_save()` will not be shown.
+#' @param alias Optional stamp alias to target a specific stamp folder.
+#'   If `NULL` (default), uses the default/legacy stamp folder initialized
+#'   via `st_init()`. Use aliases to operate across multiple stamp folders.
 #' @return invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
 #' @export
 st_save <- function(
@@ -101,6 +181,7 @@ st_save <- function(
   domain = NULL,
   unique = TRUE,
   verbose = TRUE,
+  alias = NULL,
   ...
 ) {
   # Input validation for verbose
@@ -230,7 +311,9 @@ st_save <- function(
         content_hash = meta$content_hash,
         code_hash = meta$code_hash,
         created_at = meta$created_at,
-        sidecar_format = .st_sidecar_present(sp$path)
+        sidecar_format = .st_sidecar_present(sp$path),
+        alias = alias,
+        parents = parents
       )
       # Defensive fallback: if for any reason the catalog helper returned
       # an empty or non-character id, compute a stable local version id
@@ -243,10 +326,10 @@ st_save <- function(
           meta$code_hash
         )
       }
-      .st_version_commit_files(sp$path, vid, parents = parents)
+      .st_version_commit_files(sp$path, vid, parents = parents, alias = alias)
 
       # 5) Optional retention for this artifact
-      .st_apply_retention(sp$path)
+      .st_apply_retention(sp$path, alias = alias)
 
       if (isTRUE(verbose)) {
         cli::cli_inform(c(
@@ -281,6 +364,9 @@ st_save <- function(
 #' @param verbose logical; if FALSE, suppress informational messages and package-generated
 #'   warnings (default TRUE). When `FALSE`, warnings about file/content hash
 #'   mismatches and a missing primary key recorded by `st_load()` will not be shown.
+#' @param alias Optional stamp alias to target a specific stamp folder.
+#'   If `NULL` (default), uses the default/legacy stamp folder initialized
+#'   via `st_init()`. Use aliases to operate across multiple stamp folders.
 #' @return the loaded object
 #' @details
 #' The `version` argument allows you to load specific versions:
@@ -291,8 +377,8 @@ st_save <- function(
 #'     right before the current one, `-2` loads two versions before, and so on.
 #'   * Positive numbers: Error.
 #'   * Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
-#'   * `"select"`, `"pick"`, or `"choose"`: displays an interactive menu to select from
-#'     available versions (only in interactive R sessions).
+#'   * Interactive selection (e.g., `"select"`, `"pick"`, `"choose"`) is not supported.
+#'     Callers must pass a concrete version id or a negative integer for relative selection.
 #' @examples
 #' \dontrun{
 #' # Basic usage: load latest version
@@ -306,12 +392,18 @@ st_save <- function(
 #' specific <- st_load("data/mydata.rds", version = vid)
 #'
 #' # Interactive menu (in interactive sessions only)
-#' selected <- st_load("data/mydata.rds", version = "select")
-#' # or use "pick" or "choose"
-#' selected <- st_load("data/mydata.rds", version = "pick")
+#' # Interactive selection is not supported in non-interactive contexts.
+#' # Pass explicit version id or a negative integer.
 #' }
 #' @export
-st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
+st_load <- function(
+  file,
+  format = NULL,
+  version = NULL,
+  verbose = TRUE,
+  alias = NULL,
+  ...
+) {
   # Input validation for verbose
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
   # Normalize input into an st_path
@@ -319,13 +411,19 @@ st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
 
   # If a specific version is requested, resolve it and delegate to st_load_version
   if (!is.null(version)) {
-    version_id <- .st_resolve_version(sp$path, version)
+    version_id <- .st_resolve_version(sp$path, version, alias = alias)
     if (is.na(version_id)) {
       cli::cli_abort(
         "Could not resolve version {.val {version}} for {.file {sp$path}}"
       )
     }
-    return(st_load_version(sp$path, version_id, ..., verbose = verbose))
+    return(st_load_version(
+      sp$path,
+      version_id,
+      ...,
+      verbose = verbose,
+      alias = alias
+    ))
   }
 
   # Existence check
@@ -445,22 +543,23 @@ st_load <- function(file, format = NULL, version = NULL, verbose = TRUE, ...) {
 
 #' Inspect an artifact's current status (sidecar + catalog + snapshot location)
 #' @param path Artifact path
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return A named list with fields:
 #'   - sidecar: sidecar list (or NULL)
 #'   - catalog: list(latest_version_id, n_versions)
 #'   - snapshot_dir: absolute path to latest version dir (or NA)
 #'   - parents: list(...) parsed from latest version's parents.json (if any)
 #' @export
-st_info <- function(path) {
+st_info <- function(path, alias = NULL) {
   sc <- st_read_sidecar(path)
-  cat <- .st_catalog_read()
+  cat <- .st_catalog_read(alias = alias)
   aid <- .st_artifact_id(path)
 
-  latest <- st_latest(path)
-  artrow <- cat$artifacts[cat$artifacts$artifact_id == aid, , drop = FALSE]
+  latest <- st_latest(path, alias = alias)
+  artrow <- cat$artifacts[artifact_id == aid]
   nvers <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
 
-  vdir <- .st_version_dir_latest(path)
+  vdir <- .st_version_dir_latest(path, alias = alias)
   # Prefer committed snapshot parents (parents.json) when available.
   # If no snapshot exists, fall back to the artifact sidecar's quick parents
   # metadata so users can still inspect lineage even when a snapshot was not created.
@@ -476,6 +575,80 @@ st_info <- function(path) {
     snapshot_dir = vdir,
     parents = parents
   )
+}
+
+
+# ---- Alias utilities --------------------------------------------------------
+
+#' List registered stamp aliases in the current session
+#' @return data.frame with columns: alias, root, state_dir, stamp_path
+#' @export
+st_alias_list <- function() {
+  ns <- rlang::env_names(.stamp_aliases)
+  if (!length(ns)) {
+    return(data.frame(
+      alias = character(),
+      root = character(),
+      state_dir = character(),
+      stamp_path = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  rows <- lapply(ns, function(a) {
+    cfg <- rlang::env_get(.stamp_aliases, a, default = NULL)
+    if (is.null(cfg)) {
+      return(data.frame(
+        alias = a,
+        root = NA_character_,
+        state_dir = NA_character_,
+        stamp_path = NA_character_,
+        stringsAsFactors = FALSE
+      ))
+    }
+    data.frame(
+      alias = a,
+      root = as.character(cfg$root),
+      state_dir = as.character(cfg$state_dir),
+      stamp_path = as.character(cfg$stamp_path),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+#' Get a registered alias configuration
+#' @param alias Optional alias; if NULL, uses "default"
+#' @return list(root, state_dir, stamp_path) or NULL if not found
+#' @export
+st_alias_get <- function(alias = NULL) {
+  .st_alias_get(alias)
+}
+
+#' Switch the session's default alias
+#'
+#' Rebase the session "default" alias to the configuration stored under
+#' `alias`. This does not modify any on-disk paths; it only affects which
+#' stamp folder is used when functions are called without an explicit
+#' `alias` argument.
+#'
+#' @param alias Character alias to make the session default.
+#' @return Invisibly returns the alias.
+#' @export
+st_switch <- function(alias) {
+  stopifnot(is.character(alias), length(alias) == 1L, nzchar(alias))
+  cfg <- .st_alias_get(alias)
+  if (is.null(cfg)) {
+    cli::cli_abort("Alias not found: {.val {alias}}")
+  }
+  .st_alias_register(
+    "default",
+    root = cfg$root,
+    state_dir = cfg$state_dir,
+    stamp_path = cfg$stamp_path
+  )
+  # Keep legacy state in sync for callers that still rely on st_state_get()
+  st_state_set(root_dir = cfg$root, state_dir = cfg$state_dir)
+  invisible(alias)
 }
 
 
@@ -563,10 +736,8 @@ st_should_save <- function(path, x = NULL, code = NULL) {
 #' @keywords internal
 .st_with_lock <- function(path, expr) {
   # Best-effort lock: use filelock if available; otherwise just run expr.
-  lockfile <- paste0(
-    normalizePath(path, winslash = "/", mustWork = FALSE),
-    ".lock"
-  )
+  base <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  lockfile <- if (grepl("\\.lock$", base)) base else paste0(base, ".lock")
   # Evaluate the provided expression in the caller's environment so that
   # assignments using `<<-` inside the block affect variables in the
   # calling function (important for code that captures results by

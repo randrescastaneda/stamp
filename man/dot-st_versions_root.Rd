@@ -4,7 +4,7 @@
 \alias{.st_versions_root}
 \title{Versions root directory (internal)}
 \usage{
-.st_versions_root()
+.st_versions_root(alias = NULL)
 }
 \value{
 Character scalar path to the versions root directory.

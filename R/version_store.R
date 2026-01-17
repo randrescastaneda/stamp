@@ -31,7 +31,12 @@
 #'
 #' @return Character scalar absolute path to project root.
 #' @keywords internal
-.st_root_dir <- function() {
+.st_root_dir <- function(alias = NULL) {
+  # Resolve project root via alias config; fall back to legacy state.
+  cfg <- .st_alias_get(alias)
+  if (!is.null(cfg)) {
+    return(cfg$root)
+  }
   st_state_get("root_dir", fs::path_abs("."))
 }
 
@@ -43,7 +48,12 @@
 #'
 #' @return Character scalar absolute path to the state directory.
 #' @keywords internal
-.st_state_dir_abs <- function() {
+.st_state_dir_abs <- function(alias = NULL) {
+  # Compute absolute state dir; alias only selects configuration.
+  cfg <- .st_alias_get(alias)
+  if (!is.null(cfg)) {
+    return(cfg$stamp_path)
+  }
   fs::path(.st_root_dir(), st_state_get("state_dir", ".stamp"))
 }
 
@@ -55,8 +65,9 @@
 #'
 #' @return Character scalar path to the versions root directory.
 #' @keywords internal
-.st_versions_root <- function() {
-  vs <- fs::path(.st_state_dir_abs(), "versions")
+.st_versions_root <- function(alias = NULL) {
+  # Versions root is under the resolved state dir; no alias in path names.
+  vs <- fs::path(.st_state_dir_abs(alias), "versions")
   .st_dir_create(vs)
   vs
 }
@@ -72,12 +83,12 @@
 #' @param version_id Version identifier (character).
 #' @return Character scalar path to the version directory, or NA if version_id is NA/empty.
 #' @keywords internal
-.st_version_dir <- function(artifact_path, version_id) {
+.st_version_dir <- function(artifact_path, version_id, alias = NULL) {
   if (is.na(version_id) || !length(version_id) || !nzchar(version_id)) {
     return(NA_character_)
   }
   ap_abs <- .st_norm_path(artifact_path)
-  rd <- .st_root_dir()
+  rd <- .st_root_dir(alias)
 
   rel <- tryCatch(
     as.character(fs::path_rel(ap_abs, start = rd)),
@@ -91,7 +102,7 @@
     rel <- fs::path("external", paste0(substr(aid, 1, 8), "-", basename))
   }
 
-  fs::path(.st_versions_root(), rel, version_id)
+  fs::path(.st_versions_root(alias), rel, version_id)
 }
 
 # Catalog paths & IO -----------------------------------------------------------
@@ -103,8 +114,9 @@
 #'
 #' @return Character scalar path to the catalog file.
 #' @keywords internal
-.st_catalog_path <- function() {
-  fs::path(.st_state_dir_abs(), "catalog.qs2")
+.st_catalog_path <- function(alias = NULL) {
+  # Alias selects which catalog file to read/write; path name unchanged.
+  fs::path(.st_state_dir_abs(alias), "catalog.qs2")
 }
 
 #' Empty catalog template (internal)
@@ -132,6 +144,12 @@
       size_bytes = numeric(),
       created_at = character(),
       sidecar_format = character()
+    ),
+    parents_index = data.table(
+      parent_artifact_id = character(),
+      parent_version_id = character(),
+      child_artifact_id = character(),
+      child_version_id = character()
     )
   )
 }
@@ -143,8 +161,8 @@
 #'
 #' @return A list with elements `artifacts` and `versions`.
 #' @keywords internal
-.st_catalog_read <- function() {
-  p <- .st_catalog_path()
+.st_catalog_read <- function(alias = NULL) {
+  p <- .st_catalog_path(alias)
   cat <- if (fs::file_exists(p)) .st_read_qs2(p) else .st_catalog_empty()
   # Coerce to data.table invariant if loaded catalog used older data.frame layout
   if (!is.data.table(cat$artifacts)) {
@@ -152,6 +170,11 @@
   }
   if (!is.data.table(cat$versions)) {
     cat$versions <- as.data.table(cat$versions)
+  }
+  if (is.null(cat$parents_index)) {
+    cat$parents_index <- as.data.table(.st_catalog_empty()$parents_index)
+  } else if (!is.data.table(cat$parents_index)) {
+    cat$parents_index <- as.data.table(cat$parents_index)
   }
   cat
 }
@@ -165,8 +188,8 @@
 #' @param cat Catalog list to persist (with `artifacts` and `versions`).
 #' @return Invisible path to the catalog file.
 #' @keywords internal
-.st_catalog_write <- function(cat) {
-  p <- .st_catalog_path()
+.st_catalog_write <- function(cat, alias = NULL) {
+  p <- .st_catalog_path(alias)
   fs::dir_create(fs::path_dir(p), recurse = TRUE)
   tmp <- fs::file_temp(tmp_dir = fs::path_dir(p), pattern = fs::path_file(p))
   .st_write_qs2(cat, tmp)
@@ -187,6 +210,7 @@
 #' ordered by `created_at` descending.
 #'
 #' @inheritParams st_path
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return A `data.frame` or `data.table` with columns:
 #'   \item{version_id}{Character version identifier.}
 #'   \item{artifact_id}{Character artifact identifier (hashed).}
@@ -197,9 +221,9 @@
 #'   \item{sidecar_format}{Character sidecar format present: "json", "qs2", "both", or "none".}
 #' An empty table is returned when no versions exist for the given path.
 #' @export
-st_versions <- function(path) {
+st_versions <- function(path, alias = NULL) {
   aid <- .st_artifact_id(path)
-  cat <- .st_catalog_read()
+  cat <- .st_catalog_read(alias = alias)
   ver <- cat$versions
 
   required_cols <- c(
@@ -264,19 +288,16 @@ st_versions <- function(path) {
 
 #' Get the latest version_id for an artifact path
 #' @inheritParams st_path
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @export
-st_latest <- function(path) {
-  aid <- .st_artifact_id(path)
-  cat <- .st_catalog_read()
-  art <- cat$artifacts[artifact_id == aid]
-  if (nrow(art) == 0L) {
+st_latest <- function(path, alias = NULL) {
+  # Derive latest from the versions table ordering to avoid relying on
+  # artifacts.latest_version_id, which may be stale if a prior write failed.
+  vers <- st_versions(path, alias = alias)
+  if (nrow(vers) == 0L) {
     return(NA_character_)
   }
-  v <- art$latest_version_id[[1L]]
-  if (is.null(v) || !length(v) || is.na(v) || !nzchar(as.character(v))) {
-    return(NA_character_)
-  }
-  as.character(v)
+  as.character(vers$version_id[[1L]])
 }
 
 #' Resolve version specification to a concrete version_id (internal)
@@ -286,14 +307,14 @@ st_latest <- function(path) {
 #'   or "select"/"pick"/"choose" to show interactive menu
 #' @return character version_id or NA_character_
 #' @keywords internal
-.st_resolve_version <- function(path, version = NULL) {
+.st_resolve_version <- function(path, version = NULL, alias = NULL) {
   # NULL or 0 -> latest
   if (is.null(version) || (is.numeric(version) && version == 0)) {
-    return(st_latest(path))
+    return(st_latest(path, alias = alias))
   }
 
   # Positive integers are not allowed
-  if (is.numeric(version) && version > 0) {
+  if (is.numeric(version) && length(version) == 1L && version > 0) {
     cli::cli_abort(c(
       "x" = "Positive version numbers are not allowed.",
       "i" = "Use NULL for latest, 0 for current, or negative integers for relative versions."
@@ -301,92 +322,48 @@ st_latest <- function(path) {
   }
 
   # Negative integers: relative to latest
-  if (is.numeric(version) && version < 0) {
-    vers <- st_versions(path)
-    if (nrow(vers) == 0L) {
-      cli::cli_abort("No versions found for {.file {path}}")
+  if (is.numeric(version)) {
+    if (length(version) != 1L || is.na(version)) {
+      cli::cli_abort(
+        "Invalid numeric version specification: must be a single non-NA value"
+      )
     }
+    if (version < 0) {
+      vers <- st_versions(path, alias = alias)
+      if (nrow(vers) == 0L) {
+        cli::cli_abort("No versions found for {.file {path}}")
+      }
 
-    # vers is already sorted by created_at descending (newest first)
-    # version=-1 means "one version back from latest" -> index 2
-    # version=-2 means "two versions back from latest" -> index 3
-    idx <- abs(version) + 1L
-    if (idx > nrow(vers)) {
-      cli::cli_abort(c(
-        "x" = "Version index {version} goes beyond available versions.",
-        "i" = "Only {nrow(vers)} version{?s} available for {.file {path}}"
-      ))
+      # vers is already sorted by created_at descending (newest first)
+      idx <- abs(as.integer(version)) + 1L
+      if (idx > nrow(vers)) {
+        cli::cli_abort(c(
+          "x" = "Version index {version} goes beyond available versions.",
+          "i" = "Only {nrow(vers)} version{?s} available for {.file {path}}"
+        ))
+      }
+
+      return(as.character(vers$version_id[idx]))
     }
-
-    return(as.character(vers$version_id[idx]))
+    # If numeric and non-negative (handled earlier for >0 and 0), treat as invalid
+    cli::cli_abort("Invalid numeric version specification: {.val {version}}")
   }
 
   # Character: check for interactive menu request or specific version ID
   if (is.character(version)) {
-    vers <- st_versions(path)
+    if (length(version) != 1L || is.na(version)) {
+      cli::cli_abort(
+        "Invalid character version specification: must be a single non-NA value"
+      )
+    }
+    vers <- st_versions(path, alias = alias)
     if (nrow(vers) == 0L) {
       cli::cli_abort("No versions found for {.file {path}}")
     }
 
-    # Interactive menu
+    # Interactive menu on explicit request
     if (tolower(version) %in% c("select", "pick", "choose")) {
-      if (!interactive()) {
-        cli::cli_abort(c(
-          "x" = "Interactive menu requested but session is not interactive.",
-          "i" = "Specify a version explicitly or use NULL for latest."
-        ))
-      }
-
-      # Build menu choices with formatted dates and metadata
-      choices <- character(nrow(vers))
-      for (i in seq_len(nrow(vers))) {
-        row <- vers[i, ]
-        # Format timestamp - handle both old (seconds) and new (microseconds) formats
-        ts <- tryCatch(
-          {
-            # Try parsing with microseconds first
-            dt <- as.POSIXct(
-              row$created_at,
-              format = "%Y-%m-%dT%H:%M:%OSZ",
-              tz = "UTC"
-            )
-            if (is.na(dt)) {
-              # Fallback to seconds-only format for backward compatibility
-              dt <- as.POSIXct(
-                row$created_at,
-                format = "%Y-%m-%dT%H:%M:%SZ",
-                tz = "UTC"
-              )
-            }
-            format(dt, "%Y-%m-%d %H:%M:%OS3") # Display with milliseconds
-          },
-          error = function(e) row$created_at
-        )
-        # Format size
-        size_mb <- round(as.numeric(row$size_bytes) / (1024^2), 2)
-        # Construct choice string
-        choices[i] <- sprintf(
-          "[%d] %s (%.2f MB) - %s",
-          i,
-          ts,
-          size_mb,
-          substr(row$version_id, 1, 16)
-        )
-      }
-
-      # Show menu
-      cli::cli_inform(c(
-        "i" = "Select a version to load from {.file {path}}:",
-        " " = "Latest version is [1]"
-      ))
-
-      selection <- utils::menu(choices, title = "Available versions:")
-
-      if (selection == 0) {
-        cli::cli_abort("Version selection cancelled by user.")
-      }
-
-      return(as.character(vers$version_id[selection]))
+      return(.st_prompt_select_version(path, alias = alias))
     }
 
     # Specific version ID
@@ -401,6 +378,47 @@ st_latest <- function(path) {
   }
 
   cli::cli_abort("Invalid version specification: {.val {version}}")
+}
+
+# Internal: interactive version picker (explicit opt-in only)
+.st_prompt_select_version <- function(path, alias = NULL) {
+  vers <- st_versions(path, alias = alias)
+  if (nrow(vers) == 0L) {
+    cli::cli_abort("No versions found for {.file {path}}")
+  }
+  if (!interactive()) {
+    cli::cli_abort(c(
+      "x" = "Interactive selection is not supported (not interactive).",
+      "i" = "Pass a specific version id (character) or a negative integer for relative selection (e.g., -1)."
+    ))
+  }
+
+  # Build menu labels: created_at, size_bytes, version_id
+  labels <- vapply(
+    seq_len(nrow(vers)),
+    function(i) {
+      ts <- as.character(vers$created_at[[i]])
+      sz <- vers$size_bytes[[i]] %||% NA_real_
+      id <- as.character(vers$version_id[[i]])
+      paste0(
+        "[",
+        i,
+        "] ",
+        ts,
+        "  ",
+        format(sz, digits = 4, big.mark = ","),
+        " bytes  ",
+        id
+      )
+    },
+    character(1L)
+  )
+
+  choice <- utils::menu(labels, title = sprintf("Select version for %s", path))
+  if (choice < 1L || choice > nrow(vers)) {
+    cli::cli_abort("No selection made.")
+  }
+  as.character(vers$version_id[[choice]])
 }
 
 
@@ -420,6 +438,7 @@ st_latest <- function(path) {
 #' @param version_id Character version identifier (as returned by `st_save` or present in the catalog).
 #' @param ... Additional arguments forwarded to the format's read function (e.g. `read` options).
 #' @param verbose Logical; if TRUE (default), print informational messages.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return The object produced by the format-specific read handler (typically an R object loaded from disk).
 #' @examples
 #' \dontrun{
@@ -427,8 +446,14 @@ st_latest <- function(path) {
 #' old <- st_load_version("data/cleaned.rds", "20250101T000000Z-abcdef01")
 #' }
 #' @export
-st_load_version <- function(path, version_id, verbose = TRUE, ...) {
-  vdir <- .st_version_dir(path, version_id)
+st_load_version <- function(
+  path,
+  version_id,
+  verbose = TRUE,
+  ...,
+  alias = NULL
+) {
+  vdir <- .st_version_dir(path, version_id, alias = alias)
   art <- fs::path(vdir, "artifact")
   if (!fs::file_exists(art)) {
     cli::cli_abort(
@@ -459,9 +484,10 @@ st_load_version <- function(path, version_id, verbose = TRUE, ...) {
 #' Show immediate or recursive parents for an artifact
 #' @param path Artifact path (child)
 #' @param depth Integer depth >= 1. Use Inf to walk recursively.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return data.frame with columns: level, child_path, child_version, parent_path, parent_version
 #' @export
-st_lineage <- function(path, depth = 1L) {
+st_lineage <- function(path, depth = 1L, alias = NULL) {
   stopifnot(is.numeric(depth), depth >= 1)
   visited <- list()
   rows <- list()
@@ -470,7 +496,7 @@ st_lineage <- function(path, depth = 1L) {
     if (level > depth) {
       return(invisible(NULL))
     }
-    vdir <- .st_version_dir(child_path, child_vid)
+    vdir <- .st_version_dir(child_path, child_vid, alias = alias)
     # Prefer committed parents.json in the version snapshot. If not present
     # and we're at the first level, fall back to the artifact sidecar parents
     # for convenience. Recursive walking beyond level 1 will only use
@@ -503,7 +529,7 @@ st_lineage <- function(path, depth = 1L) {
     }
   }
 
-  vid <- st_latest(path)
+  vid <- st_latest(path, alias = alias)
   if (is.na(vid)) {
     return(data.frame(
       level = integer(),
@@ -588,10 +614,11 @@ st_lineage <- function(path, depth = 1L) {
 .st_version_commit_files <- function(
   artifact_path,
   version_id,
-  parents = NULL
+  parents = NULL,
+  alias = NULL
 ) {
   # Use the *same* path logic as consumers:
-  vdir <- .st_version_dir(artifact_path, version_id)
+  vdir <- .st_version_dir(artifact_path, version_id, alias = alias)
   .st_dir_create(fs::path_dir(vdir))
   .st_dir_create(vdir)
 
@@ -615,13 +642,13 @@ st_lineage <- function(path, depth = 1L) {
 }
 
 
-.st_version_dir_latest <- function(path) {
-  vid <- st_latest(path)
+.st_version_dir_latest <- function(path, alias = NULL) {
+  vid <- st_latest(path, alias = alias)
   # vid may be NA or empty; guard accordingly
   if (is.null(vid) || is.na(vid) || !nzchar(as.character(vid))) {
     return(NA_character_)
   }
-  vdir <- .st_version_dir(path, as.character(vid))
+  vdir <- .st_version_dir(path, as.character(vid), alias = alias)
   if (is.na(vdir) || !nzchar(vdir)) {
     return(NA_character_)
   }
@@ -640,25 +667,31 @@ st_lineage <- function(path, depth = 1L) {
   latest_version_id
 ) {
   a <- cat$artifacts
-  idx <- which(a$artifact_id == artifact_id)
+  # Use base indexing to avoid data.table NSE shadowing of argument names
+  idx <- which(as.character(a$artifact_id) == as.character(artifact_id))
   if (!length(idx)) {
     a <- rbindlist(
       list(
         a,
         data.table(
-          artifact_id = artifact_id,
+          artifact_id = as.character(artifact_id),
           path = as.character(path),
-          format = format,
-          latest_version_id = latest_version_id,
-          n_versions = 1L
+          format = as.character(format),
+          latest_version_id = as.character(latest_version_id),
+          n_versions = as.integer(1L)
         )
       ),
       use.names = TRUE,
       fill = TRUE
     )
   } else {
-    a$latest_version_id[idx] <- latest_version_id
-    a$n_versions[idx] <- a$n_versions[idx] + 1L
+    a[
+      idx,
+      `:=`(
+        latest_version_id = as.character(latest_version_id),
+        n_versions = as.integer(n_versions) + 1L
+      )
+    ]
   }
   cat$artifacts <- a
   cat
@@ -698,7 +731,9 @@ st_lineage <- function(path, depth = 1L) {
   content_hash,
   code_hash,
   created_at,
-  sidecar_format
+  sidecar_format,
+  alias = NULL,
+  parents = NULL
 ) {
   aid <- .st_artifact_id(artifact_path)
   vid <- secretbase::siphash13(
@@ -711,11 +746,11 @@ st_lineage <- function(path, depth = 1L) {
     )
   )
 
-  catalog_path <- .st_catalog_path()
+  catalog_path <- .st_catalog_path(alias)
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
   .st_with_lock(lock_path, {
-    cat <- .st_catalog_read()
+    cat <- .st_catalog_read(alias)
 
     # Upsert artifact row using helper
     cat <- .st_catalog_upsert_artifact(
@@ -738,7 +773,30 @@ st_lineage <- function(path, depth = 1L) {
     )
     cat <- .st_catalog_append_version(cat, new_v)
 
-    .st_catalog_write(cat)
+    # Append parent relationships into parents_index (if provided)
+    if (!is.null(parents) && length(parents)) {
+      parents <- .st_parents_normalize(parents)
+      if (length(parents)) {
+        rows <- lapply(parents, function(p) {
+          data.table(
+            parent_artifact_id = .st_artifact_id(p$path),
+            parent_version_id = as.character(p$version_id),
+            child_artifact_id = aid,
+            child_version_id = vid
+          )
+        })
+        cat$parents_index <- rbindlist(
+          list(
+            cat$parents_index,
+            rbindlist(rows, use.names = TRUE, fill = TRUE)
+          ),
+          use.names = TRUE,
+          fill = TRUE
+        )
+      }
+    }
+
+    .st_catalog_write(cat, alias)
   })
 
   vid
@@ -746,30 +804,8 @@ st_lineage <- function(path, depth = 1L) {
 
 
 # Return the latest version row (or NULL) for an artifact path
-#' Retrieve the latest version row for an artifact (internal)
-#'
-#' Return the latest version record (a single-row data.frame or data.table)
-#' for the artifact identified by `path`. If no artifact or version exists,
-#' `NULL` is returned.
-#'
-#' @param path Path to the artifact.
-#' @return A single-row `data.frame`/`data.table` with the version metadata, or `NULL`.
-#' @keywords internal
-.st_catalog_latest_version_row <- function(path) {
-  aid <- .st_artifact_id(path)
-  cat <- .st_catalog_read()
-  art <- cat$artifacts[artifact_id == aid]
-  if (!nrow(art)) {
-    return(NULL)
-  }
-  vid <- art$latest_version_id[[1L]]
-  ver <- cat$versions[version_id == vid]
-  if (!nrow(ver)) {
-    return(NULL)
-  }
-  ver[1L]
-}
-
+# (Removed unused `.st_catalog_latest_version_row()` helper; left here as
+# plain comments to avoid generating orphaned Rd documentation.)
 
 # --- Provenance snapshot files inside each version dir ------------------------
 
@@ -910,8 +946,43 @@ st_lineage <- function(path, depth = 1L) {
 # If `version_id` is provided, match only that parent version.
 # Otherwise, accept any version of `path` appearing as a parent.
 # Result columns: child_path, child_version, parent_path, parent_version
-.st_children_once <- function(path, version_id = NULL) {
-  cat <- .st_catalog_read()
+.st_children_once <- function(path, version_id = NULL, alias = NULL) {
+  cat <- .st_catalog_read(alias)
+  # Prefer parents_index when available; fall back to scanning if empty
+  if (NROW(cat$parents_index) > 0L) {
+    pai <- .st_artifact_id(path)
+    idx <- if (!is.null(version_id) && nzchar(version_id)) {
+      cat$parents_index[
+        parent_artifact_id == pai &
+          parent_version_id == as.character(version_id)
+      ]
+    } else {
+      cat$parents_index[parent_artifact_id == pai]
+    }
+    if (NROW(idx) == 0L) {
+      return(data.frame(
+        child_path = character(),
+        child_version = character(),
+        parent_path = character(),
+        parent_version = character(),
+        stringsAsFactors = FALSE
+      ))
+    }
+    rows <- lapply(seq_len(NROW(idx)), function(i) {
+      c_aid <- idx$child_artifact_id[[i]]
+      c_vid <- idx$child_version_id[[i]]
+      data.frame(
+        child_path = .st_artifact_path_from_id(c_aid, cat = cat),
+        child_version = as.character(c_vid),
+        parent_path = .st_norm_path(path),
+        parent_version = as.character(idx$parent_version_id[[i]]),
+        stringsAsFactors = FALSE
+      )
+    })
+    return(do.call(rbind, rows))
+  }
+
+  # Fallback: scan committed parents.json files (legacy behavior)
   if (NROW(cat$versions) == 0L) {
     return(data.frame(
       child_path = character(),
@@ -924,22 +995,19 @@ st_lineage <- function(path, depth = 1L) {
   target_path_abs <- .st_norm_path(path)
 
   rows <- list()
-  # Iterate all recorded versions; check their committed parents.json
   for (k in seq_len(NROW(cat$versions))) {
-    vrow <- cat$versions[k, , drop = FALSE]
+    vrow <- cat$versions[k]
     aid <- vrow$artifact_id[[1L]]
     cvid <- vrow$version_id[[1L]]
     cpth <- .st_artifact_path_from_id(aid, cat = cat)
     if (!nzchar(cpth)) {
       next
     }
-
-    vdir <- .st_version_dir(cpth, cvid)
+    vdir <- .st_version_dir(cpth, cvid, alias = alias)
     parents <- .st_version_read_parents(vdir)
     if (!length(parents)) {
       next
     }
-
     for (p in parents) {
       p_path_abs <- .st_norm_path(p$path)
       if (!identical(p_path_abs, target_path_abs)) {
@@ -993,11 +1061,12 @@ st_lineage <- function(path, depth = 1L) {
 #' @param path Character path to the parent artifact.
 #' @param version_id Optional version id of \code{path} to match. Default: any.
 #' @param depth Integer depth >= 1. Use \code{Inf} to recurse fully.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return \code{data.frame} with columns:
 #'   \code{level}, \code{child_path}, \code{child_version},
 #'   \code{parent_path}, \code{parent_version}.
 #' @export
-st_children <- function(path, version_id = NULL, depth = 1L) {
+st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
   stopifnot(is.numeric(depth), depth >= 1)
   target_path_abs <- .st_norm_path(path)
 
@@ -1023,7 +1092,7 @@ st_children <- function(path, version_id = NULL, depth = 1L) {
     if (level > depth) {
       return(invisible(NULL))
     }
-    kids <- .st_children_once(p_path_abs, version_id = p_vid)
+    kids <- .st_children_once(p_path_abs, version_id = p_vid, alias = alias)
     if (!NROW(kids)) {
       return(invisible(NULL))
     }
@@ -1032,7 +1101,7 @@ st_children <- function(path, version_id = NULL, depth = 1L) {
       # Recurse from each child as the new parent (by its latest version)
       for (i in seq_len(NROW(kids))) {
         cp <- kids$child_path[[i]]
-        cv <- st_latest(cp) # recurse from current latest of the child
+        cv <- st_latest(cp, alias = alias) # recurse from current latest of the child
         if (is.na(cv) || !nzchar(cv)) {
           next
         }
@@ -1067,10 +1136,11 @@ st_children <- function(path, version_id = NULL, depth = 1L) {
 #' determine whether any parent now has a different latest version id.
 #'
 #' @param path Character path to the artifact to inspect.
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return Logical scalar. `TRUE` if any parent advanced, otherwise `FALSE`.
 #' @export
-st_is_stale <- function(path) {
-  vdir <- .st_version_dir_latest(path)
+st_is_stale <- function(path, alias = NULL) {
+  vdir <- .st_version_dir_latest(path, alias = alias)
   if (is.na(vdir) || !nzchar(vdir)) {
     return(FALSE)
   }
@@ -1080,7 +1150,7 @@ st_is_stale <- function(path) {
   }
 
   for (p in parents) {
-    cur <- st_latest(p$path)
+    cur <- st_latest(p$path, alias = alias)
     # If parent has no versions now, treat as not advancing (conservative).
     if (!is.na(cur) && !identical(cur, p$version_id)) return(TRUE)
   }

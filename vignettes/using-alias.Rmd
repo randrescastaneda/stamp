@@ -1,0 +1,114 @@
+---
+title: "Using Aliases with stamp"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using Aliases with stamp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(stamp)
+```
+
+# Overview
+
+Aliases let you work with multiple, independent stamp folders in a single R session.
+An alias is a selector for which folder configuration to use; it does not change any on-disk paths.
+All artifact paths remain the same regardless of alias; only the catalog, versions, and options used are selected by alias.
+
+Key properties:
+
+- Aliases select a specific stamp folder initialized via `st_init()`.
+- Paths never include alias segments; alias affects catalog/versions only.
+- Reusing one alias for different folders errors.
+- Different aliases pointing to the same folder warn; they share the same catalog/versions.
+- Back-compat alias `"default"` exists and can be re-based with `st_switch()`.
+
+# Setup
+
+Initialize one or more stamp folders and give each an alias:
+
+```{r}
+root_a <- fs::path(tempdir(), "projA")
+root_b <- fs::path(tempdir(), "projB")
+fs::dir_create(root_a, recurse = TRUE)
+fs::dir_create(root_b, recurse = TRUE)
+
+st_init(root_a, alias = "A")
+st_init(root_b, alias = "B")
+```
+
+You can inspect registered aliases:
+
+```{r}
+st_alias_list()
+# Get alias details
+st_alias_get("A")
+```
+
+# Saving and Loading with Aliases
+
+Use the same artifact path patterns; pass `alias` to select which catalog/versions apply:
+
+```{r}
+pA <- fs::path(root_a, "data.qs")
+pB <- fs::path(root_b, "data.qs")
+
+st_save(data.frame(id = 1:2), pA, alias = "A")
+st_save(data.frame(id = 3:4), pB, alias = "B")
+
+# Each alias has its own version history
+st_versions(pA, alias = "A")
+st_versions(pB, alias = "B")
+
+# Loading respects the alias
+objA <- st_load(pA, alias = "A")
+objB <- st_load(pB, alias = "B")
+list(A = objA, B = objB)
+```
+
+Version resolution is non-interactive. `NULL` or `0` resolve to the latest version:
+
+```{r}
+latestA <- st_load(pA, alias = "A", version = 0)
+latestB <- st_load(pB, alias = "B", version = NULL)
+list(latestA = latestA, latestB = latestB)
+```
+
+# Switching the Default Alias
+
+The special alias `"default"` exists for backward compatibility. You can re-base it to point at any initialized folder and keep legacy state in sync:
+
+```{r}
+# Re-base default to alias A's folder (silent)
+st_switch("A")
+
+# Now calls without alias use whatever folder default points to
+st_save(data.frame(id = 5), fs::path(root_a, "more.qs"))
+```
+
+# Constraints and Conflicts
+
+- Reusing the same alias for two different folders errors during `st_init()`.
+- Pointing two different aliases to the same folder warns; both operate on the same underlying catalog/versions.
+- Aliases are case-sensitive and trimmed; prefer simple names (letters, digits, `_`, `-`).
+
+# Best Practices
+
+- Keep per-project aliases (`A`, `B`, or project codes) and avoid reassigning them.
+- Store the alias choice alongside project scripts to make intent explicit.
+- Use `st_switch()` sparingly; explicit `alias =` in calls is clearer in shared code.
+- Version resolution: pass explicit version ids when pinning; use `0` for latest.
+
+# Troubleshooting
+
+- "alias conflict" error: You tried to reuse an alias for a different folder. Pick a new alias or re-point the original alias only if you intend to share catalogs.
+- "same folder" warning: Two aliases target the same folder; this is allowed but both will share catalog/versions.
+- Latest not loading: Ensure you passed `version = 0` or `NULL`; loading without `version` loads the current version by default.
+
+# Notes
+
+- Internally, `stamp` maintains a catalog with an index for lineage (`parents_index`) to make reverse lookups fast. Aliases do not change filesystem layout; they only select which catalog is used.
+- Options like retention, verification, and primary key policies are per-alias (per folder). Configure them with `st_opts()` after `st_init()`.

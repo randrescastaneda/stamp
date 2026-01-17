@@ -4,7 +4,7 @@
 \alias{st_load_version}
 \title{Load a specific version of an artifact}
 \usage{
-st_load_version(path, version_id, verbose = TRUE, ...)
+st_load_version(path, version_id, verbose = TRUE, ..., alias = NULL)
 }
 \arguments{
 \item{path}{Character path to the artifact (same value used with \code{st_save}/\code{st_load}).}
@@ -14,6 +14,8 @@ st_load_version(path, version_id, verbose = TRUE, ...)
 \item{verbose}{Logical; if TRUE (default), print informational messages.}
 
 \item{...}{Additional arguments forwarded to the format's read function (e.g. \code{read} options).}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 The object produced by the format-specific read handler (typically an R object loaded from disk).

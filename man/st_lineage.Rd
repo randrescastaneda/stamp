@@ -4,12 +4,14 @@
 \alias{st_lineage}
 \title{Show immediate or recursive parents for an artifact}
 \usage{
-st_lineage(path, depth = 1L)
+st_lineage(path, depth = 1L, alias = NULL)
 }
 \arguments{
 \item{path}{Artifact path (child)}
 
 \item{depth}{Integer depth >= 1. Use Inf to walk recursively.}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 data.frame with columns: level, child_path, child_version, parent_path, parent_version

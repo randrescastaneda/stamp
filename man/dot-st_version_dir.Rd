@@ -4,7 +4,7 @@
 \alias{.st_version_dir}
 \title{Version directory for an artifact (internal)}
 \usage{
-.st_version_dir(artifact_path, version_id)
+.st_version_dir(artifact_path, version_id, alias = NULL)
 }
 \arguments{
 \item{artifact_path}{Path to the artifact file.}
