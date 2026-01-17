@@ -361,19 +361,16 @@ st_latest <- function(path, alias = NULL) {
       cli::cli_abort("No versions found for {.file {path}}")
     }
 
-    # Interactive menu keywords are not supported (non-interactive API)
+    # Interactive menu on explicit request
     if (tolower(version) %in% c("select", "pick", "choose")) {
-      cli::cli_abort(c(
-        "x" = "Interactive selection is not supported (not interactive).",
-        "i" = "Pass a specific version id (character) or a negative integer for relative selection (e.g., -1)."
-      ))
+      return(.st_prompt_select_version(path, alias = alias))
     }
 
     # Specific version ID
     if (!version %in% vers$version_id) {
       cli::cli_abort(c(
         "x" = "Version {.val {version}} not found for {.file {path}}",
-        "i" = "Use {.fn st_versions} to see available versions or 'select' for a menu."
+        "i" = "Use {.fn st_versions} to see available versions."
       ))
     }
 
@@ -381,6 +378,47 @@ st_latest <- function(path, alias = NULL) {
   }
 
   cli::cli_abort("Invalid version specification: {.val {version}}")
+}
+
+# Internal: interactive version picker (explicit opt-in only)
+.st_prompt_select_version <- function(path, alias = NULL) {
+  vers <- st_versions(path, alias = alias)
+  if (nrow(vers) == 0L) {
+    cli::cli_abort("No versions found for {.file {path}}")
+  }
+  if (!interactive()) {
+    cli::cli_abort(c(
+      "x" = "Interactive selection requested in a non-interactive session.",
+      "i" = "Pass a specific version id (character) or a negative integer for relative selection (e.g., -1)."
+    ))
+  }
+
+  # Build menu labels: created_at, size_bytes, version_id
+  labels <- vapply(
+    seq_len(nrow(vers)),
+    function(i) {
+      ts <- as.character(vers$created_at[[i]])
+      sz <- vers$size_bytes[[i]] %||% NA_real_
+      id <- as.character(vers$version_id[[i]])
+      paste0(
+        "[",
+        i,
+        "] ",
+        ts,
+        "  ",
+        format(sz, digits = 4, big.mark = ","),
+        " bytes  ",
+        id
+      )
+    },
+    character(1L)
+  )
+
+  choice <- utils::menu(labels, title = sprintf("Select version for %s", path))
+  if (choice < 1L || choice > nrow(vers)) {
+    cli::cli_abort("No selection made.")
+  }
+  as.character(vers$version_id[[choice]])
 }
 
 
