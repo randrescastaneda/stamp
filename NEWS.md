@@ -11,12 +11,7 @@
 * **NEW**: Catalog `parents_index` accelerates reverse lineage queries used by `st_children()`.
   - Falls back to snapshot scanning when index is not present.
 
-## Behavior Changes
 
-### Non-Interactive Version Resolution
-* **Changed**: Interactive selection keywords (e.g., `"select"`, `"pick"`, `"choose"`) are no longer supported.
-  - Pass explicit version IDs or negative offsets (e.g., `-1`, `-2`) instead.
-  - Ensures CI-friendly, non-interactive behavior across APIs.
 
 ## Internal Improvements
 

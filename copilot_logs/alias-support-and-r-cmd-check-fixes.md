@@ -15,7 +15,6 @@ Task Header
 
 ## 1. Task Overview
 - Implemented alias support across the package so multiple independent stamp folders can be managed; alias is a selector only (not embedded in filesystem paths).
-- Removed interactive version resolution; callers must pass explicit IDs or negative offsets.
 - Optimized lineage and children traversal via a `parents_index` in the catalog; modified `st_latest` to derive from sorted versions instead of artifact row.
 - Aligned documentation and metadata for clean `R CMD check`: roxygen param docs, expanded `globalVariables`, `Suggests` additions, `.Rbuildignore` update, and corrected LICENSE stub.
 
