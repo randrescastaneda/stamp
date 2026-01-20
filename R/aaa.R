@@ -77,6 +77,106 @@ st_state_get <- function(key, default = NULL) {
   rlang::env_get(.stamp_aliases, alias, default = NULL)
 }
 
+#' Check if a path belongs to an alias's root (internal)
+#' @keywords internal
+.st_path_matches_alias <- function(path, alias) {
+  # Check if the path is under the alias's root directory
+  if (is.null(alias)) {
+    return(TRUE) # NULL alias means default; no mismatch warning needed
+  }
+
+  cfg <- .st_alias_get(alias)
+  if (is.null(cfg)) {
+    return(FALSE) # Alias not registered
+  }
+
+  path_abs <- tryCatch(
+    as.character(fs::path_abs(path)),
+    error = function(e) as.character(path)
+  )
+  root_abs <- as.character(cfg$root)
+
+  # Check if path starts with the root (case-insensitive on Windows)
+  if (.Platform$OS.type == "windows") {
+    path_norm <- tolower(normalizePath(
+      path_abs,
+      winslash = "/",
+      mustWork = FALSE
+    ))
+    root_norm <- tolower(normalizePath(
+      root_abs,
+      winslash = "/",
+      mustWork = FALSE
+    ))
+  } else {
+    path_norm <- path_abs
+    root_norm <- root_abs
+  }
+
+  # Path should start with root directory
+  startsWith(path_norm, root_norm)
+}
+
+#' Detect which alias a path belongs to (internal)
+#' @keywords internal
+.st_detect_alias_from_path <- function(path) {
+  # Find which registered alias's root contains this path
+  # Returns the alias name, or NULL if no match found
+  
+  path_abs <- tryCatch(
+    as.character(fs::path_abs(path)),
+    error = function(e) as.character(path)
+  )
+  
+  # Normalize path for comparison
+  if (.Platform$OS.type == "windows") {
+    path_norm <- tolower(normalizePath(
+      path_abs,
+      winslash = "/",
+      mustWork = FALSE
+    ))
+  } else {
+    path_norm <- path_abs
+  }
+  
+  # Check all registered aliases
+  all_aliases <- rlang::env_names(.stamp_aliases)
+  
+  # Track matches with their root path lengths (to find most specific match)
+  matches <- list()
+  
+  for (alias_name in all_aliases) {
+    cfg <- rlang::env_get(.stamp_aliases, alias_name, default = NULL)
+    if (is.null(cfg)) next
+    
+    root_abs <- as.character(cfg$root)
+    if (.Platform$OS.type == "windows") {
+      root_norm <- tolower(normalizePath(
+        root_abs,
+        winslash = "/",
+        mustWork = FALSE
+      ))
+    } else {
+      root_norm <- root_abs
+    }
+    
+    # Check if path is under this root
+    if (startsWith(path_norm, root_norm)) {
+      matches[[alias_name]] <- nchar(root_norm)
+    }
+  }
+  
+  # If no matches, return NULL
+  if (length(matches) == 0) {
+    return(NULL)
+  }
+  
+  # Return the most specific match (longest root path)
+  # This handles nested roots correctly
+  best_match <- names(matches)[which.max(unlist(matches))]
+  return(best_match)
+}
+
 # ------------------------------------------------------------------------------
 # Internal option defaults (single source of truth for st_opts_init_defaults())
 # Note: st_opts() itself lives elsewhere; these are the defaults it consumes.

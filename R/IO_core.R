@@ -189,6 +189,29 @@ st_save <- function(
   # Normalize path + format selection
   sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
+  # Auto-detect the correct alias from the path for versioning purposes
+  # The alias parameter is used for other purposes but versioning should follow the file location
+  versioning_alias <- .st_detect_alias_from_path(sp$path)
+  
+  # Warn if user-provided alias doesn't match the path's location
+  if (!is.null(alias) && nzchar(alias)) {
+    if (!.st_path_matches_alias(sp$path, alias)) {
+      if (isTRUE(verbose)) {
+        cfg <- .st_alias_get(alias)
+        detected_msg <- if (!is.null(versioning_alias)) {
+          paste0("Versions will be stored under alias ", versioning_alias, " (detected from path).")
+        } else {
+          "Versions will be stored under the default alias."
+        }
+        cli::cli_warn(c(
+          "!" = "Path {.file {sp$path}} is outside the root of alias {.val {alias}}.",
+          "i" = "Alias {.val {alias}} root: {.path {cfg$root}}",
+          "i" = detected_msg
+        ))
+      }
+    }
+  }
+
   # Primary-key handling for tabular objects
   if (!is.null(pk)) {
     if (!is.data.frame(x)) {
@@ -304,6 +327,7 @@ st_save <- function(
       .st_write_sidecar(sp$path, meta)
 
       # 4) Catalog snapshot + version commit
+      # Use versioning_alias (detected from path) instead of user-provided alias
       vid <- .st_catalog_record_version(
         artifact_path = sp$path,
         format = fmt,
@@ -312,7 +336,7 @@ st_save <- function(
         code_hash = meta$code_hash,
         created_at = meta$created_at,
         sidecar_format = .st_sidecar_present(sp$path),
-        alias = alias,
+        alias = versioning_alias,
         parents = parents
       )
       # Defensive fallback: if for any reason the catalog helper returned
@@ -326,10 +350,10 @@ st_save <- function(
           meta$code_hash
         )
       }
-      .st_version_commit_files(sp$path, vid, parents = parents, alias = alias)
+      .st_version_commit_files(sp$path, vid, parents = parents, alias = versioning_alias)
 
       # 5) Optional retention for this artifact
-      .st_apply_retention(sp$path, alias = alias)
+      .st_apply_retention(sp$path, alias = versioning_alias)
 
       if (isTRUE(verbose)) {
         cli::cli_inform(c(
