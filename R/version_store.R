@@ -95,6 +95,12 @@
     error = function(e) NULL
   )
 
+  # Check for invalid relative paths (cross-drive on Windows)
+  # fs::path_rel returns paths like "../../../../../../C:" which are invalid
+  if (!is.null(rel) && grepl("^(\\.\\./)+[A-Z]:", rel)) {
+    rel <- NULL
+  }
+
   if (is.null(rel) || identical(rel, ".") || !nzchar(rel)) {
     # Use artifact ID (hash of absolute path) to ensure collision-free storage
     aid <- .st_artifact_id(ap_abs)
