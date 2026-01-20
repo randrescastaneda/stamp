@@ -33,11 +33,14 @@ Initialize one or more stamp folders and give each an alias:
 ```{r}
 root_a <- fs::path(tempdir(), "projA")
 root_b <- fs::path(tempdir(), "projB")
-fs::dir_create(root_a, recurse = TRUE)
-fs::dir_create(root_b, recurse = TRUE)
 
+# Note: st_init() creates the folder if missing
 st_init(root_a, alias = "A")
 st_init(root_b, alias = "B")
+
+# Inspect what was created
+fs::dir_tree(fs::path(root_a, ".stamp"), recurse = TRUE, all = TRUE)
+fs::dir_tree(fs::path(root_b, ".stamp"), recurse = TRUE, all = TRUE)
 ```
 
 You can inspect registered aliases:
@@ -67,6 +70,10 @@ st_versions(pB, alias = "B")
 objA <- st_load(pA, alias = "A")
 objB <- st_load(pB, alias = "B")
 list(A = objA, B = objB)
+
+# Inspect what was created within the stamp folders
+fs::dir_tree(fs::path(root_a, ".stamp"), recurse = TRUE, all = TRUE)
+fs::dir_tree(fs::path(root_b, ".stamp"), recurse = TRUE, all = TRUE)
 ```
 
 Version resolution is non-interactive. `NULL` or `0` resolve to the latest version:
