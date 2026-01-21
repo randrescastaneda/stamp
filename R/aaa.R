@@ -90,28 +90,12 @@ st_state_get <- function(key, default = NULL) {
     return(FALSE) # Alias not registered
   }
 
-  path_abs <- tryCatch(
-    as.character(fs::path_abs(path)),
-    error = function(e) as.character(path)
-  )
+  path_abs <- .st_make_abs(path)
   root_abs <- as.character(cfg$root)
 
   # Check if path starts with the root (case-insensitive on Windows)
-  if (.Platform$OS.type == "windows") {
-    path_norm <- tolower(normalizePath(
-      path_abs,
-      winslash = "/",
-      mustWork = FALSE
-    ))
-    root_norm <- tolower(normalizePath(
-      root_abs,
-      winslash = "/",
-      mustWork = FALSE
-    ))
-  } else {
-    path_norm <- path_abs
-    root_norm <- root_abs
-  }
+  path_norm <- .st_normalize_path(path_abs)
+  root_norm <- .st_normalize_path(root_abs)
 
   # Path should start with root directory
   startsWith(path_norm, root_norm)
@@ -123,60 +107,56 @@ st_state_get <- function(key, default = NULL) {
   # Find which registered alias's root contains this path
   # Returns the alias name, or NULL if no match found
 
-  path_abs <- tryCatch(
-    as.character(fs::path_abs(path)),
-    error = function(e) as.character(path)
-  )
-
-  # Normalize path for comparison
-  if (.Platform$OS.type == "windows") {
-    path_norm <- tolower(normalizePath(
-      path_abs,
-      winslash = "/",
-      mustWork = FALSE
-    ))
-  } else {
-    path_norm <- path_abs
-  }
+  path_abs <- .st_make_abs(path)
+  path_norm <- .st_normalize_path(path_abs)
 
   # Check all registered aliases
   all_aliases <- rlang::env_names(.stamp_aliases)
 
-  # Track matches with their root path lengths (to find most specific match)
-  matches <- list()
+  # Build match vector (NA for non-matches)
+  match_lengths <- vapply(
+    all_aliases,
+    function(alias_name) {
+      cfg <- rlang::env_get(.stamp_aliases, alias_name, default = NULL)
+      if (is.null(cfg)) {
+        return(NA_integer_)
+      }
 
-  for (alias_name in all_aliases) {
-    cfg <- rlang::env_get(.stamp_aliases, alias_name, default = NULL)
-    if (is.null(cfg)) {
-      next
-    }
+      root_norm <- .st_normalize_path(cfg$root)
+      if (startsWith(path_norm, root_norm)) nchar(root_norm) else NA_integer_
+    },
+    integer(1)
+  )
 
-    root_abs <- as.character(cfg$root)
-    if (.Platform$OS.type == "windows") {
-      root_norm <- tolower(normalizePath(
-        root_abs,
-        winslash = "/",
-        mustWork = FALSE
-      ))
-    } else {
-      root_norm <- root_abs
-    }
-
-    # Check if path is under this root
-    if (startsWith(path_norm, root_norm)) {
-      matches[[alias_name]] <- nchar(root_norm)
-    }
-  }
-
-  # If no matches, return NULL
-  if (length(matches) == 0) {
+  # Return longest match or NULL
+  if (all(is.na(match_lengths))) {
     return(NULL)
   }
+  all_aliases[which.max(match_lengths)]
+}
 
-  # Return the most specific match (longest root path)
-  # This handles nested roots correctly
-  best_match <- names(matches)[which.max(unlist(matches))]
-  return(best_match)
+#' Normalize path for platform-aware comparison (internal)
+#' @keywords internal
+.st_normalize_path <- function(path) {
+  if (.Platform$OS.type == "windows") {
+    tolower(normalizePath(
+      as.character(path),
+      winslash = "/",
+      mustWork = FALSE
+    ))
+  } else {
+    as.character(path)
+  }
+}
+
+#' Helper: produce an absolute path safely (internal)
+#' @keywords internal
+.st_make_abs <- function(p) {
+  stopifnot(is.character(p), length(p) == 1L)
+  tryCatch(
+    as.character(fs::path_abs(p)),
+    error = function(e) as.character(p)
+  )
 }
 
 #' Resolve file path using alias (internal)
@@ -186,6 +166,16 @@ st_state_get <- function(key, default = NULL) {
 #' @param verbose logical; if TRUE, emit warnings
 #' @return list(path = resolved_path, alias_used = alias_name, was_bare = logical)
 .st_resolve_file_path <- function(file, alias = NULL, verbose = TRUE) {
+  # Input validation
+  if (
+    !is.character(file) || length(file) != 1L || is.na(file) || !nzchar(file)
+  ) {
+    cli::cli_abort(c(
+      "x" = "`file` must be a non-missing, non-empty character scalar.",
+      "i" = "Provide a single filename or path, e.g. {.file \"data.qs2\"} or {.file \"data/file.qs2\"}."
+    ))
+  }
+
   # Determine if file is a bare name (no directory component)
   file_dir <- fs::path_dir(file)
   is_bare <- identical(file_dir, ".") || identical(file_dir, "")
@@ -204,8 +194,9 @@ st_state_get <- function(key, default = NULL) {
     }
 
     resolved_path <- fs::path(cfg$root, file)
+    resolved_path_abs <- .st_make_abs(resolved_path)
     return(list(
-      path = as.character(resolved_path),
+      path = resolved_path_abs,
       alias_used = alias_to_use,
       was_bare = TRUE
     ))
@@ -223,28 +214,12 @@ st_state_get <- function(key, default = NULL) {
     }
 
     # Check if alias root is a parent of the provided path
-    path_abs <- tryCatch(
-      as.character(fs::path_abs(file)),
-      error = function(e) as.character(file)
-    )
+    path_abs <- .st_make_abs(file)
     root_abs <- as.character(cfg$root)
 
     # Normalize for comparison
-    if (.Platform$OS.type == "windows") {
-      path_norm <- tolower(normalizePath(
-        path_abs,
-        winslash = "/",
-        mustWork = FALSE
-      ))
-      root_norm <- tolower(normalizePath(
-        root_abs,
-        winslash = "/",
-        mustWork = FALSE
-      ))
-    } else {
-      path_norm <- path_abs
-      root_norm <- root_abs
-    }
+    path_norm <- .st_normalize_path(path_abs)
+    root_norm <- .st_normalize_path(root_abs)
 
     if (!startsWith(path_norm, root_norm)) {
       cli::cli_abort(c(
@@ -268,7 +243,7 @@ st_state_get <- function(key, default = NULL) {
     }
 
     return(list(
-      path = as.character(file),
+      path = path_abs,
       alias_used = alias,
       was_bare = FALSE
     ))
@@ -277,12 +252,38 @@ st_state_get <- function(key, default = NULL) {
   # Case 3: Path with directory, no explicit alias
   # Auto-detect alias from path or use path as-is
   detected_alias <- .st_detect_alias_from_path(file)
+  path_abs <- .st_make_abs(file)
 
   return(list(
-    path = as.character(file),
+    path = path_abs,
     alias_used = detected_alias,
     was_bare = FALSE
   ))
+}
+
+#' Resolve file path and create st_path object (internal)
+#' @keywords internal
+#' @param file character path or st_path object
+#' @param format optional format override
+#' @param alias character alias or NULL
+#' @param verbose logical; if TRUE, emit warnings
+#' @return list(sp = st_path object, resolved_path, alias_used, was_bare)
+.st_resolve_and_normalize <- function(file, format = NULL, alias = NULL, verbose = TRUE) {
+  resolved <- .st_resolve_file_path(file, alias = alias, verbose = verbose)
+  
+  sp <- if (inherits(file, "st_path")) {
+    file$path <- resolved$path
+    file
+  } else {
+    st_path(resolved$path, format = format)
+  }
+  
+  list(
+    sp = sp,
+    resolved_path = resolved$path,
+    alias_used = resolved$alias_used,
+    was_bare = resolved$was_bare
+  )
 }
 
 # ------------------------------------------------------------------------------

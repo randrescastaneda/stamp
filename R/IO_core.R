@@ -192,18 +192,9 @@ st_save <- function(
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
 
   # Resolve file path using alias (handles bare names and directory validation)
-  resolved <- .st_resolve_file_path(file, alias = alias, verbose = verbose)
-  resolved_path <- resolved$path
+  resolved <- .st_resolve_and_normalize(file, format = format, alias = alias, verbose = verbose)
+  sp <- resolved$sp
   versioning_alias <- resolved$alias_used
-
-  # Normalize path + format selection using the resolved path
-  sp <- if (inherits(file, "st_path")) {
-    # Update the path in st_path object
-    file$path <- resolved_path
-    file
-  } else {
-    st_path(resolved_path, format = format)
-  }
 
   # Primary-key handling for tabular objects
   if (!is.null(pk)) {
@@ -259,22 +250,19 @@ st_save <- function(
           args_local <- list(...)
           writer_formals <- names(formals(h$write))
 
-          if (!is.null(writer_formals) && length(args_local)) {
-            # Keep only named args that the writer accepts
-            named <- names(args_local)
-            named <- if (is.null(named)) rep("", length(args_local)) else named
-            keep_idx <- which(named != "" & named %in% writer_formals)
-            if (length(keep_idx)) {
-              do.call(
-                h$write,
-                c(list(obj, pth, verbose = verbose), args_local[keep_idx])
-              )
+          # Filter to named args that writer accepts
+          if (!is.null(writer_formals) && length(args_local) > 0) {
+            arg_names <- names(args_local)
+            if (!is.null(arg_names)) {
+              keep <- arg_names != "" & arg_names %in% writer_formals
+              args_local <- args_local[keep]
             } else {
-              h$write(obj, pth, verbose = verbose)
+              args_local <- list()  # Discard unnamed args
             }
-          } else {
-            h$write(obj, pth, verbose = verbose)
           }
+
+          # Always call with base args + filtered extras
+          do.call(h$write, c(list(obj, pth, verbose = verbose), args_local))
         },
         overwrite = TRUE
       )
@@ -434,17 +422,8 @@ st_load <- function(
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
 
   # Resolve file path using alias (handles bare names and directory validation)
-  resolved <- .st_resolve_file_path(file, alias = alias, verbose = verbose)
-  resolved_path <- resolved$path
-
-  # Normalize input into an st_path using the resolved path
-  sp <- if (inherits(file, "st_path")) {
-    # Update the path in st_path object
-    file$path <- resolved_path
-    file
-  } else {
-    st_path(resolved_path, format = format)
-  }
+  resolved <- .st_resolve_and_normalize(file, format = format, alias = alias, verbose = verbose)
+  sp <- resolved$sp
 
   # If a specific version is requested, resolve it and delegate to st_load_version
   if (!is.null(version)) {
