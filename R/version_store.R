@@ -88,27 +88,14 @@
     return(NA_character_)
   }
   ap_abs <- .st_norm_path(artifact_path)
-  rd <- .st_root_dir(alias)
 
-  rel <- tryCatch(
-    as.character(fs::path_rel(ap_abs, start = rd)),
-    error = function(e) NULL
-  )
+  # Compute .stamp/ directory in the same directory as the artifact
+  artifact_dir <- fs::path_dir(ap_abs)
+  artifact_name <- fs::path_file(ap_abs)
+  state_dir_name <- st_state_get("state_dir", ".stamp")
 
-  # Check for invalid relative paths (cross-drive on Windows)
-  # fs::path_rel returns paths like "../../../../../../C:" which are invalid
-  if (!is.null(rel) && grepl("^(\\.\\./)+[A-Z]:", rel)) {
-    rel <- NULL
-  }
-
-  if (is.null(rel) || identical(rel, ".") || !nzchar(rel)) {
-    # Use artifact ID (hash of absolute path) to ensure collision-free storage
-    aid <- .st_artifact_id(ap_abs)
-    basename <- fs::path_file(ap_abs)
-    rel <- fs::path("external", paste0(substr(aid, 1, 8), "-", basename))
-  }
-
-  fs::path(.st_versions_root(alias), rel, version_id)
+  # Version directory: <artifact_dir>/.stamp/versions/<artifact_name>/<version_id>
+  fs::path(artifact_dir, state_dir_name, "versions", artifact_name, version_id)
 }
 
 # Catalog paths & IO -----------------------------------------------------------
@@ -121,7 +108,7 @@
 #' @return Character scalar path to the catalog file.
 #' @keywords internal
 .st_catalog_path <- function(alias = NULL) {
-  # Alias selects which catalog file to read/write; path name unchanged.
+  # Catalog remains centralized at alias root for efficient querying
   fs::path(.st_state_dir_abs(alias), "catalog.qs2")
 }
 
@@ -168,7 +155,7 @@
 #' @return A list with elements `artifacts` and `versions`.
 #' @keywords internal
 .st_catalog_read <- function(alias = NULL) {
-  p <- .st_catalog_path(alias)
+  p <- .st_catalog_path(alias = alias)
   cat <- if (fs::file_exists(p)) .st_read_qs2(p) else .st_catalog_empty()
   # Coerce to data.table invariant if loaded catalog used older data.frame layout
   if (!is.data.table(cat$artifacts)) {
@@ -195,7 +182,7 @@
 #' @return Invisible path to the catalog file.
 #' @keywords internal
 .st_catalog_write <- function(cat, alias = NULL) {
-  p <- .st_catalog_path(alias)
+  p <- .st_catalog_path(alias = alias)
   fs::dir_create(fs::path_dir(p), recurse = TRUE)
   tmp <- fs::file_temp(tmp_dir = fs::path_dir(p), pattern = fs::path_file(p))
   .st_write_qs2(cat, tmp)
@@ -752,11 +739,11 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     )
   )
 
-  catalog_path <- .st_catalog_path(alias)
+  catalog_path <- .st_catalog_path(alias = alias)
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
   .st_with_lock(lock_path, {
-    cat <- .st_catalog_read(alias)
+    cat <- .st_catalog_read(alias = alias)
 
     # Upsert artifact row using helper
     cat <- .st_catalog_upsert_artifact(
@@ -802,7 +789,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       }
     }
 
-    .st_catalog_write(cat, alias)
+    .st_catalog_write(cat, alias = alias)
   })
 
   vid

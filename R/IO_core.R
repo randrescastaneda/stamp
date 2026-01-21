@@ -192,8 +192,19 @@ st_save <- function(
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
 
   # Resolve file path using alias (handles bare names and directory validation)
-  resolved <- .st_resolve_and_normalize(file, format = format, alias = alias, verbose = verbose)
+  resolved <- .st_resolve_and_normalize(
+    file,
+    format = format,
+    alias = alias,
+    verbose = verbose
+  )
   sp <- resolved$sp
+
+  # Versioning is ALWAYS saved next to the artifact in its directory's .stamp/ folder.
+  # For example:
+  #   - Artifact: C:/home/projectA/data/file.qs2
+  #   - Versions: C:/home/projectA/data/.stamp/versions/file.qs2/<version_id>
+  # The artifact path is already resolved by .st_resolve_file_path().
   versioning_alias <- resolved$alias_used
 
   # Primary-key handling for tabular objects
@@ -257,7 +268,7 @@ st_save <- function(
               keep <- arg_names != "" & arg_names %in% writer_formals
               args_local <- args_local[keep]
             } else {
-              args_local <- list()  # Discard unnamed args
+              args_local <- list() # Discard unnamed args
             }
           }
 
@@ -422,7 +433,12 @@ st_load <- function(
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
 
   # Resolve file path using alias (handles bare names and directory validation)
-  resolved <- .st_resolve_and_normalize(file, format = format, alias = alias, verbose = verbose)
+  resolved <- .st_resolve_and_normalize(
+    file,
+    format = format,
+    alias = alias,
+    verbose = verbose
+  )
   sp <- resolved$sp
 
   # If a specific version is requested, resolve it and delegate to st_load_version
