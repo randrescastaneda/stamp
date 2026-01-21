@@ -150,7 +150,11 @@ print.st_path <- function(x, ...) {
 #' Save an R object to disk with metadata & versioning (atomic move)
 #'
 #' @param x object to save
-#' @param file destination path (character or st_path)
+#' @param file destination path (character or st_path). Can be:
+#'   - A bare filename (e.g., `"data.qs2"`) → saved directly under the alias root
+#'   - A path with directory (e.g., `"data/file.qs2"`) → saved under `<alias_root>/data/`
+#'   When using a path with directory and an explicit `alias`, the alias root must be
+#'   a parent of the path, otherwise an error is raised.
 #' @param format optional format override ("qs2" | "rds" | "csv" | "fst" | "json")
 #' @param metadata named list of extra metadata (merged into sidecar)
 #' @param code Optional function/expression/character whose hash is stored as `code_hash`.
@@ -165,8 +169,8 @@ print.st_path <- function(x, ...) {
 #'   warnings (default TRUE). When `FALSE`, messages about skipped saves or save
 #'   failures emitted by `st_save()` will not be shown.
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#'   If `NULL` (default), uses the default/legacy stamp folder initialized
-#'   via `st_init()`. Use aliases to operate across multiple stamp folders.
+#'   If `NULL` (default), uses the default alias. If the default alias does not
+#'   exist, an error is raised. Use aliases to operate across multiple stamp folders.
 #' @return invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
 #' @export
 st_save <- function(
@@ -186,30 +190,19 @@ st_save <- function(
 ) {
   # Input validation for verbose
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
-  # Normalize path + format selection
-  sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
-  # Auto-detect the correct alias from the path for versioning purposes
-  # The alias parameter is used for other purposes but versioning should follow the file location
-  versioning_alias <- .st_detect_alias_from_path(sp$path)
-  
-  # Warn if user-provided alias doesn't match the path's location
-  if (!is.null(alias) && nzchar(alias)) {
-    if (!.st_path_matches_alias(sp$path, alias)) {
-      if (isTRUE(verbose)) {
-        cfg <- .st_alias_get(alias)
-        detected_msg <- if (!is.null(versioning_alias)) {
-          paste0("Versions will be stored under alias ", versioning_alias, " (detected from path).")
-        } else {
-          "Versions will be stored under the default alias."
-        }
-        cli::cli_warn(c(
-          "!" = "Path {.file {sp$path}} is outside the root of alias {.val {alias}}.",
-          "i" = "Alias {.val {alias}} root: {.path {cfg$root}}",
-          "i" = detected_msg
-        ))
-      }
-    }
+  # Resolve file path using alias (handles bare names and directory validation)
+  resolved <- .st_resolve_file_path(file, alias = alias, verbose = verbose)
+  resolved_path <- resolved$path
+  versioning_alias <- resolved$alias_used
+
+  # Normalize path + format selection using the resolved path
+  sp <- if (inherits(file, "st_path")) {
+    # Update the path in st_path object
+    file$path <- resolved_path
+    file
+  } else {
+    st_path(resolved_path, format = format)
   }
 
   # Primary-key handling for tabular objects
@@ -350,7 +343,12 @@ st_save <- function(
           meta$code_hash
         )
       }
-      .st_version_commit_files(sp$path, vid, parents = parents, alias = versioning_alias)
+      .st_version_commit_files(
+        sp$path,
+        vid,
+        parents = parents,
+        alias = versioning_alias
+      )
 
       # 5) Optional retention for this artifact
       .st_apply_retention(sp$path, alias = versioning_alias)
@@ -380,7 +378,11 @@ st_save <- function(
 
 
 #' Load an object from disk (format auto-detected; optional integrity checks)
-#' @param file path or st_path
+#' @param file path or st_path. Can be:
+#'   - A bare filename (e.g., `"data.qs2"`) → loaded from alias root
+#'   - A path with directory (e.g., `"data/file.qs2"`) → loaded from `<alias_root>/data/`
+#'   When using a path with directory and an explicit `alias`, the alias root must be
+#'   a parent of the path, otherwise an error is raised.
 #' @param format optional format override
 #' @param version An integer or a quoted directive. Retrieve a specific version
 #'   of an artifact. See details.
@@ -389,8 +391,8 @@ st_save <- function(
 #'   warnings (default TRUE). When `FALSE`, warnings about file/content hash
 #'   mismatches and a missing primary key recorded by `st_load()` will not be shown.
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#'   If `NULL` (default), uses the default/legacy stamp folder initialized
-#'   via `st_init()`. Use aliases to operate across multiple stamp folders.
+#'   If `NULL` (default), uses the default alias. If the default alias does not
+#'   exist, an error is raised. Use aliases to operate across multiple stamp folders.
 #' @return the loaded object
 #' @details
 #' The `version` argument allows you to load specific versions:
@@ -430,8 +432,19 @@ st_load <- function(
 ) {
   # Input validation for verbose
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
-  # Normalize input into an st_path
-  sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
+
+  # Resolve file path using alias (handles bare names and directory validation)
+  resolved <- .st_resolve_file_path(file, alias = alias, verbose = verbose)
+  resolved_path <- resolved$path
+
+  # Normalize input into an st_path using the resolved path
+  sp <- if (inherits(file, "st_path")) {
+    # Update the path in st_path object
+    file$path <- resolved_path
+    file
+  } else {
+    st_path(resolved_path, format = format)
+  }
 
   # If a specific version is requested, resolve it and delegate to st_load_version
   if (!is.null(version)) {
@@ -575,15 +588,19 @@ st_load <- function(
 #'   - parents: list(...) parsed from latest version's parents.json (if any)
 #' @export
 st_info <- function(path, alias = NULL) {
-  sc <- st_read_sidecar(path)
-  cat <- .st_catalog_read(alias = alias)
-  aid <- .st_artifact_id(path)
+  # Resolve file path using alias (handles bare names and directory validation)
+  resolved <- .st_resolve_file_path(path, alias = alias, verbose = FALSE)
+  resolved_path <- resolved$path
 
-  latest <- st_latest(path, alias = alias)
+  sc <- st_read_sidecar(resolved_path)
+  cat <- .st_catalog_read(alias = resolved$alias_used)
+  aid <- .st_artifact_id(resolved_path)
+
+  latest <- st_latest(resolved_path, alias = resolved$alias_used)
   artrow <- cat$artifacts[artifact_id == aid]
   nvers <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
 
-  vdir <- .st_version_dir_latest(path, alias = alias)
+  vdir <- .st_version_dir_latest(resolved_path, alias = resolved$alias_used)
   # Prefer committed snapshot parents (parents.json) when available.
   # If no snapshot exists, fall back to the artifact sidecar's quick parents
   # metadata so users can still inspect lineage even when a snapshot was not created.
@@ -679,39 +696,48 @@ st_switch <- function(alias) {
 # -------- Helpers --------------
 #' Explain why an artifact would change
 #' @inheritParams st_changed
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return Character scalar: "no_change", "missing_artifact", "missing_meta", or e.g. "content+code"
 #' @export
 st_changed_reason <- function(
   path,
   x = NULL,
   code = NULL,
-  mode = c("any", "content", "code", "file")
+  mode = c("any", "content", "code", "file"),
+  alias = NULL
 ) {
   mode <- match.arg(mode)
-  res <- st_changed(path, x = x, code = code, mode = mode)
+  # Resolve file path using alias (handles bare names and directory validation)
+  resolved <- .st_resolve_file_path(path, alias = alias, verbose = FALSE)
+  res <- st_changed(resolved$path, x = x, code = code, mode = mode)
   res$reason
 }
 
 #' Decide if a save should proceed given current st_opts()
 #' Uses versioning policy and code-change rule.
 #' @inheritParams st_changed
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)
 #' @export
 # Returns list(save, reason)
-st_should_save <- function(path, x = NULL, code = NULL) {
+st_should_save <- function(path, x = NULL, code = NULL, alias = NULL) {
+  # Resolve file path using alias (handles bare names and directory validation)
+  resolved <- .st_resolve_file_path(path, alias = alias, verbose = FALSE)
+  resolved_path <- resolved$path
+
   # First write always allowed
-  if (!fs::file_exists(path)) {
+  if (!fs::file_exists(resolved_path)) {
     return(list(save = TRUE, reason = "missing_artifact"))
   }
   # No sidecar? write to re-materialize metadata
-  meta <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
+  meta <- tryCatch(st_read_sidecar(resolved_path), error = function(e) NULL)
   if (is.null(meta)) {
     return(list(save = TRUE, reason = "missing_meta"))
   }
 
   # Policy: by default write when content OR code changed
   # (per earlier decision; no extra option needed)
-  res <- st_changed(path, x = x, code = code, mode = "any")
+  res <- st_changed(resolved_path, x = x, code = code, mode = "any")
   if (res$changed) {
     return(list(save = TRUE, reason = res$reason))
   }

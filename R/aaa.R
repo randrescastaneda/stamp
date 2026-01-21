@@ -122,12 +122,12 @@ st_state_get <- function(key, default = NULL) {
 .st_detect_alias_from_path <- function(path) {
   # Find which registered alias's root contains this path
   # Returns the alias name, or NULL if no match found
-  
+
   path_abs <- tryCatch(
     as.character(fs::path_abs(path)),
     error = function(e) as.character(path)
   )
-  
+
   # Normalize path for comparison
   if (.Platform$OS.type == "windows") {
     path_norm <- tolower(normalizePath(
@@ -138,17 +138,19 @@ st_state_get <- function(key, default = NULL) {
   } else {
     path_norm <- path_abs
   }
-  
+
   # Check all registered aliases
   all_aliases <- rlang::env_names(.stamp_aliases)
-  
+
   # Track matches with their root path lengths (to find most specific match)
   matches <- list()
-  
+
   for (alias_name in all_aliases) {
     cfg <- rlang::env_get(.stamp_aliases, alias_name, default = NULL)
-    if (is.null(cfg)) next
-    
+    if (is.null(cfg)) {
+      next
+    }
+
     root_abs <- as.character(cfg$root)
     if (.Platform$OS.type == "windows") {
       root_norm <- tolower(normalizePath(
@@ -159,22 +161,128 @@ st_state_get <- function(key, default = NULL) {
     } else {
       root_norm <- root_abs
     }
-    
+
     # Check if path is under this root
     if (startsWith(path_norm, root_norm)) {
       matches[[alias_name]] <- nchar(root_norm)
     }
   }
-  
+
   # If no matches, return NULL
   if (length(matches) == 0) {
     return(NULL)
   }
-  
+
   # Return the most specific match (longest root path)
   # This handles nested roots correctly
   best_match <- names(matches)[which.max(unlist(matches))]
   return(best_match)
+}
+
+#' Resolve file path using alias (internal)
+#' @keywords internal
+#' @param file character path (bare filename or path with directory)
+#' @param alias character alias or NULL
+#' @param verbose logical; if TRUE, emit warnings
+#' @return list(path = resolved_path, alias_used = alias_name, was_bare = logical)
+.st_resolve_file_path <- function(file, alias = NULL, verbose = TRUE) {
+  # Determine if file is a bare name (no directory component)
+  file_dir <- fs::path_dir(file)
+  is_bare <- identical(file_dir, ".") || identical(file_dir, "")
+
+  # Case 1: Bare filename → resolve under alias root
+  if (is_bare) {
+    # Use provided alias or default
+    alias_to_use <- alias %||% "default"
+    cfg <- .st_alias_get(alias_to_use)
+
+    if (is.null(cfg)) {
+      cli::cli_abort(c(
+        "x" = "Alias {.val {alias_to_use}} not found.",
+        "i" = "Initialize it with {.fn st_init} or use a registered alias."
+      ))
+    }
+
+    resolved_path <- fs::path(cfg$root, file)
+    return(list(
+      path = as.character(resolved_path),
+      alias_used = alias_to_use,
+      was_bare = TRUE
+    ))
+  }
+
+  # Case 2: Path with directory component
+  # If alias is provided, verify it's a parent of the path
+  if (!is.null(alias) && nzchar(alias)) {
+    cfg <- .st_alias_get(alias)
+    if (is.null(cfg)) {
+      cli::cli_abort(c(
+        "x" = "Alias {.val {alias}} not found.",
+        "i" = "Initialize it with {.fn st_init} or use a registered alias."
+      ))
+    }
+
+    # Check if alias root is a parent of the provided path
+    path_abs <- tryCatch(
+      as.character(fs::path_abs(file)),
+      error = function(e) as.character(file)
+    )
+    root_abs <- as.character(cfg$root)
+
+    # Normalize for comparison
+    if (.Platform$OS.type == "windows") {
+      path_norm <- tolower(normalizePath(
+        path_abs,
+        winslash = "/",
+        mustWork = FALSE
+      ))
+      root_norm <- tolower(normalizePath(
+        root_abs,
+        winslash = "/",
+        mustWork = FALSE
+      ))
+    } else {
+      path_norm <- path_abs
+      root_norm <- root_abs
+    }
+
+    if (!startsWith(path_norm, root_norm)) {
+      cli::cli_abort(c(
+        "x" = "Path {.file {file}} is not under alias {.val {alias}} root.",
+        "i" = "Alias root: {.path {root_abs}}",
+        "i" = "Provided path: {.path {path_abs}}"
+      ))
+    }
+
+    # Valid: path is under alias root
+    if (isTRUE(verbose)) {
+      # Check if it's directly under root or in a subdirectory
+      rel_path <- fs::path_rel(path_abs, root_abs)
+      if (!identical(fs::path_dir(rel_path), ".")) {
+        cli::cli_warn(c(
+          "!" = "File will be saved in subdirectory, not directly under alias root.",
+          "i" = "Alias: {.val {alias}}",
+          "i" = "Relative path: {.path {rel_path}}"
+        ))
+      }
+    }
+
+    return(list(
+      path = as.character(file),
+      alias_used = alias,
+      was_bare = FALSE
+    ))
+  }
+
+  # Case 3: Path with directory, no explicit alias
+  # Auto-detect alias from path or use path as-is
+  detected_alias <- .st_detect_alias_from_path(file)
+
+  return(list(
+    path = as.character(file),
+    alias_used = detected_alias,
+    was_bare = FALSE
+  ))
 }
 
 # ------------------------------------------------------------------------------
