@@ -180,7 +180,7 @@ st_state_get <- function(key, default = NULL) {
 #' @param file character path (bare filename or path with directory)
 #' @param alias character alias or NULL
 #' @param verbose logical; if TRUE, emit warnings
-#' @return list(path = resolved_path, alias_used = alias_name, was_bare = logical)
+#' @return list(path = resolved_path, alias_used = alias_name, was_bare = logical, rel_path = relative_path_from_root)
 .st_resolve_file_path <- function(file, alias = NULL, verbose = TRUE) {
   # Input validation
   if (
@@ -214,7 +214,8 @@ st_state_get <- function(key, default = NULL) {
     return(list(
       path = resolved_path_abs,
       alias_used = alias_to_use,
-      was_bare = TRUE
+      was_bare = TRUE,
+      rel_path = file # Relative path is just the filename
     ))
   }
 
@@ -234,10 +235,35 @@ st_state_get <- function(key, default = NULL) {
 
     # Use detected alias (already absolute and under that alias root)
     path_abs <- .st_make_abs(file)
+
+    # Extract relative path from root
+    cfg <- .st_alias_get(detected_alias)
+    root_abs <- .st_normalize_path(cfg$root)
+    path_norm <- .st_normalize_path(path_abs)
+    root_abs_slash <- if (endsWith(root_abs, "/")) {
+      root_abs
+    } else {
+      paste0(root_abs, "/")
+    }
+
+    rel_path <- if (identical(path_norm, root_abs)) {
+      fs::path_file(file)
+    } else {
+      sub(
+        paste0(
+          "^",
+          gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", root_abs_slash)
+        ),
+        "",
+        path_norm
+      )
+    }
+
     return(list(
       path = path_abs,
       alias_used = detected_alias,
-      was_bare = FALSE
+      was_bare = FALSE,
+      rel_path = rel_path
     ))
   }
 
@@ -270,7 +296,8 @@ st_state_get <- function(key, default = NULL) {
   return(list(
     path = resolved_path_abs,
     alias_used = alias_to_use,
-    was_bare = FALSE
+    was_bare = FALSE,
+    rel_path = file # File is already relative
   ))
 }
 
@@ -280,7 +307,7 @@ st_state_get <- function(key, default = NULL) {
 #' @param format optional format override
 #' @param alias character alias or NULL
 #' @param verbose logical; if TRUE, emit warnings
-#' @return list(sp = st_path object, resolved_path, alias_used, was_bare)
+#' @return list(sp = st_path object, resolved_path, alias_used, was_bare, rel_path)
 .st_resolve_and_normalize <- function(
   file,
   format = NULL,
@@ -300,7 +327,8 @@ st_state_get <- function(key, default = NULL) {
     sp = sp,
     resolved_path = resolved$path,
     alias_used = resolved$alias_used,
-    was_bare = resolved$was_bare
+    was_bare = resolved$was_bare,
+    rel_path = resolved$rel_path
   )
 }
 
@@ -322,6 +350,9 @@ st_state_get <- function(key, default = NULL) {
   code_hash = TRUE, # compute code hash when code= is supplied
   store_file_hash = FALSE, # compute file hash at save (extra I/O)
   verify_on_load = FALSE, # verify file hash on load if available
+
+  # Folder structure
+  data_folder = ".st_data", # folder for user data (preserves directory structure)
 
   # Usability / misc (mirrors; used as we adopt them)
   default_format = "qs2", # resolved writer key for auto-inference

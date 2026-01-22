@@ -253,7 +253,12 @@ st_prune_versions <- function(
     for (i in seq_len(nrow(candidates))) {
       a_path <- candidates$artifact_path[[i]]
       vid <- candidates$version_id[[i]]
-      vdir <- .st_version_dir(a_path, vid, alias = alias)
+
+      # Extract rel_path from logical path (a_path)
+      root <- .st_root_dir(alias = alias)
+      rel_path <- as.character(fs::path_rel(a_path, start = root))
+
+      vdir <- .st_version_dir(rel_path, vid, alias = alias)
       .st_delete_version_dir_safe(vdir)
     }
 

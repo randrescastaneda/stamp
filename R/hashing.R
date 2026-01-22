@@ -147,30 +147,30 @@ st_normalize_attrs <- function(x) {
   if (is.null(orig_rownames)) {
     return(FALSE)
   }
-  
+
   n <- NROW(x)
   # .set_row_names() requires integer; ensure we pass one
   default_compact <- .set_row_names(as.integer(n))
-  
+
   # Check both compact form c(NA, -n) and expanded form 1:n
   if (identical(orig_rownames, default_compact)) {
     return(FALSE)
   }
-  
+
   # Also check if it's the integer sequence 1:n (expanded default form)
   if (is.integer(orig_rownames) && length(orig_rownames) == n) {
     if (identical(orig_rownames, seq_len(n))) {
       return(FALSE)
     }
   }
-  
+
   # Also check character representation of default sequence
   if (is.character(orig_rownames) && length(orig_rownames) == n) {
     if (identical(orig_rownames, as.character(seq_len(n)))) {
       return(FALSE)
     }
   }
-  
+
   TRUE
 }
 
@@ -453,12 +453,19 @@ st_changed <- function(
   path,
   x = NULL,
   code = NULL,
-  mode = c("any", "content", "code", "file")
+  mode = c("any", "content", "code", "file"),
+  alias = NULL
 ) {
   mode <- match.arg(mode)
 
+  # Normalize path
+  norm <- .st_normalize_user_path(path, alias = alias, must_exist = FALSE)
+  storage_path <- norm$storage_path
+  rel_path <- norm$rel_path
+  versioning_alias <- norm$alias
+
   # --- base cases
-  if (!fs::file_exists(path)) {
+  if (!fs::file_exists(storage_path)) {
     return(list(
       changed = TRUE,
       reason = "missing_artifact",
@@ -466,7 +473,10 @@ st_changed <- function(
     ))
   }
 
-  meta <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
+  meta <- tryCatch(
+    st_read_sidecar(rel_path, alias = versioning_alias),
+    error = function(e) NULL
+  )
   if (is.null(meta)) {
     return(list(
       changed = TRUE,
@@ -498,7 +508,7 @@ st_changed <- function(
     isTRUE(st_opts("store_file_hash", .get = TRUE)) && !is.null(meta$file_hash)
   ) {
     fh_old <- meta$file_hash %||% NA_character_
-    fh_new <- st_hash_file(path)
+    fh_new <- st_hash_file(storage_path)
     det$file_changed <- !identical(fh_old, fh_new)
   } else {
     det$file_changed <- NA
