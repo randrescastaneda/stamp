@@ -776,42 +776,14 @@ st_restore <- function(
   rel_path <- norm$rel_path
   versioning_alias <- norm$alias
 
-  # Resolve version identifier
-  if (is.numeric(version) && length(version) == 1L) {
-    # Integer offset from latest (1 = previous version)
-    versions_df <- st_versions(rel_path, alias = versioning_alias)
-    if (nrow(versions_df) == 0) {
-      cli::cli_abort("No versions found for {.field {file}}.")
-    }
-    # versions_df is ordered by created_at descending (newest first)
-    offset <- as.integer(version)
-    if (offset < 1 || offset > nrow(versions_df)) {
-      cli::cli_abort(
-        "Version offset {.val {offset}} out of range. Available: 1-{nrow(versions_df)}."
-      )
-    }
-    version_id <- versions_df$version_id[offset]
-  } else if (is.character(version) && length(version) == 1L) {
-    if (version %in% c("latest", "oldest")) {
-      versions_df <- st_versions(rel_path, alias = versioning_alias)
-      if (nrow(versions_df) == 0) {
-        cli::cli_abort("No versions found for {.field {file}}.")
-      }
-      if (version == "latest") {
-        version_id <- versions_df$version_id[1] # First row is newest
-      } else {
-        # "oldest"
-        version_id <- versions_df$version_id[nrow(versions_df)] # Last row is oldest
-      }
-    } else {
-      # Assume it's a specific version_id
-      version_id <- version
-    }
-  } else {
-    cli::cli_abort(
-      "Invalid version specification. Use 'latest', 'oldest', integer offset, or version_id string."
-    )
+  # Fetch versions once (reused for all resolution methods)
+  versions_df <- st_versions(rel_path, alias = versioning_alias)
+  if (nrow(versions_df) == 0) {
+    cli::cli_abort("No versions found for {.field {file}}.")
   }
+
+  # Resolve version identifier using helper (optimized: single fetch)
+  version_id <- .st_resolve_version_identifier(version, versions_df, file)
 
   # Load the specified version
   obj <- st_load_version(
@@ -838,6 +810,66 @@ st_restore <- function(
   }
 
   invisible(obj)
+}
+
+#' Resolve a version identifier to a version_id (internal)
+#'
+#' Helper function for st_restore() that handles multiple version specification formats.
+#' Centralizes identifier resolution logic for clarity and testability.
+#'
+#' @param version Version specifier: numeric offset, "latest", "oldest", or version_id string
+#' @param versions_df data.frame from st_versions() with version_id column
+#' @param file Original file path for error messages
+#' @return Character scalar version_id
+#' @keywords internal
+.st_resolve_version_identifier <- function(version, versions_df, file) {
+  # Numeric: treat as offset from latest (1 = previous, 2 = two back, etc.)
+  if (is.numeric(version)) {
+    if (length(version) != 1L || version != as.integer(version)) {
+      cli::cli_abort("Numeric version must be a single integer offset.")
+    }
+    offset <- as.integer(version)
+    if (offset < 1 || offset > nrow(versions_df)) {
+      cli::cli_abort(
+        "Version offset {.val {offset}} out of range. Available versions: 1-{nrow(versions_df)}."
+      )
+    }
+    return(versions_df$version_id[offset])
+  }
+
+  # Character: keywords or specific version_id
+  if (!is.character(version) || length(version) != 1L) {
+    cli::cli_abort(
+      "Version must be a single value: integer, 'latest', 'oldest', or version_id string."
+    )
+  }
+
+  # Handle keywords
+  if (version == "latest") {
+    return(versions_df$version_id[1]) # First row (ordered newest first)
+  }
+  if (version == "oldest") {
+    return(versions_df$version_id[nrow(versions_df)]) # Last row (oldest)
+  }
+
+  # Assume it's a specific version_id; validate it exists before returning
+  if (!version %in% versions_df$version_id) {
+    available <- head(versions_df$version_id, 3)
+    more_msg <- if (nrow(versions_df) > 3) {
+      paste("...and", nrow(versions_df) - 3, "more")
+    } else {
+      NULL
+    }
+    cli::cli_abort(
+      c(
+        "Version ID {.field {version}} not found for {.field {file}}.",
+        "i" = "Available: {.val {available}}",
+        if (!is.null(more_msg)) more_msg
+      )
+    )
+  }
+
+  version
 }
 
 

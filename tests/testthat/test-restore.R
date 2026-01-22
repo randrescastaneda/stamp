@@ -1,8 +1,13 @@
-test_that("st_restore restores to previous version", {
+# Helper function for test setup (DRY principle)
+setup_stamp_test <- function() {
   test_proj <- withr::local_tempdir("stamp_test")
   withr::local_dir(test_proj)
-
   stamp::st_init()
+  invisible(test_proj)
+}
+
+test_that("st_restore restores to previous version", {
+  setup_stamp_test()
 
   # Create and save initial version
   data_v1 <- data.frame(x = 1:5, y = letters[1:5])
