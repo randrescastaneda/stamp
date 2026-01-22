@@ -92,8 +92,13 @@ st_clear_builders <- function(path = NULL) {
 
 # Read committed parents for the latest version dir; if missing and this is
 # a first-level convenience, caller may choose to fall back to sidecar parents.
-.st_committed_parents_latest <- function(path) {
-  vdir <- .st_version_dir_latest(path)
+.st_committed_parents_latest <- function(path, alias = NULL) {
+  # Normalize path to get rel_path for version operations
+  norm <- .st_normalize_user_path(path, alias = alias, must_exist = FALSE)
+  rel_path <- norm$rel_path
+  versioning_alias <- norm$alias
+
+  vdir <- .st_version_dir_latest(rel_path, alias = versioning_alias)
   if (is.na(vdir) || !nzchar(vdir)) {
     return(list())
   }
@@ -108,8 +113,16 @@ st_clear_builders <- function(path = NULL) {
 }
 
 # Sidecar parents (quick, non-committed), normalized to list(list(...))
-.st_sidecar_parents <- function(path) {
-  sc <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
+.st_sidecar_parents <- function(path, alias = NULL) {
+  # Normalize path to get rel_path for sidecar operations
+  norm <- .st_normalize_user_path(path, alias = alias, must_exist = FALSE)
+  rel_path <- norm$rel_path
+  versioning_alias <- norm$alias
+
+  sc <- tryCatch(
+    st_read_sidecar(rel_path, alias = versioning_alias),
+    error = function(e) NULL
+  )
   if (!is.list(sc) || !length(sc$parents)) {
     return(list())
   }
@@ -207,7 +220,9 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
     for (i in idxs) {
       p <- plan$path[[i]]
       reason <- plan$reason[[i]]
-      cli::cli_inform(c(" " = "{cli:::symbol$bullet} {.field {p}} ({.field {reason}})"))
+      cli::cli_inform(c(
+        " " = "{cli:::symbol$bullet} {.field {p}} ({.field {reason}})"
+      ))
 
       pars <- get_parents_for(p, allow_sidecar_fallback = (lvl == 1L))
 
@@ -442,14 +457,23 @@ st_plan_rebuild <- function(
       keep <- vapply(
         to_consider,
         function(child) {
-          vdir <- .st_version_dir_latest(child)
+          # Normalize child path to get rel_path for version operations
+          norm_child <- .st_normalize_user_path(
+            child,
+            alias = alias,
+            must_exist = FALSE
+          )
+          child_rel_path <- norm_child$rel_path
+          child_alias <- norm_child$alias
+
+          vdir <- .st_version_dir_latest(child_rel_path, alias = child_alias)
           pars <- if (!is.na(vdir) && nzchar(vdir)) {
             .st_version_read_parents(vdir)
           } else {
             list()
           }
           if (!length(pars)) {
-            pars <- .st_sidecar_parents(child)
+            pars <- .st_sidecar_parents(child, alias = child_alias)
           } # first-level convenience
           if (!length(pars)) {
             return(FALSE)
