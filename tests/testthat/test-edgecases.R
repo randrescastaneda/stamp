@@ -144,8 +144,8 @@ test_that("pruning warns when candidate deletion snapshot dir missing (determini
     regexp = "Version dir missing at"
   )
 
-  # Artifact file remains
-  expect_true(fs::file_exists(p))
+  # Artifact metadata should still exist - verify by checking sidecar
+  expect_true(!is.null(st_read_sidecar(p)))
   # Remaining versions should be <= 2
   expect_true(nrow(st_versions(p)) <= 2)
 })

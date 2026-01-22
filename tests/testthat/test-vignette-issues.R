@@ -10,7 +10,8 @@ testthat::test_that("st_save accepts pk and domain without forwarding to writer"
 
   # should not error even though pk/domain are not writer args
   testthat::expect_error(st_save(df, p, pk = "id", domain = "test"), NA)
-  testthat::expect_true(fs::file_exists(p))
+  # Verify artifact was saved by checking sidecar exists
+  testthat::expect_true(!is.null(st_read_sidecar(p)))
 })
 
 

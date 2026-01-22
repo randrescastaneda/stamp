@@ -37,8 +37,13 @@ test_that("st_write_parts auto-partitions and saves data", {
   expect_equal(nrow(manifest), 12)
   expect_equal(sum(manifest$n_rows), nrow(dt))
 
-  # Verify files exist on disk
-  expect_true(all(file.exists(manifest$path)))
+  # Verify files exist on disk in .st_data storage location
+  # Partitions are stored with full path: .st_data/<rel_path>/<filename>
+  # manifest$path contains absolute paths, so we need to convert to relative
+  # by calculating from the root directory (tdir)
+  rel_paths <- fs::path_rel(manifest$path, start = tdir)
+  storage_paths <- fs::path(tdir, ".st_data", rel_paths, basename(rel_paths))
+  expect_true(all(fs::file_exists(storage_paths)))
 
   # Verify partition structure (Hive-style paths)
   sample_path <- manifest$path[1]
@@ -91,7 +96,11 @@ test_that("st_write_parts works with base data.frame", {
   )
 
   expect_equal(nrow(manifest), 4)
-  expect_true(all(file.exists(manifest$path)))
+  # Verify files exist in .st_data storage location with full nested paths
+  # Convert absolute paths to relative for storage path calculation
+  rel_paths <- fs::path_rel(manifest$path, start = tdir)
+  storage_paths <- fs::path(tdir, ".st_data", rel_paths, basename(rel_paths))
+  expect_true(all(fs::file_exists(storage_paths)))
 })
 
 test_that("st_write_parts with filter allows selective loading", {

@@ -96,7 +96,9 @@ test_that("verbose parameter works end-to-end with st_save/st_load", {
     st_save(mtcars, test_file, verbose = FALSE)
   )
 
-  expect_true(file.exists(test_file))
+  # File should be saved in .st_data storage location
+  storage_path <- fs::path(td, ".st_data", "test.rds", "test.rds")
+  expect_true(fs::file_exists(storage_path))
 
   # Load with verbose = FALSE should be silent for stamp messages
   expect_silent(

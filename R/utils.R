@@ -236,7 +236,8 @@
 .st_normalize_user_path <- function(
   user_path,
   alias = NULL,
-  must_exist = FALSE
+  must_exist = FALSE,
+  verbose = TRUE
 ) {
   # Input validation
   if (
@@ -254,6 +255,15 @@
   # Get alias configuration
   alias_to_use <- alias %||% "default"
   cfg <- .st_alias_get(alias_to_use)
+
+  # If alias is NULL and "default" doesn't exist, try to detect from path
+  if (is.null(cfg) && is.null(alias) && fs::is_absolute_path(user_path)) {
+    detected_alias <- .st_detect_alias_from_path(.st_normalize_path(user_path))
+    if (!is.null(detected_alias)) {
+      alias_to_use <- detected_alias
+      cfg <- .st_alias_get(alias_to_use)
+    }
+  }
 
   if (is.null(cfg)) {
     cli::cli_abort(c(
@@ -278,16 +288,42 @@
     # Normalize the path
     user_path_norm <- .st_normalize_path(user_path)
 
-    # Validation 1: Must be under alias root
+    # Check if path is under the specified alias root
     is_under_root <- identical(user_path_norm, root_abs) ||
       startsWith(user_path_norm, root_abs_slash)
 
     if (!is_under_root) {
-      cli::cli_abort(c(
-        "x" = "Absolute path {.file {user_path}} is not under alias root.",
-        "i" = "Alias {.val {alias_to_use}} root: {.file {cfg$root}}",
-        "i" = "Provide a relative path or an absolute path under the alias root."
-      ))
+      # Path is NOT under the specified alias root
+      # Try to find which alias actually owns this path
+      actual_alias <- .st_detect_alias_from_path(user_path_norm)
+
+      if (!is.null(actual_alias)) {
+        # We found the owning alias - warn user about the mismatch
+        actual_cfg <- .st_alias_get(actual_alias)
+        if (isTRUE(verbose)) {
+          cli::cli_warn(c(
+            "!" = "Path {.file {user_path}} is outside the root of alias {.val {alias_to_use}}.",
+            "i" = "Alias {.val {alias_to_use}} root: {.file {cfg$root}}",
+            "i" = "Path is actually under alias {.val {actual_alias}} root (detected from path): {.file {actual_cfg$root}}",
+            "i" = "Versions will be stored under alias {.val {actual_alias}}."
+          ))
+        }
+        # Use the actual alias configuration instead
+        cfg <- actual_cfg
+        root_abs <- .st_normalize_path(cfg$root)
+        root_abs_slash <- if (endsWith(root_abs, "/")) {
+          root_abs
+        } else {
+          paste0(root_abs, "/")
+        }
+      } else {
+        # Path is not under any registered alias - abort
+        cli::cli_abort(c(
+          "x" = "Absolute path {.file {user_path}} is not under alias root.",
+          "i" = "Alias {.val {alias_to_use}} root: {.file {cfg$root}}",
+          "i" = "Provide a relative path or an absolute path under the alias root."
+        ))
+      }
     }
 
     # Validation 2: Must exist (if required)

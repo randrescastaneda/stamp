@@ -197,7 +197,12 @@ st_save <- function(
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
 
   # Normalize and validate user path
-  norm <- .st_normalize_user_path(file, alias = alias, must_exist = FALSE)
+  norm <- .st_normalize_user_path(
+    file,
+    alias = alias,
+    must_exist = FALSE,
+    verbose = verbose
+  )
 
   # Use logical path for catalog, storage path for actual file operations
   logical_path <- norm$logical_path
@@ -446,7 +451,12 @@ st_load <- function(
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
 
   # Normalize and validate user path
-  norm <- .st_normalize_user_path(file, alias = alias, must_exist = FALSE)
+  norm <- .st_normalize_user_path(
+    file,
+    alias = alias,
+    must_exist = FALSE,
+    verbose = verbose
+  )
 
   logical_path <- norm$logical_path
   storage_path <- norm$storage_path
@@ -525,7 +535,7 @@ st_load <- function(
       if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
         if (isTRUE(verbose)) {
           cli::cli_warn(
-            "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
+            "Loaded object hash mismatch for {.file {norm$logical_path}} (content hash differs from sidecar)."
           )
         }
       }
