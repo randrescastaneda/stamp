@@ -212,7 +212,13 @@
 #' @export
 st_versions <- function(path, alias = NULL) {
   # Normalize to get logical_path for artifact_id computation
-  norm <- .st_normalize_user_path(path, alias = alias, must_exist = FALSE)
+  # Don't auto-switch: we want to query the specified alias's catalog
+  norm <- .st_normalize_user_path(
+    path,
+    alias = alias,
+    must_exist = FALSE,
+    auto_switch = FALSE
+  )
   logical_path <- norm$logical_path
   versioning_alias <- norm$alias
 
