@@ -707,6 +707,139 @@ st_switch <- function(alias) {
   invisible(alias)
 }
 
+#' Restore artifact to a previous version
+#'
+#' Replaces the current artifact file with a specified historical version.
+#' This is a convenience wrapper around \code{\link{st_load_version}} and
+#' \code{\link{st_save}} that restores an artifact in-place.
+#'
+#' @param file Character path to the artifact to restore. Can be:
+#'   \itemize{
+#'     \item Bare filename (e.g., "data.qs2") - stored in root/.st_data/
+#'     \item Relative path with subdirs (e.g., "results/model.rds") - stored in root/.st_data/results/
+#'     \item Absolute path under project root - converted to relative for versioning
+#'   }
+#' @param version Version identifier to restore to. Can be:
+#'   \itemize{
+#'     \item A specific version_id string
+#'     \item "latest" - most recent version
+#'     \item "oldest" - first saved version
+#'     \item Integer offset from latest (1 = previous, 2 = two versions back, etc.)
+#'   }
+#' @param verbose Logical; if TRUE, prints informative messages.
+#' @param alias Optional stamp alias to target a specific stamp folder.
+#' @param ... Additional arguments passed to format reader/writer.
+#'
+#' @return Invisibly returns the restored object.
+#'
+#' @details
+#' The function:
+#' \enumerate{
+#'   \item Loads the specified version from version history
+#'   \item Overwrites the current artifact file with that version
+#'   \item Creates a new version entry for the restoration
+#' }
+#'
+#' This allows you to revert changes by restoring to any previous version.
+#' The restoration itself becomes a new version in the history, so you can
+#' always go forward again if needed.
+#'
+#' @examples
+#' \dontrun{
+#' # Initialize and create some versions
+#' st_init()
+#' df1 <- data.frame(x = 1:5)
+#' st_save(df1, "data.qs2")
+#'
+#' df2 <- data.frame(x = 6:10)
+#' st_save(df2, "data.qs2")
+#'
+#' # Restore to previous version
+#' st_restore("data.qs2", version = "oldest")
+#'
+#' # Or restore to a specific version ID
+#' versions <- st_versions("data.qs2")
+#' st_restore("data.qs2", version = versions$version_id[1])
+#' }
+#'
+#' @seealso \code{\link{st_load_version}}, \code{\link{st_versions}}, \code{\link{st_save}}
+#' @export
+st_restore <- function(
+  file,
+  version = "oldest",
+  verbose = TRUE,
+  alias = NULL,
+  ...
+) {
+  # Normalize the file path
+  norm <- .st_normalize_user_path(file, alias = alias, must_exist = FALSE)
+  rel_path <- norm$rel_path
+  versioning_alias <- norm$alias
+
+  # Resolve version identifier
+  if (is.numeric(version) && length(version) == 1L) {
+    # Integer offset from latest (1 = previous version)
+    versions_df <- st_versions(rel_path, alias = versioning_alias)
+    if (nrow(versions_df) == 0) {
+      cli::cli_abort("No versions found for {.field {file}}.")
+    }
+    # versions_df is ordered by created_at descending (newest first)
+    offset <- as.integer(version)
+    if (offset < 1 || offset > nrow(versions_df)) {
+      cli::cli_abort(
+        "Version offset {.val {offset}} out of range. Available: 1-{nrow(versions_df)}."
+      )
+    }
+    version_id <- versions_df$version_id[offset]
+  } else if (is.character(version) && length(version) == 1L) {
+    if (version %in% c("latest", "oldest")) {
+      versions_df <- st_versions(rel_path, alias = versioning_alias)
+      if (nrow(versions_df) == 0) {
+        cli::cli_abort("No versions found for {.field {file}}.")
+      }
+      if (version == "latest") {
+        version_id <- versions_df$version_id[1] # First row is newest
+      } else {
+        # "oldest"
+        version_id <- versions_df$version_id[nrow(versions_df)] # Last row is oldest
+      }
+    } else {
+      # Assume it's a specific version_id
+      version_id <- version
+    }
+  } else {
+    cli::cli_abort(
+      "Invalid version specification. Use 'latest', 'oldest', integer offset, or version_id string."
+    )
+  }
+
+  # Load the specified version
+  obj <- st_load_version(
+    rel_path,
+    version_id = version_id,
+    verbose = FALSE,
+    alias = versioning_alias,
+    ...
+  )
+
+  # Save it back (this creates a new version and updates the artifact)
+  st_save(
+    obj,
+    file = file,
+    verbose = FALSE,
+    alias = alias,
+    ...
+  )
+
+  if (isTRUE(verbose)) {
+    cli::cli_inform(c(
+      "v" = "Restored {.field {file}} to version {.field {version_id}}"
+    ))
+  }
+
+  invisible(obj)
+}
+
 
 # -------- Helpers --------------
 #' Explain why an artifact would change

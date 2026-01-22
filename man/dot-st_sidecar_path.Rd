@@ -4,20 +4,20 @@
 \alias{.st_sidecar_path}
 \title{Sidecar metadata path helper (internal)}
 \usage{
-.st_sidecar_path(path, ext = c("json", "qs2"))
+.st_sidecar_path(rel_path, ext = c("json", "qs2"), alias = NULL)
 }
 \arguments{
-\item{path}{Character scalar path to the main data file.}
+\item{rel_path}{Character relative path from alias root (includes filename).}
 
 \item{ext}{Character scalar extension for the sidecar (e.g. "json" or "qs2").}
+
+\item{alias}{Optional alias}
 }
 \value{
 Character scalar with the computed sidecar path.
 }
 \description{
-Build the path to a sidecar metadata file for \code{path}. Sidecars live in
-a sibling directory named \code{stmeta} next to the file's directory. The
-returned filename has the original basename with a \verb{.stmeta.<ext>} suffix
-where \code{ext} is typically \code{"json"} or \code{"qs2"}.
+Build the path to a sidecar metadata file for a given relative path.
+New structure: <data_folder>/<rel_path>/stmeta/\if{html}{\out{<filename>}}.stmeta.\if{html}{\out{<ext>}}
 }
 \keyword{internal}

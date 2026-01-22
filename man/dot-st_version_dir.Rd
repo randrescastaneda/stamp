@@ -4,20 +4,20 @@
 \alias{.st_version_dir}
 \title{Version directory for an artifact (internal)}
 \usage{
-.st_version_dir(artifact_path, version_id, alias = NULL)
+.st_version_dir(rel_path, version_id, alias = NULL)
 }
 \arguments{
-\item{artifact_path}{Path to the artifact file.}
+\item{rel_path}{Relative path from alias root (includes filename).}
 
 \item{version_id}{Version identifier (character).}
+
+\item{alias}{Optional alias}
 }
 \value{
 Character scalar path to the version directory, or NA if version_id is NA/empty.
 }
 \description{
-Compute the version directory path for \code{artifact_path} and \code{version_id}
-under \if{html}{\out{<root>}}/<state_dir>/versions. We store snapshots under the \emph{relative}
-artifact path from root; if the artifact is outside the root, we fall back
-to a collision-free identifier based on the artifact's unique ID.
+Compute the version directory path for a file.
+New structure: <data_folder>/<rel_path>/versions/<version_id>
 }
 \keyword{internal}

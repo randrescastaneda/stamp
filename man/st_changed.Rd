@@ -8,7 +8,8 @@ st_changed(
   path,
   x = NULL,
   code = NULL,
-  mode = c("any", "content", "code", "file")
+  mode = c("any", "content", "code", "file"),
+  alias = NULL
 )
 }
 \arguments{

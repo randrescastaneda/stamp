@@ -4,16 +4,18 @@
 \alias{st_read_sidecar}
 \title{Read sidecar metadata (internal)}
 \usage{
-st_read_sidecar(path)
+st_read_sidecar(rel_path, alias = NULL)
 }
 \arguments{
-\item{path}{Character path of the data file whose sidecar will be read.}
+\item{rel_path}{Character relative path from alias root.}
+
+\item{alias}{Optional alias.}
 }
 \value{
 A list (parsed JSON / qs object) or \code{NULL} if not found.
 }
 \description{
-Read the sidecar metadata for \code{path} if it exists, returning \code{NULL}
+Read the sidecar metadata for a file if it exists, returning \code{NULL}
 when no sidecar file is present. Preference order is JSON first,
 then QS2.
 }

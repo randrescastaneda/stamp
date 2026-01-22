@@ -23,7 +23,13 @@ st_save(
 \arguments{
 \item{x}{object to save}
 
-\item{file}{destination path (character or st_path)}
+\item{file}{destination path (character or st_path). Can be:
+\itemize{
+\item A bare filename (e.g., \code{"data.qs2"}) → saved directly under the alias root
+\item A path with directory (e.g., \code{"data/file.qs2"}) → saved under \verb{<alias_root>/data/}
+When using a path with directory and an explicit \code{alias}, the alias root must be
+a parent of the path, otherwise an error is raised.
+}}
 
 \item{format}{optional format override ("qs2" | "rds" | "csv" | "fst" | "json")}
 
@@ -47,8 +53,8 @@ warnings (default TRUE). When \code{FALSE}, messages about skipped saves or save
 failures emitted by \code{st_save()} will not be shown.}
 
 \item{alias}{Optional stamp alias to target a specific stamp folder.
-If \code{NULL} (default), uses the default/legacy stamp folder initialized
-via \code{st_init()}. Use aliases to operate across multiple stamp folders.}
+If \code{NULL} (default), uses the default alias. If the default alias does not
+exist, an error is raised. Use aliases to operate across multiple stamp folders.}
 
 \item{...}{forwarded to format writer}
 }
