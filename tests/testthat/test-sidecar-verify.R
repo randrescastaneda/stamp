@@ -14,8 +14,9 @@ test_that("verify_on_load warns when file hash or content hash mismatch", {
   df <- data.frame(a = 1:3)
   st_save(df, p, code = function(z) z)
 
-  # Tamper the file by writing different content directly
-  qs2::qs_save(data.frame(a = 9), p)
+  # Tamper the file by writing different content to the storage location
+  norm <- stamp:::.st_normalize_user_path(p, alias = NULL, must_exist = FALSE)
+  qs2::qs_save(data.frame(a = 9), norm$storage_path)
 
   st_opts(warn_missing_pk_on_load = TRUE)
   st_load(p) |>

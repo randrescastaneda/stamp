@@ -47,27 +47,29 @@ test_that("st_prune_versions dry-run selects older versions under policies", {
 })
 
 test_that("st_children returns reverse lineage rows for committed parents", {
-  root <- withr::local_tempdir()
   st_opts_reset()
-  st_init(root = root, state_dir = ".s", alias = "L")
+  root <- withr::local_tempdir()
+  # Use a unique alias name to avoid conflicts with other tests
+  test_alias <- paste0("L_", as.integer(Sys.time()))
+  st_init(root = root, state_dir = ".s", alias = test_alias)
 
   pA <- fs::path(root, "A.qs")
   pB <- fs::path(root, "B.qs")
   fs::dir_create(fs::path_dir(pA), recurse = TRUE)
   fs::dir_create(fs::path_dir(pB), recurse = TRUE)
 
-  st_save(data.frame(a = 1), pA, alias = "L", code = function(z) z)
-  vA <- st_latest(pA, alias = "L")
+  st_save(data.frame(a = 1), pA, alias = test_alias, code = function(z) z)
+  vA <- st_latest(pA, alias = test_alias)
 
   st_save(
     data.frame(b = 2),
     pB,
-    alias = "L",
+    alias = test_alias,
     code = function(z) z,
     parents = list(list(path = pA, version_id = vA))
   )
 
-  kids <- st_children(pA, depth = 1L, alias = "L")
+  kids <- st_children(pA, depth = 1L, alias = test_alias)
   expect_true(is.data.frame(kids))
   expect_true(nrow(kids) >= 1L)
   # Compare normalized paths since paths may differ in case on Windows
