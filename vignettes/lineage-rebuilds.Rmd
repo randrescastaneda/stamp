@@ -90,7 +90,9 @@ This short interactive example shows the difference between committed parents (s
 
 ```{r}
 # Remove committed snapshot for B to simulate a no-snapshot state
-vdir_b <- stamp:::.st_version_dir(pB, st_latest(pB))
+# Note: .st_version_dir now uses rel_path instead of absolute artifact path
+# We pass the filename as the rel_path and alias = NULL for default alias
+vdir_b <- stamp:::.st_version_dir("B.qs", st_latest(pB), alias = NULL)
 if (fs::dir_exists(vdir_b)) {
   fs::dir_delete(vdir_b)
 }

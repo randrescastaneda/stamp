@@ -446,7 +446,7 @@ These functions power the `.stamp/` infrastructure (from `R/version_store.R`):
 **Version Management:**
 ```{r version-ops, eval=FALSE}
 .st_versions_root()           # Get versions/ directory path
-.st_version_dir(path, vid)    # Compute specific version snapshot path
+.st_version_dir(rel_path, vid, alias)    # Compute specific version snapshot path
 .st_version_commit_files()    # Copy artifact + sidecars to snapshot
 .st_version_read_parents()    # Read parents.json from snapshot
 .st_version_write_parents()   # Write parents.json to snapshot
