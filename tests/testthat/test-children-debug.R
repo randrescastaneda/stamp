@@ -22,7 +22,8 @@ test_that("debug: st_children test", {
   cat_data <- stamp:::.st_catalog_read(alias = "L")
   kids <- st_children(pA, depth = 1L, alias = "L")
 
-  # Write debug info to file
+  # Write debug info to temporary file
+  debug_file <- withr::local_tempfile(fileext = ".txt")
   debug_output <- sprintf(
     "pA: %s\npB: %s\nvA: %s\n\nArtifacts:\n%s\n\nParents Index:\n%s\n\nKids result:\n%s\n\nMatch: %s\n",
     pA,
@@ -33,7 +34,7 @@ test_that("debug: st_children test", {
     paste(capture.output(print(kids)), collapse = "\n"),
     if (nrow(kids) > 0) kids$child_path[1] == pB else "N/A"
   )
-  writeLines(debug_output, "c:/WBG/WBprojects/Rpgks_development/stamp/debug_children.txt")
+  writeLines(debug_output, debug_file)
 
   expect_true(TRUE)
 })
