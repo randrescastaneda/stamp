@@ -7,9 +7,11 @@
 st_read_sidecar(rel_path, alias = NULL)
 }
 \arguments{
-\item{rel_path}{Character relative path from alias root.}
+\item{rel_path}{Character relative path from alias root, or an absolute path.
+If an absolute path is provided, it will be normalized to a relative path.}
 
-\item{alias}{Optional alias.}
+\item{alias}{Optional alias. If \code{NULL} and an absolute path is provided,
+the alias will be auto-detected from the path.}
 }
 \value{
 A list (parsed JSON / qs object) or \code{NULL} if not found.

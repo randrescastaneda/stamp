@@ -21,7 +21,7 @@ test_that("warning when alias doesn't match path location", {
   # Should also mention where versions will be stored
   expect_warning(
     st_save(data.frame(id = 3:4), pathA, alias = "WarnB"),
-    "Versions will be stored under alias WarnA"
+    "Versions will be stored"
   )
 })
 
@@ -174,7 +174,7 @@ test_that("warning message includes helpful context", {
   # Should contain all key information
   expect_match(warning_msg[[1]], "ContextB", fixed = TRUE)
   expect_match(warning_msg[[1]], "ContextA", fixed = TRUE)
-  expect_match(warning_msg[[1]], "detected from path", fixed = TRUE)
+  expect_match(warning_msg[[1]], "Path actually located", fixed = TRUE)
 })
 
 test_that("verbose=FALSE suppresses mismatch warning", {

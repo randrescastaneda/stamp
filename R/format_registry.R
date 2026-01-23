@@ -319,11 +319,27 @@ st_formats <- function() {
 #' when no sidecar file is present. Preference order is JSON first,
 #' then QS2.
 #'
-#' @param rel_path Character relative path from alias root.
-#' @param alias Optional alias.
+#' @param rel_path Character relative path from alias root, or an absolute path.
+#'   If an absolute path is provided, it will be normalized to a relative path.
+#' @param alias Optional alias. If `NULL` and an absolute path is provided,
+#'   the alias will be auto-detected from the path.
 #' @return A list (parsed JSON / qs object) or `NULL` if not found.
 #' @export
 st_read_sidecar <- function(rel_path, alias = NULL) {
+  rel_path <- as.character(rel_path)
+  
+  # If the path appears to be absolute, normalize it to relative path + alias
+  if (fs::is_absolute_path(rel_path)) {
+    norm <- tryCatch(
+      .st_normalize_user_path(rel_path, alias = alias, must_exist = FALSE, verbose = FALSE),
+      error = function(e) NULL
+    )
+    if (!is.null(norm)) {
+      rel_path <- norm$rel_path
+      alias <- norm$alias
+    }
+  }
+  
   scj <- .st_sidecar_path(rel_path, ext = "json", alias = alias)
   if (fs::file_exists(scj)) {
     return(jsonlite::read_json(scj, simplifyVector = TRUE))

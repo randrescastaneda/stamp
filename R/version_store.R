@@ -795,8 +795,12 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       parents <- .st_parents_normalize(parents)
       if (length(parents)) {
         rows <- lapply(parents, function(p) {
+          # For each parent, compute its artifact_id the same way we do for the child
+          # Both artifact_ids are computed from the logical (absolute) path
+          parent_aid <- .st_artifact_id(p$path)
+          
           data.table(
-            parent_artifact_id = .st_artifact_id(p$path),
+            parent_artifact_id = parent_aid,
             parent_version_id = as.character(p$version_id),
             child_artifact_id = aid,
             child_version_id = vid
@@ -988,8 +992,10 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     rows <- lapply(seq_len(NROW(idx)), function(i) {
       c_aid <- idx$child_artifact_id[[i]]
       c_vid <- idx$child_version_id[[i]]
+      cpth <- .st_artifact_path_from_id(c_aid, cat = cat)
+      # cpth is already the absolute logical path from the artifact record
       data.frame(
-        child_path = .st_artifact_path_from_id(c_aid, cat = cat),
+        child_path = cpth,
         child_version = as.character(c_vid),
         parent_path = .st_norm_path(path),
         parent_version = as.character(idx$parent_version_id[[i]]),

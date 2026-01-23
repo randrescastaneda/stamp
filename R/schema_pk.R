@@ -91,7 +91,19 @@ st_get_pk <- function(x_or_meta) {
 #' @return Character vector of primary-key column names (may be length 0).
 #' @export
 st_inspect_pk <- function(path) {
-  meta <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
+  path <- as.character(path)
+  # Normalize path to get relative path and alias
+  norm <- tryCatch(
+    .st_normalize_user_path(path, alias = NULL, must_exist = FALSE, verbose = FALSE),
+    error = function(e) NULL
+  )
+  if (is.null(norm)) {
+    return(character(0))
+  }
+  meta <- tryCatch(
+    st_read_sidecar(norm$rel_path, alias = norm$alias),
+    error = function(e) NULL
+  )
   if (is.null(meta)) {
     return(character(0))
   }
@@ -107,6 +119,7 @@ st_inspect_pk <- function(path) {
 #' validation and perform a pure metadata update.
 #'
 #' @param path Path to the artifact file whose sidecar will be updated.
+#'   Can be an absolute path or relative path.
 #' @param keys Character vector of column names to set as the primary key.
 #' @param validate Logical; when `TRUE` validate keys against the on-disk data.
 #' @param check_unique Logical; when `TRUE` assert that the keys uniquely
@@ -115,7 +128,20 @@ st_inspect_pk <- function(path) {
 #' @export
 st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
   path <- as.character(path)
-  if (!fs::file_exists(path)) {
+  
+  # Normalize path to get relative path and alias
+  norm <- tryCatch(
+    .st_normalize_user_path(path, alias = NULL, must_exist = FALSE, verbose = FALSE),
+    error = function(e) NULL
+  )
+  
+  if (is.null(norm)) {
+    cli::cli_abort("Could not determine artifact path for {.file {path}}")
+  }
+  
+  # Build the storage path to check if artifact exists
+  storage_path <- norm$storage_path
+  if (!fs::file_exists(storage_path)) {
     cli::cli_abort("Artifact not found: {.file {path}}")
   }
 
@@ -137,7 +163,7 @@ st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
   }
 
   meta <- tryCatch(
-    st_read_sidecar(path),
+    st_read_sidecar(norm$rel_path, alias = norm$alias),
     error = function(e) list(),
     finally = NULL
   )
@@ -146,7 +172,7 @@ st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
   }
   meta$pk <- list(keys = unique(as.character(keys)))
 
-  .st_write_sidecar(path, meta)
+  .st_write_sidecar(norm$rel_path, meta, alias = norm$alias)
   cli::cli_inform(c(
     "v" = "Recorded primary key for {.file {path}} --> {paste(meta$pk$keys, collapse=', ')}"
   ))
