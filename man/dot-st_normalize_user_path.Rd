@@ -4,7 +4,13 @@
 \alias{.st_normalize_user_path}
 \title{Universal path normalization and validation helper (internal)}
 \usage{
-.st_normalize_user_path(user_path, alias = NULL, must_exist = FALSE)
+.st_normalize_user_path(
+  user_path,
+  alias = NULL,
+  must_exist = FALSE,
+  verbose = TRUE,
+  auto_switch = TRUE
+)
 }
 \arguments{
 \item{user_path}{Character path provided by user (relative or absolute)}

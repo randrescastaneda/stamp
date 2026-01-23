@@ -320,8 +320,8 @@
           cli::cli_warn(c(
             "!" = "Path {.file {user_path}} is outside the root of alias {.val {alias_to_use}}.",
             "i" = "Alias {.val {alias_to_use}} root: {.file {cfg$root}}",
-            "i" = "Path detected from path location; using alias {actual_alias}.",
-            "i" = "Versions will be stored under alias {actual_alias}."
+            "i" = "Path actually located in alias {.val {actual_alias}}.",
+            "i" = "Versions will be stored under alias {.val {actual_alias}}."
           ))
         }
         # Use the actual alias configuration instead

@@ -543,7 +543,7 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
     # and base_rel = "parts"
     # we want logical path = "parts/country=can/year=2021/part.parquet"
     # which is: base_rel + dirname(rel)
-    logical_path <- fs::path(base_rel, dirname(rel))
+    logical_path <- fs::path(base_rel, fs::path_dir(rel))
 
     c(list(path = as.character(logical_path)), key)
   })

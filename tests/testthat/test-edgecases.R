@@ -29,7 +29,10 @@ test_that("malformed parents.json in a version dir is handled with a warning and
   p1 <- fs::path(td, "aa.qs")
   st_save(data.frame(a = 1), p1, code = function(z) z)
   vid <- st_latest(p1)
-  vdir <- stamp:::.st_version_dir(p1, vid)
+  
+  # Normalize path to get relative path for internal functions
+  norm <- stamp:::.st_normalize_user_path(p1, alias = NULL, must_exist = FALSE)
+  vdir <- stamp:::.st_version_dir(norm$rel_path, vid, alias = norm$alias)
 
   # write invalid JSON into parents.json
   pfile <- fs::path(vdir, "parents.json")
@@ -133,7 +136,10 @@ test_that("pruning warns when candidate deletion snapshot dir missing (determini
 
   # Delete the OLDEST version directory (candidate for pruning under policy=2)
   old_vid <- vids[[length(vids)]]
-  vdir_old <- stamp:::.st_version_dir(p, old_vid)
+  
+  # Normalize path to get relative path for internal functions
+  norm <- stamp:::.st_normalize_user_path(p, alias = NULL, must_exist = FALSE)
+  vdir_old <- stamp:::.st_version_dir(norm$rel_path, old_vid, alias = norm$alias)
   if (fs::dir_exists(vdir_old)) {
     fs::dir_delete(vdir_old)
   }

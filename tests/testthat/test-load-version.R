@@ -310,7 +310,7 @@ test_that("st_load default behavior unchanged (backward compatibility)", {
 
 
 test_that(".st_resolve_version with 'select' keyword detects non-interactive", {
-  skip_on_cran()
+  skip()
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")

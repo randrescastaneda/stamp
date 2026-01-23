@@ -1,8 +1,9 @@
 test_that("warning when alias doesn't match path location", {
   st_opts_reset()
 
-  rootA <- fs::path(tempdir(), "alias_warn_A")
-  rootB <- fs::path(tempdir(), "alias_warn_B")
+  # Use unique subdirectories to avoid test interference
+  rootA <- fs::path(tempdir(), paste0("alias_warn_A_", Sys.time() %>% as.numeric() %>% as.integer()))
+  rootB <- fs::path(tempdir(), paste0("alias_warn_B_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(rootA, recurse = TRUE)
   fs::dir_create(rootB, recurse = TRUE)
 
@@ -27,7 +28,7 @@ test_that("warning when alias doesn't match path location", {
 test_that("no warning when alias matches path location", {
   st_opts_reset()
 
-  rootA <- fs::path(tempdir(), "alias_match_A")
+  rootA <- fs::path(tempdir(), paste0("alias_match_A_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(rootA, recurse = TRUE)
 
   st_init(rootA, alias = "MatchA")
@@ -43,7 +44,7 @@ test_that("no warning when alias matches path location", {
 test_that("no warning when alias is NULL", {
   st_opts_reset()
 
-  rootA <- fs::path(tempdir(), "alias_null_A")
+  rootA <- fs::path(tempdir(), paste0("alias_null_A_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(rootA, recurse = TRUE)
 
   st_init(rootA, alias = "NullA")
@@ -59,8 +60,8 @@ test_that("no warning when alias is NULL", {
 test_that("versions stored based on path location, not alias parameter", {
   st_opts_reset()
 
-  rootA <- fs::path(tempdir(), "version_loc_A")
-  rootB <- fs::path(tempdir(), "version_loc_B")
+  rootA <- fs::path(tempdir(), paste0("version_loc_A_", Sys.time() %>% as.numeric() %>% as.integer()))
+  rootB <- fs::path(tempdir(), paste0("version_loc_B_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(rootA, recurse = TRUE)
   fs::dir_create(rootB, recurse = TRUE)
 
@@ -101,8 +102,8 @@ test_that("versions stored based on path location, not alias parameter", {
 test_that("auto-detection works without alias parameter", {
   st_opts_reset()
 
-  rootA <- fs::path(tempdir(), "auto_detect_A")
-  rootB <- fs::path(tempdir(), "auto_detect_B")
+  rootA <- fs::path(tempdir(), paste0("auto_detect_A_", Sys.time() %>% as.numeric() %>% as.integer()))
+  rootB <- fs::path(tempdir(), paste0("auto_detect_B_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(rootA, recurse = TRUE)
   fs::dir_create(rootB, recurse = TRUE)
 
@@ -134,7 +135,7 @@ test_that("auto-detection works without alias parameter", {
 test_that("can load versions using auto-detected alias", {
   st_opts_reset()
 
-  rootA <- fs::path(tempdir(), "load_auto_A")
+  rootA <- fs::path(tempdir(), paste0("load_auto_A_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(rootA, recurse = TRUE)
 
   st_init(rootA, alias = "LoadAutoA")
@@ -155,8 +156,8 @@ test_that("can load versions using auto-detected alias", {
 test_that("warning message includes helpful context", {
   st_opts_reset()
 
-  rootA <- fs::path(tempdir(), "context_A")
-  rootB <- fs::path(tempdir(), "context_B")
+  rootA <- fs::path(tempdir(), paste0("context_A_", Sys.time() %>% as.numeric() %>% as.integer()))
+  rootB <- fs::path(tempdir(), paste0("context_B_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(rootA, recurse = TRUE)
   fs::dir_create(rootB, recurse = TRUE)
 
@@ -179,8 +180,8 @@ test_that("warning message includes helpful context", {
 test_that("verbose=FALSE suppresses mismatch warning", {
   st_opts_reset()
 
-  rootA <- fs::path(tempdir(), "quiet_A")
-  rootB <- fs::path(tempdir(), "quiet_B")
+  rootA <- fs::path(tempdir(), paste0("quiet_A_", Sys.time() %>% as.numeric() %>% as.integer()))
+  rootB <- fs::path(tempdir(), paste0("quiet_B_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(rootA, recurse = TRUE)
   fs::dir_create(rootB, recurse = TRUE)
 
@@ -202,7 +203,7 @@ test_that("verbose=FALSE suppresses mismatch warning", {
 test_that("nested aliases choose most specific match", {
   st_opts_reset()
 
-  rootOuter <- fs::path(tempdir(), "nested_outer")
+  rootOuter <- fs::path(tempdir(), paste0("nested_outer_", Sys.time() %>% as.numeric() %>% as.integer()))
   rootInner <- fs::path(rootOuter, "inner")
   fs::dir_create(rootOuter, recurse = TRUE)
   fs::dir_create(rootInner, recurse = TRUE)
