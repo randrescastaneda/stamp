@@ -70,5 +70,7 @@ test_that("st_children returns reverse lineage rows for committed parents", {
   kids <- st_children(pA, depth = 1L, alias = "L")
   expect_true(is.data.frame(kids))
   expect_true(nrow(kids) >= 1L)
-  expect_true(any(kids$child_path == pB))
+  # Compare normalized paths since paths may differ in case on Windows
+  pB_norm <- stamp:::.st_normalize_path(pB)
+  expect_true(any(kids$child_path == pB_norm))
 })

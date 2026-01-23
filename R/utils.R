@@ -379,9 +379,22 @@
   filename <- fs::path_file(rel_path)
   storage_path <- fs::path(storage_dir, filename)
 
+  # For absolute paths, use the normalized absolute path as logical_path
+  # For relative paths, construct the absolute path by joining with alias root
+  if (is_absolute) {
+    # user_path_norm was already set when processing absolute paths
+    logical_path_abs <- user_path_norm
+  } else {
+    # For relative paths, construct absolute path and normalize
+    root_abs_use <- .st_normalize_path(cfg$root)
+    # rel_path may still have user's original case, normalize it before combining
+    rel_path_normalized <- .st_normalize_path(rel_path)
+    logical_path_abs <- fs::path(root_abs_use, rel_path_normalized)
+  }
+
   # Return standardized structure
   list(
-    logical_path = rel_path, # User's path (relative to root) - for catalog
+    logical_path = logical_path_abs,  # Absolute path for artifact identification
     storage_path = storage_path, # Physical path in .st_data - for file I/O
     rel_path = rel_path, # Relative path from root
     alias = alias_to_use, # Alias used
