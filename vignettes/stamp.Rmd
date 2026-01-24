@@ -221,6 +221,10 @@ We compute per `(country, year, reporting_level)` welfare statistics and merge w
 foo <- function() {
   # Load all welfare micro artifacts (only recognized data files)
   welfare_files <- data_files(welfare_dir)
+  if (length(welfare_files) == 0) {
+    cat("No welfare files found; returning empty table.\n")
+    return(data.table::data.table())
+  }
   wf <- rbindlist(lapply(welfare_files, st_load))
 
   stats <- wf[,
@@ -269,32 +273,45 @@ foo <- function() {
   out
 }
 
+# Call foo() to compute summary (empty if no data found)
 summary_table <- foo()
-head(summary_table)
+if (nrow(summary_table) > 0) {
+  head(summary_table)
+} else {
+  cat("Summary table is empty; ensure welfare data was saved.\n")
+  summary_table
+}
 ```
 
 Save the summary with lineage: parents include all welfare micro datasets plus CPI/GDP/population.
 
 ```{r save-summary}
-parent_paths <- c(
-  data_files(welfare_dir),
-  fs::path(macro_dir, "cpi.qs2"),
-  fs::path(macro_dir, "gdp.qs2"),
-  fs::path(macro_dir, "population.qs2")
-)
-parents <- lapply(parent_paths, function(p) {
-  list(path = p, version_id = st_latest(p))
-})
-
+# Define output path before save attempt
 out_summary_path <- fs::path(outputs_dir, "welfare_summary.qs2")
-st_save(
-  summary_table,
-  out_summary_path,
-  pk = c("country", "year", "reporting_level"),
-  parents = parents,
-  domain = "summary"
-)
-st_lineage(out_summary_path, depth = 1)
+
+# Only save summary if it has data (i.e., welfare data was available)
+if (nrow(summary_table) > 0) {
+  parent_paths <- c(
+    data_files(welfare_dir),
+    fs::path(macro_dir, "cpi.qs2"),
+    fs::path(macro_dir, "gdp.qs2"),
+    fs::path(macro_dir, "population.qs2")
+  )
+  parents <- lapply(parent_paths, function(p) {
+    list(path = p, version_id = st_latest(p))
+  })
+
+  st_save(
+    summary_table,
+    out_summary_path,
+    pk = c("country", "year", "reporting_level"),
+    parents = parents,
+    domain = "summary"
+  )
+  st_lineage(out_summary_path, depth = 1)
+} else {
+  cat("Summary table is empty; skipping save and lineage demo.\n")
+}
 ```
 
 Note: to make provenance explicit, pass the producing function as `code=` so `st_save()` records the function hash. Below we demonstrate both patterns: `foo()` loads its own data, while `bar()` accepts pre-loaded objects and is saved with `code = bar`.
@@ -302,6 +319,10 @@ Note: to make provenance explicit, pass the producing function as `code=` so `st
 ```{r bar-and-save}
 # Variant that accepts loaded objects (preferred for testability and clarity)
 bar <- function(welfare_list, cpi_tbl, gdp_tbl, pop_tbl) {
+  if (length(welfare_list) == 0) {
+    cat("No welfare data provided; returning empty table.\n")
+    return(data.table::data.table())
+  }
   wf <- data.table::rbindlist(welfare_list)
   stats <- wf[,
     .(
@@ -346,21 +367,29 @@ bar <- function(welfare_list, cpi_tbl, gdp_tbl, pop_tbl) {
 
 # Example: load inputs outside the worker and call bar()
 welfare_files <- data_files(welfare_dir)
-welfare_list <- lapply(welfare_files, st_load)
-cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
-gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
-pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
+if (length(welfare_files) > 0) {
+  welfare_list <- lapply(welfare_files, st_load)
+  cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
+  gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
+  pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
 
-summary_table2 <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
-st_save(
-  summary_table2,
-  out_summary_path,
-  pk = c("country", "year", "reporting_level"),
-  parents = parents,
-  code = bar, # addition the function as parent so st_save() can track it
-  domain = "summary"
-)
-st_lineage(out_summary_path, depth = 1)
+  summary_table2 <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
+  if (nrow(summary_table2) > 0) {
+    st_save(
+      summary_table2,
+      out_summary_path,
+      pk = c("country", "year", "reporting_level"),
+      parents = parents,
+      code = bar, # addition the function as parent so st_save() can track it
+      domain = "summary"
+    )
+    st_lineage(out_summary_path, depth = 1)
+  } else {
+    cat("Summary table2 is empty; skipping save.\n")
+  }
+} else {
+  cat("No welfare data to process in bar-and-save example.\n")
+}
 ```
 
 Handling multiple function dependencies
@@ -500,23 +529,33 @@ st_save(
   domain = "welfare"
 )
 
-parents2 <- lapply(
-  c(
-    data_files(welfare_dir),
-    fs::path(macro_dir, "cpi.qs2"),
-    fs::path(macro_dir, "gdp.qs2"),
-    fs::path(macro_dir, "population.qs2")
-  ),
-  function(p) list(path = p, version_id = st_latest(p))
-)
-st_save(
-  foo(),
-  out_summary_path,
-  pk = c("country", "year", "reporting_level"),
-  parents = parents2,
-  domain = "summary"
-)
-head(st_load(out_summary_path))
+# Only recompute and save summary if we have welfare data
+if (length(data_files(welfare_dir)) > 0 && nrow(summary_table) > 0) {
+  parents2 <- lapply(
+    c(
+      data_files(welfare_dir),
+      fs::path(macro_dir, "cpi.qs2"),
+      fs::path(macro_dir, "gdp.qs2"),
+      fs::path(macro_dir, "population.qs2")
+    ),
+    function(p) list(path = p, version_id = st_latest(p))
+  )
+  summary_table_new <- foo()
+  if (nrow(summary_table_new) > 0) {
+    st_save(
+      summary_table_new,
+      out_summary_path,
+      pk = c("country", "year", "reporting_level"),
+      parents = parents2,
+      domain = "summary"
+    )
+    head(st_load(out_summary_path))
+  } else {
+    cat("Summary table after adding ARG 2015 is empty; skipping save.\n")
+  }
+} else {
+  cat("Insufficient data to recompute summary.\n")
+}
 ```
 
 ## 6. Partitioned Workflow for Partial Re-execution
