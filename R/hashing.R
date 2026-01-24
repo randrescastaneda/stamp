@@ -446,6 +446,7 @@ st_hash_file <- function(path) {
 #' @param x    Current in-memory object (for content comparison).
 #' @param code Optional function/expression/character (for code comparison).
 #' @param mode Which changes to check: "content", "code", "file", or "any".
+#' @inheritParams st_init
 #' @return A list: list(changed = <lgl>, reason = <chr>, detail = <named list>)
 #' @export
 # Returns list(changed, reason, details)
