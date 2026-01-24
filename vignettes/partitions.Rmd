@@ -360,11 +360,16 @@ head(all_partitions[, c("country", "year", "reporting_level")], 6)
 # List specific partitions with filter
 mexico_partitions <- st_list_parts(
   parts_dir,
-  filter = ~ country == "MEX" & year >= 2022
+  filter = ~ tolower(country) == "mex" & year >= 2022
 )
 
 cat(sprintf("Mexico (2022+): %d partitions\n", nrow(mexico_partitions)))
-mexico_partitions[, c("country", "year", "reporting_level")]
+if (nrow(mexico_partitions) > 0) {
+  mexico_partitions[, c("country", "year", "reporting_level")]
+} else {
+  # Return an empty data.frame with expected columns to avoid subsetting errors
+  data.frame(country = character(), year = numeric(), reporting_level = character())
+}
 ```
 
 Use cases:
