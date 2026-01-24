@@ -1168,7 +1168,15 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
 #' @return Logical scalar. `TRUE` if any parent advanced, otherwise `FALSE`.
 #' @export
 st_is_stale <- function(path, alias = NULL) {
-  vdir <- .st_version_dir_latest(path, alias = alias)
+  # Normalize the path to get rel_path for version directory lookup
+  norm <- .st_normalize_user_path(
+    path,
+    alias = alias,
+    must_exist = FALSE,
+    auto_switch = FALSE
+  )
+  
+  vdir <- .st_version_dir_latest(norm$rel_path, alias = norm$alias)
   if (is.na(vdir) || !nzchar(vdir)) {
     return(FALSE)
   }
