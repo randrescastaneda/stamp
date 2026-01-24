@@ -126,3 +126,91 @@ From the `build_vignettes()` execution in the R session, the following vignettes
 - When debugging path issues, trace through the artifact_id computation to understand mismatches
 
 **Status**: ✅ **TASK COMPLETE** - All identified bugs fixed and verified working by user
+
+---
+
+## Update: 2026-01-24 10:05:00
+
+### Progress Summary
+- **partitions.Rmd fixes**: Resolved multiple case-sensitivity and column selection issues
+- **Filter updates**: All partition filters updated to handle lowercase normalization
+- **Empty result guards**: Added safety checks for zero-row partition queries
+- **Arrow compatibility**: Updated Arrow example with explicit schema
+- **Pipeline fix**: Corrected column selection issue in processing pipeline example
+
+### Challenges Encountered
+
+**Challenge 1: Lowercase Partition Value Normalization**
+- **Issue**: Filters like `filter = list(country = "USA")` returned 0 rows
+- **Root Cause**: `st_write_parts()` normalizes character partition values to lowercase in Hive-style paths, but filters used uppercase
+- **Solution**: Updated all filters to use lowercase values or `tolower()` for case-insensitive matching
+- **Examples Fixed**:
+  - `filter = list(country = "usa")` for exact matches
+  - `filter = ~ tolower(country) == "usa"` for formula filters
+  - Added documentation note explaining normalization behavior
+
+**Challenge 2: Empty Partition Results**
+- **Issue**: `mexico_partitions[, c("country", "year", "reporting_level")]` failed with "undefined columns selected" when 0 rows returned
+- **Root Cause**: Zero-row data.frame subsetting error when Mexico partitions don't exist
+- **Solution**: Added conditional check:
+  ```r
+  if (nrow(mexico_partitions) > 0) {
+    mexico_partitions[, c("country", "year", "reporting_level")]
+  } else {
+    data.frame(country = character(), year = numeric(), reporting_level = character())
+  }
+  ```
+
+**Challenge 3: Arrow Schema Inference Error**
+- **Issue**: `open_dataset()` failed with "No non-null segments were available for field 'reporting_level'; couldn't infer type"
+- **Root Cause**: Arrow can't infer partition schema when some partition values are missing or inconsistent
+- **Solution**: Changed from `partitioning = c(...)` to explicit schema:
+  ```r
+  partitioning = schema(
+    country = string(),
+    year = int32(),
+    reporting_level = string()
+  )
+  ```
+
+**Challenge 4: Column Selection in Pipeline**
+- **Issue**: `recent_data[, income_ratio := income / consumption]` failed with "object 'income' not found"
+- **Root Cause**: `columns = c("income", "consumption")` didn't include partition keys in some code paths, causing empty data.frame
+- **Solution**: Removed `columns` parameter to load all data, then select needed columns after computation:
+  ```r
+  recent_data <- st_load_parts(parts_dir, filter = ~ year >= 2022, as = "dt")
+  recent_data[, income_ratio := income / consumption]
+  recent_data <- recent_data[, .(country, year, income, consumption, income_ratio)]
+  ```
+
+### Files Modified
+1. **vignettes/partitions.Rmd** (Multiple sections):
+   - Lines 202-210: Changed USA filter to lowercase `"usa"`
+   - Lines 215-222: Changed USA 2020 filter to lowercase
+   - Lines 244-251: Added `tolower()` for complex filter
+   - Lines 260-265: Added `tolower()` for set membership filter
+   - Lines 325-332: Added `tolower()` for USA recent finance filter
+   - Lines 361-370: Added `tolower()` and empty result guard for Mexico filter
+   - Lines 490-497: Updated memory optimization example (documentation only)
+   - Lines 563-584: Updated Arrow schema specification
+   - Lines 538-551: Fixed pipeline column selection issue
+
+### Changes to Plan
+- **Original Scope**: Fix vignette code for new `.st_version_dir()` signature
+- **Expanded Scope**: 
+  - Fixed core package bugs (session 1)
+  - Fixed partitions vignette for lowercase normalization and edge cases (session 2)
+  - All fixes now include both functional correctness and robustness for edge cases
+
+### Next Steps
+1. **Immediate**: User should run `devtools::build_vignettes()` to verify partitions.Rmd builds cleanly
+2. **Verification**: Check if other vignettes need similar lowercase filter updates
+3. **Documentation**: Consider adding case normalization behavior to main package documentation
+
+### Key Learnings
+- Character partition keys are normalized to lowercase by Hive-style partitioning convention
+- Always guard against zero-row results when subsetting columns
+- Arrow requires explicit schema for partition inference with sparse/missing values
+- When using `columns` parameter with `st_load_parts()`, partition keys may not be included automatically—load all columns then subset if needed
+
+**Status**: 🔄 **IN PROGRESS** - partitions.Rmd fixed, awaiting full vignette build verification
