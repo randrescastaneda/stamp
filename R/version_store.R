@@ -1168,7 +1168,16 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
 #' @return Logical scalar. `TRUE` if any parent advanced, otherwise `FALSE`.
 #' @export
 st_is_stale <- function(path, alias = NULL) {
-  # Normalize the path to get rel_path for version directory lookup
+  # Don't normalize yet - let st_latest do it
+  # We just need to find the version directory for this artifact
+  
+  # Get the latest version ID for this path
+  vid <- st_latest(path, alias = alias)
+  if (is.na(vid) || !nzchar(vid)) {
+    return(FALSE)
+  }
+  
+  # Now normalize to get rel_path for version directory construction
   norm <- .st_normalize_user_path(
     path,
     alias = alias,
@@ -1176,19 +1185,28 @@ st_is_stale <- function(path, alias = NULL) {
     auto_switch = FALSE
   )
   
-  vdir <- .st_version_dir_latest(norm$rel_path, alias = norm$alias)
+  vdir <- .st_version_dir(norm$rel_path, vid, alias = norm$alias)
   if (is.na(vdir) || !nzchar(vdir)) {
     return(FALSE)
   }
+  
+  if (!fs::dir_exists(vdir)) {
+    return(FALSE)
+  }
+  
   parents <- .st_version_read_parents(vdir)
   if (!length(parents)) {
     return(FALSE)
   }
 
   for (p in parents) {
-    cur <- st_latest(p$path, alias = alias)
+    # p$path is the parent's absolute path as recorded when the child was saved
+    # Use NULL for alias to let st_latest auto-detect the correct alias
+    cur <- st_latest(p$path, alias = NULL)
     # If parent has no versions now, treat as not advancing (conservative).
-    if (!is.na(cur) && !identical(cur, p$version_id)) return(TRUE)
+    if (!is.na(cur) && !identical(cur, p$version_id)) {
+      return(TRUE)
+    }
   }
   FALSE
 }
