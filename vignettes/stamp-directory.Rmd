@@ -31,6 +31,15 @@ The `.stamp/` directory is the **persistent storage backend** for the `stamp` pa
 
 **Audience:** This vignette serves both **users** (understanding what `.stamp` does) and **developers** (understanding internal implementation details).
 
+> Architecture note
+>
+> Recent changes introduced alias-aware paths and a dedicated storage directory `.st_data/` under the project root. In this model:
+> - `.stamp/` continues to store the catalog, locks, and immutable version snapshots.
+> - `.st_data/` can hold artifact files when using storage-managed paths, while your code still refers to logical paths.
+> - Paths passed to APIs must resolve under the current alias root (the directory you called `st_init()` on). Prefer saving within that root (e.g., `fs::path(demo_dir, ...)`).
+>
+> The examples below use in-project paths to keep the focus on `.stamp/` internals.
+
 ---
 
 ## 1. Creation and Initialization
@@ -166,19 +175,28 @@ Each time you save an artifact (and versioning is enabled), a new **immutable sn
 
 ```{r version-snapshot-demo}
 # Save the same artifact multiple times with changes
+st_opts(versioning = "timestamp")  # ensure snapshots are created
 v1 <- data.frame(x = 1:3)
 st_save(v1, test_path, code_label = "initial")
-Sys.sleep(0.2)
+Sys.sleep(1.1)
 
 v2 <- data.frame(x = 1:5)
 st_save(v2, test_path, code_label = "added rows")
-Sys.sleep(0.2)
+Sys.sleep(1.1)
 
 v3 <- data.frame(x = 1:5, y = 10:14)
 st_save(v3, test_path, code_label = "added column")
 
 # Each version gets its own directory
-fs::dir_tree(fs::path(demo_dir, ".stamp", "versions"), recurse = 2)
+vroot <- fs::path(demo_dir, ".stamp", "versions")
+if (fs::dir_exists(vroot)) {
+  fs::dir_tree(vroot, recurse = 2)
+} else {
+  cat("No versions directory found (versioning may be off).\n")
+}
+
+# reset to default behavior for the rest of the vignette
+st_opts(versioning = "content")
 ```
 
 **What's inside a version snapshot directory?**
@@ -195,16 +213,21 @@ fs::dir_tree(fs::path(demo_dir, ".stamp", "versions"), recurse = 2)
 
 ```{r inspect-snapshot}
 # Get the latest version directory path
-latest_vdir <- st_info(test_path)$snapshot_dir
+latest_info <- st_info(test_path)
+latest_vdir <- latest_info$snapshot_dir
 
-# List contents - note: parents.json only exists if parents were specified
-fs::dir_ls(latest_vdir)
-
-# Read the sidecar from the snapshot
-sidecar_path <- fs::path(latest_vdir, "sidecar.json")
-if (fs::file_exists(sidecar_path)) {
-  sidecar <- jsonlite::read_json(sidecar_path)
-  str(sidecar[c("path", "format", "created_at", "size_bytes", "code_label")])
+if (!is.na(latest_vdir) && fs::dir_exists(latest_vdir)) {
+  # List contents - note: parents.json only exists if parents were specified
+  fs::dir_ls(latest_vdir)
+  
+  # Read the sidecar from the snapshot
+  sidecar_path <- fs::path(latest_vdir, "sidecar.json")
+  if (fs::file_exists(sidecar_path)) {
+    sidecar <- jsonlite::read_json(sidecar_path)
+    str(sidecar[c("path", "format", "created_at", "size_bytes", "code_label")])
+  }
+} else {
+  cat("No snapshot directory recorded for test_path; ensure versioning created snapshots.\n")
 }
 ```
 
@@ -213,6 +236,9 @@ if (fs::file_exists(sidecar_path)) {
 Notice that the `parents.json` file is not present in the example above. This is because it is only created when parents are specified.
 
 ```{r parents-demo}
+# Ensure snapshots are recorded for this demo
+st_opts(versioning = "timestamp")
+
 # First, create an upstream artifact
 upstream_path <- fs::path(demo_dir, "data", "upstream.qs2")
 upstream_data <- data.frame(id = 1:10, value = rnorm(10))
@@ -230,15 +256,25 @@ st_save(
 )
 
 # Now check the derived artifact's snapshot - parents.json will be present
-derived_vdir <- st_info(derived_path)$snapshot_dir
-fs::dir_ls(derived_vdir)
-
-# Read parents.json
-parents_file <- fs::path(derived_vdir, "parents.json")
-if (fs::file_exists(parents_file)) {
-  parents <- jsonlite::read_json(parents_file)
-  str(parents)
+derived_info <- st_info(derived_path)
+derived_vdir <- derived_info$snapshot_dir
+if (!is.na(derived_vdir) && fs::dir_exists(derived_vdir)) {
+  fs::dir_ls(derived_vdir)
+  
+  # Read parents.json
+  parents_file <- fs::path(derived_vdir, "parents.json")
+  if (fs::file_exists(parents_file)) {
+    parents <- jsonlite::read_json(parents_file)
+    str(parents)
+  } else {
+    cat("parents.json not found; ensure parents were recorded.\n")
+  }
+} else {
+  cat("No snapshot directory recorded for derived_path; ensure versioning created snapshots.\n")
 }
+
+# Reset to default versioning for the remainder
+st_opts(versioning = "content")
 ```
 
 ### 2.4 Artifact Organization: Path-Based vs. External Storage
