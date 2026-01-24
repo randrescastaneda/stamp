@@ -460,7 +460,7 @@ st_plan_rebuild <- function(
           # Normalize child path to get rel_path for version operations
           norm_child <- .st_normalize_user_path(
             child,
-            alias = alias,
+            alias = NULL,
             must_exist = FALSE
           )
           child_rel_path <- norm_child$rel_path
