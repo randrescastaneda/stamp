@@ -17,3 +17,5 @@ test_lineage.R
 test_normalize_issue.R
 test_vignettes_detailed.R
 test_vignettes_individual.R
+/doc/
+/Meta/
