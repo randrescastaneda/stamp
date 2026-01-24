@@ -566,19 +566,36 @@ Beyond locking, `stamp` uses **atomic operations** to prevent partial writes tha
 ### 5.1 User-Level Inspection
 
 ```{r user-inspection}
-# List all versions of an artifact
-versions <- st_versions(test_path)
+# Ensure at least two versions exist for demonstration
+# Use explicit alias = NULL to auto-detect current alias
+versions <- st_versions(test_path, alias = NULL)
+if (nrow(versions) < 2) {
+  st_opts(versioning = "timestamp")
+  tmp <- data.frame(x = seq_len(3L))
+  st_save(tmp, test_path, code_label = "autocreate v1 (user-inspection)")
+  Sys.sleep(1.1)
+  tmp2 <- transform(tmp, y = x * 10L)
+  st_save(tmp2, test_path, code_label = "autocreate v2 (user-inspection)")
+  versions <- st_versions(test_path, alias = NULL)
+  st_opts(versioning = "content")
+}
+
+# List all versions of an artifact (compact view)
 versions[, .(version_id, created_at, size_bytes)]
 
 # Get comprehensive info
 info <- st_info(test_path)
-info$catalog  # Latest version and count
-info$snapshot_dir  # Path to latest snapshot
+info$catalog      # Latest version and count
+info$snapshot_dir # Path to latest snapshot
 
-# Load a specific historical version
+# Load a specific historical version (previous), safely
 if (nrow(versions) > 1) {
-  old_version <- st_load(test_path, version = -1)  # Previous version
-  str(old_version)
+  old_version_try <- try(st_load(test_path, version = -1, alias = NULL), silent = TRUE)
+  if (!inherits(old_version_try, "try-error")) {
+    str(old_version_try)
+  } else {
+    cat("Previous version not available; skipping load.\n")
+  }
 }
 ```
 
