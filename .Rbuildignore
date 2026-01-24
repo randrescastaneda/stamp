@@ -10,6 +10,9 @@
 ^codecov\.yml$
 ^cran-comments\.md$
 ^copilot_logs$
-^\.vscode$
+^.vscode$
 ^doc$
 ^Meta$
+^test_.*\.R$
+^build_vignettes\.R$
+^\.current_task$

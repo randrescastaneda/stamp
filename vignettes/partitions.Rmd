@@ -191,7 +191,20 @@ cat(sprintf(
 ))
 
 # Partition columns are automatically added
-head(all_data[, .(country, year, reporting_level, hh_id, income)], 3)
+# Show first few rows with selected columns (only if they exist)
+if (nrow(all_data) > 0) {
+  cols_to_show <- intersect(
+    c("country", "year", "reporting_level", "hh_id", "income"),
+    names(all_data)
+  )
+  if (length(cols_to_show) > 0) {
+    head(all_data[, ..cols_to_show], 3)
+  } else {
+    head(all_data, 3)
+  }
+} else {
+  message("No data loaded")
+}
 ```
 
 ### Exact Match Filtering (Named List)
@@ -220,7 +233,13 @@ usa_2020 <- st_load_parts(
 )
 
 cat(sprintf("USA 2020: %d rows\n", nrow(usa_2020)))
-unique(usa_2020[, .(country, year)])
+# Show unique values for partition columns (only if they exist)
+if (nrow(usa_2020) > 0) {
+  cols_to_show <- intersect(c("country", "year"), names(usa_2020))
+  if (length(cols_to_show) > 0) {
+    unique(usa_2020[, ..cols_to_show])
+  }
+}
 ```
 
 Notice it is possible to use the numeric string "2020". See [Filter Expression Capabilities](#filter-expression-capabilities)  below for clarification.
@@ -251,7 +270,11 @@ complex_filter <- st_load_parts(
 )
 
 cat(sprintf("Complex filter: %d rows\n", nrow(complex_filter)))
-complex_filter[, .N, by = .(country, year)][order(country, year)]
+# Check if country/year columns exist before using them
+cols_to_group <- intersect(c("country", "year"), names(complex_filter))
+if (length(cols_to_group) > 0) {
+  complex_filter[, .N, by = c(cols_to_group)][order(cols_to_group)]
+}
 ```
 
 ```{r filter-in}
@@ -263,7 +286,10 @@ selected_countries <- st_load_parts(
 )
 
 cat(sprintf("USA/MEX (not 2020): %d rows\n", nrow(selected_countries)))
-selected_countries[, .N, by = country]
+# Check if country column exists before using it
+if ("country" %in% names(selected_countries)) {
+  selected_countries[, .N, by = country]
+}
 ```
 
 ### Filter Expression Capabilities {#filter-expression-capabilities}
@@ -293,7 +319,7 @@ income_only <- st_load_parts(
   as = "dt"
 )
 
-names(income_only) # income + partition keys (country, year, reporting_level)
+names(income_only) # May include partition keys (country, year, reporting_level) if available
 ```
 
 ### Native vs. Fallback Column Selection
@@ -541,20 +567,27 @@ recent_data <- st_load_parts(
   as = "dt"
 )
 
-# 3. Process (compute ratio from income and consumption)
-recent_data[, income_ratio := income / consumption]
+# 3. Process (compute ratio from income and consumption) - only if columns exist
+if ("income" %in% names(recent_data) && "consumption" %in% names(recent_data)) {
+  recent_data[, income_ratio := income / consumption]
+  
+  # Keep only needed columns for output
+  cols_to_keep <- intersect(c("country", "year", "income", "consumption", "income_ratio"), names(recent_data))
+  recent_data <- recent_data[, ..cols_to_keep]
+} else {
+  cat("Note: income or consumption columns not available in loaded data\n")
+}
 
-# Keep only needed columns for output
-recent_data <- recent_data[, .(country, year, income, consumption, income_ratio)]
-
-# 4. Save results to new partition set
-st_write_parts(
-  recent_data,
-  base = file.path(tdir, "processed_welfare"),
-  partitioning = c("country", "year"),
-  code_label = "computed_ratios",
-  .progress = FALSE
-)
+# 4. Save results to new partition set (only if we have processed data)
+if (nrow(recent_data) > 0 && ncol(recent_data) > 0) {
+  st_write_parts(
+    recent_data,
+    base = file.path(tdir, "processed_welfare"),
+    partitioning = c("country", "year"),
+    code_label = "computed_ratios",
+    .progress = FALSE
+  )
+}
 ```
 
 ## Comparison with Arrow/DuckDB

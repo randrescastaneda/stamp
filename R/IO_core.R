@@ -832,6 +832,7 @@ st_restore <- function(
 #' @param file Original file path for error messages
 #' @return Character scalar version_id
 #' @keywords internal
+#' @importFrom utils head
 .st_resolve_version_identifier <- function(version, versions_df, file) {
   # Numeric: treat as offset from latest (1 = previous, 2 = two back, etc.)
   if (is.numeric(version)) {
