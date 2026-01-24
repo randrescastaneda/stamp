@@ -117,6 +117,22 @@ st_prune_versions <- function(
     return(invisible(data.frame()))
   }
 
+  # Normalize the path to get logical_path that matches what's in the catalog
+  want_logical_path <- NULL
+  if (!is.null(path)) {
+    norm <- .st_normalize_user_path(
+      path,
+      alias = alias,
+      must_exist = FALSE,
+      auto_switch = FALSE
+    )
+    want_logical_path <- norm$logical_path
+    # Use the detected alias if no explicit alias was provided
+    if (is.null(alias)) {
+      alias <- norm$alias
+    }
+  }
+
   # Load catalog
   catalog_path <- .st_catalog_path(alias)
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
@@ -157,9 +173,8 @@ st_prune_versions <- function(
     }
 
     # Optional path filter → restrict to those artifacts
-    if (!is.null(path)) {
-      want <- .st_norm_path(path)
-      a_keep <- cat$artifacts$path %in% want
+    if (!is.null(want_logical_path)) {
+      a_keep <- cat$artifacts$path == want_logical_path
       cat$artifacts <- cat$artifacts[a_keep]
       if (!nrow(cat$artifacts)) {
         cli::cli_inform(c(
@@ -253,7 +268,12 @@ st_prune_versions <- function(
     for (i in seq_len(nrow(candidates))) {
       a_path <- candidates$artifact_path[[i]]
       vid <- candidates$version_id[[i]]
-      vdir <- .st_version_dir(a_path, vid, alias = alias)
+
+      # Extract rel_path from logical path (a_path)
+      root <- .st_root_dir(alias = alias)
+      rel_path <- as.character(fs::path_rel(a_path, start = root))
+
+      vdir <- .st_version_dir(rel_path, vid, alias = alias)
       .st_delete_version_dir_safe(vdir)
     }
 

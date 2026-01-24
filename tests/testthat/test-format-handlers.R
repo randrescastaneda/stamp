@@ -43,7 +43,9 @@ test_that("qs and qs2 format handlers are independent", {
   if (requireNamespace("qs", quietly = TRUE)) {
     st_opts(default_format = "qs")
     expect_no_error(suppressMessages(st_save(obj, p_qs, code = function(z) z)))
-    expect_true(fs::file_exists(p_qs))
+    # Check file exists in .st_data storage location
+    storage_path_qs <- fs::path(td, ".st_data", "test.qs", "test.qs")
+    expect_true(fs::file_exists(storage_path_qs))
     result_qs <- st_load(p_qs)
     expect_equal(result_qs, obj)
   } else {
@@ -58,7 +60,9 @@ test_that("qs and qs2 format handlers are independent", {
   if (requireNamespace("qs2", quietly = TRUE)) {
     st_opts(default_format = "qs2")
     expect_no_error(suppressMessages(st_save(obj, p_qs2, code = function(z) z)))
-    expect_true(fs::file_exists(p_qs2))
+    # Check file exists in .st_data storage location
+    storage_path_qs2 <- fs::path(td, ".st_data", "test.qs2", "test.qs2")
+    expect_true(fs::file_exists(storage_path_qs2))
     result_qs2 <- st_load(p_qs2)
     expect_equal(result_qs2, obj)
   } else {

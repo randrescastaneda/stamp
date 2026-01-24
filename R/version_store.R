@@ -74,41 +74,24 @@
 
 #' Version directory for an artifact (internal)
 #'
-#' Compute the version directory path for `artifact_path` and `version_id`
-#' under <root>/<state_dir>/versions. We store snapshots under the *relative*
-#' artifact path from root; if the artifact is outside the root, we fall back
-#' to a collision-free identifier based on the artifact's unique ID.
+#' Compute the version directory path for a file.
+#' New structure: <data_folder>/<rel_path>/versions/<version_id>
 #'
-#' @param artifact_path Path to the artifact file.
+#' @param rel_path Relative path from alias root (includes filename).
 #' @param version_id Version identifier (character).
+#' @param alias Optional alias
 #' @return Character scalar path to the version directory, or NA if version_id is NA/empty.
 #' @keywords internal
-.st_version_dir <- function(artifact_path, version_id, alias = NULL) {
+.st_version_dir <- function(rel_path, version_id, alias = NULL) {
   if (is.na(version_id) || !length(version_id) || !nzchar(version_id)) {
     return(NA_character_)
   }
-  ap_abs <- .st_norm_path(artifact_path)
-  rd <- .st_root_dir(alias)
 
-  rel <- tryCatch(
-    as.character(fs::path_rel(ap_abs, start = rd)),
-    error = function(e) NULL
-  )
+  # Get file storage directory in .st_data structure
+  storage_dir <- .st_file_storage_dir(rel_path, alias = alias)
 
-  # Check for invalid relative paths (cross-drive on Windows)
-  # fs::path_rel returns paths like "../../../../../../C:" which are invalid
-  if (!is.null(rel) && grepl("^(\\.\\./)+[A-Z]:", rel)) {
-    rel <- NULL
-  }
-
-  if (is.null(rel) || identical(rel, ".") || !nzchar(rel)) {
-    # Use artifact ID (hash of absolute path) to ensure collision-free storage
-    aid <- .st_artifact_id(ap_abs)
-    basename <- fs::path_file(ap_abs)
-    rel <- fs::path("external", paste0(substr(aid, 1, 8), "-", basename))
-  }
-
-  fs::path(.st_versions_root(alias), rel, version_id)
+  # Version directory: <storage_dir>/versions/<version_id>
+  fs::path(storage_dir, "versions", version_id)
 }
 
 # Catalog paths & IO -----------------------------------------------------------
@@ -121,7 +104,7 @@
 #' @return Character scalar path to the catalog file.
 #' @keywords internal
 .st_catalog_path <- function(alias = NULL) {
-  # Alias selects which catalog file to read/write; path name unchanged.
+  # Catalog remains centralized at alias root for efficient querying
   fs::path(.st_state_dir_abs(alias), "catalog.qs2")
 }
 
@@ -168,7 +151,7 @@
 #' @return A list with elements `artifacts` and `versions`.
 #' @keywords internal
 .st_catalog_read <- function(alias = NULL) {
-  p <- .st_catalog_path(alias)
+  p <- .st_catalog_path(alias = alias)
   cat <- if (fs::file_exists(p)) .st_read_qs2(p) else .st_catalog_empty()
   # Coerce to data.table invariant if loaded catalog used older data.frame layout
   if (!is.data.table(cat$artifacts)) {
@@ -195,7 +178,7 @@
 #' @return Invisible path to the catalog file.
 #' @keywords internal
 .st_catalog_write <- function(cat, alias = NULL) {
-  p <- .st_catalog_path(alias)
+  p <- .st_catalog_path(alias = alias)
   fs::dir_create(fs::path_dir(p), recurse = TRUE)
   tmp <- fs::file_temp(tmp_dir = fs::path_dir(p), pattern = fs::path_file(p))
   .st_write_qs2(cat, tmp)
@@ -228,8 +211,19 @@
 #' An empty table is returned when no versions exist for the given path.
 #' @export
 st_versions <- function(path, alias = NULL) {
-  aid <- .st_artifact_id(path)
-  cat <- .st_catalog_read(alias = alias)
+  # Normalize to get logical_path for artifact_id computation
+  # Don't auto-switch: we want to query the specified alias's catalog
+  norm <- .st_normalize_user_path(
+    path,
+    alias = alias,
+    must_exist = FALSE,
+    auto_switch = FALSE
+  )
+  logical_path <- norm$logical_path
+  versioning_alias <- norm$alias
+
+  aid <- .st_artifact_id(logical_path)
+  cat <- .st_catalog_read(alias = versioning_alias)
   ver <- cat$versions
 
   required_cols <- c(
@@ -459,7 +453,12 @@ st_load_version <- function(
   ...,
   alias = NULL
 ) {
-  vdir <- .st_version_dir(path, version_id, alias = alias)
+  # Normalize path to get rel_path for version operations
+  norm <- .st_normalize_user_path(path, alias = alias, must_exist = FALSE)
+  rel_path <- norm$rel_path
+  versioning_alias <- norm$alias
+
+  vdir <- .st_version_dir(rel_path, version_id, alias = versioning_alias)
   art <- fs::path(vdir, "artifact")
   if (!fs::file_exists(art)) {
     cli::cli_abort(
@@ -502,14 +501,22 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     if (level > depth) {
       return(invisible(NULL))
     }
-    vdir <- .st_version_dir(child_path, child_vid, alias = alias)
+
+    # Convert child_path to rel_path for version operations
+    root <- .st_root_dir(alias = alias)
+    child_rel_path <- as.character(fs::path_rel(child_path, start = root))
+
+    vdir <- .st_version_dir(child_rel_path, child_vid, alias = alias)
     # Prefer committed parents.json in the version snapshot. If not present
     # and we're at the first level, fall back to the artifact sidecar parents
     # for convenience. Recursive walking beyond level 1 will only use
     # snapshot-backed parents to preserve reproducible lineage traversal.
     parents <- .st_version_read_parents(vdir)
     if (!length(parents) && level == 1L) {
-      sc <- tryCatch(st_read_sidecar(child_path), error = function(e) NULL)
+      sc <- tryCatch(
+        st_read_sidecar(child_rel_path, alias = alias),
+        error = function(e) NULL
+      )
       if (is.list(sc) && length(sc$parents)) {
         parents <- .st_parents_normalize(sc$parents)
       }
@@ -590,9 +597,9 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' Which sidecar formats exist for a path (internal)
 #' @keywords internal
 #' @noRd
-.st_sidecar_present <- function(path) {
-  scj <- .st_sidecar_path(path, "json")
-  scq <- .st_sidecar_path(path, "qs2")
+.st_sidecar_present <- function(rel_path, alias = NULL) {
+  scj <- .st_sidecar_path(rel_path, "json", alias = alias)
+  scq <- .st_sidecar_path(rel_path, "qs2", alias = alias)
   has_j <- fs::file_exists(scj)
   has_q <- fs::file_exists(scq)
   if (has_j && has_q) {
@@ -612,28 +619,32 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' Copy the artifact file, any sidecars, and write the parents snapshot into
 #' the version directory for the given `version_id`.
 #'
-#' @param artifact_path Path to the artifact file on disk.
+#' @param rel_path Relative path from alias root (includes filename).
 #' @param version_id Version identifier for the snapshot.
 #' @param parents Optional list of parent descriptors to write into parents.json.
+#' @param alias Optional alias.
 #' @return Invisibly returns the version directory path.
 #' @keywords internal
 .st_version_commit_files <- function(
-  artifact_path,
+  rel_path,
   version_id,
   parents = NULL,
   alias = NULL
 ) {
-  # Use the *same* path logic as consumers:
-  vdir <- .st_version_dir(artifact_path, version_id, alias = alias)
+  # Compute version directory using rel_path
+  vdir <- .st_version_dir(rel_path, version_id, alias = alias)
   .st_dir_create(fs::path_dir(vdir))
   .st_dir_create(vdir)
+
+  # Get actual artifact path for copying
+  artifact_path <- .st_artifact_path(rel_path, alias = alias)
 
   # artifact copy
   fs::file_copy(artifact_path, fs::path(vdir, "artifact"), overwrite = TRUE)
 
   # sidecars (if present)
-  scj <- .st_sidecar_path(artifact_path, "json")
-  scq <- .st_sidecar_path(artifact_path, "qs2")
+  scj <- .st_sidecar_path(rel_path, "json", alias = alias)
+  scq <- .st_sidecar_path(rel_path, "qs2", alias = alias)
   if (fs::file_exists(scj)) {
     fs::file_copy(scj, fs::path(vdir, "sidecar.json"), overwrite = TRUE)
   }
@@ -648,13 +659,13 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 }
 
 
-.st_version_dir_latest <- function(path, alias = NULL) {
-  vid <- st_latest(path, alias = alias)
+.st_version_dir_latest <- function(rel_path, alias = NULL) {
+  vid <- st_latest(rel_path, alias = alias)
   # vid may be NA or empty; guard accordingly
   if (is.null(vid) || is.na(vid) || !nzchar(as.character(vid))) {
     return(NA_character_)
   }
-  vdir <- .st_version_dir(path, as.character(vid), alias = alias)
+  vdir <- .st_version_dir(rel_path, as.character(vid), alias = alias)
   if (is.na(vdir) || !nzchar(vdir)) {
     return(NA_character_)
   }
@@ -752,11 +763,11 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     )
   )
 
-  catalog_path <- .st_catalog_path(alias)
+  catalog_path <- .st_catalog_path(alias = alias)
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
   .st_with_lock(lock_path, {
-    cat <- .st_catalog_read(alias)
+    cat <- .st_catalog_read(alias = alias)
 
     # Upsert artifact row using helper
     cat <- .st_catalog_upsert_artifact(
@@ -784,8 +795,12 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       parents <- .st_parents_normalize(parents)
       if (length(parents)) {
         rows <- lapply(parents, function(p) {
+          # For each parent, compute its artifact_id the same way we do for the child
+          # Both artifact_ids are computed from the logical (absolute) path
+          parent_aid <- .st_artifact_id(p$path)
+          
           data.table(
-            parent_artifact_id = .st_artifact_id(p$path),
+            parent_artifact_id = parent_aid,
             parent_version_id = as.character(p$version_id),
             child_artifact_id = aid,
             child_version_id = vid
@@ -802,7 +817,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       }
     }
 
-    .st_catalog_write(cat, alias)
+    .st_catalog_write(cat, alias = alias)
   })
 
   vid
@@ -977,8 +992,10 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     rows <- lapply(seq_len(NROW(idx)), function(i) {
       c_aid <- idx$child_artifact_id[[i]]
       c_vid <- idx$child_version_id[[i]]
+      cpth <- .st_artifact_path_from_id(c_aid, cat = cat)
+      # cpth is already the absolute logical path from the artifact record
       data.frame(
-        child_path = .st_artifact_path_from_id(c_aid, cat = cat),
+        child_path = cpth,
         child_version = as.character(c_vid),
         parent_path = .st_norm_path(path),
         parent_version = as.character(idx$parent_version_id[[i]]),
@@ -1009,7 +1026,12 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     if (!nzchar(cpth)) {
       next
     }
-    vdir <- .st_version_dir(cpth, cvid, alias = alias)
+
+    # Convert cpth (logical path) to rel_path for version operations
+    root <- .st_root_dir(alias = alias)
+    c_rel_path <- as.character(fs::path_rel(cpth, start = root))
+
+    vdir <- .st_version_dir(c_rel_path, cvid, alias = alias)
     parents <- .st_version_read_parents(vdir)
     if (!length(parents)) {
       next
@@ -1146,19 +1168,45 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
 #' @return Logical scalar. `TRUE` if any parent advanced, otherwise `FALSE`.
 #' @export
 st_is_stale <- function(path, alias = NULL) {
-  vdir <- .st_version_dir_latest(path, alias = alias)
+  # Don't normalize yet - let st_latest do it
+  # We just need to find the version directory for this artifact
+  
+  # Get the latest version ID for this path
+  vid <- st_latest(path, alias = alias)
+  if (is.na(vid) || !nzchar(vid)) {
+    return(FALSE)
+  }
+  
+  # Now normalize to get rel_path for version directory construction
+  norm <- .st_normalize_user_path(
+    path,
+    alias = alias,
+    must_exist = FALSE,
+    auto_switch = FALSE
+  )
+  
+  vdir <- .st_version_dir(norm$rel_path, vid, alias = norm$alias)
   if (is.na(vdir) || !nzchar(vdir)) {
     return(FALSE)
   }
+  
+  if (!fs::dir_exists(vdir)) {
+    return(FALSE)
+  }
+  
   parents <- .st_version_read_parents(vdir)
   if (!length(parents)) {
     return(FALSE)
   }
 
   for (p in parents) {
-    cur <- st_latest(p$path, alias = alias)
+    # p$path is the parent's absolute path as recorded when the child was saved
+    # Use NULL for alias to let st_latest auto-detect the correct alias
+    cur <- st_latest(p$path, alias = NULL)
     # If parent has no versions now, treat as not advancing (conservative).
-    if (!is.na(cur) && !identical(cur, p$version_id)) return(TRUE)
+    if (!is.na(cur) && !identical(cur, p$version_id)) {
+      return(TRUE)
+    }
   }
   FALSE
 }

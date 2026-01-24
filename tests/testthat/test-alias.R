@@ -1,8 +1,8 @@
 test_that("aliases isolate catalogs and versions", {
   st_opts_reset()
 
-  root1 <- fs::path(tempdir(), "stamp-root-1")
-  root2 <- fs::path(tempdir(), "stamp-root-2")
+  root1 <- fs::path(tempdir(), paste0("stamp-root-1_", Sys.time() %>% as.numeric() %>% as.integer()))
+  root2 <- fs::path(tempdir(), paste0("stamp-root-2_", Sys.time() %>% as.numeric() %>% as.integer()))
   fs::dir_create(root1, recurse = TRUE)
   fs::dir_create(root2, recurse = TRUE)
 

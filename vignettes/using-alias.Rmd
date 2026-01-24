@@ -59,6 +59,7 @@ Use the same artifact path patterns; pass `alias` to select which catalog/versio
 pA <- fs::path(root_a, "data.qs")
 pB <- fs::path(root_b, "data.qs")
 
+# Save different data to A and B to ensure versions are created
 st_save(data.frame(id = 1:2), pA, alias = "A")
 st_save(data.frame(id = 3:4), pB, alias = "B")
 
@@ -79,8 +80,10 @@ fs::dir_tree(fs::path(root_b, ".stamp"), recurse = TRUE, all = TRUE)
 Version resolution is non-interactive. `NULL` or `0` resolve to the latest version:
 
 ```{r}
-latestA <- st_load(pA, alias = "A", version = 0)
-latestB <- st_load(pB, alias = "B", version = NULL)
+# Load latest (using default version = NULL for latest)
+latestA <- st_load(pA, alias = "A")
+latestB <- st_load(pB, alias = "B")
+
 list(latestA = latestA, latestB = latestB)
 ```
 

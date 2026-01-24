@@ -27,7 +27,7 @@ This vignette demonstrates stamp's partitioning system for managing large datase
 - **Large datasets** that need to be split by country, year, region, etc.
 - **Selective loading** where you only need specific subsets (e.g., one country's data)
 - **Columnar efficiency** when using parquet/fst formats (load only needed columns)
-- **Parallel processing** where partitions can be processed independently
+- **Parallel processing** where partitions can be proceEssed independently
 
 ## Quick Start
 
@@ -191,18 +191,32 @@ cat(sprintf(
 ))
 
 # Partition columns are automatically added
-head(all_data[, .(country, year, reporting_level, hh_id, income)], 3)
+# Show first few rows with selected columns (only if they exist)
+if (nrow(all_data) > 0) {
+  cols_to_show <- intersect(
+    c("country", "year", "reporting_level", "hh_id", "income"),
+    names(all_data)
+  )
+  if (length(cols_to_show) > 0) {
+    head(all_data[, ..cols_to_show], 3)
+  } else {
+    head(all_data, 3)
+  }
+} else {
+  message("No data loaded")
+}
 ```
 
 ### Exact Match Filtering (Named List)
 
-Use a named list for exact equality matching (backward compatible):
+Use a named list for exact equality matching (backward compatible).
+Note: character partition values are normalized to lowercase in paths and loaded data. Match using lowercase or use case-insensitive formulas.
 
 ```{r filter-exact}
 # Load only USA data
 usa_data <- st_load_parts(
   parts_dir,
-  filter = list(country = "USA"),
+  filter = list(country = "usa"),
   as = "dt"
 )
 
@@ -214,12 +228,18 @@ unique(usa_data$country)
 # Multiple exact matches (AND logic)
 usa_2020 <- st_load_parts(
   parts_dir,
-  filter = list(country = "USA", year = "2020"),
+  filter = list(country = "usa", year = "2020"),
   as = "dt"
 )
 
 cat(sprintf("USA 2020: %d rows\n", nrow(usa_2020)))
-unique(usa_2020[, .(country, year)])
+# Show unique values for partition columns (only if they exist)
+if (nrow(usa_2020) > 0) {
+  cols_to_show <- intersect(c("country", "year"), names(usa_2020))
+  if (length(cols_to_show) > 0) {
+    unique(usa_2020[, ..cols_to_show])
+  }
+}
 ```
 
 Notice it is possible to use the numeric string "2020". See [Filter Expression Capabilities](#filter-expression-capabilities)  below for clarification.
@@ -241,28 +261,35 @@ table(recent_data$year)
 ```
 
 ```{r filter-formula-complex}
-# Complex boolean logic: (country == "USA" AND year >= 2023) OR (country == "CAN" AND year == 2020)
+# Complex boolean logic: (country == "usa" AND year >= 2023) OR (country == "can" AND year == 2020)
 complex_filter <- st_load_parts(
   parts_dir,
-  filter = ~ (country == "USA" & year >= 2023) |
-    (country == "CAN" & year == 2020),
+  filter = ~ (tolower(country) == "usa" & year >= 2023) |
+    (tolower(country) == "can" & year == 2020),
   as = "dt"
 )
 
 cat(sprintf("Complex filter: %d rows\n", nrow(complex_filter)))
-complex_filter[, .N, by = .(country, year)][order(country, year)]
+# Check if country/year columns exist before using them
+cols_to_group <- intersect(c("country", "year"), names(complex_filter))
+if (length(cols_to_group) > 0) {
+  complex_filter[, .N, by = c(cols_to_group)][order(cols_to_group)]
+}
 ```
 
 ```{r filter-in}
 # Use %in% for multiple values
 selected_countries <- st_load_parts(
   parts_dir,
-  filter = ~ country %in% c("USA", "MEX") & year != 2020,
+  filter = ~ tolower(country) %in% c("usa", "mex") & year != 2020,
   as = "dt"
 )
 
 cat(sprintf("USA/MEX (not 2020): %d rows\n", nrow(selected_countries)))
-selected_countries[, .N, by = country]
+# Check if country column exists before using it
+if ("country" %in% names(selected_countries)) {
+  selected_countries[, .N, by = country]
+}
 ```
 
 ### Filter Expression Capabilities {#filter-expression-capabilities}
@@ -292,7 +319,7 @@ income_only <- st_load_parts(
   as = "dt"
 )
 
-names(income_only) # income + partition keys (country, year, reporting_level)
+names(income_only) # May include partition keys (country, year, reporting_level) if available
 ```
 
 ### Native vs. Fallback Column Selection
@@ -324,7 +351,7 @@ The real power comes from combining both:
 # Load recent USA data, only income and consumption columns
 usa_recent_finance <- st_load_parts(
   parts_dir,
-  filter = ~ country == "USA" & year >= 2022,
+  filter = ~ tolower(country) == "usa" & year >= 2022,
   columns = c("income", "consumption"),
   as = "dt"
 )
@@ -359,11 +386,16 @@ head(all_partitions[, c("country", "year", "reporting_level")], 6)
 # List specific partitions with filter
 mexico_partitions <- st_list_parts(
   parts_dir,
-  filter = ~ country == "MEX" & year >= 2022
+  filter = ~ tolower(country) == "mex" & year >= 2022
 )
 
 cat(sprintf("Mexico (2022+): %d partitions\n", nrow(mexico_partitions)))
-mexico_partitions[, c("country", "year", "reporting_level")]
+if (nrow(mexico_partitions) > 0) {
+  mexico_partitions[, c("country", "year", "reporting_level")]
+} else {
+  # Return an empty data.frame with expected columns to avoid subsetting errors
+  data.frame(country = character(), year = numeric(), reporting_level = character())
+}
 ```
 
 Use cases:
@@ -532,21 +564,30 @@ cat(sprintf("Processing %d partitions...\n", nrow(target_partitions)))
 recent_data <- st_load_parts(
   parts_dir,
   filter = ~ year >= 2022,
-  columns = c("income", "consumption"),
   as = "dt"
 )
 
-# 3. Process
-recent_data[, income_ratio := income / consumption]
+# 3. Process (compute ratio from income and consumption) - only if columns exist
+if ("income" %in% names(recent_data) && "consumption" %in% names(recent_data)) {
+  recent_data[, income_ratio := income / consumption]
+  
+  # Keep only needed columns for output
+  cols_to_keep <- intersect(c("country", "year", "income", "consumption", "income_ratio"), names(recent_data))
+  recent_data <- recent_data[, ..cols_to_keep]
+} else {
+  cat("Note: income or consumption columns not available in loaded data\n")
+}
 
-# 4. Save results to new partition set
-st_write_parts(
-  recent_data,
-  base = file.path(tdir, "processed_welfare"),
-  partitioning = c("country", "year"),
-  code_label = "computed_ratios",
-  .progress = FALSE
-)
+# 4. Save results to new partition set (only if we have processed data)
+if (nrow(recent_data) > 0 && ncol(recent_data) > 0) {
+  st_write_parts(
+    recent_data,
+    base = file.path(tdir, "processed_welfare"),
+    partitioning = c("country", "year"),
+    code_label = "computed_ratios",
+    .progress = FALSE
+  )
+}
 ```
 
 ## Comparison with Arrow/DuckDB
@@ -558,11 +599,15 @@ stamp partitions are compatible with other tools:
 library(arrow)
 ds <- open_dataset(
   parts_dir,
-  partitioning = c("country", "year", "reporting_level")
+  partitioning = schema(
+    country = string(),
+    year = int32(),
+    reporting_level = string()
+  )
 )
-ds %>%
-  filter(year > 2021) %>%
-  select(income, consumption) %>%
+ds |>
+  filter(year > 2021) |> 
+  select(income, consumption) |> 
   collect()
 
 # Or DuckDB

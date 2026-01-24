@@ -7,7 +7,13 @@
 st_load(file, format = NULL, version = NULL, verbose = TRUE, alias = NULL, ...)
 }
 \arguments{
-\item{file}{path or st_path}
+\item{file}{path or st_path. Can be:
+\itemize{
+\item A bare filename (e.g., \code{"data.qs2"}) → loaded from alias root
+\item A path with directory (e.g., \code{"data/file.qs2"}) → loaded from \verb{<alias_root>/data/}
+When using a path with directory and an explicit \code{alias}, the alias root must be
+a parent of the path, otherwise an error is raised.
+}}
 
 \item{format}{optional format override}
 
@@ -19,8 +25,8 @@ warnings (default TRUE). When \code{FALSE}, warnings about file/content hash
 mismatches and a missing primary key recorded by \code{st_load()} will not be shown.}
 
 \item{alias}{Optional stamp alias to target a specific stamp folder.
-If \code{NULL} (default), uses the default/legacy stamp folder initialized
-via \code{st_init()}. Use aliases to operate across multiple stamp folders.}
+If \code{NULL} (default), uses the default alias. If the default alias does not
+exist, an error is raised. Use aliases to operate across multiple stamp folders.}
 
 \item{...}{forwarded to format reader}
 }

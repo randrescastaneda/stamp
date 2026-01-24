@@ -8,7 +8,8 @@ st_changed(
   path,
   x = NULL,
   code = NULL,
-  mode = c("any", "content", "code", "file")
+  mode = c("any", "content", "code", "file"),
+  alias = NULL
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ st_changed(
 \item{code}{Optional function/expression/character (for code comparison).}
 
 \item{mode}{Which changes to check: "content", "code", "file", or "any".}
+
+\item{alias}{Optional character alias to identify this stamp folder.
+If \code{NULL}, uses "default" for backwards compatibility.}
 }
 \value{
 A list: list(changed = \if{html}{\out{<lgl>}}, reason = \if{html}{\out{<chr>}}, detail = \if{html}{\out{<named list>}})

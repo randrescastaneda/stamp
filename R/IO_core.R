@@ -81,6 +81,11 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   .st_dir_create(fs::path(sd, "temp"))
   .st_dir_create(fs::path(sd, "logs"))
 
+  # Create data folder (where user files will be stored)
+  data_folder_name <- st_opts("data_folder", .get = TRUE) %||% ".st_data"
+  data_folder <- fs::path(root_abs, data_folder_name)
+  .st_dir_create(data_folder)
+
   # Register alias configuration for multi-folder management
   .st_alias_register(
     alias,
@@ -150,7 +155,11 @@ print.st_path <- function(x, ...) {
 #' Save an R object to disk with metadata & versioning (atomic move)
 #'
 #' @param x object to save
-#' @param file destination path (character or st_path)
+#' @param file destination path (character or st_path). Can be:
+#'   - A bare filename (e.g., `"data.qs2"`) → saved directly under the alias root
+#'   - A path with directory (e.g., `"data/file.qs2"`) → saved under `<alias_root>/data/`
+#'   When using a path with directory and an explicit `alias`, the alias root must be
+#'   a parent of the path, otherwise an error is raised.
 #' @param format optional format override ("qs2" | "rds" | "csv" | "fst" | "json")
 #' @param metadata named list of extra metadata (merged into sidecar)
 #' @param code Optional function/expression/character whose hash is stored as `code_hash`.
@@ -165,8 +174,8 @@ print.st_path <- function(x, ...) {
 #'   warnings (default TRUE). When `FALSE`, messages about skipped saves or save
 #'   failures emitted by `st_save()` will not be shown.
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#'   If `NULL` (default), uses the default/legacy stamp folder initialized
-#'   via `st_init()`. Use aliases to operate across multiple stamp folders.
+#'   If `NULL` (default), uses the default alias. If the default alias does not
+#'   exist, an error is raised. Use aliases to operate across multiple stamp folders.
 #' @return invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
 #' @export
 st_save <- function(
@@ -186,31 +195,20 @@ st_save <- function(
 ) {
   # Input validation for verbose
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
-  # Normalize path + format selection
-  sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
 
-  # Auto-detect the correct alias from the path for versioning purposes
-  # The alias parameter is used for other purposes but versioning should follow the file location
-  versioning_alias <- .st_detect_alias_from_path(sp$path)
-  
-  # Warn if user-provided alias doesn't match the path's location
-  if (!is.null(alias) && nzchar(alias)) {
-    if (!.st_path_matches_alias(sp$path, alias)) {
-      if (isTRUE(verbose)) {
-        cfg <- .st_alias_get(alias)
-        detected_msg <- if (!is.null(versioning_alias)) {
-          paste0("Versions will be stored under alias ", versioning_alias, " (detected from path).")
-        } else {
-          "Versions will be stored under the default alias."
-        }
-        cli::cli_warn(c(
-          "!" = "Path {.file {sp$path}} is outside the root of alias {.val {alias}}.",
-          "i" = "Alias {.val {alias}} root: {.path {cfg$root}}",
-          "i" = detected_msg
-        ))
-      }
-    }
-  }
+  # Normalize and validate user path
+  norm <- .st_normalize_user_path(
+    file,
+    alias = alias,
+    must_exist = FALSE,
+    verbose = verbose
+  )
+
+  # Use logical path for catalog, storage path for actual file operations
+  logical_path <- norm$logical_path
+  storage_path <- norm$storage_path
+  versioning_alias <- norm$alias
+  rel_path <- norm$rel_path
 
   # Primary-key handling for tabular objects
   if (!is.null(pk)) {
@@ -222,9 +220,9 @@ st_save <- function(
     if (is.data.frame(x)) st_assert_pk(x) # sanity check for attached PK metadata
   }
 
+  # Determine format
   fmt <- format %||%
-    sp$format %||%
-    .st_guess_format(sp$path) %||%
+    .st_guess_format(logical_path) %||%
     st_opts("default_format", .get = TRUE)
 
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
@@ -239,26 +237,36 @@ st_save <- function(
 
   # Decide if we should create a new version (hashes, code hash, etc.)
   # Use sanitized object so decision aligns with stored content
-  dec <- st_should_save(sp$path, x = x_sanitized, code = code)
+  # Use storage_path for the check (where file will actually live)
+  dec <- st_should_save(
+    storage_path,
+    x = x_sanitized,
+    code = code,
+    alias = versioning_alias
+  )
   if (!dec$save) {
     if (isTRUE(verbose)) {
       cli::cli_inform(c(
-        "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {sp$path}}"
+        "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {logical_path}}"
       ))
     }
-    return(invisible(list(path = sp$path, skipped = TRUE, reason = dec$reason)))
+    return(invisible(list(
+      path = logical_path,
+      skipped = TRUE,
+      reason = dec$reason
+    )))
   }
 
-  # Ensure destination directory exists (idempotent)
-  fs::dir_create(fs::path_dir(sp$path), recurse = TRUE)
+  # Ensure storage directory exists (idempotent)
+  fs::dir_create(fs::path_dir(storage_path), recurse = TRUE)
 
   # Write + sidecar + catalog under a best-effort file lock
   out <- tryCatch(
-    .st_with_lock(sp$path, {
+    .st_with_lock(storage_path, {
       # 1) Atomic artifact write (overwrite-in-place policy lives here)
       .st_write_atomic(
         obj = x_sanitized,
-        path = sp$path,
+        path = storage_path,
         writer = function(obj, pth) {
           # Forward writer args including verbose to the concrete writer.
           # Filter out st_save-specific args (e.g. pk, domain) that format
@@ -266,22 +274,19 @@ st_save <- function(
           args_local <- list(...)
           writer_formals <- names(formals(h$write))
 
-          if (!is.null(writer_formals) && length(args_local)) {
-            # Keep only named args that the writer accepts
-            named <- names(args_local)
-            named <- if (is.null(named)) rep("", length(args_local)) else named
-            keep_idx <- which(named != "" & named %in% writer_formals)
-            if (length(keep_idx)) {
-              do.call(
-                h$write,
-                c(list(obj, pth, verbose = verbose), args_local[keep_idx])
-              )
+          # Filter to named args that writer accepts
+          if (!is.null(writer_formals) && length(args_local) > 0) {
+            arg_names <- names(args_local)
+            if (!is.null(arg_names)) {
+              keep <- arg_names != "" & arg_names %in% writer_formals
+              args_local <- args_local[keep]
             } else {
-              h$write(obj, pth, verbose = verbose)
+              args_local <- list() # Discard unnamed args
             }
-          } else {
-            h$write(obj, pth, verbose = verbose)
           }
+
+          # Always call with base args + filtered extras
+          do.call(h$write, c(list(obj, pth, verbose = verbose), args_local))
         },
         overwrite = TRUE
       )
@@ -289,10 +294,10 @@ st_save <- function(
       # 2) Assemble sidecar metadata (needs size/file hash after the move)
       meta <- c(
         list(
-          path = as.character(sp$path),
+          path = as.character(logical_path), # Store logical path in metadata
           format = fmt,
           created_at = .st_now_utc(),
-          size_bytes = unname(fs::file_info(sp$path)$size),
+          size_bytes = unname(fs::file_info(storage_path)$size),
           content_hash = st_hash_obj(x_sanitized),
           code_hash = if (
             isTRUE(st_opts("code_hash", .get = TRUE)) && !is.null(code)
@@ -302,7 +307,7 @@ st_save <- function(
             NA_character_
           },
           file_hash = if (isTRUE(st_opts("store_file_hash", .get = TRUE))) {
-            st_hash_file(sp$path)
+            st_hash_file(storage_path)
           } else {
             NA_character_
           },
@@ -324,18 +329,21 @@ st_save <- function(
       }
 
       # 3) Sidecar write (should be atomic inside the helper)
-      .st_write_sidecar(sp$path, meta)
+      .st_write_sidecar(rel_path, meta, alias = versioning_alias)
 
       # 4) Catalog snapshot + version commit
-      # Use versioning_alias (detected from path) instead of user-provided alias
+      # Use logical_path in catalog (user-facing path)
       vid <- .st_catalog_record_version(
-        artifact_path = sp$path,
+        artifact_path = logical_path,
         format = fmt,
         size_bytes = meta$size_bytes,
         content_hash = meta$content_hash,
         code_hash = meta$code_hash,
         created_at = meta$created_at,
-        sidecar_format = .st_sidecar_present(sp$path),
+        sidecar_format = .st_sidecar_present(
+          rel_path,
+          alias = versioning_alias
+        ),
         alias = versioning_alias,
         parents = parents
       )
@@ -350,24 +358,29 @@ st_save <- function(
           meta$code_hash
         )
       }
-      .st_version_commit_files(sp$path, vid, parents = parents, alias = versioning_alias)
+      .st_version_commit_files(
+        rel_path,
+        vid,
+        parents = parents,
+        alias = versioning_alias
+      )
 
       # 5) Optional retention for this artifact
-      .st_apply_retention(sp$path, alias = versioning_alias)
+      .st_apply_retention(rel_path, alias = versioning_alias)
 
       if (isTRUE(verbose)) {
         cli::cli_inform(c(
-          "v" = "Saved [{.field {fmt}}] \u2192 {.file {sp$path}} @ version {.field {vid}}"
+          "v" = "Saved [{.field {fmt}}] \u2192 {.file {logical_path}} @ version {.field {vid}}"
         ))
       }
-      list(path = sp$path, metadata = meta, version_id = vid)
+      list(path = logical_path, metadata = meta, version_id = vid)
     }),
     error = function(e) {
       # Best-effort: surface a warning and allow the function to fall back
       # to a safe return value rather than failing the whole process.
       if (isTRUE(verbose)) {
         cli::cli_warn(c(
-          "x" = "Save failed for {.file {sp$path}}: {conditionMessage(e)}",
+          "x" = "Save failed for {.file {logical_path}}: {conditionMessage(e)}",
           "i" = "Returning fallback result (no metadata/version)."
         ))
       }
@@ -375,12 +388,18 @@ st_save <- function(
     }
   )
 
-  invisible(out %||% list(path = sp$path, metadata = NULL, version_id = NULL))
+  invisible(
+    out %||% list(path = logical_path, metadata = NULL, version_id = NULL)
+  )
 }
 
 
 #' Load an object from disk (format auto-detected; optional integrity checks)
-#' @param file path or st_path
+#' @param file path or st_path. Can be:
+#'   - A bare filename (e.g., `"data.qs2"`) → loaded from alias root
+#'   - A path with directory (e.g., `"data/file.qs2"`) → loaded from `<alias_root>/data/`
+#'   When using a path with directory and an explicit `alias`, the alias root must be
+#'   a parent of the path, otherwise an error is raised.
 #' @param format optional format override
 #' @param version An integer or a quoted directive. Retrieve a specific version
 #'   of an artifact. See details.
@@ -389,8 +408,8 @@ st_save <- function(
 #'   warnings (default TRUE). When `FALSE`, warnings about file/content hash
 #'   mismatches and a missing primary key recorded by `st_load()` will not be shown.
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#'   If `NULL` (default), uses the default/legacy stamp folder initialized
-#'   via `st_init()`. Use aliases to operate across multiple stamp folders.
+#'   If `NULL` (default), uses the default alias. If the default alias does not
+#'   exist, an error is raised. Use aliases to operate across multiple stamp folders.
 #' @return the loaded object
 #' @details
 #' The `version` argument allows you to load specific versions:
@@ -430,35 +449,45 @@ st_load <- function(
 ) {
   # Input validation for verbose
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
-  # Normalize input into an st_path
-  sp <- if (inherits(file, "st_path")) file else st_path(file, format = format)
+
+  # Normalize and validate user path
+  norm <- .st_normalize_user_path(
+    file,
+    alias = alias,
+    must_exist = FALSE,
+    verbose = verbose
+  )
+
+  logical_path <- norm$logical_path
+  storage_path <- norm$storage_path
+  loading_alias <- norm$alias
+  rel_path <- norm$rel_path
 
   # If a specific version is requested, resolve it and delegate to st_load_version
   if (!is.null(version)) {
-    version_id <- .st_resolve_version(sp$path, version, alias = alias)
+    version_id <- .st_resolve_version(rel_path, version, alias = loading_alias)
     if (is.na(version_id)) {
       cli::cli_abort(
-        "Could not resolve version {.val {version}} for {.file {sp$path}}"
+        "Could not resolve version {.val {version}} for {.file {logical_path}}"
       )
     }
     return(st_load_version(
-      sp$path,
+      rel_path,
       version_id,
       ...,
       verbose = verbose,
-      alias = alias
+      alias = loading_alias
     ))
   }
 
-  # Existence check
-  if (!fs::file_exists(sp$path)) {
-    cli::cli_abort("File does not exist: {.file {sp$path}}")
+  # Existence check - file should exist in storage location
+  if (!fs::file_exists(storage_path)) {
+    cli::cli_abort("File does not exist: {.file {logical_path}}")
   }
 
   # Resolve format
   fmt <- format %||%
-    sp$format %||%
-    .st_guess_format(sp$path) %||%
+    .st_guess_format(logical_path) %||%
     st_opts("default_format", .get = TRUE)
 
   # Lookup format handlers
@@ -468,18 +497,23 @@ st_load <- function(
   }
 
   # Read sidecar once (we'll reuse it for verify, pk/schema, etc.)
-  meta <- tryCatch(st_read_sidecar(sp$path), error = function(e) NULL)
+  meta <- tryCatch(
+    st_read_sidecar(rel_path, alias = loading_alias),
+    error = function(e) NULL
+  )
 
   # (1) Optional FILE integrity check: sidecar$file_hash vs current file hash
   if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
     if (
       is.list(meta) && is.character(meta$file_hash) && nzchar(meta$file_hash)
     ) {
-      now <- tryCatch(st_hash_file(sp$path), error = function(e) NA_character_)
+      now <- tryCatch(st_hash_file(storage_path), error = function(e) {
+        NA_character_
+      })
       if (!is.na(now) && !identical(now, meta$file_hash)) {
         if (isTRUE(verbose)) {
           cli::cli_warn(c(
-            "File hash mismatch for {.file {sp$path}} (sidecar vs disk).",
+            "File hash mismatch for {.file {logical_path}} (sidecar vs disk).",
             "i" = "The file may have changed outside {.pkg stamp}."
           ))
         }
@@ -487,8 +521,8 @@ st_load <- function(
     }
   }
 
-  # Read the artifact with the registered reader
-  res <- h$read(sp$path, verbose = verbose, ...)
+  # Read the artifact with the registered reader from storage location
+  res <- h$read(storage_path, verbose = verbose, ...)
 
   # (2) Optional CONTENT integrity check: sidecar$content_hash vs rehash of loaded object
   if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
@@ -501,7 +535,7 @@ st_load <- function(
       if (!is.na(h_now) && !identical(h_now, meta$content_hash)) {
         if (isTRUE(verbose)) {
           cli::cli_warn(
-            "Loaded object hash mismatch for {.file {sp$path}} (content hash differs from sidecar)."
+            "Loaded object hash mismatch for {.file {norm$logical_path}} (content hash differs from sidecar)."
           )
         }
       }
@@ -524,13 +558,13 @@ st_load <- function(
   if (!length(pk_keys)) {
     if (isTRUE(st_opts("require_pk_on_load", .get = TRUE))) {
       cli::cli_abort(c(
-        "No primary key recorded for {.file {sp$path}}.",
-        "i" = "Record it with {.code st_add_pk({.file {sp$path}}, keys = c('...'))}."
+        "No primary key recorded for {.file {logical_path}}.",
+        "i" = "Record it with {.code st_add_pk({.file {logical_path}}, keys = c('...'))}."
       ))
     } else if (isTRUE(st_opts("warn_missing_pk_on_load", .get = TRUE))) {
       if (isTRUE(verbose)) {
         cli::cli_warn(c(
-          "No primary key recorded for {.file {sp$path}}.",
+          "No primary key recorded for {.file {logical_path}}.",
           "i" = "You can add one with {.fn st_add_pk}."
         ))
       }
@@ -559,7 +593,9 @@ st_load <- function(
   }
 
   if (isTRUE(verbose)) {
-    cli::cli_inform(c("v" = "Loaded [{.field {fmt}}] \u2190 {.file {sp$path}}"))
+    cli::cli_inform(c(
+      "v" = "Loaded [{.field {fmt}}] \u2190 {.file {logical_path}}"
+    ))
   }
   res
 }
@@ -575,15 +611,21 @@ st_load <- function(
 #'   - parents: list(...) parsed from latest version's parents.json (if any)
 #' @export
 st_info <- function(path, alias = NULL) {
-  sc <- st_read_sidecar(path)
-  cat <- .st_catalog_read(alias = alias)
-  aid <- .st_artifact_id(path)
+  # Normalize path using new helper
+  norm <- .st_normalize_user_path(path, alias = alias, must_exist = FALSE)
+  logical_path <- norm$logical_path
+  rel_path <- norm$rel_path
+  versioning_alias <- norm$alias
 
-  latest <- st_latest(path, alias = alias)
+  sc <- st_read_sidecar(rel_path, alias = versioning_alias)
+  cat <- .st_catalog_read(alias = versioning_alias)
+  aid <- .st_artifact_id(logical_path)
+
+  latest <- st_latest(logical_path, alias = versioning_alias)
   artrow <- cat$artifacts[artifact_id == aid]
   nvers <- if (nrow(artrow)) artrow$n_versions[[1L]] else 0L
 
-  vdir <- .st_version_dir_latest(path, alias = alias)
+  vdir <- .st_version_dir_latest(rel_path, alias = versioning_alias)
   # Prefer committed snapshot parents (parents.json) when available.
   # If no snapshot exists, fall back to the artifact sidecar's quick parents
   # metadata so users can still inspect lineage even when a snapshot was not created.
@@ -675,43 +717,229 @@ st_switch <- function(alias) {
   invisible(alias)
 }
 
+#' Restore artifact to a previous version
+#'
+#' Replaces the current artifact file with a specified historical version.
+#' This is a convenience wrapper around \code{\link{st_load_version}} and
+#' \code{\link{st_save}} that restores an artifact in-place.
+#'
+#' @param file Character path to the artifact to restore. Can be:
+#'   \itemize{
+#'     \item Bare filename (e.g., "data.qs2") - stored in root/.st_data/
+#'     \item Relative path with subdirs (e.g., "results/model.rds") - stored in root/.st_data/results/
+#'     \item Absolute path under project root - converted to relative for versioning
+#'   }
+#' @param version Version identifier to restore to. Can be:
+#'   \itemize{
+#'     \item A specific version_id string
+#'     \item "latest" - most recent version
+#'     \item "oldest" - first saved version
+#'     \item Integer offset from latest (1 = previous, 2 = two versions back, etc.)
+#'   }
+#' @param verbose Logical; if TRUE, prints informative messages.
+#' @param alias Optional stamp alias to target a specific stamp folder.
+#' @param ... Additional arguments passed to format reader/writer.
+#'
+#' @return Invisibly returns the restored object.
+#'
+#' @details
+#' The function:
+#' \enumerate{
+#'   \item Loads the specified version from version history
+#'   \item Overwrites the current artifact file with that version
+#'   \item Creates a new version entry for the restoration
+#' }
+#'
+#' This allows you to revert changes by restoring to any previous version.
+#' The restoration itself becomes a new version in the history, so you can
+#' always go forward again if needed.
+#'
+#' @examples
+#' \dontrun{
+#' # Initialize and create some versions
+#' st_init()
+#' df1 <- data.frame(x = 1:5)
+#' st_save(df1, "data.qs2")
+#'
+#' df2 <- data.frame(x = 6:10)
+#' st_save(df2, "data.qs2")
+#'
+#' # Restore to previous version
+#' st_restore("data.qs2", version = "oldest")
+#'
+#' # Or restore to a specific version ID
+#' versions <- st_versions("data.qs2")
+#' st_restore("data.qs2", version = versions$version_id[1])
+#' }
+#'
+#' @seealso \code{\link{st_load_version}}, \code{\link{st_versions}}, \code{\link{st_save}}
+#' @export
+st_restore <- function(
+  file,
+  version = "oldest",
+  verbose = TRUE,
+  alias = NULL,
+  ...
+) {
+  # Normalize the file path
+  norm <- .st_normalize_user_path(file, alias = alias, must_exist = FALSE)
+  rel_path <- norm$rel_path
+  versioning_alias <- norm$alias
+
+  # Fetch versions once (reused for all resolution methods)
+  versions_df <- st_versions(rel_path, alias = versioning_alias)
+  if (nrow(versions_df) == 0) {
+    cli::cli_abort("No versions found for {.field {file}}.")
+  }
+
+  # Resolve version identifier using helper (optimized: single fetch)
+  version_id <- .st_resolve_version_identifier(version, versions_df, file)
+
+  # Load the specified version
+  obj <- st_load_version(
+    rel_path,
+    version_id = version_id,
+    verbose = FALSE,
+    alias = versioning_alias,
+    ...
+  )
+
+  # Save it back (this creates a new version and updates the artifact)
+  st_save(
+    obj,
+    file = file,
+    verbose = FALSE,
+    alias = alias,
+    ...
+  )
+
+  if (isTRUE(verbose)) {
+    cli::cli_inform(c(
+      "v" = "Restored {.field {file}} to version {.field {version_id}}"
+    ))
+  }
+
+  invisible(obj)
+}
+
+#' Resolve a version identifier to a version_id (internal)
+#'
+#' Helper function for st_restore() that handles multiple version specification formats.
+#' Centralizes identifier resolution logic for clarity and testability.
+#'
+#' @param version Version specifier: numeric offset, "latest", "oldest", or version_id string
+#' @param versions_df data.frame from st_versions() with version_id column
+#' @param file Original file path for error messages
+#' @return Character scalar version_id
+#' @keywords internal
+#' @importFrom utils head
+.st_resolve_version_identifier <- function(version, versions_df, file) {
+  # Numeric: treat as offset from latest (1 = previous, 2 = two back, etc.)
+  if (is.numeric(version)) {
+    if (length(version) != 1L || version != as.integer(version)) {
+      cli::cli_abort("Numeric version must be a single integer offset.")
+    }
+    offset <- as.integer(version)
+    if (offset < 1 || offset > nrow(versions_df)) {
+      cli::cli_abort(
+        "Version offset {.val {offset}} out of range. Available versions: 1-{nrow(versions_df)}."
+      )
+    }
+    return(versions_df$version_id[offset])
+  }
+
+  # Character: keywords or specific version_id
+  if (!is.character(version) || length(version) != 1L) {
+    cli::cli_abort(
+      "Version must be a single value: integer, 'latest', 'oldest', or version_id string."
+    )
+  }
+
+  # Handle keywords
+  if (version == "latest") {
+    return(versions_df$version_id[1]) # First row (ordered newest first)
+  }
+  if (version == "oldest") {
+    return(versions_df$version_id[nrow(versions_df)]) # Last row (oldest)
+  }
+
+  # Assume it's a specific version_id; validate it exists before returning
+  if (!version %in% versions_df$version_id) {
+    available <- head(versions_df$version_id, 3)
+    more_msg <- if (nrow(versions_df) > 3) {
+      paste("...and", nrow(versions_df) - 3, "more")
+    } else {
+      NULL
+    }
+    cli::cli_abort(
+      c(
+        "Version ID {.field {version}} not found for {.field {file}}.",
+        "i" = "Available: {.val {available}}",
+        if (!is.null(more_msg)) more_msg
+      )
+    )
+  }
+
+  version
+}
+
 
 # -------- Helpers --------------
 #' Explain why an artifact would change
 #' @inheritParams st_changed
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return Character scalar: "no_change", "missing_artifact", "missing_meta", or e.g. "content+code"
 #' @export
 st_changed_reason <- function(
   path,
   x = NULL,
   code = NULL,
-  mode = c("any", "content", "code", "file")
+  mode = c("any", "content", "code", "file"),
+  alias = NULL
 ) {
   mode <- match.arg(mode)
-  res <- st_changed(path, x = x, code = code, mode = mode)
+  # Resolve file path using alias (handles bare names and directory validation)
+  resolved <- .st_resolve_file_path(path, alias = alias, verbose = FALSE)
+  res <- st_changed(resolved$path, x = x, code = code, mode = mode)
   res$reason
 }
 
 #' Decide if a save should proceed given current st_opts()
 #' Uses versioning policy and code-change rule.
 #' @inheritParams st_changed
+#' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)
 #' @export
 # Returns list(save, reason)
-st_should_save <- function(path, x = NULL, code = NULL) {
+st_should_save <- function(path, x = NULL, code = NULL, alias = NULL) {
+  # Normalize path
+  norm <- .st_normalize_user_path(path, alias = alias, must_exist = FALSE)
+  storage_path <- norm$storage_path
+  rel_path <- norm$rel_path
+  versioning_alias <- norm$alias
+
   # First write always allowed
-  if (!fs::file_exists(path)) {
+  if (!fs::file_exists(storage_path)) {
     return(list(save = TRUE, reason = "missing_artifact"))
   }
   # No sidecar? write to re-materialize metadata
-  meta <- tryCatch(st_read_sidecar(path), error = function(e) NULL)
+  meta <- tryCatch(
+    st_read_sidecar(rel_path, alias = versioning_alias),
+    error = function(e) NULL
+  )
   if (is.null(meta)) {
     return(list(save = TRUE, reason = "missing_meta"))
   }
 
   # Policy: by default write when content OR code changed
   # (per earlier decision; no extra option needed)
-  res <- st_changed(path, x = x, code = code, mode = "any")
+  res <- st_changed(
+    path,
+    x = x,
+    code = code,
+    mode = "any",
+    alias = versioning_alias
+  )
   if (res$changed) {
     return(list(save = TRUE, reason = res$reason))
   }

@@ -240,40 +240,44 @@ st_formats <- function() {
 
 #' Sidecar metadata path helper (internal)
 #'
-#' Build the path to a sidecar metadata file for `path`. Sidecars live in
-#' a sibling directory named `stmeta` next to the file's directory. The
-#' returned filename has the original basename with a `.stmeta.<ext>` suffix
-#' where `ext` is typically `"json"` or `"qs2"`.
+#' Build the path to a sidecar metadata file for a given relative path.
+#' New structure: <data_folder>/<rel_path>/stmeta/<filename>.stmeta.<ext>
 #'
-#' @param path Character scalar path to the main data file.
+#' @param rel_path Character relative path from alias root (includes filename).
 #' @param ext Character scalar extension for the sidecar (e.g. "json" or "qs2").
+#' @param alias Optional alias
 #' @return Character scalar with the computed sidecar path.
 #' @keywords internal
-.st_sidecar_path <- function(path, ext = c("json", "qs2")) {
+.st_sidecar_path <- function(rel_path, ext = c("json", "qs2"), alias = NULL) {
   ext <- match.arg(ext)
-  dir <- fs::path_dir(path)
-  base <- fs::path_file(path)
-  sc_dir <- fs::path(dir, "stmeta")
-  fs::path(sc_dir, paste0(base, ".stmeta.", ext))
+
+  # Get file storage directory in .st_data structure
+  storage_dir <- .st_file_storage_dir(rel_path, alias = alias)
+  filename <- fs::path_file(rel_path)
+
+  # Sidecar path: <storage_dir>/stmeta/<filename>.stmeta.<ext>
+  sc_dir <- fs::path(storage_dir, "stmeta")
+  fs::path(sc_dir, paste0(filename, ".stmeta.", ext))
 }
 
 #' Write sidecar metadata (internal)
 #'
-#' Write `meta` (a list) as sidecar(s) for `path`. The file(s) are first
+#' Write `meta` (a list) as sidecar(s) for a file. The file(s) are first
 #' written to temp files in the same directory and then moved into place
 #' to reduce risk of partial writes.
 #'
 #' Respects `st_opts(meta_format = "json" | "qs2" | "both")`.
 #'
-#' @param path Character path of the data file whose sidecar will be written.
+#' @param rel_path Character relative path from alias root.
 #' @param meta List or object convertible to JSON / qs2.
+#' @param alias Optional alias.
 #' @keywords internal
 #' @noRd
-.st_write_sidecar <- function(path, meta) {
+.st_write_sidecar <- function(rel_path, meta, alias = NULL) {
   fmt <- st_opts("meta_format", .get = TRUE) %||% "json"
 
   if (fmt %in% c("json", "both")) {
-    scj <- .st_sidecar_path(path, ext = "json")
+    scj <- .st_sidecar_path(rel_path, ext = "json", alias = alias)
     fs::dir_create(fs::path_dir(scj), recurse = TRUE)
     tmp <- fs::file_temp(
       tmp_dir = fs::path_dir(scj),
@@ -293,7 +297,7 @@ st_formats <- function() {
   }
 
   if (fmt %in% c("qs2", "both")) {
-    scq <- .st_sidecar_path(path, ext = "qs2")
+    scq <- .st_sidecar_path(rel_path, ext = "qs2", alias = alias)
     fs::dir_create(fs::path_dir(scq), recurse = TRUE)
     tmp <- fs::file_temp(
       tmp_dir = fs::path_dir(scq),
@@ -311,19 +315,36 @@ st_formats <- function() {
 
 #' Read sidecar metadata (internal)
 #'
-#' Read the sidecar metadata for `path` if it exists, returning `NULL`
+#' Read the sidecar metadata for a file if it exists, returning `NULL`
 #' when no sidecar file is present. Preference order is JSON first,
 #' then QS2.
 #'
-#' @param path Character path of the data file whose sidecar will be read.
+#' @param rel_path Character relative path from alias root, or an absolute path.
+#'   If an absolute path is provided, it will be normalized to a relative path.
+#' @param alias Optional alias. If `NULL` and an absolute path is provided,
+#'   the alias will be auto-detected from the path.
 #' @return A list (parsed JSON / qs object) or `NULL` if not found.
 #' @export
-st_read_sidecar <- function(path) {
-  scj <- .st_sidecar_path(path, ext = "json")
+st_read_sidecar <- function(rel_path, alias = NULL) {
+  rel_path <- as.character(rel_path)
+  
+  # If the path appears to be absolute, normalize it to relative path + alias
+  if (fs::is_absolute_path(rel_path)) {
+    norm <- tryCatch(
+      .st_normalize_user_path(rel_path, alias = alias, must_exist = FALSE, verbose = FALSE),
+      error = function(e) NULL
+    )
+    if (!is.null(norm)) {
+      rel_path <- norm$rel_path
+      alias <- norm$alias
+    }
+  }
+  
+  scj <- .st_sidecar_path(rel_path, ext = "json", alias = alias)
   if (fs::file_exists(scj)) {
     return(jsonlite::read_json(scj, simplifyVector = TRUE))
   }
-  scq <- .st_sidecar_path(path, ext = "qs2")
+  scq <- .st_sidecar_path(rel_path, ext = "qs2", alias = alias)
   if (fs::file_exists(scq)) {
     return(.st_read_qs2(scq))
   }

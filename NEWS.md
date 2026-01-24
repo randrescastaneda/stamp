@@ -1,3 +1,47 @@
+# stamp 0.0.9 (Development)
+
+## Major Changes
+
+### New Folder Structure
+* **BREAKING**: Changed artifact storage structure to separate state and data:
+  - `.stamp/` now contains only state (catalog, versions, temp, logs)
+  - `.st_data/` is the new default data folder for storing artifacts
+  - Artifacts stored as `.st_data/<filename>/<filename>` or `.st_data/<subdir>/<filename>/<filename>`
+  - Data folder name configurable via `st_opts(data_folder = "...")`
+  - Improved path normalization with support for bare filenames, relative paths, and absolute paths
+
+### New Functions
+* **NEW**: `st_restore()` - Restore artifacts to previous versions
+  - Supports version keywords: "latest", "oldest"
+  - Supports specific version IDs
+  - Supports integer offsets from latest (1 = previous, 2 = two back, etc.)
+  - Creates new version entry for restoration (allows redo)
+
+## Path Handling
+* **Enhanced**: Centralized path normalization via `.st_normalize_user_path()`
+  - Accepts bare filenames (stored in root/.st_data/)
+  - Accepts relative paths with subdirectories
+  - Accepts absolute paths under project root (converted to relative)
+  - Consistent path handling across all save/load/query functions
+
+## Testing
+* **NEW**: Comprehensive test suite for new folder structure (`test-folder-structure.R`)
+  - 45 tests covering save/load, subdirectories, versioning, queries, and configuration
+* **NEW**: Test suite for `st_restore()` functionality (`test-restore.R`)
+  - 11 tests covering restoration scenarios and error handling
+
+## Documentation
+* **Updated**: README now documents the new folder structure
+* **Updated**: Function documentation reflects new path handling
+
+## Internal Changes
+* All core functions updated to use new path structure:
+  - `st_save()`, `st_load()`, `st_load_version()`
+  - `st_info()`, `st_versions()`, `st_changed()`
+  - `st_rebuild()`, `st_prune_versions()`
+  - Catalog operations, sidecar management, version store
+* Path helpers reorganized for better maintainability
+
 # stamp 0.0.8
 
 ## New Features

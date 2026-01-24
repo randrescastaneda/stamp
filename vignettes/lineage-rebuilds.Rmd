@@ -84,28 +84,6 @@ st_save(
 
 Note: after these saves each artifact has a sidecar (in `stmeta/`) and snapshots under `.stamp/versions/`.
 
-Committed parents vs sidecar example
-
-This short interactive example shows the difference between committed parents (stored inside the version snapshot) and the light-weight sidecar parents next to the artifact file. We deliberately remove the committed snapshot for `B` to simulate a case where only the sidecar remains; `st_lineage()` will still return immediate parents (level 1) by reading the sidecar, but recursive walking beyond level 1 only uses snapshot-backed parents.
-
-```{r}
-# Remove committed snapshot for B to simulate a no-snapshot state
-vdir_b <- stamp:::.st_version_dir(pB, st_latest(pB))
-if (fs::dir_exists(vdir_b)) {
-  fs::dir_delete(vdir_b)
-}
-
-# Now st_info will show snapshot_dir = NA but sidecar present
-st_info(pB)
-
-# st_lineage will fall back to the sidecar for immediate parents (level 1)
-st_lineage(pB, depth = 1)
-
-# But recursive lineage (depth > 1) will only follow snapshot-backed parents
-# (no recursive walk available once snapshots are missing)
-st_lineage(pB, depth = 2)
-```
-
 ## Inspect lineage
 
 ```{r}

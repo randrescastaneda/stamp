@@ -472,7 +472,20 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
     }
   }
 
-  if (!fs::dir_exists(base)) {
+  # Partitions are stored under the root's .st_data directory
+  # The directory structure is: root/.st_data/<base_rel_path>/<partition_path>/<filename>
+  # First, find the root directory by looking for .stamp file
+  root <- .st_root_dir()
+
+  # Calculate base relative to root
+  base_abs <- normalizePath(base, winslash = "/", mustWork = FALSE)
+  root_abs <- normalizePath(root, winslash = "/", mustWork = FALSE)
+  base_rel <- fs::path_rel(base_abs, start = root_abs)
+
+  # Partitions are stored at: root/.st_data/base_rel/<partition_path>/<filename>
+  search_dir <- fs::path(root, ".st_data", base_rel)
+
+  if (!fs::dir_exists(search_dir)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
 
@@ -482,7 +495,7 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   files <- unlist(
     lapply(globs, function(g) {
       fs::dir_ls(
-        base,
+        search_dir,
         recurse = recursive,
         glob = g,
         type = "file",
@@ -495,15 +508,22 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
 
   sep <- .Platform$file.sep
   inside_stmeta <- grepl(paste0(sep, "stmeta", sep), files, fixed = TRUE)
-  is_sidecar <- grepl("\\.stmeta\\.(json|qs2)$", files)
-  files <- files[!(inside_stmeta | is_sidecar)]
+  inside_versions <- grepl(paste0(sep, "versions", sep), files, fixed = TRUE)
+  is_stmeta_file <- grepl("\\.stmeta\\.(json|qs2)$", files)
+  is_sidecar <- grepl("sidecar\\.(json|qs2)$", files)
+  files <- files[
+    !(inside_stmeta | inside_versions | is_stmeta_file | is_sidecar)
+  ]
 
   if (!length(files)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
 
   rows <- lapply(files, function(p) {
-    rel <- fs::path_rel(p, start = base)
+    # Files are stored at: root/.st_data/base_rel/partition_path/filename
+    # Calculate path relative to search_dir to extract the partition path
+    rel <- fs::path_rel(p, start = search_dir)
+
     key <- .st_parse_key_from_rel(rel)
 
     # Apply filter
@@ -516,7 +536,16 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
     ) {
       return(NULL)
     }
-    c(list(path = as.character(p)), key)
+
+    # Construct the logical path (relative to root) for loading
+    # The structure is: base_rel/partition_path, where partition_path is rel minus the filename
+    # e.g., if rel = "country=can/year=2021/part.parquet/part.parquet"
+    # and base_rel = "parts"
+    # we want logical path = "parts/country=can/year=2021/part.parquet"
+    # which is: base_rel + dirname(rel)
+    logical_path <- fs::path(base_rel, fs::path_dir(rel))
+
+    c(list(path = as.character(logical_path)), key)
   })
   rows <- Filter(Negate(is.null), rows)
   if (!length(rows)) {
