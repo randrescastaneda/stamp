@@ -538,12 +538,14 @@ cat(sprintf("Processing %d partitions...\n", nrow(target_partitions)))
 recent_data <- st_load_parts(
   parts_dir,
   filter = ~ year >= 2022,
-  columns = c("income", "consumption"),
   as = "dt"
 )
 
-# 3. Process
+# 3. Process (compute ratio from income and consumption)
 recent_data[, income_ratio := income / consumption]
+
+# Keep only needed columns for output
+recent_data <- recent_data[, .(country, year, income, consumption, income_ratio)]
 
 # 4. Save results to new partition set
 st_write_parts(
@@ -564,11 +566,15 @@ stamp partitions are compatible with other tools:
 library(arrow)
 ds <- open_dataset(
   parts_dir,
-  partitioning = c("country", "year", "reporting_level")
+  partitioning = schema(
+    country = string(),
+    year = int32(),
+    reporting_level = string()
+  )
 )
-ds %>%
-  filter(year > 2021) %>%
-  select(income, consumption) %>%
+ds |>
+  filter(year > 2021) |> 
+  select(income, consumption) |> 
   collect()
 
 # Or DuckDB
