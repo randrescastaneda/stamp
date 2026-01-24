@@ -27,7 +27,7 @@ This vignette demonstrates stamp's partitioning system for managing large datase
 - **Large datasets** that need to be split by country, year, region, etc.
 - **Selective loading** where you only need specific subsets (e.g., one country's data)
 - **Columnar efficiency** when using parquet/fst formats (load only needed columns)
-- **Parallel processing** where partitions can be processed independently
+- **Parallel processing** where partitions can be proceEssed independently
 
 ## Quick Start
 
@@ -196,13 +196,14 @@ head(all_data[, .(country, year, reporting_level, hh_id, income)], 3)
 
 ### Exact Match Filtering (Named List)
 
-Use a named list for exact equality matching (backward compatible):
+Use a named list for exact equality matching (backward compatible).
+Note: character partition values are normalized to lowercase in paths and loaded data. Match using lowercase or use case-insensitive formulas.
 
 ```{r filter-exact}
 # Load only USA data
 usa_data <- st_load_parts(
   parts_dir,
-  filter = list(country = "USA"),
+  filter = list(country = "usa"),
   as = "dt"
 )
 
@@ -214,7 +215,7 @@ unique(usa_data$country)
 # Multiple exact matches (AND logic)
 usa_2020 <- st_load_parts(
   parts_dir,
-  filter = list(country = "USA", year = "2020"),
+  filter = list(country = "usa", year = "2020"),
   as = "dt"
 )
 
@@ -241,11 +242,11 @@ table(recent_data$year)
 ```
 
 ```{r filter-formula-complex}
-# Complex boolean logic: (country == "USA" AND year >= 2023) OR (country == "CAN" AND year == 2020)
+# Complex boolean logic: (country == "usa" AND year >= 2023) OR (country == "can" AND year == 2020)
 complex_filter <- st_load_parts(
   parts_dir,
-  filter = ~ (country == "USA" & year >= 2023) |
-    (country == "CAN" & year == 2020),
+  filter = ~ (tolower(country) == "usa" & year >= 2023) |
+    (tolower(country) == "can" & year == 2020),
   as = "dt"
 )
 
@@ -257,7 +258,7 @@ complex_filter[, .N, by = .(country, year)][order(country, year)]
 # Use %in% for multiple values
 selected_countries <- st_load_parts(
   parts_dir,
-  filter = ~ country %in% c("USA", "MEX") & year != 2020,
+  filter = ~ tolower(country) %in% c("usa", "mex") & year != 2020,
   as = "dt"
 )
 
@@ -324,7 +325,7 @@ The real power comes from combining both:
 # Load recent USA data, only income and consumption columns
 usa_recent_finance <- st_load_parts(
   parts_dir,
-  filter = ~ country == "USA" & year >= 2022,
+  filter = ~ tolower(country) == "usa" & year >= 2022,
   columns = c("income", "consumption"),
   as = "dt"
 )

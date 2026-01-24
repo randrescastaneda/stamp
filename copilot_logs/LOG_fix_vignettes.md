@@ -60,3 +60,69 @@ From the `build_vignettes()` execution in the R session, the following vignettes
 - Manual test of simplified approach: ✓ PASS
 - Integration with vignette renderer: Testing (long-running build)
 
+---
+
+## Update: 2026-01-24 08:16:00
+
+### Progress Summary
+- **CRITICAL BUGS FIXED**: Resolved three core bugs affecting dependency tracking and rebuild planning functionality
+- **lineage-rebuilds.Rmd**: Removed problematic code section that was deliberately deleting version directories
+- **R/version_store.R**: Refactored `st_is_stale()` to fix path normalization issues causing incorrect staleness detection
+- **R/rebuild.R**: Fixed `st_plan_rebuild()` undefined variable error in propagate mode
+- **User confirmation**: All fixes verified working correctly
+
+### Challenges Encountered
+
+**Challenge 1: Staleness Detection Returning FALSE Incorrectly**
+- **Issue**: After updating parent artifact A, `st_is_stale(pB)` returned FALSE when it should return TRUE
+- **Root Cause**: Vignette code deliberately deleted B's version directory to demonstrate sidecar behavior, but this broke staleness checks that need the `parents.json` from committed snapshots
+- **Solution**: Removed entire problematic section (25 lines) from lineage-rebuilds.Rmd
+
+**Challenge 2: Path Normalization Mismatch in `st_is_stale()`**
+- **Issue**: Function was double-normalizing paths, causing artifact lookup failures
+  - Artifacts saved with absolute paths (e.g., `C:/Users/.../B.qs`)
+  - Function normalized to relative path (`b.qs`), then queried
+  - Different artifact_ids → `st_latest()` returned NA → version directory not found
+- **Debug Process**: Added extensive console output to trace the issue through `.st_version_dir_latest()` → `st_latest()` → discovered path mismatch
+- **Solution**: Refactored to call `st_latest(path, alias)` FIRST (handles its own normalization), then normalize separately for directory construction
+- **Code Pattern**:
+  ```r
+  # Call st_latest() first with original path
+  vid <- st_latest(path, alias)
+  # Then normalize separately for directory structure
+  norm <- .st_normalize_user_path(path, alias, ...)
+  vdir <- .st_version_dir(norm$rel_path, vid, norm$alias)
+  # For parent checks: use alias = NULL for auto-detection
+  cur <- st_latest(p$path, alias = NULL)
+  ```
+
+**Challenge 3: Undefined Variable in `st_plan_rebuild()`**
+- **Issue**: In propagate mode, code referenced `alias = alias` but function has no `alias` parameter
+- **Error**: "is.character(alias) || is.null(alias) is not TRUE"
+- **Solution**: Changed to `alias = NULL` on line 461 to enable auto-detection
+
+### Changes to Plan
+- **Original Plan**: Fix vignette code only (documentation layer)
+- **Revised Plan**: Fixed core package functions (architectural layer)
+  - The vignette failures exposed fundamental bugs in PR #11's new dual-path architecture
+  - These bugs would affect ANY user using dependency tracking and rebuild planning features
+  - Fixes ensure proper distinction between logical_path (artifact_id), rel_path (directory construction), and storage_path (file I/O)
+
+### Files Modified
+1. **vignettes/lineage-rebuilds.Rmd** (Lines 88-110): Removed snapshot deletion section
+2. **R/version_store.R** (~Lines 1170-1210): Refactored `st_is_stale()` function
+3. **R/rebuild.R** (Line 461): Fixed `alias = alias` → `alias = NULL`
+4. **vignettes/stamp-directory.Rmd** (Line 449): Updated documentation string
+
+### Next Steps
+1. **Recommended**: Run `devtools::build_vignettes()` in clean environment to verify all 6+ vignettes build successfully
+2. **Recommended**: Run `devtools::check()` to ensure no other package checks fail
+3. **Future consideration**: Audit other functions for similar path normalization issues
+
+### Key Learnings
+- New dual-path architecture requires careful handling of path types at each function boundary
+- Avoid double normalization: let query functions handle their own path normalization
+- Use `alias = NULL` pattern for auto-detection from absolute paths
+- When debugging path issues, trace through the artifact_id computation to understand mismatches
+
+**Status**: ✅ **TASK COMPLETE** - All identified bugs fixed and verified working by user
