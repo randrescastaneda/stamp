@@ -37,12 +37,12 @@ test_that("st_write_parts auto-partitions and saves data", {
   expect_equal(nrow(manifest), 12)
   expect_equal(sum(manifest$n_rows), nrow(dt))
 
-  # Verify files exist on disk in .st_data storage location
-  # Partitions are stored with full path: .st_data/<rel_path>/<filename>
+  # Verify files exist on disk in new storage location
+  # Partitions are stored with full path: <rel_path>/<filename>
   # manifest$path contains absolute paths, so we need to convert to relative
   # by calculating from the root directory (tdir)
   rel_paths <- fs::path_rel(manifest$path, start = tdir)
-  storage_paths <- fs::path(tdir, ".st_data", rel_paths, basename(rel_paths))
+  storage_paths <- fs::path(tdir, rel_paths, basename(rel_paths))
   expect_true(all(fs::file_exists(storage_paths)))
 
   # Verify partition structure (Hive-style paths)
@@ -96,10 +96,10 @@ test_that("st_write_parts works with base data.frame", {
   )
 
   expect_equal(nrow(manifest), 4)
-  # Verify files exist in .st_data storage location with full nested paths
+  # Verify files exist in new storage location with full nested paths
   # Convert absolute paths to relative for storage path calculation
   rel_paths <- fs::path_rel(manifest$path, start = tdir)
-  storage_paths <- fs::path(tdir, ".st_data", rel_paths, basename(rel_paths))
+  storage_paths <- fs::path(tdir, rel_paths, basename(rel_paths))
   expect_true(all(fs::file_exists(storage_paths)))
 })
 
@@ -157,7 +157,9 @@ test_that("st_write_parts with filter allows selective loading", {
 })
 
 test_that("st_load_parts supports column selection for parquet", {
-  skip("Column selection for partitions not fully functional in current codebase")
+  skip(
+    "Column selection for partitions not fully functional in current codebase"
+  )
   skip_if_not_installed("data.table")
   skip_if_not_installed("nanoparquet")
   library(data.table)
