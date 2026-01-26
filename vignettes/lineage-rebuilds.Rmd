@@ -173,7 +173,7 @@ st_plan_rebuild(pB, depth = Inf, mode = "propagate")
 ## Inspect snapshots on disk
 
 ```{r}
-vroot <- stamp:::.st_versions_root()
+vroot <- fs::path(root, "A.qs", "versions")
 fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
 ```
 

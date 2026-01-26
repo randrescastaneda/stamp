@@ -269,9 +269,9 @@ st_prune_versions <- function(
       a_path <- candidates$artifact_path[[i]]
       vid <- candidates$version_id[[i]]
 
-      # Extract rel_path from logical path (a_path)
-      root <- .st_root_dir(alias = alias)
-      rel_path <- as.character(fs::path_rel(a_path, start = root))
+      # Use .st_extract_rel_path to properly extract relative path
+      # This handles the conversion from absolute to relative correctly
+      rel_path <- .st_extract_rel_path(a_path, alias = alias)
 
       vdir <- .st_version_dir(rel_path, vid, alias = alias)
       .st_delete_version_dir_safe(vdir)

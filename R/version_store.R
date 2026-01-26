@@ -57,18 +57,32 @@
   fs::path(.st_root_dir(), st_state_get("state_dir", ".stamp"))
 }
 
-#' Versions root directory (internal)
+#' Versions root directory (internal, deprecated)
 #'
-#' Return the versions root directory under the package state directory
-#' (i.e. <root>/<state_dir>/versions). The directory is created if it
-#' does not already exist.
+#' @description
+#' **DEPRECATED**: This function returns the old centralized versions directory.
+#' In the current architecture, versions are stored per-artifact in
+#' `<artifact_folder>/versions/` rather than in a central location.
 #'
-#' @return Character scalar path to the versions root directory.
+#' For compatibility with old vignettes and examples, this still returns
+#' `<root>/<state_dir>/versions`, but this location is no longer used
+#' for storing new versions.
+#'
+#' @return Character scalar path to the (legacy) versions root directory.
 #' @keywords internal
 .st_versions_root <- function(alias = NULL) {
-  # Versions root is under the resolved state dir; no alias in path names.
+  # NOTE: This returns the OLD centralized location.
+  # New versions are stored in <artifact_folder>/versions/<version_id>/
+  # This function is kept for backward compatibility but should not be used.
   vs <- fs::path(.st_state_dir_abs(alias), "versions")
-  .st_dir_create(vs)
+  if (!fs::dir_exists(vs)) {
+    # Don't create it - we don't use this location anymore
+    cli::cli_warn(c(
+      "!" = ".st_versions_root() is deprecated.",
+      "i" = "Versions are now stored per-artifact in <artifact_folder>/versions/",
+      "i" = "The centralized versions directory is no longer used."
+    ))
+  }
   vs
 }
 
@@ -798,7 +812,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
           # For each parent, compute its artifact_id the same way we do for the child
           # Both artifact_ids are computed from the logical (absolute) path
           parent_aid <- .st_artifact_id(p$path)
-          
+
           data.table(
             parent_artifact_id = parent_aid,
             parent_version_id = as.character(p$version_id),
@@ -1170,13 +1184,13 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
 st_is_stale <- function(path, alias = NULL) {
   # Don't normalize yet - let st_latest do it
   # We just need to find the version directory for this artifact
-  
+
   # Get the latest version ID for this path
   vid <- st_latest(path, alias = alias)
   if (is.na(vid) || !nzchar(vid)) {
     return(FALSE)
   }
-  
+
   # Now normalize to get rel_path for version directory construction
   norm <- .st_normalize_user_path(
     path,
@@ -1184,16 +1198,16 @@ st_is_stale <- function(path, alias = NULL) {
     must_exist = FALSE,
     auto_switch = FALSE
   )
-  
+
   vdir <- .st_version_dir(norm$rel_path, vid, alias = norm$alias)
   if (is.na(vdir) || !nzchar(vdir)) {
     return(FALSE)
   }
-  
+
   if (!fs::dir_exists(vdir)) {
     return(FALSE)
   }
-  
+
   parents <- .st_version_read_parents(vdir)
   if (!length(parents)) {
     return(FALSE)
