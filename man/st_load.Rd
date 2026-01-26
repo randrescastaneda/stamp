@@ -46,8 +46,9 @@ version, which is equivalent to \code{NULL}. If \code{-1}, it will load the vers
 right before the current one, \code{-2} loads two versions before, and so on.
 \item Positive numbers: Error.
 \item Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
-\item Interactive selection (e.g., \code{"select"}, \code{"pick"}, \code{"choose"}) is not supported.
-Callers must pass a concrete version id or a negative integer for relative selection.
+\item Interactive selection (e.g., \code{"select"}, \code{"pick"}, \code{"choose"}) is supported
+and only non-interactive sessions must pass a concrete version id or negative
+integer for relative selection.
 }
 }
 \examples{

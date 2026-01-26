@@ -192,8 +192,7 @@ if (nrow(versions) == 0) {
     error = function(e) { spec_ok <<- FALSE; NULL }
   )
   if (isTRUE(spec_ok) && isTRUE(older_ok)) {
-    identical(specific, older)
-  }
+    cat(sprintf("Specific version matches older: %s\n", identical(specific, older))) 
 }
 
 # Reset to default versioning

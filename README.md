@@ -117,7 +117,7 @@ The data folder name is configurable via `st_opts(data_folder = ".my_data")`.
 
 ### Example Structure
 
-```
+```text
 my_project/
 ├── .stamp/              # State directory (managed by stamp)
 │   ├── catalog.json

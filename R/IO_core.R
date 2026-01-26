@@ -420,8 +420,9 @@ st_save <- function(
 #'     right before the current one, `-2` loads two versions before, and so on.
 #'   * Positive numbers: Error.
 #'   * Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
-#'   * Interactive selection (e.g., `"select"`, `"pick"`, `"choose"`) is not supported.
-#'     Callers must pass a concrete version id or a negative integer for relative selection.
+#'   * Interactive selection (e.g., `"select"`, `"pick"`, `"choose"`) is supported
+#'     and only non-interactive sessions must pass a concrete version id or negative
+#'     integer for relative selection.
 #' @examples
 #' \dontrun{
 #' # Basic usage: load latest version
@@ -828,13 +829,14 @@ st_restore <- function(
 #' Centralizes identifier resolution logic for clarity and testability.
 #'
 #' @param version Version specifier: numeric offset, "latest", "oldest", or version_id string
+#'     \item Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)
 #' @param versions_df data.frame from st_versions() with version_id column
 #' @param file Original file path for error messages
 #' @return Character scalar version_id
 #' @keywords internal
 #' @importFrom utils head
 .st_resolve_version_identifier <- function(version, versions_df, file) {
-  # Numeric: treat as offset from latest (1 = previous, 2 = two back, etc.)
+  # Numeric: treat as offset from latest (1 = current, 2 = previous, 3 = two back, etc.)
   if (is.numeric(version)) {
     if (length(version) != 1L || version != as.integer(version)) {
       cli::cli_abort("Numeric version must be a single integer offset.")
@@ -842,7 +844,14 @@ st_restore <- function(
     offset <- as.integer(version)
     if (offset < 1 || offset > nrow(versions_df)) {
       cli::cli_abort(
-        "Version offset {.val {offset}} out of range. Available versions: 1-{nrow(versions_df)}."
+        c(
+          "Version offset {.val {offset}} out of range. Available versions: 1-{nrow(versions_df)}.",
+          "i" = paste0(
+            "See available versions with {.fn st_versions}: {.code print(st_versions(\"",
+            file,
+            "\"))}"
+          )
+        )
       )
     }
     return(versions_df$version_id[offset])
