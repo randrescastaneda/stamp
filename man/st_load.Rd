@@ -9,8 +9,8 @@ st_load(file, format = NULL, version = NULL, verbose = TRUE, alias = NULL, ...)
 \arguments{
 \item{file}{path or st_path. Can be:
 \itemize{
-\item A bare filename (e.g., \code{"data.qs2"}) → loaded from alias root
-\item A path with directory (e.g., \code{"data/file.qs2"}) → loaded from \verb{<alias_root>/data/}
+\item A bare filename (e.g., \code{"data.qs2"}) → loaded from \verb{<alias_root>/data.qs2/data.qs2}
+\item A path with directory (e.g., \code{"results/model.rds"}) → loaded from \verb{<alias_root>/results/model.rds/model.rds}
 When using a path with directory and an explicit \code{alias}, the alias root must be
 a parent of the path, otherwise an error is raised.
 }}

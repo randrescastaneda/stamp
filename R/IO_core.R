@@ -823,8 +823,8 @@ st_restore <- function(
 #' Helper function for st_restore() that handles multiple version specification formats.
 #' Centralizes identifier resolution logic for clarity and testability.
 #'
-#' @param version Version specifier: numeric offset, "latest", "oldest", or version_id string
-#'     \item Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)
+#' @param version Version specifier: numeric offset, "latest", "oldest", or version_id string.
+#' Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)
 #' @param versions_df data.frame from st_versions() with version_id column
 #' @param file Original file path for error messages
 #' @return Character scalar version_id

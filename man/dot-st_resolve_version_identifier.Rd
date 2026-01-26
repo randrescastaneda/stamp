@@ -7,8 +7,8 @@
 .st_resolve_version_identifier(version, versions_df, file)
 }
 \arguments{
-\item{version}{Version specifier: numeric offset, "latest", "oldest", or version_id string
-\item Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)}
+\item{version}{Version specifier: numeric offset, "latest", "oldest", or version_id string.
+Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)}
 
 \item{versions_df}{data.frame from st_versions() with version_id column}
 

@@ -9,8 +9,8 @@ st_restore(file, version = "oldest", verbose = TRUE, alias = NULL, ...)
 \arguments{
 \item{file}{Character path to the artifact to restore. Can be:
 \itemize{
-\item Bare filename (e.g., "data.qs2") - stored in root/.st_data/
-\item Relative path with subdirs (e.g., "results/model.rds") - stored in root/.st_data/results/
+\item Bare filename (e.g., "data.qs2") - stored in \if{html}{\out{<root>}}/data.qs2/
+\item Relative path with subdirs (e.g., "results/model.rds") - stored in \if{html}{\out{<root>}}/results/model.rds/
 \item Absolute path under project root - converted to relative for versioning
 }}
 

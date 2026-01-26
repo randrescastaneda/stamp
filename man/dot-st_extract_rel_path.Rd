@@ -12,17 +12,12 @@
 \item{alias}{Optional alias}
 }
 \value{
-Character relative path from root, or NULL if path not under root/data_folder
+Character relative path from root, or NULL if path not under root
 }
 \description{
-Given an absolute path (possibly in .st_data or possibly user's original path),
-extract the relative path component from alias root.
+Given an absolute path under alias root, extract the relative path component.
 }
 \details{
-This handles both cases:
-\itemize{
-\item Path is in .st_data: extract rel_path from .st_data structure
-\item Path is under root directly: extract rel_path from root
-}
+Structure: \if{html}{\out{<root>}}/<rel_path>/\if{html}{\out{<filename>}} or \if{html}{\out{<root>}}/<rel_path>/stmeta/... or \if{html}{\out{<root>}}/<rel_path>/versions/...
 }
 \keyword{internal}
