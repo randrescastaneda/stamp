@@ -47,8 +47,8 @@ test_that("st_save and st_load create artifact, sidecar and versions", {
 
   # write and assert artifact + sidecar
   out <- st_save(x, p_qs, code = function(z) z)
-  # Check file exists in .st_data storage location
-  storage_path <- fs::path(root, ".st_data", "demo.qs2", "demo.qs2")
+  # Check file exists in new storage location
+  storage_path <- fs::path(root, "demo.qs2", "demo.qs2")
   expect_true(fs::file_exists(storage_path))
   sc <- st_read_sidecar(p_qs)
   expect_true(is.list(sc))
@@ -62,8 +62,8 @@ test_that("st_save and st_load create artifact, sidecar and versions", {
   # rds writer also works via explicit format override
   p_rds <- fs::path(root, "demo.rds")
   out2 <- st_save(x, p_rds, format = "rds", code = function(z) z)
-  # Check RDS file exists in .st_data storage location
-  storage_path_rds <- fs::path(root, ".st_data", "demo.rds", "demo.rds")
+  # Check RDS file exists in new storage location
+  storage_path_rds <- fs::path(root, "demo.rds", "demo.rds")
   expect_true(fs::file_exists(storage_path_rds))
   expect_true(nzchar(out2$version_id))
   st_opts(warn_missing_pk_on_load = TRUE)
@@ -87,8 +87,8 @@ test_that("atomic write creates temp then moves into place", {
   x <- data.frame(a = 1:2)
 
   res <- st_save(x, p, code = function(z) z)
-  # Check file exists in .st_data storage location
-  storage_path <- fs::path(root, ".st_data", "atomic.qs", "atomic.qs")
+  # Check file exists in new storage location
+  storage_path <- fs::path(root, "atomic.qs", "atomic.qs")
   expect_true(fs::file_exists(storage_path))
   # Ensure no lingering .tmp files in storage dir
   tmpfiles <- fs::dir_ls(

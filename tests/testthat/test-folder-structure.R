@@ -1,4 +1,4 @@
-test_that("st_init creates .stamp and .st_data directories", {
+test_that("st_init creates .stamp directory", {
   skip_on_cran()
 
   # Create temp directory
@@ -13,9 +13,8 @@ test_that("st_init creates .stamp and .st_data directories", {
   # Initialize stamp
   st_init()
 
-  # Check both directories exist
+  # Check .stamp directory exists
   expect_true(dir.exists(".stamp"))
-  expect_true(dir.exists(".st_data"))
 })
 
 test_that("st_save with bare filename creates correct structure", {
@@ -35,13 +34,13 @@ test_that("st_save with bare filename creates correct structure", {
   test_data <- data.frame(x = 1:5, y = letters[1:5])
   st_save(test_data, "test.qs2", verbose = FALSE)
 
-  # Check structure
-  expect_true(dir.exists(".st_data/test.qs2"))
-  expect_true(dir.exists(".st_data/test.qs2/stmeta"))
-  expect_true(dir.exists(".st_data/test.qs2/versions"))
+  # Check structure - now directly under root
+  expect_true(dir.exists("test.qs2"))
+  expect_true(dir.exists("test.qs2/stmeta"))
+  expect_true(dir.exists("test.qs2/versions"))
 
   # Check actual file exists
-  expect_true(file.exists(".st_data/test.qs2/test.qs2"))
+  expect_true(file.exists("test.qs2/test.qs2"))
 })
 
 test_that("st_load with bare filename works correctly", {
@@ -82,11 +81,11 @@ test_that("st_save with subdirectories preserves structure", {
   test_data <- data.frame(a = 6:10, b = letters[6:10])
   st_save(test_data, "subdir/nested/data.qs2", verbose = FALSE)
 
-  # Check structure is preserved
-  expect_true(dir.exists(".st_data/subdir"))
-  expect_true(dir.exists(".st_data/subdir/nested"))
-  expect_true(dir.exists(".st_data/subdir/nested/data.qs2"))
-  expect_true(file.exists(".st_data/subdir/nested/data.qs2/data.qs2"))
+  # Check structure is preserved - now directly under root
+  expect_true(dir.exists("subdir"))
+  expect_true(dir.exists("subdir/nested"))
+  expect_true(dir.exists("subdir/nested/data.qs2"))
+  expect_true(file.exists("subdir/nested/data.qs2/data.qs2"))
 })
 
 test_that("st_load with subdirectories works correctly", {
@@ -128,9 +127,9 @@ test_that("absolute path under root works", {
   test_data <- data.frame(z = 11:15)
   st_save(test_data, abs_path, verbose = FALSE)
 
-  # Check it was stored correctly
-  expect_true(dir.exists(".st_data/abs_test.qs2"))
-  expect_true(file.exists(".st_data/abs_test.qs2/abs_test.qs2"))
+  # Check it was stored correctly - now directly under root
+  expect_true(dir.exists("abs_test.qs2"))
+  expect_true(file.exists("abs_test.qs2/abs_test.qs2"))
 
   # Load it back
   loaded_data <- st_load(abs_path, verbose = FALSE)
@@ -233,8 +232,8 @@ test_that("versioning creates multiple versions", {
   versions <- st_versions("test.qs2")
   expect_equal(nrow(versions), 2)
 
-  # Check multiple version directories exist
-  version_dirs <- list.dirs(".st_data/test.qs2/versions", recursive = FALSE)
+  # Check multiple version directories exist - now directly under root
+  version_dirs <- list.dirs("test.qs2/versions", recursive = FALSE)
   expect_equal(length(version_dirs), 2)
 })
 
@@ -387,33 +386,4 @@ test_that("path normalization helper validates inputs", {
   )
   expect_equal(norm_abs$rel_path, "test.qs2")
   expect_true(norm_abs$is_absolute)
-})
-
-test_that(".st_data folder is configurable", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
-  # Change data folder name
-  st_opts(data_folder = ".my_data")
-  st_init()
-
-  # Check custom folder exists
-  expect_true(dir.exists(".my_data"))
-
-  # Save file
-  test_data <- data.frame(x = 1:5)
-  st_save(test_data, "test.qs2", verbose = FALSE)
-
-  # Check it's in custom folder
-  expect_true(file.exists(".my_data/test.qs2/test.qs2"))
-
-  # Reset for other tests
-  st_opts(data_folder = ".st_data")
 })
