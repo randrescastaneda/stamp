@@ -204,8 +204,8 @@ st_prune_versions <- function(
     # For safety, ensure creation ordering newest -> oldest with deterministic tie-breaker.
     # Use version_id as secondary key (descending) to avoid flakiness when multiple versions
     # share the identical created_at second.
-    ord <- order(vers$created_at, vers$version_id, decreasing = TRUE)
-    vers <- vers[ord]
+    # Sort ONCE with artifact_id as primary key to enable efficient grouping
+    setorder(vers, artifact_id, -created_at, -version_id)
 
     # Group by artifact and choose which versions to KEEP under policy
     split_idx <- split(seq_len(nrow(vers)), vers$artifact_id)
@@ -217,10 +217,8 @@ st_prune_versions <- function(
     for (aid in names(split_idx)) {
       idx <- split_idx[[aid]]
       block <- vers[idx]
-
-      # newest -> oldest (deterministic tie-breaker on version_id)
-      bord <- order(block$created_at, block$version_id, decreasing = TRUE)
-      block <- block[bord]
+      # No need to re-sort: data is already sorted by artifact_id, -created_at, -version_id
+      # from the single setorder() call above
 
       # Compute "keep" set from normalized policy
       kid <- .st_policy_keep_ids(block, pol)
@@ -264,45 +262,171 @@ st_prune_versions <- function(
     }
 
     # ---- destructive path (delete snapshots + update catalog) -------------------
-    # Delete version snapshot dirs
+    # Delete version snapshot dirs, tracking successes and failures
+    # Pre-allocate vectors to avoid repeated memory reallocation during loop
+    successfully_deleted <- character(nrow(candidates))
+    deleted_idx <- 0L  # Track actual number of successful deletions
+    failed_count <- 0L
+
+    # Resolve alias config once before loop to avoid redundant lookups
+    # (avoid calling .st_alias_get() 750+ times in loop)
+    cfg <- .st_alias_get(alias)
+    if (is.null(cfg)) {
+      cli::cli_abort(c(
+        "x" = "Cannot proceed with deletion: alias configuration not found.",
+        "i" = "Alias: {.val {alias %||% 'default'}}"
+      ))
+    }
+    root_abs <- .st_normalize_path(cfg$root)
+    root_abs_slash <- if (endsWith(root_abs, "/")) {
+      root_abs
+    } else {
+      paste0(root_abs, "/")
+    }
+
     for (i in seq_len(nrow(candidates))) {
       a_path <- candidates$artifact_path[[i]]
       vid <- candidates$version_id[[i]]
 
-      # Use .st_extract_rel_path to properly extract relative path
-      # This handles the conversion from absolute to relative correctly
-      rel_path <- .st_extract_rel_path(a_path, alias = alias)
+      # Inline path extraction logic using pre-computed root
+      # Avoids repeated .st_alias_get() calls and path normalization
+      path_norm <- .st_normalize_path(a_path)
 
-      # Validate that path extraction succeeded before attempting deletion
-      # If extraction fails, abort rather than proceeding with malformed path
-      if (is.null(rel_path) || is.na(rel_path) || !nzchar(rel_path)) {
-        cli::cli_abort(c(
-          "x" = "Failed to extract path for version {.val {vid}}.",
-          "i" = "Storage path: {.file {a_path}}",
-          "!" = "Aborting pruning to prevent catalog corruption."
+      # Validate path is under root
+      if (
+        !identical(path_norm, root_abs) &&
+          !startsWith(path_norm, root_abs_slash)
+      ) {
+        cli::cli_warn(c(
+          "!" = "Failed to extract path for version {.val {vid}}.",
+          "i" = "Storage path: {.file {a_path}}"
         ))
+        failed_count <- failed_count + 1L
+        next
+      }
+
+      # Extract relative path from absolute path
+      rel_path <- if (identical(path_norm, root_abs)) {
+        fs::path_file(a_path)
+      } else {
+        remainder <- substring(path_norm, nchar(root_abs_slash) + 1L)
+        parts <- strsplit(remainder, "/")[[1]]
+        if (!length(parts)) {
+          NULL
+        } else {
+          special_dirs <- c("stmeta", "versions")
+          storage_path_parts <- character()
+          for (j in seq_along(parts)) {
+            if (parts[j] %in% special_dirs) {
+              break
+            }
+            if (
+              j > 1 &&
+                parts[j] == parts[length(parts)] &&
+                j == length(parts) - 1
+            ) {
+              storage_path_parts <- c(storage_path_parts, parts[j])
+              break
+            }
+            storage_path_parts <- c(storage_path_parts, parts[j])
+          }
+          if (length(storage_path_parts)) {
+            paste(storage_path_parts, collapse = "/")
+          } else {
+            remainder
+          }
+        }
+      }
+
+      # Validate that path extraction succeeded
+      if (is.null(rel_path) || is.na(rel_path) || !nzchar(rel_path)) {
+        cli::cli_warn(c(
+          "!" = "Failed to extract path for version {.val {vid}}.",
+          "i" = "Storage path: {.file {a_path}}"
+        ))
+        failed_count <- failed_count + 1L
+        next
       }
 
       vdir <- .st_version_dir(rel_path, vid, alias = alias)
-      .st_delete_version_dir_safe(vdir)
+
+      # Attempt deletion with error handling
+      tryCatch(
+        {
+          .st_delete_version_dir_safe(vdir)
+          # Track successful deletion in pre-allocated vector
+          deleted_idx <- deleted_idx + 1L
+          successfully_deleted[deleted_idx] <- vid
+        },
+        error = function(e) {
+          cli::cli_warn(c(
+            "!" = "Failed to delete version directory {.val {vid}}.",
+            "i" = "Version dir: {.file {vdir}}",
+            "x" = "Error: {e$message}"
+          ))
+          failed_count <<- failed_count + 1L
+        }
+      )
     }
 
-    # Remove version rows from catalog
-    keep_mask <- !(cat$versions$version_id %in% candidates$version_id)
+    # Trim pre-allocated vector to actual number of successful deletions
+    successfully_deleted <- successfully_deleted[seq_len(deleted_idx)]
+
+    # Report on deletion results
+    if (failed_count > 0L) {
+      cli::cli_alert_warning(
+        "{failed_count} out of {nrow(candidates)} version{?s} failed to delete. Catalog will be updated only for successfully deleted versions."
+      )
+    }
+
+    # Remove only successfully deleted version rows from catalog
+    keep_mask <- !(cat$versions$version_id %in% successfully_deleted)
     cat$versions <- cat$versions[keep_mask]
 
     # Recompute artifacts table (n_versions & latest_version_id)
-    for (aid in unique(candidates$artifact_id)) {
-      v_rows <- cat$versions[artifact_id == aid]
-      a_idx <- which(cat$artifacts$artifact_id == aid)
-      if (!nrow(v_rows)) {
-        # No versions left → drop the artifact row
-        cat$artifacts <- cat$artifacts[-a_idx]
+    # Use vectorized data.table operations instead of row-by-row updates
+    # Get unique affected artifact IDs (those with deletions or no remaining versions)
+    affected_artifacts <- unique(candidates$artifact_id)
+
+    # For each affected artifact, compute updated stats from remaining versions
+    artifact_updates <- cat$versions[
+      artifact_id %in% affected_artifacts,
+      {
+        if (.N == 0L) {
+          # No versions remain for this artifact - will be deleted below
+          data.table(
+            artifact_id = artifact_id[1L],
+            n_versions = 0L,
+            latest_version_id = NA_character_
+          )
+        } else {
+          # Find newest version (already ordered by created_at desc from merge)
+          ord <- order(created_at, decreasing = TRUE)
+          list(
+            artifact_id = artifact_id[1L],
+            n_versions = .N,
+            latest_version_id = version_id[ord[1L]]
+          )
+        }
+      },
+      by = artifact_id
+    ]
+
+    # Update artifacts with new stats (by-reference update)
+    for (i in seq_len(nrow(artifact_updates))) {
+      aid <- artifact_updates$artifact_id[i]
+      if (artifact_updates$n_versions[i] == 0L) {
+        # Remove artifacts with no remaining versions
+        cat$artifacts <- cat$artifacts[artifact_id != aid]
       } else {
-        ord <- order(v_rows$created_at, decreasing = TRUE)
-        latest_vid <- v_rows$version_id[[ord[1L]]]
-        cat$artifacts$latest_version_id[a_idx] <- latest_vid
-        cat$artifacts$n_versions[a_idx] <- nrow(v_rows)
+        # Update n_versions and latest_version_id for this artifact
+        a_idx <- which(cat$artifacts$artifact_id == aid)
+        if (length(a_idx) > 0L) {
+          cat$artifacts$latest_version_id[
+            a_idx
+          ] <- artifact_updates$latest_version_id[i]
+          cat$artifacts$n_versions[a_idx] <- artifact_updates$n_versions[i]
+        }
       }
     }
 
