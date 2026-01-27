@@ -265,7 +265,7 @@ st_prune_versions <- function(
     # Delete version snapshot dirs, tracking successes and failures
     # Pre-allocate vectors to avoid repeated memory reallocation during loop
     successfully_deleted <- character(nrow(candidates))
-    deleted_idx <- 0L  # Track actual number of successful deletions
+    deleted_idx <- 0L # Track actual number of successful deletions
     failed_count <- 0L
 
     # Resolve alias config once before loop to avoid redundant lookups
