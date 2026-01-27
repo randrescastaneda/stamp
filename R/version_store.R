@@ -71,19 +71,8 @@
 #' @return Character scalar path to the (legacy) versions root directory.
 #' @keywords internal
 .st_versions_root <- function(alias = NULL) {
-  # NOTE: This returns the OLD centralized location.
-  # New versions are stored in <artifact_folder>/versions/<version_id>/
-  # This function is kept for backward compatibility but should not be used.
-  vs <- fs::path(.st_state_dir_abs(alias), "versions")
-  if (!fs::dir_exists(vs)) {
-    # Don't create it - we don't use this location anymore
-    cli::cli_warn(c(
-      "!" = ".st_versions_root() is deprecated.",
-      "i" = "Versions are now stored per-artifact in <artifact_folder>/versions/",
-      "i" = "The centralized versions directory is no longer used."
-    ))
-  }
-  vs
+  .Deprecated(msg = "Versions are now stored per-artifact in <artifact_folder>/versions/")
+  fs::path(.st_state_dir_abs(alias), "versions")
 }
 
 #' Version directory for an artifact (internal)
@@ -709,7 +698,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
           path = as.character(path),
           format = as.character(format),
           latest_version_id = as.character(latest_version_id),
-          n_versions = as.integer(1L)
+          n_versions = 1L
         )
       ),
       use.names = TRUE,

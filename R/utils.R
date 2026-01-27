@@ -113,11 +113,7 @@
 
   # Path is under root
   if (startsWith(path_norm, root_abs_slash)) {
-    remainder <- sub(
-      paste0("^", gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", root_abs_slash)),
-      "",
-      path_norm
-    )
+    remainder <- substring(path_norm, nchar(root_abs_slash) + 1L)
 
     # Extract the rel_path part (before /stmeta, /versions, or the final duplicate filename)
     # Format: <rel_path>/<filename>/<filename> or <rel_path>/stmeta/... or <rel_path>/versions/...
