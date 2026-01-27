@@ -88,12 +88,16 @@ st_save(xC1, pC, code = function(z) z)
 Inspect store & catalog:
 
 ```{r}
-vroot <- stamp:::.st_versions_root()
-fs::dir_tree(vroot, recurse = FALSE, all = TRUE)
+# Show version directories for each artifact (now stored per-artifact)
+# Versions are stored in <artifact_folder>/versions/<version_id>/
+if (fs::dir_exists(fs::path(root, "A.qs", "versions"))) {
+  cat("A.qs versions:\n")
+  fs::dir_tree(fs::path(root, "A.qs", "versions"), recurse = 1)
+}
 
-st_versions(pA)
-st_versions(pB)
-st_versions(pC)
+print(st_versions(pA))
+print(st_versions(pB))
+print(st_versions(pC))
 ```
 
 ---

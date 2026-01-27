@@ -26,16 +26,23 @@
   invisible(NULL)
 }
 
-#' Get the absolute path to the data folder (internal)
+
+#' Compute file storage directory (internal)
 #'
-#' Returns the absolute path to the data folder for the given alias.
-#' The data folder name is configurable via st_opts(data_folder = "...").
+#' Given a relative path from alias root, compute the storage directory
+#' where the file, versions, and metadata will be stored.
 #'
-#' @param alias Optional alias; if NULL, uses "default"
-#' @return Character scalar absolute path to the data folder.
+#' Structure: <root>/<rel_path>/
+#'
+#' Examples:
+#'   - rel_path: "data.qs2" → storage: <root>/data.qs2/
+#'   - rel_path: "dirA/file.qs" → storage: <root>/dirA/file.qs/
+#'
+#' @param rel_path Character relative path from alias root (includes filename)
+#' @param alias Optional alias
+#' @return Character scalar absolute path to the file storage directory
 #' @keywords internal
-.st_data_folder <- function(alias = NULL) {
-  # Get alias configuration
+.st_file_storage_dir <- function(rel_path, alias = NULL) {
   cfg <- .st_alias_get(alias)
   if (is.null(cfg)) {
     if (is.null(alias) || identical(alias, "default")) {
@@ -50,40 +57,19 @@
       ))
     }
   }
-
-  # Get data folder name from options
-  data_folder_name <- st_opts("data_folder", .get = TRUE) %||% ".st_data"
-
-  # Return absolute path: <root>/<data_folder_name>
-  fs::path(cfg$root, data_folder_name)
+  # Storage directory: <root>/<rel_path>/
+  fs::path(cfg$root, rel_path)
 }
 
-#' Compute file storage directory in .st_data structure (internal)
-#'
-#' Given a relative path from alias root, compute the storage directory
-#' where the file, versions, and metadata will be stored.
-#'
-#' Structure: <data_folder>/<rel_path>/
-#'
-#' Examples:
-#'   - rel_path: "data.qs2" → storage: <data_folder>/data.qs2/
-#'   - rel_path: "dirA/file.qs" → storage: <data_folder>/dirA/file.qs/
-#'
-#' @param rel_path Character relative path from alias root (includes filename)
-#' @param alias Optional alias
-#' @return Character scalar absolute path to the file storage directory
-#' @keywords internal
-.st_file_storage_dir <- function(rel_path, alias = NULL) {
-  data_folder <- .st_data_folder(alias)
-  # Storage directory: <data_folder>/<rel_path>/
-  fs::path(data_folder, rel_path)
-}
-
-#' Compute the actual artifact path in .st_data structure (internal)
+#' Compute the actual artifact path (internal)
 #'
 #' Returns the path where the actual user file will be stored.
 #'
-#' Structure: <file_storage_dir>/<filename>
+#' Structure: <root>/<rel_path>/<filename>
+#'
+#' Examples:
+#'   - rel_path: "data.qs2" → artifact: <root>/data.qs2/data.qs2
+#'   - rel_path: "dirA/file.qs" → artifact: <root>/dirA/file.qs/file.qs
 #'
 #' @param rel_path Character relative path from alias root
 #' @param alias Optional alias
@@ -97,16 +83,13 @@
 
 #' Extract relative path from an absolute path (internal)
 #'
-#' Given an absolute path (possibly in .st_data or possibly user's original path),
-#' extract the relative path component from alias root.
+#' Given an absolute path under alias root, extract the relative path component.
 #'
-#' This handles both cases:
-#' - Path is in .st_data: extract rel_path from .st_data structure
-#' - Path is under root directly: extract rel_path from root
+#' Structure: <root>/<rel_path>/<filename> or <root>/<rel_path>/stmeta/... or <root>/<rel_path>/versions/...
 #'
 #' @param abs_path Character absolute path
 #' @param alias Optional alias
-#' @return Character relative path from root, or NULL if path not under root/data_folder
+#' @return Character relative path from root, or NULL if path not under root
 #' @keywords internal
 .st_extract_rel_path <- function(abs_path, alias = NULL) {
   cfg <- .st_alias_get(alias)
@@ -116,42 +99,28 @@
 
   root_abs <- .st_normalize_path(cfg$root)
   path_norm <- .st_normalize_path(abs_path)
-  data_folder <- .st_data_folder(alias)
-  data_folder_norm <- .st_normalize_path(data_folder)
 
-  # Case 1: Path is in .st_data structure
-  data_folder_slash <- if (endsWith(data_folder_norm, "/")) {
-    data_folder_norm
+  root_abs_slash <- if (endsWith(root_abs, "/")) {
+    root_abs
   } else {
-    paste0(data_folder_norm, "/")
+    paste0(root_abs, "/")
   }
 
-  if (startsWith(path_norm, data_folder_slash)) {
-    # Extract relative path from data folder
-    # Format: <data_folder>/<rel_path>/<filename>/<filename>
-    # or: <data_folder>/<rel_path>/stmeta/...
-    # or: <data_folder>/<rel_path>/versions/...
+  # Path is exactly the root
+  if (identical(path_norm, root_abs)) {
+    return(fs::path_file(abs_path))
+  }
 
-    remainder <- sub(
-      paste0(
-        "^",
-        gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", data_folder_slash)
-      ),
-      "",
-      path_norm
-    )
+  # Path is under root
+  if (startsWith(path_norm, root_abs_slash)) {
+    remainder <- substring(path_norm, nchar(root_abs_slash) + 1L)
 
     # Extract the rel_path part (before /stmeta, /versions, or the final duplicate filename)
-    # This is tricky - we need to find where the "storage directory" ends
-
-    # Simple heuristic: split by "/" and reconstruct until we hit a special dir or duplicate filename
+    # Format: <rel_path>/<filename>/<filename> or <rel_path>/stmeta/... or <rel_path>/versions/...
     parts <- strsplit(remainder, "/")[[1]]
     if (!length(parts)) {
       return(NULL)
     }
-
-    # Find the storage dir path (everything before /stmeta, /versions, or duplicate filename)
-    filename <- parts[length(parts)]
 
     # Check if the path contains our special subdirs or duplicate filename
     special_dirs <- c("stmeta", "versions")
@@ -173,25 +142,9 @@
     if (length(storage_path_parts)) {
       return(paste(storage_path_parts, collapse = "/"))
     }
-  }
 
-  # Case 2: Path is directly under root (old behavior, for compatibility)
-  root_abs_slash <- if (endsWith(root_abs, "/")) {
-    root_abs
-  } else {
-    paste0(root_abs, "/")
-  }
-
-  if (identical(path_norm, root_abs)) {
-    return(fs::path_file(abs_path))
-  }
-
-  if (startsWith(path_norm, root_abs_slash)) {
-    return(sub(
-      paste0("^", gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", root_abs_slash)),
-      "",
-      path_norm
-    ))
+    # If no special structure detected, return the full remainder
+    return(remainder)
   }
 
   NULL
@@ -211,7 +164,7 @@
 #'
 #' **Return Structure:**
 #' - `logical_path`: The user's path relative to root (for catalog, API)
-#' - `storage_path`: Physical location in .st_data where file lives
+#' - `storage_path`: Physical location where file lives (<root>/<rel_path>/<filename>)
 #' - `rel_path`: Relative path from root (same as logical but may differ in format)
 #' - `alias`: The alias used
 #' - `is_absolute`: Whether user provided absolute path
@@ -226,7 +179,7 @@
 #' # Relative path
 #' result <- .st_normalize_user_path("dirA/file.qs")
 #' # result$logical_path = "dirA/file.qs"
-#' # result$storage_path = "<root>/.st_data/dirA/file.qs/file.qs"
+#' # result$storage_path = "<root>/dirA/file.qs/file.qs"
 #' # result$rel_path = "dirA/file.qs"
 #'
 #' # Absolute path
@@ -374,7 +327,7 @@
     rel_path <- user_path
   }
 
-  # Compute storage paths in .st_data structure
+  # Compute storage paths
   storage_dir <- .st_file_storage_dir(rel_path, alias = alias_to_use)
   filename <- fs::path_file(rel_path)
   storage_path <- fs::path(storage_dir, filename)
@@ -394,8 +347,8 @@
 
   # Return standardized structure
   list(
-    logical_path = logical_path_abs,  # Absolute path for artifact identification
-    storage_path = storage_path, # Physical path in .st_data - for file I/O
+    logical_path = logical_path_abs, # Absolute path for artifact identification
+    storage_path = storage_path, # Physical path for file I/O
     rel_path = rel_path, # Relative path from root
     alias = alias_to_use, # Alias used
     is_absolute = is_absolute, # Whether user provided absolute path

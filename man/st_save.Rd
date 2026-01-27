@@ -25,8 +25,8 @@ st_save(
 
 \item{file}{destination path (character or st_path). Can be:
 \itemize{
-\item A bare filename (e.g., \code{"data.qs2"}) → saved directly under the alias root
-\item A path with directory (e.g., \code{"data/file.qs2"}) → saved under \verb{<alias_root>/data/}
+\item A bare filename (e.g., \code{"data.qs2"}) → saved to \verb{<alias_root>/data.qs2/data.qs2}
+\item A path with directory (e.g., \code{"results/model.rds"}) → saved to \verb{<alias_root>/results/model.rds/model.rds}
 When using a path with directory and an explicit \code{alias}, the alias root must be
 a parent of the path, otherwise an error is raised.
 }}

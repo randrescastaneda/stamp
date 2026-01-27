@@ -2,16 +2,20 @@
 % Please edit documentation in R/version_store.R
 \name{.st_versions_root}
 \alias{.st_versions_root}
-\title{Versions root directory (internal)}
+\title{Versions root directory (internal, deprecated)}
 \usage{
 .st_versions_root(alias = NULL)
 }
 \value{
-Character scalar path to the versions root directory.
+Character scalar path to the (legacy) versions root directory.
 }
 \description{
-Return the versions root directory under the package state directory
-(i.e. \if{html}{\out{<root>}}/<state_dir>/versions). The directory is created if it
-does not already exist.
+\strong{DEPRECATED}: This function returns the old centralized versions directory.
+In the current architecture, versions are stored per-artifact in
+\verb{<artifact_folder>/versions/} rather than in a central location.
+
+For compatibility with old vignettes and examples, this still returns
+\verb{<root>/<state_dir>/versions}, but this location is no longer used
+for storing new versions.
 }
 \keyword{internal}

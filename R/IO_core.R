@@ -81,11 +81,6 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   .st_dir_create(fs::path(sd, "temp"))
   .st_dir_create(fs::path(sd, "logs"))
 
-  # Create data folder (where user files will be stored)
-  data_folder_name <- st_opts("data_folder", .get = TRUE) %||% ".st_data"
-  data_folder <- fs::path(root_abs, data_folder_name)
-  .st_dir_create(data_folder)
-
   # Register alias configuration for multi-folder management
   .st_alias_register(
     alias,
@@ -156,8 +151,8 @@ print.st_path <- function(x, ...) {
 #'
 #' @param x object to save
 #' @param file destination path (character or st_path). Can be:
-#'   - A bare filename (e.g., `"data.qs2"`) → saved directly under the alias root
-#'   - A path with directory (e.g., `"data/file.qs2"`) → saved under `<alias_root>/data/`
+#'   - A bare filename (e.g., `"data.qs2"`) → saved to `<alias_root>/data.qs2/data.qs2`
+#'   - A path with directory (e.g., `"results/model.rds"`) → saved to `<alias_root>/results/model.rds/model.rds`
 #'   When using a path with directory and an explicit `alias`, the alias root must be
 #'   a parent of the path, otherwise an error is raised.
 #' @param format optional format override ("qs2" | "rds" | "csv" | "fst" | "json")
@@ -396,8 +391,8 @@ st_save <- function(
 
 #' Load an object from disk (format auto-detected; optional integrity checks)
 #' @param file path or st_path. Can be:
-#'   - A bare filename (e.g., `"data.qs2"`) → loaded from alias root
-#'   - A path with directory (e.g., `"data/file.qs2"`) → loaded from `<alias_root>/data/`
+#'   - A bare filename (e.g., `"data.qs2"`) → loaded from `<alias_root>/data.qs2/data.qs2`
+#'   - A path with directory (e.g., `"results/model.rds"`) → loaded from `<alias_root>/results/model.rds/model.rds`
 #'   When using a path with directory and an explicit `alias`, the alias root must be
 #'   a parent of the path, otherwise an error is raised.
 #' @param format optional format override
@@ -726,8 +721,8 @@ st_switch <- function(alias) {
 #'
 #' @param file Character path to the artifact to restore. Can be:
 #'   \itemize{
-#'     \item Bare filename (e.g., "data.qs2") - stored in root/.st_data/
-#'     \item Relative path with subdirs (e.g., "results/model.rds") - stored in root/.st_data/results/
+#'     \item Bare filename (e.g., "data.qs2") - stored in <root>/data.qs2/
+#'     \item Relative path with subdirs (e.g., "results/model.rds") - stored in <root>/results/model.rds/
 #'     \item Absolute path under project root - converted to relative for versioning
 #'   }
 #' @param version Version identifier to restore to. Can be:
@@ -828,8 +823,8 @@ st_restore <- function(
 #' Helper function for st_restore() that handles multiple version specification formats.
 #' Centralizes identifier resolution logic for clarity and testability.
 #'
-#' @param version Version specifier: numeric offset, "latest", "oldest", or version_id string
-#'     \item Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)
+#' @param version Version specifier: numeric offset, "latest", "oldest", or version_id string.
+#' Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)
 #' @param versions_df data.frame from st_versions() with version_id column
 #' @param file Original file path for error messages
 #' @return Character scalar version_id

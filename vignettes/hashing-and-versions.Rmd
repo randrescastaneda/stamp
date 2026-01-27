@@ -167,9 +167,8 @@ x <- data.frame(a = 1:5)
 st_save(x, p, code = function(z) z)
 
 # Now list the versions tree
-vroot <- stamp:::.st_versions_root()
+vroot <- fs::path(root, "demo.qs", "versions")
 fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
-
 
 ```
 

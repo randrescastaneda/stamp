@@ -84,9 +84,9 @@ test_that("versions stored based on path location, not alias parameter", {
   expect_equal(nrow(versionsB), 0L)
 
   # Verify the version exists in LocA's storage (not in LocB)
-  # Versions are stored in .st_data/<file>/versions/ structure
-  storageA <- fs::path(rootA, ".st_data", "data.qs", "versions")
-  storageB <- fs::path(rootB, ".st_data", "data.qs", "versions")
+  # Versions are stored in <file>/versions/ structure
+  storageA <- fs::path(rootA, "data.qs", "versions")
+  storageB <- fs::path(rootB, "data.qs", "versions")
 
   expect_true(fs::dir_exists(storageA))
   expect_false(fs::dir_exists(storageB))

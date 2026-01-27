@@ -160,7 +160,7 @@ if (nrow(versions) == 0) {
       cat("Previous (v-1): snapshot not available; skipping.\n")
     }
   }
-  
+}
   # Load two versions back (version = -2) when available, else oldest by ID
   older_ok <- TRUE
   if (nrow(versions) >= 3) {

@@ -2,13 +2,20 @@
 
 ## Major Changes
 
-### New Folder Structure
+### Simplified Storage Structure
 * **BREAKING**: Changed artifact storage structure to separate state and data:
-  - `.stamp/` now contains only state (catalog, versions, temp, logs)
-  - `.st_data/` is the new default data folder for storing artifacts
-  - Artifacts stored as `.st_data/<filename>/<filename>` or `.st_data/<subdir>/<filename>/<filename>`
-  - Data folder name configurable via `st_opts(data_folder = "...")`
-  - Improved path normalization with support for bare filenames, relative paths, and absolute paths
+  - `.stamp/` contains only state (catalog, temp, logs)
+  - Artifacts stored directly as `<path>/<filename>/<filename>` under project root
+  - Example: `st_save(data, "results/model.rds")` → `<root>/results/model.rds/model.rds`
+  - Bare filenames stored directly under root: `st_save(data, "data.qs2")` → `<root>/data.qs2/data.qs2`
+  - More transparent storage location matching user's mental model
+
+### Distributed Version Storage
+* **BREAKING**: Version history now stored per-artifact instead of centralized:
+  - Old: `<root>/.stamp/versions/<version_id>/`
+  - New: `<root>/<path>/<filename>/versions/<version_id>/`
+  - Each artifact folder contains its own `versions/` directory
+  - `.st_versions_root()` deprecated with warning (may be removed in future)
 
 ### New Functions
 * **NEW**: `st_restore()` - Restore artifacts to previous versions
@@ -19,28 +26,42 @@
 
 ## Path Handling
 * **Enhanced**: Centralized path normalization via `.st_normalize_user_path()`
-  - Accepts bare filenames (stored in root/.st_data/)
+  - Accepts bare filenames (stored directly under root)
   - Accepts relative paths with subdirectories
   - Accepts absolute paths under project root (converted to relative)
   - Consistent path handling across all save/load/query functions
+  - Improved Windows path handling in `st_prune_versions()`
+
+## Bug Fixes
+* **FIXED**: Path normalization issue in `st_prune_versions()` on Windows
+  - Replaced `fs::path_rel()` with `.st_extract_rel_path()` to prevent malformed paths
+  - Fixes deletion failures with excessive `../` components in temp directory hierarchies
 
 ## Testing
-* **NEW**: Comprehensive test suite for new folder structure (`test-folder-structure.R`)
-  - 45 tests covering save/load, subdirectories, versioning, queries, and configuration
+* **UPDATED**: Comprehensive test suite updated for new storage structure
+  - All tests now use direct-path storage (removed `.st_data` references)
+  - Tests covering save/load, subdirectories, versioning, queries work with new architecture
 * **NEW**: Test suite for `st_restore()` functionality (`test-restore.R`)
   - 11 tests covering restoration scenarios and error handling
+* **VERIFIED**: Performance testing with 1,000 versions (50 artifacts × 20 versions)
+  - Pruning performance: ~242 versions/second
 
 ## Documentation
-* **Updated**: README now documents the new folder structure
-* **Updated**: Function documentation reflects new path handling
+* **UPDATED**: README now documents the simplified storage structure
+* **UPDATED**: Function documentation reflects direct-path storage
+* **DEPRECATED**: `.st_versions_root()` marked as deprecated with migration guidance
 
 ## Internal Changes
-* All core functions updated to use new path structure:
+* All core functions updated to use direct-path storage structure:
+  - `st_init()` 
   - `st_save()`, `st_load()`, `st_load_version()`
   - `st_info()`, `st_versions()`, `st_changed()`
   - `st_rebuild()`, `st_prune_versions()`
   - Catalog operations, sidecar management, version store
-* Path helpers reorganized for better maintainability
+* Path helpers reorganized for better maintainability:
+  - Updated `.st_file_storage_dir()` to work directly with root
+  - Simplified `.st_extract_rel_path()` to only handle paths under root
+  - Enhanced path extraction to prevent Windows path resolution issues
 
 # stamp 0.0.8
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{.st_file_storage_dir}
 \alias{.st_file_storage_dir}
-\title{Compute file storage directory in .st_data structure (internal)}
+\title{Compute file storage directory (internal)}
 \usage{
 .st_file_storage_dir(rel_path, alias = NULL)
 }
@@ -19,12 +19,12 @@ Given a relative path from alias root, compute the storage directory
 where the file, versions, and metadata will be stored.
 }
 \details{
-Structure: <data_folder>/<rel_path>/
+Structure: \if{html}{\out{<root>}}/<rel_path>/
 
 Examples:
 \itemize{
-\item rel_path: "data.qs2" → storage: <data_folder>/data.qs2/
-\item rel_path: "dirA/file.qs" → storage: <data_folder>/dirA/file.qs/
+\item rel_path: "data.qs2" → storage: \if{html}{\out{<root>}}/data.qs2/
+\item rel_path: "dirA/file.qs" → storage: \if{html}{\out{<root>}}/dirA/file.qs/
 }
 }
 \keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{.st_artifact_path}
 \alias{.st_artifact_path}
-\title{Compute the actual artifact path in .st_data structure (internal)}
+\title{Compute the actual artifact path (internal)}
 \usage{
 .st_artifact_path(rel_path, alias = NULL)
 }
@@ -18,6 +18,12 @@ Character scalar absolute path to the artifact file
 Returns the path where the actual user file will be stored.
 }
 \details{
-Structure: <file_storage_dir>/\if{html}{\out{<filename>}}
+Structure: \if{html}{\out{<root>}}/<rel_path>/\if{html}{\out{<filename>}}
+
+Examples:
+\itemize{
+\item rel_path: "data.qs2" → artifact: \if{html}{\out{<root>}}/data.qs2/data.qs2
+\item rel_path: "dirA/file.qs" → artifact: \if{html}{\out{<root>}}/dirA/file.qs/file.qs
+}
 }
 \keyword{internal}

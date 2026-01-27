@@ -472,22 +472,17 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
     }
   }
 
-  # Partitions are stored under the root's .st_data directory
-  # The directory structure is: root/.st_data/<base_rel_path>/<partition_path>/<filename>
-  # First, find the root directory by looking for .stamp file
-  root <- .st_root_dir()
+  # Partitions are stored under the root directory (not in .st_data anymore)
+  # The directory structure is: root/<base_rel_path>/<partition_path>/<filename>
+  # First, find the root directory from current working directory or alias
+  # For now, assume base is relative to current directory
+  base_abs <- fs::path_abs(base)
 
-  # Calculate base relative to root
-  base_abs <- normalizePath(base, winslash = "/", mustWork = FALSE)
-  root_abs <- normalizePath(root, winslash = "/", mustWork = FALSE)
-  base_rel <- fs::path_rel(base_abs, start = root_abs)
-
-  # Partitions are stored at: root/.st_data/base_rel/<partition_path>/<filename>
-  search_dir <- fs::path(root, ".st_data", base_rel)
-
-  if (!fs::dir_exists(search_dir)) {
+  if (!fs::dir_exists(base_abs)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
+
+  search_dir <- base_abs
 
   exts <- unique(.st_known_exts())
   globs <- paste0("*.", exts)
@@ -537,13 +532,13 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
       return(NULL)
     }
 
-    # Construct the logical path (relative to root) for loading
-    # The structure is: base_rel/partition_path, where partition_path is rel minus the filename
+    # Construct the logical path for loading
+    # The partition path is now relative to the base directory
     # e.g., if rel = "country=can/year=2021/part.parquet/part.parquet"
-    # and base_rel = "parts"
-    # we want logical path = "parts/country=can/year=2021/part.parquet"
-    # which is: base_rel + dirname(rel)
-    logical_path <- fs::path(base_rel, fs::path_dir(rel))
+    # we want logical path = base + dirname(rel) which gives us the storage dir
+    # Actually, for st_load we need just base + the partition hierarchy
+    # The rel includes the duplicate filename at the end, so path_dir gives us what we need
+    logical_path <- fs::path(base, fs::path_dir(rel))
 
     c(list(path = as.character(logical_path)), key)
   })

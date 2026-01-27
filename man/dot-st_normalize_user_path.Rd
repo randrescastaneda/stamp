@@ -39,7 +39,7 @@ the alias root, and returns a standardized structure that all other functions ca
 \strong{Return Structure:}
 \itemize{
 \item \code{logical_path}: The user's path relative to root (for catalog, API)
-\item \code{storage_path}: Physical location in .st_data where file lives
+\item \code{storage_path}: Physical location where file lives (\if{html}{\out{<root>}}/<rel_path>/\if{html}{\out{<filename>}})
 \item \code{rel_path}: Relative path from root (same as logical but may differ in format)
 \item \code{alias}: The alias used
 \item \code{is_absolute}: Whether user provided absolute path
@@ -50,7 +50,7 @@ the alias root, and returns a standardized structure that all other functions ca
 # Relative path
 result <- .st_normalize_user_path("dirA/file.qs")
 # result$logical_path = "dirA/file.qs"
-# result$storage_path = "<root>/.st_data/dirA/file.qs/file.qs"
+# result$storage_path = "<root>/dirA/file.qs/file.qs"
 # result$rel_path = "dirA/file.qs"
 
 # Absolute path
