@@ -273,6 +273,16 @@ st_prune_versions <- function(
       # This handles the conversion from absolute to relative correctly
       rel_path <- .st_extract_rel_path(a_path, alias = alias)
 
+      # Validate that path extraction succeeded before attempting deletion
+      # If extraction fails, abort rather than proceeding with malformed path
+      if (is.null(rel_path) || is.na(rel_path) || !nzchar(rel_path)) {
+        cli::cli_abort(c(
+          "x" = "Failed to extract path for version {.val {vid}}.",
+          "i" = "Storage path: {.file {a_path}}",
+          "!" = "Aborting pruning to prevent catalog corruption."
+        ))
+      }
+
       vdir <- .st_version_dir(rel_path, vid, alias = alias)
       .st_delete_version_dir_safe(vdir)
     }
