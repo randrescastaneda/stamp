@@ -40,6 +40,7 @@ reference:
       - st_load
       - st_load_parts
       - st_load_version
+      - st_restore
 
   - title: "Versioning & Catalog"
     contents:
