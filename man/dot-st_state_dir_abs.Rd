@@ -4,7 +4,7 @@
 \alias{.st_state_dir_abs}
 \title{Absolute state directory path (internal)}
 \usage{
-.st_state_dir_abs()
+.st_state_dir_abs(alias = NULL)
 }
 \value{
 Character scalar absolute path to the state directory.

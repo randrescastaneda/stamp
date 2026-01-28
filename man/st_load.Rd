@@ -4,10 +4,16 @@
 \alias{st_load}
 \title{Load an object from disk (format auto-detected; optional integrity checks)}
 \usage{
-st_load(file, format = NULL, version = NULL, verbose = TRUE, ...)
+st_load(file, format = NULL, version = NULL, verbose = TRUE, alias = NULL, ...)
 }
 \arguments{
-\item{file}{path or st_path}
+\item{file}{path or st_path. Can be:
+\itemize{
+\item A bare filename (e.g., \code{"data.qs2"}) → loaded from \verb{<alias_root>/data.qs2/data.qs2}
+\item A path with directory (e.g., \code{"results/model.rds"}) → loaded from \verb{<alias_root>/results/model.rds/model.rds}
+When using a path with directory and an explicit \code{alias}, the alias root must be
+a parent of the path, otherwise an error is raised.
+}}
 
 \item{format}{optional format override}
 
@@ -17,6 +23,10 @@ of an artifact. See details.}
 \item{verbose}{logical; if FALSE, suppress informational messages and package-generated
 warnings (default TRUE). When \code{FALSE}, warnings about file/content hash
 mismatches and a missing primary key recorded by \code{st_load()} will not be shown.}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.
+If \code{NULL} (default), uses the default alias. If the default alias does not
+exist, an error is raised. Use aliases to operate across multiple stamp folders.}
 
 \item{...}{forwarded to format reader}
 }
@@ -36,8 +46,9 @@ version, which is equivalent to \code{NULL}. If \code{-1}, it will load the vers
 right before the current one, \code{-2} loads two versions before, and so on.
 \item Positive numbers: Error.
 \item Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
-\item \code{"select"}, \code{"pick"}, or \code{"choose"}: displays an interactive menu to select from
-available versions (only in interactive R sessions).
+\item Interactive selection (e.g., \code{"select"}, \code{"pick"}, \code{"choose"}) is supported
+and only non-interactive sessions must pass a concrete version id or negative
+integer for relative selection.
 }
 }
 \examples{
@@ -53,8 +64,7 @@ vid <- st_versions("data/mydata.rds")$version_id[3]
 specific <- st_load("data/mydata.rds", version = vid)
 
 # Interactive menu (in interactive sessions only)
-selected <- st_load("data/mydata.rds", version = "select")
-# or use "pick" or "choose"
-selected <- st_load("data/mydata.rds", version = "pick")
+# Interactive selection is not supported in non-interactive contexts.
+# Pass explicit version id or a negative integer.
 }
 }

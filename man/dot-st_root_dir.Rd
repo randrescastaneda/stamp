@@ -4,7 +4,7 @@
 \alias{.st_root_dir}
 \title{Project root directory recorded by st_init() (internal)}
 \usage{
-.st_root_dir()
+.st_root_dir(alias = NULL)
 }
 \value{
 Character scalar absolute path to project root.

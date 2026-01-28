@@ -4,7 +4,7 @@
 \alias{st_prune_versions}
 \title{Prune stored versions according to a retention policy}
 \usage{
-st_prune_versions(path = NULL, policy = Inf, dry_run = TRUE)
+st_prune_versions(path = NULL, policy = Inf, dry_run = TRUE, alias = NULL)
 }
 \arguments{
 \item{path}{Optional character vector of artifact paths to restrict pruning.
@@ -19,6 +19,8 @@ newer than \emph{days}; union of the two conditions)
 }}
 
 \item{dry_run}{logical; if TRUE, only report what would be pruned.}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 Invisibly, a data.frame of pruned (or would-prune) versions with

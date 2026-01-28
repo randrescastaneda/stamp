@@ -4,14 +4,16 @@
 \alias{.st_version_commit_files}
 \title{Commit artifact and sidecars into a version snapshot (internal)}
 \usage{
-.st_version_commit_files(artifact_path, version_id, parents = NULL)
+.st_version_commit_files(rel_path, version_id, parents = NULL, alias = NULL)
 }
 \arguments{
-\item{artifact_path}{Path to the artifact file on disk.}
+\item{rel_path}{Relative path from alias root (includes filename).}
 
 \item{version_id}{Version identifier for the snapshot.}
 
 \item{parents}{Optional list of parent descriptors to write into parents.json.}
+
+\item{alias}{Optional alias.}
 }
 \value{
 Invisibly returns the version directory path.

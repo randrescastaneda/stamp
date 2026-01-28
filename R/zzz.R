@@ -22,10 +22,9 @@
 
 # Canonical extension -> logical format mapping (maintainer-visible)
 .st_extmap_defaults <- data.frame(
-  ext = c("qs", "qs2", "rds", "csv", "fst", "json"),
-  format = c("qs", "qs2", "rds", "csv", "fst", "json"),
+  ext = c("qs2", "rds", "csv", "fst", "json"),
+  format = c("qs2", "rds", "csv", "fst", "json"),
   desc = c(
-    "Legacy qs binary format (uses package 'qs')",
     "New qs2 binary format (uses package 'qs2')",
     "R serialized RDS",
     "Comma-separated values (data.table::fread/fwrite)",

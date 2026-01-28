@@ -7,3 +7,15 @@ inst/doc
 .vscode/*
 inst/pkgdown/BS5/assets/headroom.min.js
 tests/manual/*
+.current_task
+build_vignettes.R
+test_alternatives.R
+test_basic.R
+test_build.R
+test_lineage_vignette.R
+test_lineage.R
+test_normalize_issue.R
+test_vignettes_detailed.R
+test_vignettes_individual.R
+/doc/
+/Meta/

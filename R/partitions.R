@@ -472,9 +472,17 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
     }
   }
 
-  if (!fs::dir_exists(base)) {
+  # Partitions are stored under the root directory (not in .st_data anymore)
+  # The directory structure is: root/<base_rel_path>/<partition_path>/<filename>
+  # First, find the root directory from current working directory or alias
+  # For now, assume base is relative to current directory
+  base_abs <- fs::path_abs(base)
+
+  if (!fs::dir_exists(base_abs)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
+
+  search_dir <- base_abs
 
   exts <- unique(.st_known_exts())
   globs <- paste0("*.", exts)
@@ -482,7 +490,7 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   files <- unlist(
     lapply(globs, function(g) {
       fs::dir_ls(
-        base,
+        search_dir,
         recurse = recursive,
         glob = g,
         type = "file",
@@ -495,15 +503,22 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
 
   sep <- .Platform$file.sep
   inside_stmeta <- grepl(paste0(sep, "stmeta", sep), files, fixed = TRUE)
-  is_sidecar <- grepl("\\.stmeta\\.(json|qs2)$", files)
-  files <- files[!(inside_stmeta | is_sidecar)]
+  inside_versions <- grepl(paste0(sep, "versions", sep), files, fixed = TRUE)
+  is_stmeta_file <- grepl("\\.stmeta\\.(json|qs2)$", files)
+  is_sidecar <- grepl("sidecar\\.(json|qs2)$", files)
+  files <- files[
+    !(inside_stmeta | inside_versions | is_stmeta_file | is_sidecar)
+  ]
 
   if (!length(files)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
   }
 
   rows <- lapply(files, function(p) {
-    rel <- fs::path_rel(p, start = base)
+    # Files are stored at: root/.st_data/base_rel/partition_path/filename
+    # Calculate path relative to search_dir to extract the partition path
+    rel <- fs::path_rel(p, start = search_dir)
+
     key <- .st_parse_key_from_rel(rel)
 
     # Apply filter
@@ -516,7 +531,16 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
     ) {
       return(NULL)
     }
-    c(list(path = as.character(p)), key)
+
+    # Construct the logical path for loading
+    # The partition path is now relative to the base directory
+    # e.g., if rel = "country=can/year=2021/part.parquet/part.parquet"
+    # we want logical path = base + dirname(rel) which gives us the storage dir
+    # Actually, for st_load we need just base + the partition hierarchy
+    # The rel includes the duplicate filename at the end, so path_dir gives us what we need
+    logical_path <- fs::path(base, fs::path_dir(rel))
+
+    c(list(path = as.character(logical_path)), key)
   })
   rows <- Filter(Negate(is.null), rows)
   if (!length(rows)) {

@@ -5,7 +5,7 @@
 \title{Decide if a save should proceed given current st_opts()
 Uses versioning policy and code-change rule.}
 \usage{
-st_should_save(path, x = NULL, code = NULL)
+st_should_save(path, x = NULL, code = NULL, alias = NULL)
 }
 \arguments{
 \item{path}{Artifact path on disk.}
@@ -13,6 +13,8 @@ st_should_save(path, x = NULL, code = NULL)
 \item{x}{Current in-memory object (for content comparison).}
 
 \item{code}{Optional function/expression/character (for code comparison).}
+
+\item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
 list(save = \if{html}{\out{<lgl>}}, reason = \if{html}{\out{<chr>}}, latest_version_id = \if{html}{\out{<chr or NA>}})
