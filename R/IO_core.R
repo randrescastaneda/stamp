@@ -805,7 +805,7 @@ st_restore <- function(
     obj,
     file = file,
     verbose = FALSE,
-    alias = alias,
+    alias = versioning_alias,
     ...
   )
 
