@@ -7,8 +7,13 @@
 .st_resolve_version_identifier(version, versions_df, file)
 }
 \arguments{
-\item{version}{Version specifier: numeric offset, "latest", "oldest", or version_id string.
-Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)}
+\item{version}{Version to restore. Can be specified as:
+\itemize{
+\item Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)
+\item Character string "latest" for the most recent version
+\item Character string "oldest" for the first saved version
+\item Version ID string from the version history
+}}
 
 \item{versions_df}{data.frame from st_versions() with version_id column}
 
@@ -20,5 +25,10 @@ Character scalar version_id
 \description{
 Helper function for st_restore() that handles multiple version specification formats.
 Centralizes identifier resolution logic for clarity and testability.
+}
+\note{
+When using integer offsets, version = 1 restores the current/latest version,
+which is equivalent to specifying version = "latest". This allows for consistent
+offset-based indexing where higher numbers represent older versions.
 }
 \keyword{internal}
