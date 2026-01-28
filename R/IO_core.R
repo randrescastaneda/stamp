@@ -273,7 +273,11 @@ st_save <- function(
           if (!is.null(writer_formals) && length(args_local) > 0) {
             arg_names <- names(args_local)
             if (!is.null(arg_names)) {
-              keep <- arg_names != "" & arg_names %in% writer_formals
+              if ("..." %in% writer_formals) {
+                keep <- arg_names != ""
+              } else {
+                keep <- arg_names != "" & arg_names %in% writer_formals
+              }
               args_local <- args_local[keep]
             } else {
               args_local <- list() # Discard unnamed args
@@ -912,7 +916,13 @@ st_changed_reason <- function(
   mode <- match.arg(mode)
   # Resolve file path using alias (handles bare names and directory validation)
   resolved <- .st_resolve_file_path(path, alias = alias, verbose = FALSE)
-  res <- st_changed(resolved$path, x = x, code = code, mode = mode)
+  res <- st_changed(
+    resolved$path,
+    x = x,
+    code = code,
+    mode = mode,
+    alias = alias
+  )
   res$reason
 }
 
