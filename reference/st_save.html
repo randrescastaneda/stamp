@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
+    <li><a class="dropdown-item" href="../articles/using-alias.html">Using Aliases with stamp</a></li>
     <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
     <li><a class="dropdown-item" href="../articles/partitions.html">Working with Partitioned Datasets</a></li>
   </ul></li>
@@ -65,6 +66,7 @@
 <span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  unique <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  alias <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -78,7 +80,11 @@
 
 
 <dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
-<dd><p>destination path (character or st_path)</p></dd>
+<dd><p>destination path (character or st_path). Can be:</p><ul><li><p>A bare filename (e.g., <code>"data.qs2"</code>) → saved to <code>&lt;alias_root&gt;/data.qs2/data.qs2</code></p></li>
+<li><p>A path with directory (e.g., <code>"results/model.rds"</code>) → saved to <code>&lt;alias_root&gt;/results/model.rds/model.rds</code>
+When using a path with directory and an explicit <code>alias</code>, the alias root must be
+a parent of the path, otherwise an error is raised.</p></li>
+</ul></dd>
 
 
 <dt id="arg-format">format<a class="anchor" aria-label="anchor" href="#arg-format"></a></dt>
@@ -118,6 +124,12 @@ list(list(path = "<path>", version_id = "<id>"), ...).</id></path></p></dd>
 <dd><p>logical; if <code>FALSE</code>, suppress informational messages and package-generated
 warnings (default TRUE). When <code>FALSE</code>, messages about skipped saves or save
 failures emitted by <code>st_save()</code> will not be shown.</p></dd>
+
+
+<dt id="arg-alias">alias<a class="anchor" aria-label="anchor" href="#arg-alias"></a></dt>
+<dd><p>Optional stamp alias to target a specific stamp folder.
+If <code>NULL</code> (default), uses the default alias. If the default alias does not
+exist, an error is raised. Use aliases to operate across multiple stamp folders.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
+    <li><a class="dropdown-item" href="../articles/using-alias.html">Using Aliases with stamp</a></li>
     <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
     <li><a class="dropdown-item" href="../articles/partitions.html">Working with Partitioned Datasets</a></li>
   </ul></li>
@@ -46,6 +47,178 @@
       <small>Source: <a href="https://github.com/randrescastaneda/stamp/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.9" id="stamp-009">stamp 0.0.9<a class="anchor" aria-label="anchor" href="#stamp-009"></a></h2>
+<div class="section level3">
+<h3 id="major-changes-0-0-9">Major Changes<a class="anchor" aria-label="anchor" href="#major-changes-0-0-9"></a></h3>
+<div class="section level4">
+<h4 id="simplified-storage-structure-0-0-9">Simplified Storage Structure<a class="anchor" aria-label="anchor" href="#simplified-storage-structure-0-0-9"></a></h4>
+<ul><li>
+<strong>BREAKING</strong>: Changed artifact storage structure to separate state and data:
+<ul><li>
+<code>.stamp/</code> contains only state (catalog, temp, logs)</li>
+<li>Artifacts stored directly as <code>&lt;path&gt;/&lt;filename&gt;/&lt;filename&gt;</code> under project root</li>
+<li>Example: <code>st_save(data, "results/model.rds")</code> → <code>&lt;root&gt;/results/model.rds/model.rds</code>
+</li>
+<li>Bare filenames stored directly under root: <code>st_save(data, "data.qs2")</code> → <code>&lt;root&gt;/data.qs2/data.qs2</code>
+</li>
+<li>More transparent storage location matching user’s mental model</li>
+</ul></li>
+</ul></div>
+<div class="section level4">
+<h4 id="distributed-version-storage-0-0-9">Distributed Version Storage<a class="anchor" aria-label="anchor" href="#distributed-version-storage-0-0-9"></a></h4>
+<ul><li>
+<strong>BREAKING</strong>: Version history now stored per-artifact instead of centralized:
+<ul><li>Old: <code>&lt;root&gt;/.stamp/versions/&lt;version_id&gt;/</code>
+</li>
+<li>New: <code>&lt;root&gt;/&lt;path&gt;/&lt;filename&gt;/versions/&lt;version_id&gt;/</code>
+</li>
+<li>Each artifact folder contains its own <code>versions/</code> directory</li>
+<li>
+<code><a href="../reference/dot-st_versions_root.html">.st_versions_root()</a></code> deprecated with warning (may be removed in future)</li>
+</ul></li>
+</ul></div>
+<div class="section level4">
+<h4 id="new-functions-0-0-9">New Functions<a class="anchor" aria-label="anchor" href="#new-functions-0-0-9"></a></h4>
+<ul><li>
+<strong>NEW</strong>: <code><a href="../reference/st_restore.html">st_restore()</a></code> - Restore artifacts to previous versions
+<ul><li>Supports version keywords: “latest”, “oldest”</li>
+<li>Supports specific version IDs</li>
+<li>Supports integer offsets from latest (1 = previous, 2 = two back, etc.)</li>
+<li>Creates new version entry for restoration (allows redo)</li>
+</ul></li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="path-handling-0-0-9">Path Handling<a class="anchor" aria-label="anchor" href="#path-handling-0-0-9"></a></h3>
+<ul><li>
+<strong>Enhanced</strong>: Centralized path normalization via <code><a href="../reference/dot-st_normalize_user_path.html">.st_normalize_user_path()</a></code>
+<ul><li>Accepts bare filenames (stored directly under root)</li>
+<li>Accepts relative paths with subdirectories</li>
+<li>Accepts absolute paths under project root (converted to relative)</li>
+<li>Consistent path handling across all save/load/query functions</li>
+<li>Improved Windows path handling in <code><a href="../reference/st_prune_versions.html">st_prune_versions()</a></code>
+</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-0-9">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-0-9"></a></h3>
+<ul><li>
+<strong>FIXED</strong>: Path normalization issue in <code><a href="../reference/st_prune_versions.html">st_prune_versions()</a></code> on Windows
+<ul><li>Replaced <code><a href="https://fs.r-lib.org/reference/path_math.html" class="external-link">fs::path_rel()</a></code> with <code><a href="../reference/dot-st_extract_rel_path.html">.st_extract_rel_path()</a></code> to prevent malformed paths</li>
+<li>Fixes deletion failures with excessive <code>../</code> components in temp directory hierarchies</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="testing-0-0-9">Testing<a class="anchor" aria-label="anchor" href="#testing-0-0-9"></a></h3>
+<ul><li>
+<strong>UPDATED</strong>: Comprehensive test suite updated for new storage structure
+<ul><li>All tests now use direct-path storage (removed <code>.st_data</code> references)</li>
+<li>Tests covering save/load, subdirectories, versioning, queries work with new architecture</li>
+</ul></li>
+<li>
+<strong>NEW</strong>: Test suite for <code><a href="../reference/st_restore.html">st_restore()</a></code> functionality (<code>test-restore.R</code>)
+<ul><li>11 tests covering restoration scenarios and error handling</li>
+</ul></li>
+<li>
+<strong>VERIFIED</strong>: Performance testing with 1,000 versions (50 artifacts × 20 versions)
+<ul><li>Pruning performance: ~242 versions/second</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-0-9">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-0-9"></a></h3>
+<ul><li>
+<strong>UPDATED</strong>: README now documents the simplified storage structure</li>
+<li>
+<strong>UPDATED</strong>: Function documentation reflects direct-path storage</li>
+<li>
+<strong>DEPRECATED</strong>: <code><a href="../reference/dot-st_versions_root.html">.st_versions_root()</a></code> marked as deprecated with migration guidance</li>
+</ul></div>
+<div class="section level3">
+<h3 id="internal-changes-0-0-9">Internal Changes<a class="anchor" aria-label="anchor" href="#internal-changes-0-0-9"></a></h3>
+<ul><li>All core functions updated to use direct-path storage structure:
+<ul><li><code><a href="../reference/st_init.html">st_init()</a></code></li>
+<li>
+<code><a href="../reference/st_save.html">st_save()</a></code>, <code><a href="../reference/st_load.html">st_load()</a></code>, <code><a href="../reference/st_load_version.html">st_load_version()</a></code>
+</li>
+<li>
+<code><a href="../reference/st_info.html">st_info()</a></code>, <code><a href="../reference/st_versions.html">st_versions()</a></code>, <code><a href="../reference/st_changed.html">st_changed()</a></code>
+</li>
+<li>
+<code><a href="../reference/st_rebuild.html">st_rebuild()</a></code>, <code><a href="../reference/st_prune_versions.html">st_prune_versions()</a></code>
+</li>
+<li>Catalog operations, sidecar management, version store</li>
+</ul></li>
+<li>Path helpers reorganized for better maintainability:
+<ul><li>Updated <code><a href="../reference/dot-st_file_storage_dir.html">.st_file_storage_dir()</a></code> to work directly with root</li>
+<li>Simplified <code><a href="../reference/dot-st_extract_rel_path.html">.st_extract_rel_path()</a></code> to only handle paths under root</li>
+<li>Enhanced path extraction to prevent Windows path resolution issues</li>
+</ul></li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.8" id="stamp-008">stamp 0.0.8<a class="anchor" aria-label="anchor" href="#stamp-008"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-0-8">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-0-8"></a></h3>
+<div class="section level4">
+<h4 id="alias-support-0-0-8">Alias Support<a class="anchor" aria-label="anchor" href="#alias-support-0-0-8"></a></h4>
+<ul><li>
+<strong>NEW</strong>: Alias support across the package to manage multiple independent stamp folders.
+<ul><li>Alias acts purely as a selector (not embedded in filesystem paths).</li>
+<li>Backward-compatible default alias retained.</li>
+</ul></li>
+</ul></div>
+<div class="section level4">
+<h4 id="reverse-lineage-index-0-0-8">Reverse Lineage Index<a class="anchor" aria-label="anchor" href="#reverse-lineage-index-0-0-8"></a></h4>
+<ul><li>
+<strong>NEW</strong>: Catalog <code>parents_index</code> accelerates reverse lineage queries used by <code><a href="../reference/st_children.html">st_children()</a></code>.
+<ul><li>Falls back to snapshot scanning when index is not present.</li>
+</ul></li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="internal-improvements-0-0-8">Internal Improvements<a class="anchor" aria-label="anchor" href="#internal-improvements-0-0-8"></a></h3>
+<div class="section level4">
+<h4 id="latest-version-derivation-0-0-8">Latest Version Derivation<a class="anchor" aria-label="anchor" href="#latest-version-derivation-0-0-8"></a></h4>
+<ul><li>
+<strong>Improved</strong>: <code><a href="../reference/st_latest.html">st_latest()</a></code> derives latest from <code><a href="../reference/st_versions.html">st_versions()</a></code> ordering to avoid stale artifact rows.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="catalog-robustness--concurrency-0-0-8">Catalog Robustness &amp; Concurrency<a class="anchor" aria-label="anchor" href="#catalog-robustness--concurrency-0-0-8"></a></h4>
+<ul><li>
+<strong>Enhanced</strong>: Deterministic upsert/append operations and idempotent file locks during catalog writes.</li>
+<li>
+<strong>Defensive</strong>: Schema checks and coercions for loaded catalogs; atomic writes for integrity.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="lineage-traversal-0-0-8">Lineage Traversal<a class="anchor" aria-label="anchor" href="#lineage-traversal-0-0-8"></a></h4>
+<ul><li>
+<strong>Refined</strong>: <code><a href="../reference/st_lineage.html">st_lineage()</a></code> prioritizes committed <code>parents.json</code>; level-1 fallback to sidecar parents for convenience.</li>
+</ul></div>
+</div>
+<div class="section level3">
+<h3 id="documentation--metadata-0-0-8">Documentation &amp; Metadata<a class="anchor" aria-label="anchor" href="#documentation--metadata-0-0-8"></a></h3>
+<ul><li>
+<strong>Vignette</strong>: Added <code>vignettes/using-alias.Rmd</code> explaining alias usage, switching, constraints, and troubleshooting.</li>
+<li>
+<strong>README</strong>: Trimmed alias section; linked to the dedicated vignette.</li>
+<li>
+<strong>Roxygen</strong>: Added <code>alias</code> parameter documentation to public functions that accept it.</li>
+<li>
+<strong>Globals</strong>: Expanded <code><a href="https://rdrr.io/r/utils/globalVariables.html" class="external-link">utils::globalVariables</a></code> to cover <code>data.table</code> NSE symbols.</li>
+<li>
+<strong>DESCRIPTION</strong>: Added <code>withr</code> and <code>pkgload</code> to <code>Suggests</code> for tests/vignettes.</li>
+<li>
+<strong>.Rbuildignore</strong>: Now ignores <code>.vscode</code>.</li>
+<li>
+<strong>LICENSE</strong>: Converted to CRAN-compliant stub for <code>MIT + file LICENSE</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-0-8">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-0-8"></a></h3>
+<ul><li>
+<strong>Fixed</strong>: Resolved <code>Rd \usage</code> mismatch for internal <code><a href="../reference/dot-st_version_write_parents.html">.st_version_write_parents()</a></code>.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.7" id="stamp-007">stamp 0.0.7<a class="anchor" aria-label="anchor" href="#stamp-007"></a></h2>
 <div class="section level3">

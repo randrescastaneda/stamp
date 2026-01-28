@@ -7,7 +7,7 @@ If not set, defaults to the current working directory.
 ## Usage
 
 ``` r
-.st_root_dir()
+.st_root_dir(alias = NULL)
 ```
 
 ## Value

@@ -6,7 +6,7 @@ directory: /\<state_dir\>/catalog.qs2
 ## Usage
 
 ``` r
-.st_catalog_path()
+.st_catalog_path(alias = NULL)
 ```
 
 ## Value

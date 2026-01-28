@@ -10,7 +10,8 @@ st_changed(
   path,
   x = NULL,
   code = NULL,
-  mode = c("any", "content", "code", "file")
+  mode = c("any", "content", "code", "file"),
+  alias = NULL
 )
 ```
 
@@ -31,6 +32,11 @@ st_changed(
 - mode:
 
   Which changes to check: "content", "code", "file", or "any".
+
+- alias:
+
+  Optional character alias to identify this stamp folder. If `NULL`,
+  uses "default" for backwards compatibility.
 
 ## Value
 

@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +45,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
+    <li><a class="dropdown-item" href="articles/using-alias.html">Using Aliases with stamp</a></li>
     <li><a class="dropdown-item" href="articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
     <li><a class="dropdown-item" href="articles/partitions.html">Working with Partitioned Datasets</a></li>
   </ul>
@@ -147,6 +148,67 @@
 <span><span class="co">#&gt; 1     PER 2023 34.5</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="folder-structure">Folder Structure<a class="anchor" aria-label="anchor" href="#folder-structure"></a>
+</h2>
+<p><code>stamp</code> creates two directories when you call <code><a href="reference/st_init.html">st_init()</a></code>:</p>
+<ul>
+<li>
+<strong><code>.stamp/</code></strong> - Internal state directory containing:
+<ul>
+<li>
+<code>catalog.json</code> - Index of all artifacts and their versions</li>
+<li>
+<code>versions/</code> - Version snapshots organized by artifact and version ID</li>
+<li>
+<code>temp/</code> and <code>logs/</code> - Working directories</li>
+</ul>
+</li>
+<li>
+<strong><code>.st_data/</code></strong> - Data folder where your actual files are stored:
+<ul>
+<li>Artifacts are organized as <code>.st_data/&lt;filename&gt;/&lt;filename&gt;</code>
+</li>
+<li>Subdirectories work too: <code>.st_data/&lt;subdir&gt;/&lt;filename&gt;/&lt;filename&gt;</code>
+</li>
+</ul>
+</li>
+</ul>
+<div class="section level3">
+<h3 id="path-handling">Path Handling<a class="anchor" aria-label="anchor" href="#path-handling"></a>
+</h3>
+<p>You can reference artifacts using:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Bare filenames</strong> - <code>"data.qs2"</code> → stored in <code>.st_data/data.qs2/data.qs2</code>
+</li>
+<li>
+<strong>Relative paths with subdirectories</strong> - <code>"results/model.rds"</code> → stored in <code>.st_data/results/model.rds/model.rds</code>
+</li>
+<li>
+<strong>Absolute paths under project root</strong> - These are converted to relative paths for versioning</li>
+</ol>
+<p>The data folder name is configurable via <code>st_opts(data_folder = ".my_data")</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="example-structure">Example Structure<a class="anchor" aria-label="anchor" href="#example-structure"></a>
+</h3>
+<pre class="text"><code>my_project/
+├── .stamp/              # State directory (managed by stamp)
+│   ├── catalog.json
+│   └── versions/
+│       └── &lt;artifact_id&gt;/
+│           └── &lt;version_id&gt;/
+│               ├── artifact
+│               └── sidecar.json
+└── .st_data/            # Data directory (your files)
+    ├── data.qs2/
+    │   └── data.qs2     # Current version
+    └── results/
+        └── model.rds/
+            └── model.rds</code></pre>
+</div>
+</div>
+<div class="section level2">
 <h2 id="file-formats">File Formats<a class="anchor" aria-label="anchor" href="#file-formats"></a>
 </h2>
 <p><code>stamp</code> supports multiple serialization formats. The two binary formats have distinct implementations:</p>
@@ -206,7 +268,7 @@
 <div class="section level3">
 <h3 id="installing-format-packages">Installing Format Packages<a class="anchor" aria-label="anchor" href="#installing-format-packages"></a>
 </h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># For qs2 format support</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"qs2"</span><span class="op">)</span></span>
 <span></span>
@@ -220,7 +282,7 @@
 <h3 id="format-selection">Format Selection<a class="anchor" aria-label="anchor" href="#format-selection"></a>
 </h3>
 <p><code>stamp</code> infers format from file extension by default:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Uses qs2 format (requires {qs2})</span></span>
 <span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output.qs2"</span><span class="op">)</span></span>
 <span></span>
@@ -230,7 +292,7 @@
 <span><span class="co"># Uses RDS (base R, always available)</span></span>
 <span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output.rds"</span><span class="op">)</span></span></code></pre></div>
 <p>You can also specify format explicitly:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output"</span>, format <span class="op">=</span> <span class="st">"qs2"</span><span class="op">)</span></span></code></pre></div>
 <p>Why stamp? Sidecars: hashes, provenance, PKs.</p>
 <p>Retention: keep latest N and/or recent days.</p>

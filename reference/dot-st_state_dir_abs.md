@@ -8,7 +8,7 @@ and `state_dir` is an option stored in the package state.
 ## Usage
 
 ``` r
-.st_state_dir_abs()
+.st_state_dir_abs(alias = NULL)
 ```
 
 ## Value

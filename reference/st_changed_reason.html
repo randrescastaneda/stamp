@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
+    <li><a class="dropdown-item" href="../articles/using-alias.html">Using Aliases with stamp</a></li>
     <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
     <li><a class="dropdown-item" href="../articles/partitions.html">Working with Partitioned Datasets</a></li>
   </ul></li>
@@ -57,7 +58,8 @@
 <span>  <span class="va">path</span>,</span>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  code <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"any"</span>, <span class="st">"content"</span>, <span class="st">"code"</span>, <span class="st">"file"</span><span class="op">)</span></span>
+<span>  mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"any"</span>, <span class="st">"content"</span>, <span class="st">"code"</span>, <span class="st">"file"</span><span class="op">)</span>,</span>
+<span>  alias <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -79,6 +81,10 @@
 
 <dt id="arg-mode">mode<a class="anchor" aria-label="anchor" href="#arg-mode"></a></dt>
 <dd><p>Which changes to check: "content", "code", "file", or "any".</p></dd>
+
+
+<dt id="arg-alias">alias<a class="anchor" aria-label="anchor" href="#arg-alias"></a></dt>
+<dd><p>Optional stamp alias to target a specific stamp folder.</p></dd>
 
 </dl></div>
     <div class="section level2">

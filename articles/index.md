@@ -15,6 +15,8 @@
 
 - [Builders, Plans, and
   Rebuilds](https://randrescastaneda.github.io/stamp/articles/builders-plans.md):
+- [Using Aliases with
+  stamp](https://randrescastaneda.github.io/stamp/articles/using-alias.md):
 - [Version Retention, Pruning, and Table
   Metadata](https://randrescastaneda.github.io/stamp/articles/version_retention_prune.md):
 - [Working with Partitioned

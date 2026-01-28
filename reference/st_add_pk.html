@@ -15,7 +15,7 @@ validation and perform a pure metadata update."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,7 @@ validation and perform a pure metadata update."></head><body>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
+    <li><a class="dropdown-item" href="../articles/using-alias.html">Using Aliases with stamp</a></li>
     <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
     <li><a class="dropdown-item" href="../articles/partitions.html">Working with Partitioned Datasets</a></li>
   </ul></li>
@@ -73,7 +74,8 @@ validation and perform a pure metadata update.</p>
 
 
 <dl><dt id="arg-path">path<a class="anchor" aria-label="anchor" href="#arg-path"></a></dt>
-<dd><p>Path to the artifact file whose sidecar will be updated.</p></dd>
+<dd><p>Path to the artifact file whose sidecar will be updated.
+Can be an absolute path or relative path.</p></dd>
 
 
 <dt id="arg-keys">keys<a class="anchor" aria-label="anchor" href="#arg-keys"></a></dt>

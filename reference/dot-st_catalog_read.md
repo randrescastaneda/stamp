@@ -6,7 +6,7 @@ does not exist, an empty catalog template is returned.
 ## Usage
 
 ``` r
-.st_catalog_read()
+.st_catalog_read(alias = NULL)
 ```
 
 ## Value

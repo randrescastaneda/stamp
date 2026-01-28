@@ -33,8 +33,9 @@ st_init(tdir)
 ```
 
     ## ✔ stamp initialized
-    ##   root: /tmp/RtmppjgeV2/stamp-vignette
-    ##   state: /tmp/RtmppjgeV2/stamp-vignette/.stamp
+    ##   alias: default
+    ##   root: /tmp/RtmpuomfRe/stamp-vignette
+    ##   state: /tmp/RtmpuomfRe/stamp-vignette/.stamp
 
 ``` r
 # Inspect created structure
@@ -42,7 +43,7 @@ fs::path(tdir, ".stamp") |>
   fs::dir_tree(recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/RtmppjgeV2/stamp-vignette/.stamp
+    ## /tmp/RtmpuomfRe/stamp-vignette/.stamp
     ## ├── logs
     ## └── temp
 
@@ -96,6 +97,9 @@ st_opts(.get = TRUE)
     ## $verify_on_load
     ## [1] FALSE
     ## 
+    ## $data_folder
+    ## [1] ".st_data"
+    ## 
     ## $store_file_hash
     ## [1] FALSE
     ## 
@@ -148,7 +152,7 @@ p1
 st_formats()  # built-in handlers: qs2, rds, csv, fst, json
 ```
 
-    ## [1] "csv"     "fst"     "json"    "parquet" "qs"      "qs2"     "rds"
+    ## [1] "csv"     "fst"     "json"    "parquet" "qs2"     "rds"
 
 You can extend the registry with
 [`st_register_format()`](https://randrescastaneda.github.io/stamp/reference/st_register_format.md)
@@ -168,31 +172,32 @@ and — depending on `versioning` — records a version snapshot.
 
 ``` r
 x <- data.frame(a = 1:3, b = letters[1:3])
-outdir <- fs::path_temp("stamp-output")
+outdir <- fs::path(tdir, "stamp-output")
 fs::dir_create(outdir)
 
 res <- st_save(x, fs::path(outdir, "example.qs2"), metadata = list(description = "toy"))
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmppjgeV2/stamp-output/example.qs2 @ version
-    ##   6292eb7ca0dde8b7
+    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2 @
+    ##   version f237f26e6fdaff82
 
 ``` r
 res$path
 ```
 
-    ## /tmp/RtmppjgeV2/stamp-output/example.qs2
+    ## [1] "/tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2"
 
 ``` r
 # load back (format auto-detected)
 y <- st_load(res$path)
 ```
 
-    ## Warning: No primary key recorded for /tmp/RtmppjgeV2/stamp-output/example.qs2.
+    ## Warning: No primary key recorded for
+    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmppjgeV2/stamp-output/example.qs2
+    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2
 
 ``` r
 identical(x, y)
@@ -217,6 +222,14 @@ allows you to load historical versions of artifacts. This is useful for
 comparing changes over time or recovering from mistakes.
 
 ``` r
+# Ensure versioning is enabled for this example
+st_opts(versioning = "timestamp")  # Force version on every save
+```
+
+    ## ✔ stamp options updated
+    ##   versioning = "timestamp"
+
+``` r
 # Create multiple versions by modifying and saving
 v_path <- fs::path(outdir, "versioned.qs2")
 
@@ -225,102 +238,140 @@ v1 <- data.frame(x = 1:3, y = c("a", "b", "c"))
 st_save(v1, v_path, code_label = "initial")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @ version
-    ##   5d2ed2542e7dfd53
+    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2 @
+    ##   version fdb85ccf0014c20f
 
 ``` r
-Sys.sleep(0.15)  # ensure distinct timestamps
+Sys.sleep(1.1)  # ensure distinct timestamps on all platforms
 
 # Version 2
 v2 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"))
 st_save(v2, v_path, code_label = "added rows")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @ version
-    ##   090b4b384827db4f
+    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2 @
+    ##   version 2988c8d66a5ef9b1
 
 ``` r
-Sys.sleep(0.15)
+Sys.sleep(1.1)
 
 # Version 3
 v3 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"), z = 10:14)
 st_save(v3, v_path, code_label = "added column z")
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @ version
-    ##   8696ba3158f1b6ad
+    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2 @
+    ##   version f2b8db5546cdc965
 
 ``` r
-# Check available versions
-versions <- st_versions(v_path)
-print(versions[, .(version_id, created_at, size_bytes)])
+# Check available versions (explicit alias auto-detect)
+versions <- st_versions(v_path, alias = NULL)
+if (nrow(versions) == 0) {
+  cat("Warning: No versions were created. Skipping version loading examples.\n")
+} else {
+  print(versions[, .(version_id, created_at, size_bytes)])
+  
+  # Load latest (default)
+  current <- st_load(v_path, alias = NULL)
+  cat(sprintf("Current: %d rows, %d columns\n", nrow(current), ncol(current)))
+  
+  # Load previous version (version = -1) when available; skip if snapshot missing
+  if (nrow(versions) >= 2) {
+    prev_ok <- TRUE
+    previous <- tryCatch(
+      st_load(v_path, version = -1, alias = NULL),
+      error = function(e) { prev_ok <<- FALSE; NULL }
+    )
+    if (isTRUE(prev_ok)) {
+      cat(sprintf("Previous (v-1): %d rows, %d columns\n", nrow(previous), ncol(previous)))
+    } else {
+      cat("Previous (v-1): snapshot not available; skipping.\n")
+    }
+  }
+}
 ```
 
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: 8696ba3158f1b6ad 2026-01-15T22:48:54.003835Z        287
-    ## 2: 090b4b384827db4f 2026-01-15T22:48:53.781500Z        262
-    ## 3: 5d2ed2542e7dfd53 2026-01-15T22:48:53.485910Z        261
+    ## 1: f2b8db5546cdc965 2026-01-28T15:50:34.329705Z        287
+    ## 2: 2988c8d66a5ef9b1 2026-01-28T15:50:33.181683Z        262
+    ## 3: fdb85ccf0014c20f 2026-01-28T15:50:31.965345Z        261
 
-``` r
-# Load latest (default)
-current <- st_load(v_path)
-```
-
-    ## Warning: No primary key recorded for /tmp/RtmppjgeV2/stamp-output/versioned.qs2.
+    ## Warning: No primary key recorded for
+    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmppjgeV2/stamp-output/versioned.qs2
+    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2
+
+    ## Current: 5 rows, 3 columns
+
+    ## ✔ Loaded ← stamp-output/versioned.qs2 @
+    ## 2988c8d66a5ef9b1 [qs2]
+
+    ## Previous (v-1): 5 rows, 2 columns
 
 ``` r
-nrow(current)  # 5 rows, 3 columns
+  # Load two versions back (version = -2) when available, else oldest by ID
+  older_ok <- TRUE
+  if (nrow(versions) >= 3) {
+    older <- tryCatch(
+      st_load(v_path, version = -2, alias = NULL),
+      error = function(e) { older_ok <<- FALSE; NULL }
+    )
+  } else if (nrow(versions) >= 1) {
+    oldest_id <- versions$version_id[nrow(versions)]
+    older <- tryCatch(
+      st_load(v_path, version = oldest_id, alias = NULL),
+      error = function(e) { older_ok <<- FALSE; NULL }
+    )
+  } else {
+    older_ok <- FALSE
+    older <- NULL
+  }
 ```
 
-    ## [1] 5
+    ## ✔ Loaded ← stamp-output/versioned.qs2 @
+    ## fdb85ccf0014c20f [qs2]
 
 ``` r
-# Load previous version (version = -1)
-previous <- st_load(v_path, version = -1)
+  if (isTRUE(older_ok)) {
+    cat(sprintf("Older: %d rows, %d columns\n", nrow(older), ncol(older)))
+  } else {
+    cat("Older: snapshot not available; skipping.\n")
+  }
 ```
 
-    ## ✔ Loaded ← /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @
-    ## 090b4b384827db4f [qs2]
+    ## Older: 3 rows, 2 columns
 
 ``` r
-nrow(previous)  # 5 rows, 2 columns (before adding z)
+  # Load specific version by ID (oldest)
+  vid <- versions$version_id[nrow(versions)]
+  spec_ok <- TRUE
+  specific <- tryCatch(
+    st_load(v_path, version = vid, alias = NULL),
+    error = function(e) { spec_ok <<- FALSE; NULL }
+  )
 ```
 
-    ## [1] 5
+    ## ✔ Loaded ← stamp-output/versioned.qs2 @
+    ## fdb85ccf0014c20f [qs2]
 
 ``` r
-# Load two versions back (version = -2)
-older <- st_load(v_path, version = -2)
+  if (isTRUE(spec_ok) && isTRUE(older_ok)) {
+    cat(sprintf("Specific version matches older: %s\n", identical(specific, older))) 
+}
 ```
 
-    ## ✔ Loaded ← /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @
-    ## 5d2ed2542e7dfd53 [qs2]
+    ## Specific version matches older: TRUE
 
 ``` r
-nrow(older)  # 3 rows, 2 columns (original)
+# Reset to default versioning
+st_opts(versioning = "content")
 ```
 
-    ## [1] 3
-
-``` r
-# Load specific version by ID
-vid <- versions$version_id[1]  # oldest version
-specific <- st_load(v_path, version = vid)
-```
-
-    ## ✔ Loaded ← /tmp/RtmppjgeV2/stamp-output/versioned.qs2 @
-    ## 8696ba3158f1b6ad [qs2]
-
-``` r
-identical(specific, older)
-```
-
-    ## [1] FALSE
+    ## ✔ stamp options updated
+    ##   versioning = "content"
 
 The `version` argument supports several modes:
 
@@ -363,9 +414,9 @@ str(sc)
 ```
 
     ## List of 11
-    ##  $ path        : chr "/tmp/RtmppjgeV2/stamp-output/example.qs2"
+    ##  $ path        : chr "/tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2"
     ##  $ format      : chr "qs2"
-    ##  $ created_at  : chr "2026-01-15T22:48:53.257448Z"
+    ##  $ created_at  : chr "2026-01-28T15:50:31.660943Z"
     ##  $ size_bytes  : int 256
     ##  $ content_hash: chr "99235ac79dea7ab0"
     ##  $ code_hash   : NULL
@@ -405,8 +456,8 @@ in_path <- fs::path(outdir, "upstream.qs")
 st_save(data.frame(id=1:3), in_path)
 ```
 
-    ## ✔ Saved [qs] → /tmp/RtmppjgeV2/stamp-output/upstream.qs @ version
-    ##   720f8ee224d56044
+    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/upstream.qs @
+    ##   version 110bd70835013513
 
 ``` r
 in_vid <- st_latest(in_path)
@@ -417,24 +468,24 @@ parents <- list(list(path = in_path, version_id = in_vid))
 st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply")
 ```
 
-    ## ✔ Saved [qs] → /tmp/RtmppjgeV2/stamp-output/derived.qs @ version
-    ##   4da08b74396a9e82
+    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs @
+    ##   version da659559a434d2c9
 
 ``` r
 st_info(out_path)$sidecar
 ```
 
     ## $path
-    ## [1] "/tmp/RtmppjgeV2/stamp-output/derived.qs"
+    ## [1] "/tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs"
     ## 
     ## $format
-    ## [1] "qs"
+    ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2026-01-15T22:48:54.521163Z"
+    ## [1] "2026-01-28T15:50:34.848972Z"
     ## 
     ## $size_bytes
-    ## [1] 150
+    ## [1] 256
     ## 
     ## $content_hash
     ## [1] "a6f9da7f2b465601"
@@ -449,8 +500,8 @@ st_info(out_path)$sidecar
     ## [1] "multiply"
     ## 
     ## $parents
-    ##                                       path       version_id
-    ## 1 /tmp/RtmppjgeV2/stamp-output/upstream.qs 720f8ee224d56044
+    ##                                                      path       version_id
+    ## 1 /tmp/RtmpuomfRe/stamp-vignette/stamp-output/upstream.qs 110bd70835013513
     ## 
     ## $attrs
     ## list()
@@ -459,10 +510,10 @@ st_info(out_path)$sidecar
 st_lineage(out_path, depth = 1)
 ```
 
-    ##   level                              child_path    child_version
-    ## 1     1 /tmp/RtmppjgeV2/stamp-output/derived.qs 4da08b74396a9e82
-    ##                                parent_path   parent_version
-    ## 1 /tmp/RtmppjgeV2/stamp-output/upstream.qs 720f8ee224d56044
+    ##   level                                             child_path    child_version
+    ## 1     1 /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs da659559a434d2c9
+    ##                                               parent_path   parent_version
+    ## 1 /tmp/RtmpuomfRe/stamp-vignette/stamp-output/upstream.qs 110bd70835013513
 
 Notes on behavior - The sidecar always contains `parents` for quick
 inspection. However, in the default `versioning = "content"` mode a new
@@ -493,11 +544,13 @@ st_add_pk(out_path, keys = c("id"))
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
-    ## Warning: No primary key recorded for /tmp/RtmppjgeV2/stamp-output/derived.qs.
+    ## Warning: No primary key recorded for
+    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs] ← /tmp/RtmppjgeV2/stamp-output/derived.qs
-    ## ✔ Recorded primary key for /tmp/RtmppjgeV2/stamp-output/derived.qs --> id
+    ## ✔ Loaded [qs2] ← /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs
+    ## ✔ Recorded primary key for
+    ##   /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs --> id
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
@@ -512,8 +565,8 @@ st_inspect_pk(out_path)
 df <- st_load(out_path)
 ```
 
-    ## ✔ Loaded [qs] ←
-    ## /tmp/RtmppjgeV2/stamp-output/derived.qs
+    ## ✔ Loaded [qs2] ←
+    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs
 
 ``` r
 st_filter(df, list(id = 1))

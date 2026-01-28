@@ -9,7 +9,7 @@ Rows are ordered by `created_at` descending.
 ## Usage
 
 ``` r
-st_versions(path)
+st_versions(path, alias = NULL)
 ```
 
 ## Arguments
@@ -17,6 +17,10 @@ st_versions(path)
 - path:
 
   file or directory path
+
+- alias:
+
+  Optional stamp alias to target a specific stamp folder.
 
 ## Value
 

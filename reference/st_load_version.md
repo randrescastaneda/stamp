@@ -9,7 +9,7 @@ restoring historical versions of artifacts.
 ## Usage
 
 ``` r
-st_load_version(path, version_id, verbose = TRUE, ...)
+st_load_version(path, version_id, verbose = TRUE, ..., alias = NULL)
 ```
 
 ## Arguments
@@ -32,6 +32,10 @@ st_load_version(path, version_id, verbose = TRUE, ...)
 
   Additional arguments forwarded to the format's read function (e.g.
   `read` options).
+
+- alias:
+
+  Optional stamp alias to target a specific stamp folder.
 
 ## Value
 

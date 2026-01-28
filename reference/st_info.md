@@ -6,7 +6,7 @@ location)
 ## Usage
 
 ``` r
-st_info(path)
+st_info(path, alias = NULL)
 ```
 
 ## Arguments
@@ -14,6 +14,10 @@ st_info(path)
 - path:
 
   Artifact path
+
+- alias:
+
+  Optional stamp alias to target a specific stamp folder.
 
 ## Value
 

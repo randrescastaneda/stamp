@@ -16,7 +16,8 @@ st_add_pk(path, keys, validate = TRUE, check_unique = FALSE)
 
 - path:
 
-  Path to the artifact file whose sidecar will be updated.
+  Path to the artifact file whose sidecar will be updated. Can be an
+  absolute path or relative path.
 
 - keys:
 

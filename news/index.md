@@ -1,5 +1,176 @@
 # Changelog
 
+## stamp 0.0.9
+
+### Major Changes
+
+#### Simplified Storage Structure
+
+- **BREAKING**: Changed artifact storage structure to separate state and
+  data:
+  - `.stamp/` contains only state (catalog, temp, logs)
+  - Artifacts stored directly as `<path>/<filename>/<filename>` under
+    project root
+  - Example: `st_save(data, "results/model.rds")` →
+    `<root>/results/model.rds/model.rds`
+  - Bare filenames stored directly under root:
+    `st_save(data, "data.qs2")` → `<root>/data.qs2/data.qs2`
+  - More transparent storage location matching user’s mental model
+
+#### Distributed Version Storage
+
+- **BREAKING**: Version history now stored per-artifact instead of
+  centralized:
+  - Old: `<root>/.stamp/versions/<version_id>/`
+  - New: `<root>/<path>/<filename>/versions/<version_id>/`
+  - Each artifact folder contains its own `versions/` directory
+  - [`.st_versions_root()`](https://randrescastaneda.github.io/stamp/reference/dot-st_versions_root.md)
+    deprecated with warning (may be removed in future)
+
+#### New Functions
+
+- **NEW**:
+  [`st_restore()`](https://randrescastaneda.github.io/stamp/reference/st_restore.md) -
+  Restore artifacts to previous versions
+  - Supports version keywords: “latest”, “oldest”
+  - Supports specific version IDs
+  - Supports integer offsets from latest (1 = previous, 2 = two back,
+    etc.)
+  - Creates new version entry for restoration (allows redo)
+
+### Path Handling
+
+- **Enhanced**: Centralized path normalization via
+  [`.st_normalize_user_path()`](https://randrescastaneda.github.io/stamp/reference/dot-st_normalize_user_path.md)
+  - Accepts bare filenames (stored directly under root)
+  - Accepts relative paths with subdirectories
+  - Accepts absolute paths under project root (converted to relative)
+  - Consistent path handling across all save/load/query functions
+  - Improved Windows path handling in
+    [`st_prune_versions()`](https://randrescastaneda.github.io/stamp/reference/st_prune_versions.md)
+
+### Bug Fixes
+
+- **FIXED**: Path normalization issue in
+  [`st_prune_versions()`](https://randrescastaneda.github.io/stamp/reference/st_prune_versions.md)
+  on Windows
+  - Replaced
+    [`fs::path_rel()`](https://fs.r-lib.org/reference/path_math.html)
+    with
+    [`.st_extract_rel_path()`](https://randrescastaneda.github.io/stamp/reference/dot-st_extract_rel_path.md)
+    to prevent malformed paths
+  - Fixes deletion failures with excessive `../` components in temp
+    directory hierarchies
+
+### Testing
+
+- **UPDATED**: Comprehensive test suite updated for new storage
+  structure
+  - All tests now use direct-path storage (removed `.st_data`
+    references)
+  - Tests covering save/load, subdirectories, versioning, queries work
+    with new architecture
+- **NEW**: Test suite for
+  [`st_restore()`](https://randrescastaneda.github.io/stamp/reference/st_restore.md)
+  functionality (`test-restore.R`)
+  - 11 tests covering restoration scenarios and error handling
+- **VERIFIED**: Performance testing with 1,000 versions (50 artifacts ×
+  20 versions)
+  - Pruning performance: ~242 versions/second
+
+### Documentation
+
+- **UPDATED**: README now documents the simplified storage structure
+- **UPDATED**: Function documentation reflects direct-path storage
+- **DEPRECATED**:
+  [`.st_versions_root()`](https://randrescastaneda.github.io/stamp/reference/dot-st_versions_root.md)
+  marked as deprecated with migration guidance
+
+### Internal Changes
+
+- All core functions updated to use direct-path storage structure:
+  - [`st_init()`](https://randrescastaneda.github.io/stamp/reference/st_init.md)
+  - [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md),
+    [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md),
+    [`st_load_version()`](https://randrescastaneda.github.io/stamp/reference/st_load_version.md)
+  - [`st_info()`](https://randrescastaneda.github.io/stamp/reference/st_info.md),
+    [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md),
+    [`st_changed()`](https://randrescastaneda.github.io/stamp/reference/st_changed.md)
+  - [`st_rebuild()`](https://randrescastaneda.github.io/stamp/reference/st_rebuild.md),
+    [`st_prune_versions()`](https://randrescastaneda.github.io/stamp/reference/st_prune_versions.md)
+  - Catalog operations, sidecar management, version store
+- Path helpers reorganized for better maintainability:
+  - Updated
+    [`.st_file_storage_dir()`](https://randrescastaneda.github.io/stamp/reference/dot-st_file_storage_dir.md)
+    to work directly with root
+  - Simplified
+    [`.st_extract_rel_path()`](https://randrescastaneda.github.io/stamp/reference/dot-st_extract_rel_path.md)
+    to only handle paths under root
+  - Enhanced path extraction to prevent Windows path resolution issues
+
+## stamp 0.0.8
+
+### New Features
+
+#### Alias Support
+
+- **NEW**: Alias support across the package to manage multiple
+  independent stamp folders.
+  - Alias acts purely as a selector (not embedded in filesystem paths).
+  - Backward-compatible default alias retained.
+
+#### Reverse Lineage Index
+
+- **NEW**: Catalog `parents_index` accelerates reverse lineage queries
+  used by
+  [`st_children()`](https://randrescastaneda.github.io/stamp/reference/st_children.md).
+  - Falls back to snapshot scanning when index is not present.
+
+### Internal Improvements
+
+#### Latest Version Derivation
+
+- **Improved**:
+  [`st_latest()`](https://randrescastaneda.github.io/stamp/reference/st_latest.md)
+  derives latest from
+  [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md)
+  ordering to avoid stale artifact rows.
+
+#### Catalog Robustness & Concurrency
+
+- **Enhanced**: Deterministic upsert/append operations and idempotent
+  file locks during catalog writes.
+- **Defensive**: Schema checks and coercions for loaded catalogs; atomic
+  writes for integrity.
+
+#### Lineage Traversal
+
+- **Refined**:
+  [`st_lineage()`](https://randrescastaneda.github.io/stamp/reference/st_lineage.md)
+  prioritizes committed `parents.json`; level-1 fallback to sidecar
+  parents for convenience.
+
+### Documentation & Metadata
+
+- **Vignette**: Added `vignettes/using-alias.Rmd` explaining alias
+  usage, switching, constraints, and troubleshooting.
+- **README**: Trimmed alias section; linked to the dedicated vignette.
+- **Roxygen**: Added `alias` parameter documentation to public functions
+  that accept it.
+- **Globals**: Expanded
+  [`utils::globalVariables`](https://rdrr.io/r/utils/globalVariables.html)
+  to cover `data.table` NSE symbols.
+- **DESCRIPTION**: Added `withr` and `pkgload` to `Suggests` for
+  tests/vignettes.
+- **.Rbuildignore**: Now ignores `.vscode`.
+- **LICENSE**: Converted to CRAN-compliant stub for
+  `MIT + file LICENSE`.
+
+### Bug Fixes
+
+- **Fixed**: Resolved `Rd \usage` mismatch for internal
+  [`.st_version_write_parents()`](https://randrescastaneda.github.io/stamp/reference/dot-st_version_write_parents.md).
+
 ## stamp 0.0.7
 
 ### New Features

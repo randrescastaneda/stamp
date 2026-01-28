@@ -7,7 +7,7 @@ child_path, child_version, parent_path, parent_version.
 ## Usage
 
 ``` r
-.st_children_once(path, version_id = NULL)
+.st_children_once(path, version_id = NULL, alias = NULL)
 ```
 
 ## Arguments

@@ -9,7 +9,8 @@ st_changed_reason(
   path,
   x = NULL,
   code = NULL,
-  mode = c("any", "content", "code", "file")
+  mode = c("any", "content", "code", "file"),
+  alias = NULL
 )
 ```
 
@@ -30,6 +31,10 @@ st_changed_reason(
 - mode:
 
   Which changes to check: "content", "code", "file", or "any".
+
+- alias:
+
+  Optional stamp alias to target a specific stamp folder.
 
 ## Value
 

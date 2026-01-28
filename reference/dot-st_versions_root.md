@@ -1,15 +1,19 @@
-# Versions root directory (internal)
+# Versions root directory (internal, deprecated)
 
-Return the versions root directory under the package state directory
-(i.e. /\<state_dir\>/versions). The directory is created if it does not
-already exist.
+**DEPRECATED**: This function returns the old centralized versions
+directory. In the current architecture, versions are stored per-artifact
+in `<artifact_folder>/versions/` rather than in a central location.
+
+For compatibility with old vignettes and examples, this still returns
+`<root>/<state_dir>/versions`, but this location is no longer used for
+storing new versions.
 
 ## Usage
 
 ``` r
-.st_versions_root()
+.st_versions_root(alias = NULL)
 ```
 
 ## Value
 
-Character scalar path to the versions root directory.
+Character scalar path to the (legacy) versions root directory.

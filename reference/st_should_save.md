@@ -6,7 +6,7 @@ policy and code-change rule.
 ## Usage
 
 ``` r
-st_should_save(path, x = NULL, code = NULL)
+st_should_save(path, x = NULL, code = NULL, alias = NULL)
 ```
 
 ## Arguments
@@ -22,6 +22,10 @@ st_should_save(path, x = NULL, code = NULL)
 - code:
 
   Optional function/expression/character (for code comparison).
+
+- alias:
+
+  Optional stamp alias to target a specific stamp folder.
 
 ## Value
 

@@ -7,7 +7,7 @@ specific parent version; otherwise, any parent version of `path`.
 ## Usage
 
 ``` r
-st_children(path, version_id = NULL, depth = 1L)
+st_children(path, version_id = NULL, depth = 1L, alias = NULL)
 ```
 
 ## Arguments
@@ -23,6 +23,10 @@ st_children(path, version_id = NULL, depth = 1L)
 - depth:
 
   Integer depth \>= 1. Use `Inf` to recurse fully.
+
+- alias:
+
+  Optional stamp alias to target a specific stamp folder.
 
 ## Value
 

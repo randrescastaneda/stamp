@@ -83,6 +83,52 @@ st_load_parts(base, as = "rbind")
 #> 1     PER 2023 34.5
 ```
 
+## Folder Structure
+
+`stamp` creates two directories when you call
+[`st_init()`](https://randrescastaneda.github.io/stamp/reference/st_init.md):
+
+- **`.stamp/`** - Internal state directory containing:
+  - `catalog.json` - Index of all artifacts and their versions
+  - `versions/` - Version snapshots organized by artifact and version ID
+  - `temp/` and `logs/` - Working directories
+- **`.st_data/`** - Data folder where your actual files are stored:
+  - Artifacts are organized as `.st_data/<filename>/<filename>`
+  - Subdirectories work too: `.st_data/<subdir>/<filename>/<filename>`
+
+### Path Handling
+
+You can reference artifacts using:
+
+1.  **Bare filenames** - `"data.qs2"` → stored in
+    `.st_data/data.qs2/data.qs2`
+2.  **Relative paths with subdirectories** - `"results/model.rds"` →
+    stored in `.st_data/results/model.rds/model.rds`
+3.  **Absolute paths under project root** - These are converted to
+    relative paths for versioning
+
+The data folder name is configurable via
+`st_opts(data_folder = ".my_data")`.
+
+### Example Structure
+
+``` text
+my_project/
+├── .stamp/              # State directory (managed by stamp)
+│   ├── catalog.json
+│   └── versions/
+│       └── <artifact_id>/
+│           └── <version_id>/
+│               ├── artifact
+│               └── sidecar.json
+└── .st_data/            # Data directory (your files)
+    ├── data.qs2/
+    │   └── data.qs2     # Current version
+    └── results/
+        └── model.rds/
+            └── model.rds
+```
+
 ## File Formats
 
 `stamp` supports multiple serialization formats. The two binary formats

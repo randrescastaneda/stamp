@@ -9,7 +9,7 @@ the version directory for the given version_id."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,7 @@ the version directory for the given version_id."></head><body>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Usage</h6></li>
     <li><a class="dropdown-item" href="../articles/builders-plans.html">Builders, Plans, and Rebuilds</a></li>
+    <li><a class="dropdown-item" href="../articles/using-alias.html">Using Aliases with stamp</a></li>
     <li><a class="dropdown-item" href="../articles/version_retention_prune.html">Version Retention, Pruning, and Table Metadata</a></li>
     <li><a class="dropdown-item" href="../articles/partitions.html">Working with Partitioned Datasets</a></li>
   </ul></li>
@@ -56,15 +57,15 @@ the version directory for the given <code>version_id</code>.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">.st_version_commit_files</span><span class="op">(</span><span class="va">artifact_path</span>, <span class="va">version_id</span>, parents <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">.st_version_commit_files</span><span class="op">(</span><span class="va">rel_path</span>, <span class="va">version_id</span>, parents <span class="op">=</span> <span class="cn">NULL</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-artifact-path">artifact_path<a class="anchor" aria-label="anchor" href="#arg-artifact-path"></a></dt>
-<dd><p>Path to the artifact file on disk.</p></dd>
+<dl><dt id="arg-rel-path">rel_path<a class="anchor" aria-label="anchor" href="#arg-rel-path"></a></dt>
+<dd><p>Relative path from alias root (includes filename).</p></dd>
 
 
 <dt id="arg-version-id">version_id<a class="anchor" aria-label="anchor" href="#arg-version-id"></a></dt>
@@ -73,6 +74,10 @@ the version directory for the given <code>version_id</code>.</p>
 
 <dt id="arg-parents">parents<a class="anchor" aria-label="anchor" href="#arg-parents"></a></dt>
 <dd><p>Optional list of parent descriptors to write into parents.json.</p></dd>
+
+
+<dt id="arg-alias">alias<a class="anchor" aria-label="anchor" href="#arg-alias"></a></dt>
+<dd><p>Optional alias.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -6,14 +6,14 @@ into the version directory for the given `version_id`.
 ## Usage
 
 ``` r
-.st_version_commit_files(artifact_path, version_id, parents = NULL)
+.st_version_commit_files(rel_path, version_id, parents = NULL, alias = NULL)
 ```
 
 ## Arguments
 
-- artifact_path:
+- rel_path:
 
-  Path to the artifact file on disk.
+  Relative path from alias root (includes filename).
 
 - version_id:
 
@@ -22,6 +22,10 @@ into the version directory for the given `version_id`.
 - parents:
 
   Optional list of parent descriptors to write into parents.json.
+
+- alias:
+
+  Optional alias.
 
 ## Value
 

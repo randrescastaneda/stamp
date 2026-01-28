@@ -7,7 +7,7 @@ directory and then moving it into place.
 ## Usage
 
 ``` r
-.st_catalog_write(cat)
+.st_catalog_write(cat, alias = NULL)
 ```
 
 ## Arguments

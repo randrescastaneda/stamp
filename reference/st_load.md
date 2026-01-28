@@ -6,14 +6,22 @@ checks)
 ## Usage
 
 ``` r
-st_load(file, format = NULL, version = NULL, verbose = TRUE, ...)
+st_load(file, format = NULL, version = NULL, verbose = TRUE, alias = NULL, ...)
 ```
 
 ## Arguments
 
 - file:
 
-  path or st_path
+  path or st_path. Can be:
+
+  - A bare filename (e.g., `"data.qs2"`) → loaded from
+    `<alias_root>/data.qs2/data.qs2`
+
+  - A path with directory (e.g., `"results/model.rds"`) → loaded from
+    `<alias_root>/results/model.rds/model.rds` When using a path with
+    directory and an explicit `alias`, the alias root must be a parent
+    of the path, otherwise an error is raised.
 
 - format:
 
@@ -30,6 +38,13 @@ st_load(file, format = NULL, version = NULL, verbose = TRUE, ...)
   package-generated warnings (default TRUE). When `FALSE`, warnings
   about file/content hash mismatches and a missing primary key recorded
   by `st_load()` will not be shown.
+
+- alias:
+
+  Optional stamp alias to target a specific stamp folder. If `NULL`
+  (default), uses the default alias. If the default alias does not
+  exist, an error is raised. Use aliases to operate across multiple
+  stamp folders.
 
 - ...:
 
@@ -56,8 +71,9 @@ The `version` argument allows you to load specific versions:
 - Character: treated as a specific version ID (e.g.,
   "20250801T162739Z-d86e8").
 
-- `"select"`, `"pick"`, or `"choose"`: displays an interactive menu to
-  select from available versions (only in interactive R sessions).
+- Interactive selection (e.g., `"select"`, `"pick"`, `"choose"`) is
+  supported and only non-interactive sessions must pass a concrete
+  version id or negative integer for relative selection.
 
 ## Examples
 
@@ -74,8 +90,7 @@ vid <- st_versions("data/mydata.rds")$version_id[3]
 specific <- st_load("data/mydata.rds", version = vid)
 
 # Interactive menu (in interactive sessions only)
-selected <- st_load("data/mydata.rds", version = "select")
-# or use "pick" or "choose"
-selected <- st_load("data/mydata.rds", version = "pick")
+# Interactive selection is not supported in non-interactive contexts.
+# Pass explicit version id or a negative integer.
 } # }
 ```

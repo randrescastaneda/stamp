@@ -1,25 +1,27 @@
 # Version directory for an artifact (internal)
 
-Compute the version directory path for `artifact_path` and `version_id`
-under /\<state_dir\>/versions. We store snapshots under the *relative*
-artifact path from root; if the artifact is outside the root, we fall
-back to a collision-free identifier based on the artifact's unique ID.
+Compute the version directory path for a file. New structure:
+\<data_folder\>/\<rel_path\>/versions/\<version_id\>
 
 ## Usage
 
 ``` r
-.st_version_dir(artifact_path, version_id)
+.st_version_dir(rel_path, version_id, alias = NULL)
 ```
 
 ## Arguments
 
-- artifact_path:
+- rel_path:
 
-  Path to the artifact file.
+  Relative path from alias root (includes filename).
 
 - version_id:
 
   Version identifier (character).
+
+- alias:
+
+  Optional alias
 
 ## Value
 

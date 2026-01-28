@@ -5,7 +5,7 @@ Resolve version specification to a concrete version_id (internal)
 ## Usage
 
 ``` r
-.st_resolve_version(path, version = NULL)
+.st_resolve_version(path, version = NULL, alias = NULL)
 ```
 
 ## Arguments

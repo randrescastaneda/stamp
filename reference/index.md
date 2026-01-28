@@ -33,6 +33,8 @@
   : Load and row-bind partitioned data
 - [`st_load_version()`](https://randrescastaneda.github.io/stamp/reference/st_load_version.md)
   : Load a specific version of an artifact
+- [`st_restore()`](https://randrescastaneda.github.io/stamp/reference/st_restore.md)
+  : Restore artifact to a previous version
 
 ## Versioning & Catalog
 
@@ -93,3 +95,9 @@
   location)
 - [`st_filter()`](https://randrescastaneda.github.io/stamp/reference/st_filter.md)
   : Filter a data.frame by primary-key values (or arbitrary columns)
+- [`st_alias_get()`](https://randrescastaneda.github.io/stamp/reference/st_alias_get.md)
+  : Get a registered alias configuration
+- [`st_alias_list()`](https://randrescastaneda.github.io/stamp/reference/st_alias_list.md)
+  : List registered stamp aliases in the current session
+- [`st_switch()`](https://randrescastaneda.github.io/stamp/reference/st_switch.md)
+  : Switch the session's default alias

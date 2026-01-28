@@ -17,6 +17,7 @@ st_save(
   domain = NULL,
   unique = TRUE,
   verbose = TRUE,
+  alias = NULL,
   ...
 )
 ```
@@ -29,7 +30,15 @@ st_save(
 
 - file:
 
-  destination path (character or st_path)
+  destination path (character or st_path). Can be:
+
+  - A bare filename (e.g., `"data.qs2"`) → saved to
+    `<alias_root>/data.qs2/data.qs2`
+
+  - A path with directory (e.g., `"results/model.rds"`) → saved to
+    `<alias_root>/results/model.rds/model.rds` When using a path with
+    directory and an explicit `alias`, the alias root must be a parent
+    of the path, otherwise an error is raised.
 
 - format:
 
@@ -71,6 +80,13 @@ st_save(
   package-generated warnings (default TRUE). When `FALSE`, messages
   about skipped saves or save failures emitted by `st_save()` will not
   be shown.
+
+- alias:
+
+  Optional stamp alias to target a specific stamp folder. If `NULL`
+  (default), uses the default alias. If the default alias does not
+  exist, an error is raised. Use aliases to operate across multiple
+  stamp folders.
 
 - ...:
 
