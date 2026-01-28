@@ -38,23 +38,6 @@ test_that("qs and qs2 format handlers are independent", {
 
   obj <- data.frame(x = 1:5, y = LETTERS[1:5])
 
-  # Test qs format (if available)
-  p_qs <- fs::path(td, "test.qs")
-  if (requireNamespace("qs", quietly = TRUE)) {
-    st_opts(default_format = "qs")
-    expect_no_error(suppressMessages(st_save(obj, p_qs, code = function(z) z)))
-    # Check file exists in new storage location
-    storage_path_qs <- fs::path(td, "test.qs", "test.qs")
-    expect_true(fs::file_exists(storage_path_qs))
-    result_qs <- st_load(p_qs)
-    expect_equal(result_qs, obj)
-  } else {
-    expect_error(
-      st_save(obj, p_qs, format = "qs", code = function(z) z),
-      regexp = "qs.*required"
-    )
-  }
-
   # Test qs2 format (if available)
   p_qs2 <- fs::path(td, "test.qs2")
   if (requireNamespace("qs2", quietly = TRUE)) {
@@ -82,14 +65,8 @@ test_that("st_extmap_report shows current vs default mappings", {
     c("ext", "default_format", "current_format", "desc") %in% names(report)
   ))
 
-  # Should include both qs and qs2
-  expect_true("qs" %in% report$ext)
+  # Should include qs2 only (qs has been removed)
   expect_true("qs2" %in% report$ext)
-
-  # Current should match defaults after .onLoad
-  qs_report <- report[report$ext == "qs", ]
-  expect_equal(qs_report$default_format, "qs")
-  expect_equal(qs_report$current_format, "qs")
 
   qs2_report <- report[report$ext == "qs2", ]
   expect_equal(qs2_report$default_format, "qs2")
@@ -110,7 +87,7 @@ test_that(".seed_extmap is idempotent", {
   expect_equal(report1, report2)
 })
 
-test_that("st_save infers correct format from .qs vs .qs2 extension", {
+test_that("st_save infers qs2 format from .qs extension and qs2 from .qs2", {
   skip_on_cran()
   skip_if_not_installed("qs2")
   skip_if_not_installed("qs")
@@ -120,11 +97,11 @@ test_that("st_save infers correct format from .qs vs .qs2 extension", {
 
   obj <- data.frame(a = 1:3)
 
-  # Save with .qs extension should use qs format
+  # Save with .qs extension should use qs2 format (default after qs removal)
   p_qs <- fs::path(td, "data.qs")
   st_save(obj, p_qs, code = function(z) z)
   sc_qs <- st_read_sidecar(p_qs)
-  expect_equal(sc_qs$format, "qs")
+  expect_equal(sc_qs$format, "qs2")
 
   # Save with .qs2 extension should use qs2 format
   p_qs2 <- fs::path(td, "data.qs2")
@@ -133,21 +110,17 @@ test_that("st_save infers correct format from .qs vs .qs2 extension", {
   expect_equal(sc_qs2$format, "qs2")
 })
 
-test_that("format registry contains both qs and qs2", {
+test_that("format registry contains qs2", {
   skip_on_cran()
 
   formats <- st_formats()
-  expect_true("qs" %in% formats)
   expect_true("qs2" %in% formats)
 
   # Check internal registry has handlers
-  expect_true(rlang::env_has(stamp:::.st_formats_env, "qs"))
   expect_true(rlang::env_has(stamp:::.st_formats_env, "qs2"))
 
-  qs_handler <- rlang::env_get(stamp:::.st_formats_env, "qs")
   qs2_handler <- rlang::env_get(stamp:::.st_formats_env, "qs2")
 
-  expect_true(all(c("read", "write") %in% names(qs_handler)))
   expect_true(all(c("read", "write") %in% names(qs2_handler)))
 })
 

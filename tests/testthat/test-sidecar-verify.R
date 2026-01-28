@@ -29,7 +29,7 @@ test_that("verify_on_load warns when file hash or content hash mismatch", {
 
 test_that("sidecar parents shaped as data.frame are normalized and used for first-level lineage", {
   skip_on_cran()
-  skip_if_not_installed("qs")
+  skip_if_not_installed("qs2")
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
@@ -47,7 +47,11 @@ test_that("sidecar parents shaped as data.frame are normalized and used for firs
 
   # remove the committed snapshot for b to force sidecar-only parents
   norm <- stamp:::.st_normalize_user_path(p2, alias = NULL, must_exist = FALSE)
-  vdirb <- stamp:::.st_version_dir(norm$rel_path, st_latest(p2), alias = norm$alias)
+  vdirb <- stamp:::.st_version_dir(
+    norm$rel_path,
+    st_latest(p2),
+    alias = norm$alias
+  )
   if (fs::dir_exists(vdirb)) {
     fs::dir_delete(vdirb)
   }

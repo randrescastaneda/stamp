@@ -55,7 +55,7 @@ fs::dir_create(c(welfare_dir, macro_dir, welfare_parts_dir, summary_parts_dir))
 data_files <- function(dir) {
   f <- fs::dir_ls(dir)
   ext <- tolower(fs::path_ext(f))
-  allowed <- c("qs2", "qs", "rds", "csv", "fst", "json")
+  allowed <- c("qs2", "rds", "csv", "fst", "json")
   f[ext %in% allowed]
 }
 ```

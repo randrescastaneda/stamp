@@ -55,12 +55,7 @@ NULL
   qs2::qs_read(path, ...)
 }
 
-.st_qs_read <- function(path, ...) {
-  qs::qread(path, ...)
-}
-.st_qs_write <- function(x, path, ...) {
-  qs::qsave(x, path, ...)
-}
+
 .st_rds_read <- function(path, ...) {
   readRDS(path, ...)
 }
@@ -120,10 +115,6 @@ rlang::env_bind(
   qs2 = list(
     read = .st_wrap_reader(.st_read_qs2),
     write = .st_wrap_writer(.st_write_qs2)
-  ),
-  qs = list(
-    read = .st_wrap_reader(.st_qs_read),
-    write = .st_wrap_writer(.st_qs_write)
   ),
   rds = list(
     read = .st_wrap_reader(.st_rds_read),
@@ -327,11 +318,16 @@ st_formats <- function() {
 #' @export
 st_read_sidecar <- function(rel_path, alias = NULL) {
   rel_path <- as.character(rel_path)
-  
+
   # If the path appears to be absolute, normalize it to relative path + alias
   if (fs::is_absolute_path(rel_path)) {
     norm <- tryCatch(
-      .st_normalize_user_path(rel_path, alias = alias, must_exist = FALSE, verbose = FALSE),
+      .st_normalize_user_path(
+        rel_path,
+        alias = alias,
+        must_exist = FALSE,
+        verbose = FALSE
+      ),
       error = function(e) NULL
     )
     if (!is.null(norm)) {
@@ -339,7 +335,7 @@ st_read_sidecar <- function(rel_path, alias = NULL) {
       alias <- norm$alias
     }
   }
-  
+
   scj <- .st_sidecar_path(rel_path, ext = "json", alias = alias)
   if (fs::file_exists(scj)) {
     return(jsonlite::read_json(scj, simplifyVector = TRUE))
