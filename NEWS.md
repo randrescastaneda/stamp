@@ -1,7 +1,5 @@
 # stamp 0.0.9
 
-# stamp 0.0.9 (Development)
-
 ## Major Changes
 
 ### Simplified Storage Structure
