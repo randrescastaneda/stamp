@@ -339,10 +339,9 @@
     logical_path_abs <- user_path_norm
   } else {
     # For relative paths, construct absolute path and normalize
-    root_abs_use <- .st_normalize_path(cfg$root)
-    # rel_path may still have user's original case, normalize it before combining
-    rel_path_normalized <- .st_normalize_path(rel_path)
-    logical_path_abs <- fs::path(root_abs_use, rel_path_normalized)
+    # Important: Join first, then normalize - don't normalize rel_path alone
+    # as that would resolve it relative to current working directory
+    logical_path_abs <- .st_normalize_path(fs::path(cfg$root, rel_path))
   }
 
   # Return standardized structure
