@@ -36,29 +36,30 @@ st_init(root)
 p <- fs::path(root, "demo.qs")
 x <- data.frame(id = 1:3, val = letters[1:3])
 
-st_save(x, p, pk = "id", code = function(z) z)
-#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qsc:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qs]8;;' @ version 8029ae922d49cfd1
+# Save with primary key (code parameter tracks provenance - see vignettes)
+st_save(x, p, pk = "id")
+#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qsc:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qs]8;;' @ version 55e6d708f85dc0f3
 y <- st_load(p)
 #> ✔ Loaded [qs2] ← ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qsc:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qs]8;;'
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash        code_hash size_bytes                  created_at sidecar_format
 #>              <char>           <char>           <char>           <char>      <num>                      <char>         <char>
-#> 1: 8029ae922d49cfd1 b4e25ff824bb4cef cdbe771e53841cf7 488e8fa49c740261        296 2026-02-10T21:17:44.841083Z           json
+#> 1: 55e6d708f85dc0f3 b4e25ff824bb4cef cdbe771e53841cf7             <NA>        296 2026-02-10T21:53:56.048742Z           json
+#> 2: 77d3fabca8b80fbc b4e25ff824bb4cef d2b54b7e265bb11f 488e8fa49c740261        263 2026-02-10T21:17:44.985804Z           json
 
 # Retention
 st_opts(retain_versions = 2)
 #> ✔ stamp options updated
 #>   retain_versions = "2"
-st_save(transform(x, val = toupper(val)), p, code = function(z) z)
-#> ✔ Retention policy matched zero versions; nothing to prune.
-#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qsc:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qs]8;;' @ version 77d3fabca8b80fbc
+st_save(transform(x, val = toupper(val)), p)
+#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qsc:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qs]8;;' @ version 5c7dfcd6208ba1d3
 vrs <- st_versions(p)
 head(vrs)
-#>          version_id      artifact_id     content_hash        code_hash size_bytes                  created_at sidecar_format
-#>              <char>           <char>           <char>           <char>      <num>                      <char>         <char>
-#> 1: 77d3fabca8b80fbc b4e25ff824bb4cef d2b54b7e265bb11f 488e8fa49c740261        263 2026-02-10T21:17:44.985804Z           json
-#> 2: 8029ae922d49cfd1 b4e25ff824bb4cef cdbe771e53841cf7 488e8fa49c740261        296 2026-02-10T21:17:44.841083Z           json
+#>          version_id      artifact_id     content_hash code_hash size_bytes                  created_at sidecar_format
+#>              <char>           <char>           <char>    <char>      <num>                      <char>         <char>
+#> 1: 5c7dfcd6208ba1d3 b4e25ff824bb4cef d2b54b7e265bb11f      <NA>        263 2026-02-10T21:53:56.203360Z           json
+#> 2: 55e6d708f85dc0f3 b4e25ff824bb4cef cdbe771e53841cf7      <NA>        296 2026-02-10T21:53:56.048742Z           json
 
 # Partitions
 base <- fs::path(root, "inputs/country_year")
@@ -69,7 +70,7 @@ st_save_part(
   pk = c("country", "year")
 )
 #> ✔ Retention policy matched zero versions; nothing to prune.
-#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/inputs/country_year/country=per/year=2023/part.qs2c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/inputs/country_year/country=per/year=2023/part.qs2]8;;' @ version b6f571256f2b7ebd
+#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/inputs/country_year/country=per/year=2023/part.qs2c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/inputs/country_year/country=per/year=2023/part.qs2]8;;' @ version 48c0bb9d51966d76
 st_list_parts(base)
 #>                                                                                                   path country year
 #> 1 C:/Users/wb535623/AppData/Local/Temp/2/RtmpAZV9Z4/inputs/country_year/country=per/year=2023/part.qs2     per 2023
@@ -107,6 +108,11 @@ their respective packages. There is no automatic fallback between them.
 If you attempt to save/load a `.qs2` file without `{qs2}` installed,
 `stamp` will abort with a clear error message.
 
+> **Migration Note**: Existing `.qs` files can still be loaded if `{qs}`
+> is installed. To migrate to `.qs2`, load with `st_load()` and re-save
+> with `format = "qs2"`. The `.qs2` format offers better performance and
+> is actively maintained.
+
 ### Installing Format Packages
 
 ``` r
@@ -136,6 +142,11 @@ st_save(data, "output", format = "qs2")
 ```
 
 ## Core Functions
+
+The functions below are organized by workflow. **New users** should
+start with *Initialization*, *Save & Load*, and *Versioning* sections.
+Advanced features like partitions, lineage tracking, and aliases are
+covered in the [vignettes](#learn-more).
 
 ### Initialization & Configuration
 
@@ -225,8 +236,9 @@ st_save(data, "output", format = "qs2")
 
 ### Builders & Rebuilds ⚠️ *Experimental*
 
-> **Note**: The builder system is under active development. API may
-> change in future versions.
+> **Note**: The builder system is under active development. Safe for
+> prototyping, but consider pinning your stamp version in production
+> code until the API stabilizes (expected in v1.0).
 
 - **`st_register_builder(path, builder_fn)`** - Register a function to
   rebuild an artifact from its parents
@@ -240,8 +252,8 @@ st_save(data, "output", format = "qs2")
 
 > **Note**: Advanced filtering utilities are under development.
 
-- **`st_filter()`** - Filter expression builder for partitioned data
-  queries
+- **`st_filter(df, filters = list(), strict = TRUE)`** - Apply named
+  list filters to data frames (used internally for partition queries)
 
 ## Learn More
 

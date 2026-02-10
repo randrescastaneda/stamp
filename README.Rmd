@@ -42,14 +42,15 @@ st_init(root)
 p <- fs::path(root, "demo.qs")
 x <- data.frame(id = 1:3, val = letters[1:3])
 
-st_save(x, p, pk = "id", code = function(z) z)
+# Save with primary key (code parameter tracks provenance - see vignettes)
+st_save(x, p, pk = "id")
 y <- st_load(p)
 vrs <- st_versions(p)
 head(vrs)
 
 # Retention
 st_opts(retain_versions = 2)
-st_save(transform(x, val = toupper(val)), p, code = function(z) z)
+st_save(transform(x, val = toupper(val)), p)
 vrs <- st_versions(p)
 head(vrs)
 
@@ -87,6 +88,8 @@ See the vignette "Using Aliases with stamp" for a comprehensive guide:
 
 **Important**: `.qs` and `.qs2` are **different formats** and require their respective packages. There is no automatic fallback between them. If you attempt to save/load a `.qs2` file without `{qs2}` installed, `stamp` will abort with a clear error message.
 
+> **Migration Note**: Existing `.qs` files can still be loaded if `{qs}` is installed. To migrate to `.qs2`, load with `st_load()` and re-save with `format = "qs2"`. The `.qs2` format offers better performance and is actively maintained.
+
 ### Installing Format Packages
 
 ```r
@@ -116,6 +119,8 @@ st_save(data, "output", format = "qs2")
 ```
 
 ## Core Functions
+
+The functions below are organized by workflow. **New users** should start with *Initialization*, *Save & Load*, and *Versioning* sections. Advanced features like partitions, lineage tracking, and aliases are covered in the [vignettes](#learn-more).
 
 ### Initialization & Configuration
 
@@ -181,7 +186,7 @@ st_save(data, "output", format = "qs2")
 
 ### Builders & Rebuilds ⚠️ *Experimental*
 
-> **Note**: The builder system is under active development. API may change in future versions.
+> **Note**: The builder system is under active development. Safe for prototyping, but consider pinning your stamp version in production code until the API stabilizes (expected in v1.0).
 
 - **`st_register_builder(path, builder_fn)`** - Register a function to rebuild an artifact from its parents
 - **`st_clear_builders(paths = NULL)`** - Clear registered builders
@@ -192,7 +197,7 @@ st_save(data, "output", format = "qs2")
 
 > **Note**: Advanced filtering utilities are under development.
 
-- **`st_filter()`** - Filter expression builder for partitioned data queries
+- **`st_filter(df, filters = list(), strict = TRUE)`** - Apply named list filters to data frames (used internally for partition queries)
 
 ## Learn More
 
