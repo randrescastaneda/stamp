@@ -59,9 +59,9 @@ st_init(root)
 We’ll create a few artifacts and multiple versions to demonstrate pruning:
 
 ```{r}
-pA <- fs::path(root, "A.qs")
-pB <- fs::path(root, "B.qs")
-pC <- fs::path(root, "C.qs")
+pA <- "A.qs"
+pB <- "B.qs"
+pC <- "C.qs"
 
 xA1 <- data.frame(a = 1:3)
 xA2 <- data.frame(a = 2:4)
@@ -75,14 +75,14 @@ xC1 <- data.frame(c = 10:12)
 # Keep retention OFF initially so we can create multiple versions
 st_opts(retain_versions = Inf)
 
-st_save(xA1, pA, code = function(z) z)
-st_save(xA2, pA, code = function(z) z)
-st_save(xA3, pA, code = function(z) z)
+st_save(xA1, pA, code = function(z) z, alias = NULL)
+st_save(xA2, pA, code = function(z) z, alias = NULL)
+st_save(xA3, pA, code = function(z) z, alias = NULL)
 
-st_save(xB1, pB, code = function(z) z)
-st_save(xB2, pB, code = function(z) z)
+st_save(xB1, pB, code = function(z) z, alias = NULL)
+st_save(xB2, pB, code = function(z) z, alias = NULL)
 
-st_save(xC1, pC, code = function(z) z)
+st_save(xC1, pC, code = function(z) z, alias = NULL)
 ```
 
 Inspect store & catalog:
@@ -90,14 +90,18 @@ Inspect store & catalog:
 ```{r}
 # Show version directories for each artifact (now stored per-artifact)
 # Versions are stored in <artifact_folder>/versions/<version_id>/
-if (fs::dir_exists(fs::path(root, "A.qs", "versions"))) {
+info_a <- st_info(pA, alias = NULL)
+artifact_dir_a <- fs::path_dir(info_a$sidecar$path)
+versions_dir_a <- fs::path(artifact_dir_a, "versions")
+
+if (fs::dir_exists(versions_dir_a)) {
   cat("A.qs versions:\n")
-  fs::dir_tree(fs::path(root, "A.qs", "versions"), recurse = 1)
+  fs::dir_tree(versions_dir_a, recurse = 1)
 }
 
-print(st_versions(pA))
-print(st_versions(pB))
-print(st_versions(pC))
+print(st_versions(pA, alias = NULL))
+print(st_versions(pB, alias = NULL))
+print(st_versions(pC, alias = NULL))
 ```
 
 ---
@@ -110,12 +114,12 @@ Use this when you want **full control** (e.g., pre-release cleanup, occasional h
 
 ```{r}
 # Dry run (safe preview)
-st_prune_versions(path = pA, policy = 2, dry_run = TRUE)
+st_prune_versions(path = pA, policy = 2, dry_run = TRUE, alias = NULL)
 
 # Apply pruning
-repA <- st_prune_versions(path = pA, policy = 2, dry_run = FALSE)
+repA <- st_prune_versions(path = pA, policy = 2, dry_run = FALSE, alias = NULL)
 repA
-nrow(st_versions(pA)) # <= 2; latest always protected
+nrow(st_versions(pA, alias = NULL)) # <= 2; latest always protected
 ```
 
 Practical tip: always run the `dry_run = TRUE` preview and inspect `repA` before calling with `dry_run = FALSE`. The returned table indicates which snapshots would be removed and allows you to store that plan in CI logs for audit.
@@ -124,10 +128,10 @@ Practical tip: always run the `dry_run = TRUE` preview and inspect `repA` before
 
 ```{r}
 # Keep anything from the last 14 days; preview first
-st_prune_versions(policy = list(days = 14), dry_run = TRUE)
+st_prune_versions(policy = list(days = 14), dry_run = TRUE, alias = NULL)
 
 # Apply
-repAll <- st_prune_versions(policy = list(days = 14))
+repAll <- st_prune_versions(policy = list(days = 14), alias = NULL)
 head(repAll)
 ```
 
@@ -135,7 +139,7 @@ head(repAll)
 
 ```{r}
 # Keep last 2 versions OR any version created within 7 days
-st_prune_versions(policy = list(n = 2, days = 7))
+st_prune_versions(policy = list(n = 2, days = 7), alias = NULL)
 ```
 
 **What the report returns**
@@ -160,9 +164,9 @@ st_opts(retain_versions = 2)
 
 # New save writes + immediate prune
 xA4 <- data.frame(a = 4:6)
-st_save(xA4, pA, code = function(z) z)
+st_save(xA4, pA, code = function(z) z, alias = NULL)
 
-nrow(st_versions(pA)) # <= 2
+nrow(st_versions(pA, alias = NULL)) # <= 2
 ```
 
 If you enable automatic pruning via `st_opts(retain_versions = <policy>)`, `.st_apply_retention()` will be invoked after each `st_save()` and prune according to the policy for the just-written artifact. This keeps your versions directory compact without extra housekeeping steps.
@@ -194,12 +198,12 @@ pop <- data.frame(
   pop = c(34e6, 12e6, 52e6)
 )
 
-p_pop <- fs::path(root, "inputs/population.qs")
+p_pop <- "inputs/population.qs"
 
 # Validates uniqueness by default and writes PK to sidecar
 # Note: `st_save(..., pk = ...)` validates the keys against the provided data
 # and persists the `pk` element into the artifact's sidecar (stmeta/).
-st_save(pop, p_pop, pk = c("country", "year", "reporting_level"))
+st_save(pop, p_pop, pk = c("country", "year", "reporting_level"), alias = NULL)
 ```
 
 **Effects**
@@ -219,7 +223,7 @@ st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
 ### Load-time behavior & options
 
 ```{r}
-obj <- st_load(p_pop)
+obj <- st_load(p_pop, alias = NULL)
 attr(obj, "stamp_pk") # keys attached on load
 ```
 
@@ -311,7 +315,7 @@ When you need **one file per key combo** (e.g., per country/year), use the parti
 ### Create partitions & save parts
 
 ```{r}
-base <- fs::path(root, "inputs", "country_year")
+base <- "inputs/country_year"
 
 # Paths (order of keys doesn't matter; normalized internally)
 p_per_2023 <- st_part_path(
@@ -329,13 +333,15 @@ st_save_part(
   per_tbl,
   base,
   key = list(country = "PER", year = 2023),
-  pk = c("country", "year")
+  pk = c("country", "year"),
+  alias = NULL
 )
 st_save_part(
   mex_tbl,
   base,
   key = list(country = "MEX", year = 2022),
-  pk = c("country", "year")
+  pk = c("country", "year"),
+  alias = NULL
 )
 ```
 

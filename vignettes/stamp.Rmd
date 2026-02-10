@@ -40,23 +40,29 @@ on.exit(setwd(old_wd), add = TRUE)
 # Initialize stamp under this temp root
 st_init(root = root_dir)
 
-# Define subdirectories (they will be created as needed)
-welfare_dir <- fs::path(root_dir, "data", "welfare")
-macro_dir <- fs::path(root_dir, "data", "macro")
-population_dir <- macro_dir
-outputs_dir <- fs::path(root_dir, "outputs") |>
-  fs::dir_create()
-welfare_parts_dir <- fs::path(root_dir, "data", "welfare_parts")
-summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
-
-fs::dir_create(c(welfare_dir, macro_dir, welfare_parts_dir, summary_parts_dir))
-
 # Helper: list only data files with known extensions to avoid locks/sidecars
+# Returns relative paths from alias root (suitable for st_load)
 data_files <- function(dir) {
-  f <- fs::dir_ls(dir)
+  # Convert dir to relative path from root_dir if it's absolute
+  rel_dir <- if (fs::is_absolute_path(dir)) {
+    as.character(fs::path_rel(dir, start = root_dir))
+  } else {
+    dir
+  }
+  
+  # Get absolute path for listing
+  abs_dir <- fs::path(root_dir, rel_dir)
+  if (!fs::dir_exists(abs_dir)) {
+    return(character(0))
+  }
+  
+  f <- fs::dir_ls(abs_dir)
   ext <- tolower(fs::path_ext(f))
   allowed <- c("qs2", "rds", "csv", "fst", "json")
-  f[ext %in% allowed]
+  f <- f[ext %in% allowed]
+  
+  # Return relative paths from root_dir
+  as.character(fs::path_rel(f, start = root_dir))
 }
 ```
 
@@ -89,8 +95,6 @@ We'll create small synthetic micro datasets with columns:
 `country`, `year`, `reporting_level`, `hh_id`, `welfare`, `weight`.
 
 ```{r simulate-welfare}
-fs::dir_create(welfare_dir)
-
 welfare_specs <- data.frame(
   country = c("COL", "COL", "MEX", "MEX", "PRY", "PRY"),
   year = c(2010, 2012, 2010, 2015, 2011, 2014),
@@ -125,13 +129,14 @@ welfare_paths <- list()
 for (i in seq_len(nrow(welfare_specs))) {
   row <- welfare_specs[i, ]
   dt <- simulate_welfare(row$country, row$year)
-  fn <- fs::path(welfare_dir, sprintf("%s_%d.qs2", row$country, row$year))
+  fn <- sprintf("data/welfare/%s_%d.qs2", row$country, row$year)
   # Primary key columns include household id for uniqueness
   st_save(
     dt,
     fn,
     pk = c("country", "year", "reporting_level", "hh_id"),
-    domain = "welfare"
+    domain = "welfare",
+    alias = NULL
   )
   welfare_paths[[length(welfare_paths) + 1]] <- fn
 }
@@ -143,7 +148,7 @@ Each call to `st_save()` assigns a version id (if content differs) and writes si
 Inspect one artifact:
 
 ```{r welfare-info}
-st_info(fs::path(welfare_dir, "COL_2010.qs2"))
+st_info("data/welfare/COL_2010.qs2", alias = NULL)
 ```
 
 ## 2. Simulate and Save Macro Data (CPI, GDP, Population)
@@ -151,8 +156,6 @@ st_info(fs::path(welfare_dir, "COL_2010.qs2"))
 CPI & population are reporting-level granular; GDP is country-year only.
 
 ```{r simulate-macro}
-fs::dir_create(macro_dir)
-
 years <- 2010:2015
 countries_macro <- c("COL", "MEX", "PRY", "BRA", "ARG")
 levels_all <- c("national", "urban", "rural")
@@ -189,28 +192,31 @@ gdp <- simulate_gdp()
 
 st_save(
   cpi,
-  fs::path(macro_dir, "cpi.qs2"),
+  "data/macro/cpi.qs2",
   pk = c("country", "year", "reporting_level"),
-  domain = "macro"
+  domain = "macro",
+  alias = NULL
 )
 st_save(
   pop,
-  fs::path(macro_dir, "population.qs2"),
+  "data/macro/population.qs2",
   pk = c("country", "year", "reporting_level"),
-  domain = "macro"
+  domain = "macro",
+  alias = NULL
 )
 st_save(
   gdp,
-  fs::path(macro_dir, "gdp.qs2"),
+  "data/macro/gdp.qs2",
   pk = c("country", "year"),
-  domain = "macro"
+  domain = "macro",
+  alias = NULL
 )
 ```
 
 Version listing for CPI:
 
 ```{r cpi-versions}
-print(st_versions(fs::path(macro_dir, "cpi.qs2")))
+print(st_versions("data/macro/cpi.qs2", alias = NULL))
 ```
 
 ## 3. Aggregation Function `foo()` and Output Table
@@ -220,7 +226,7 @@ We compute per `(country, year, reporting_level)` welfare statistics and merge w
 ```{r define-foo}
 foo <- function() {
   # Load all welfare micro artifacts (only recognized data files)
-  welfare_files <- data_files(welfare_dir)
+  welfare_files <- data_files("data/welfare")
   if (length(welfare_files) == 0) {
     cat("No welfare files found; returning empty table.\n")
     return(data.table::data.table())
@@ -237,9 +243,9 @@ foo <- function() {
     by = .(country, year, reporting_level)
   ]
 
-  cpi <- st_load(fs::path(macro_dir, "cpi.qs2"))
-  gdp <- st_load(fs::path(macro_dir, "gdp.qs2"))
-  pop <- st_load(fs::path(macro_dir, "population.qs2"))
+  cpi <- st_load("data/macro/cpi.qs2", alias = NULL)
+  gdp <- st_load("data/macro/gdp.qs2", alias = NULL)
+  pop <- st_load("data/macro/population.qs2", alias = NULL)
 
   # Merge; CPI & population contain rows not present in welfare; keep welfare rows only
   out <- merge(
@@ -286,29 +292,27 @@ if (nrow(summary_table) > 0) {
 Save the summary with lineage: parents include all welfare micro datasets plus CPI/GDP/population.
 
 ```{r save-summary}
-# Define output path before save attempt
-out_summary_path <- fs::path(outputs_dir, "welfare_summary.qs2")
-
 # Only save summary if it has data (i.e., welfare data was available)
 if (nrow(summary_table) > 0) {
   parent_paths <- c(
-    data_files(welfare_dir),
-    fs::path(macro_dir, "cpi.qs2"),
-    fs::path(macro_dir, "gdp.qs2"),
-    fs::path(macro_dir, "population.qs2")
+    data_files("data/welfare"),
+    "data/macro/cpi.qs2",
+    "data/macro/gdp.qs2",
+    "data/macro/population.qs2"
   )
   parents <- lapply(parent_paths, function(p) {
-    list(path = p, version_id = st_latest(p))
+    list(path = p, version_id = st_latest(p, alias = NULL))
   })
 
   st_save(
     summary_table,
-    out_summary_path,
+    "outputs/welfare_summary.qs2",
     pk = c("country", "year", "reporting_level"),
     parents = parents,
-    domain = "summary"
+    domain = "summary",
+    alias = NULL
   )
-  st_lineage(out_summary_path, depth = 1)
+  st_lineage("outputs/welfare_summary.qs2", depth = 1, alias = NULL)
 } else {
   cat("Summary table is empty; skipping save and lineage demo.\n")
 }
@@ -366,24 +370,34 @@ bar <- function(welfare_list, cpi_tbl, gdp_tbl, pop_tbl) {
 }
 
 # Example: load inputs outside the worker and call bar()
-welfare_files <- data_files(welfare_dir)
+welfare_files <- data_files("data/welfare")
 if (length(welfare_files) > 0) {
   welfare_list <- lapply(welfare_files, st_load)
-  cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
-  gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
-  pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
+  cpi_tbl <- st_load("data/macro/cpi.qs2", alias = NULL)
+  gdp_tbl <- st_load("data/macro/gdp.qs2", alias = NULL)
+  pop_tbl <- st_load("data/macro/population.qs2", alias = NULL)
 
   summary_table2 <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
   if (nrow(summary_table2) > 0) {
+    parent_paths <- c(
+      data_files("data/welfare"),
+      "data/macro/cpi.qs2",
+      "data/macro/gdp.qs2",
+      "data/macro/population.qs2"
+    )
+    parents <- lapply(parent_paths, function(p) {
+      list(path = p, version_id = st_latest(p, alias = NULL))
+    })
     st_save(
       summary_table2,
-      out_summary_path,
+      "outputs/welfare_summary.qs2",
       pk = c("country", "year", "reporting_level"),
       parents = parents,
       code = bar, # addition the function as parent so st_save() can track it
-      domain = "summary"
+      domain = "summary",
+      alias = NULL
     )
-    st_lineage(out_summary_path, depth = 1)
+    st_lineage("outputs/welfare_summary.qs2", depth = 1, alias = NULL)
   } else {
     cat("Summary table2 is empty; skipping save.\n")
   }
@@ -408,11 +422,11 @@ Example pattern:
 We change CPI for COL 2012 (all reporting levels) to illustrate a new version and stale downstream artifact.
 
 ```{r modify-cpi}
-cpi2 <- st_load(fs::path(macro_dir, "cpi.qs2"))
+cpi2 <- st_load("data/macro/cpi.qs2", alias = NULL)
 cpi2[country == "COL" & year == 2012, cpi := cpi * 1.05] # 5% adjustment
-st_save(cpi2, fs::path(macro_dir, "cpi.qs2")) # new version recorded
-st_versions(fs::path(macro_dir, "cpi.qs2"))[1:3]
-st_is_stale(out_summary_path) # should be TRUE
+st_save(cpi2, "data/macro/cpi.qs2", alias = NULL) # new version recorded
+st_versions("data/macro/cpi.qs2", alias = NULL)[1:3]
+st_is_stale("outputs/welfare_summary.qs2") # should be TRUE
 ```
 
 ## Builders, plans and rebuilds — concepts and how we use them here
@@ -454,7 +468,7 @@ Example builder that loads parents explicitly and returns multiple functions in 
 
 ```{r}
 # Example: register a builder that uses the provided `parents` list and avoids global loads
-st_register_builder(out_summary_path, function(path, parents) {
+st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
   # parents is a list of lists: each element has $path and $version_id
   # Filter parent paths to identify welfare partitions vs macros, then load them
   welfare_parent_paths <- vapply(
@@ -463,12 +477,12 @@ st_register_builder(out_summary_path, function(path, parents) {
     logical(1)
   )
   welfare_list <- lapply(parents[welfare_parent_paths], function(p) {
-    st_load(p$path)
+    st_load(p$path, alias = NULL)
   })
 
-  cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
-  gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
-  pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
+  cpi_tbl <- st_load("data/macro/cpi.qs2", alias = NULL)
+  gdp_tbl <- st_load("data/macro/gdp.qs2", alias = NULL)
+  pop_tbl <- st_load("data/macro/population.qs2", alias = NULL)
 
   # Produce the output using a helper function (bar) that accepts pre-loaded inputs
   out <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
@@ -485,7 +499,7 @@ st_register_builder(out_summary_path, function(path, parents) {
 Inspect the plan before running it:
 ```{r}
 plan <- st_plan_rebuild(
-  targets = out_summary_path,
+  targets = "outputs/welfare_summary.qs2",
   include_targets = TRUE,
   mode = "strict"
 )
@@ -502,18 +516,18 @@ This example shows the recommended pattern: load from `parents`, call a pure wor
 Plan & rebuild using a registered builder for the summary artifact.
 
 ```{r rebuild-summary}
-st_register_builder(out_summary_path, function(path, parents) {
+st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
   list(x = foo(), code = foo, code_label = "aggregate_welfare")
 })
 
 plan <- st_plan_rebuild(
-  targets = out_summary_path,
+  targets = "outputs/welfare_summary.qs2",
   include_targets = TRUE,
   mode = "strict"
 )
 plan
 st_rebuild(plan)
-st_lineage(out_summary_path, depth = 1)
+st_lineage("outputs/welfare_summary.qs2", depth = 1, alias = NULL)
 ```
 
 ## 5. Add New Data (ARG 2015 Welfare)
@@ -524,32 +538,34 @@ We introduce a new welfare dataset (ARG 2015) which appears in macro tables alre
 dt_arg_2015 <- simulate_welfare("ARG", 2015)
 st_save(
   dt_arg_2015,
-  fs::path(welfare_dir, "ARG_2015.qs2"),
+  "data/welfare/ARG_2015.qs2",
   pk = c("country", "year", "reporting_level", "hh_id"),
-  domain = "welfare"
+  domain = "welfare",
+  alias = NULL
 )
 
 # Only recompute and save summary if we have welfare data
-if (length(data_files(welfare_dir)) > 0 && nrow(summary_table) > 0) {
+if (length(data_files("data/welfare")) > 0 && nrow(summary_table) > 0) {
   parents2 <- lapply(
     c(
-      data_files(welfare_dir),
-      fs::path(macro_dir, "cpi.qs2"),
-      fs::path(macro_dir, "gdp.qs2"),
-      fs::path(macro_dir, "population.qs2")
+      data_files("data/welfare"),
+      "data/macro/cpi.qs2",
+      "data/macro/gdp.qs2",
+      "data/macro/population.qs2"
     ),
-    function(p) list(path = p, version_id = st_latest(p))
+    function(p) list(path = p, version_id = st_latest(p, alias = NULL))
   )
   summary_table_new <- foo()
   if (nrow(summary_table_new) > 0) {
     st_save(
       summary_table_new,
-      out_summary_path,
+      "outputs/welfare_summary.qs2",
       pk = c("country", "year", "reporting_level"),
       parents = parents2,
-      domain = "summary"
+      domain = "summary",
+      alias = NULL
     )
-    head(st_load(out_summary_path))
+    head(st_load("outputs/welfare_summary.qs2", alias = NULL))
   } else {
     cat("Summary table after adding ARG 2015 is empty; skipping save.\n")
   }
@@ -563,8 +579,6 @@ if (length(data_files(welfare_dir)) > 0 && nrow(summary_table) > 0) {
 Instead of storing one large welfare micro file per country-year, we can store partitions per `(country, year, reporting_level)` using `st_save_part()` and then recompute only the affected partitions when an input changes.
 
 ```{r partition-save}
-fs::dir_create(welfare_parts_dir)
-
 # Write partitioned welfare (one partition per country/year/reporting_level)
 for (i in seq_len(nrow(welfare_specs))) {
   row <- welfare_specs[i, ]
@@ -574,24 +588,26 @@ for (i in seq_len(nrow(welfare_specs))) {
     part_dt <- dt[reporting_level == rl]
     st_save_part(
       part_dt,
-      base = welfare_parts_dir,
+      base = "data/welfare_parts",
       key = list(country = row$country, year = row$year, reporting_level = rl),
       code_label = "welfare_partition",
-      pk = c("country", "year", "reporting_level", "hh_id")
+      pk = c("country", "year", "reporting_level", "hh_id"),
+      alias = NULL
     )
   }
 }
-st_list_parts(welfare_parts_dir)[1:6, ]
+st_list_parts("data/welfare_parts")[1:6, ]
 ```
 
 Define a partitioned builder writing one output partition per `(country, year, reporting_level)` summary row. Each output partition depends on: the corresponding welfare partition + CPI + GDP + population (all three macro artifacts are shared parents).
 
 ```{r partition-builder}
-fs::dir_create(summary_parts_dir)
-
-partition_keys <- st_list_parts(welfare_parts_dir)
+partition_keys <- st_list_parts("data/welfare_parts")
 
 build_partition_summary <- function(path, parents) {
+  welfare_parts_dir <- fs::path(root_dir, "data", "welfare_parts")
+  summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
+  
   # path is the final destination for this partition artifact
   # Extract key by parsing path (we stored key in directory names)
   rel <- fs::path_rel(path, start = summary_parts_dir)
@@ -613,8 +629,8 @@ build_partition_summary <- function(path, parents) {
   }
 
   # Load welfare partition matching key
-  w_path <- st_part_path(welfare_parts_dir, key, format = NULL)
-  w <- st_load(w_path)
+  w_path <- st_part_path("data/welfare_parts", key, format = NULL, alias = NULL)
+  w <- st_load(w_path, alias = NULL)
 
   stats <- w[,
     .(
@@ -627,17 +643,17 @@ build_partition_summary <- function(path, parents) {
   ]
 
   # Load macro (shared) and subset to key
-  cpi <- st_load(fs::path(macro_dir, "cpi.qs2"))[
+  cpi <- st_load("data/macro/cpi.qs2", alias = NULL)[
     country == key$country &
       year == as.integer(key$year) &
       reporting_level == key$reporting_level
   ]
-  pop <- st_load(fs::path(macro_dir, "population.qs2"))[
+  pop <- st_load("data/macro/population.qs2", alias = NULL)[
     country == key$country &
       year == as.integer(key$year) &
       reporting_level == key$reporting_level
   ]
-  gdp <- st_load(fs::path(macro_dir, "gdp.qs2"))[
+  gdp <- st_load("data/macro/gdp.qs2", alias = NULL)[
     country == key$country & year == as.integer(key$year)
   ]
 
@@ -664,7 +680,7 @@ build_partition_summary <- function(path, parents) {
 
 ```{r partition-summary-list}
 # List a few partitioned summary partitions
-st_list_parts(summary_parts_dir)[1:6, ]
+st_list_parts("outputs/summary_parts")[1:6, ]
 ```
 
 ### Partial Re-execution After CPI Change
@@ -673,12 +689,12 @@ If CPI changes only for COL 2012, we want to rebuild only partitions for COL 201
 
 ```{r partition-update-cpi}
 # Modify CPI again (COL 2012) to trigger staleness
-cpi3 <- st_load(fs::path(macro_dir, "cpi.qs2"))
+cpi3 <- st_load("data/macro/cpi.qs2", alias = NULL)
 cpi3[country == "COL" & year == 2012, cpi := cpi * 1.02]
-st_save(cpi3, fs::path(macro_dir, "cpi.qs2"))
+st_save(cpi3, "data/macro/cpi.qs2", alias = NULL)
 
 # Detect which partition outputs are stale (simple check: those whose parent CPI version differs)
-summary_parts <- st_list_parts(summary_parts_dir)
+summary_parts <- st_list_parts("outputs/summary_parts")
 stale_idx <- vapply(summary_parts$path, st_is_stale, logical(1))
 summary_parts[stale_idx, ]
 ```
@@ -687,6 +703,7 @@ Rebuild only stale partitions (manually filtered):
 
 ```{r partition-rebuild-stale}
 stale_paths <- summary_parts$path[stale_idx]
+summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
 for (p in stale_paths) {
   # reconstruct key from path to identify its welfare partition parent
   rel <- fs::path_rel(p, start = summary_parts_dir)
@@ -695,20 +712,20 @@ for (p in stale_paths) {
   key <- setNames(lapply(kv, function(x) x[2]), lapply(kv, function(x) x[1]))
   parents <- list(
     list(
-      path = st_part_path(welfare_parts_dir, key),
-      version_id = st_latest(st_part_path(welfare_parts_dir, key))
+      path = st_part_path("data/welfare_parts", key, alias = NULL),
+      version_id = st_latest(st_part_path("data/welfare_parts", key, alias = NULL), alias = NULL)
     ),
     list(
-      path = fs::path(macro_dir, "cpi.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "cpi.qs2"))
+      path = "data/macro/cpi.qs2",
+      version_id = st_latest("data/macro/cpi.qs2", alias = NULL)
     ),
     list(
-      path = fs::path(macro_dir, "gdp.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "gdp.qs2"))
+      path = "data/macro/gdp.qs2",
+      version_id = st_latest("data/macro/gdp.qs2", alias = NULL)
     ),
     list(
-      path = fs::path(macro_dir, "population.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "population.qs2"))
+      path = "data/macro/population.qs2",
+      version_id = st_latest("data/macro/population.qs2", alias = NULL)
     )
   )
   b <- build_partition_summary(p, parents)
@@ -718,7 +735,8 @@ for (p in stale_paths) {
     parents = parents,
     pk = c("country", "year", "reporting_level"),
     code = b$code,
-    code_label = b$code_label
+    code_label = b$code_label,
+    alias = NULL
   )
 }
 ```
@@ -737,7 +755,7 @@ We demonstrated:
 Explore lineage further:
 
 ```{r final-lineage}
-st_lineage(out_summary_path, depth = 2)[1:10, ]
+st_lineage("outputs/welfare_summary.qs2", depth = 2, alias = NULL)[1:10, ]
 ```
 
 <warning>
