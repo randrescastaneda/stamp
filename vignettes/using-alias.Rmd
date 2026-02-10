@@ -18,6 +18,10 @@ Aliases let you work with multiple, independent stamp folders in a single R sess
 An alias is a selector for which folder configuration to use; it does not change any on-disk paths.
 All artifact paths remain the same regardless of alias; only the catalog, versions, and options used are selected by alias.
 
+**Storage model (v0.0.9+):** Artifacts are stored as `<root>/<path>/<filename>/<filename>`
+with version history in `<root>/<path>/<filename>/versions/`. The `.stamp/` directory
+within each aliased root contains only state (catalog, locks, temp files).
+
 Key properties:
 
 - Aliases select a specific stamp folder initialized via `st_init()`.
@@ -73,8 +77,13 @@ objB <- st_load(pB, alias = "B")
 list(A = objA, B = objB)
 
 # Inspect what was created within the stamp folders
-fs::dir_tree(fs::path(root_a, ".stamp"), recurse = TRUE, all = TRUE)
-fs::dir_tree(fs::path(root_b, ".stamp"), recurse = TRUE, all = TRUE)
+# Note: Artifacts are stored as <root>/<path>/<filename>/<filename>
+# with versions in <root>/<path>/<filename>/versions/
+cat("\nStructure in root_a:\n")
+fs::dir_tree(root_a, recurse = 2)
+
+cat("\nStructure in root_b:\n")
+fs::dir_tree(root_b, recurse = 2)
 ```
 
 Version resolution is non-interactive. `NULL` or `0` resolve to the latest version:
@@ -122,3 +131,9 @@ st_save(data.frame(id = 5), fs::path(root_a, "more.qs"))
 
 - Internally, `stamp` maintains a catalog with an index for lineage (`parents_index`) to make reverse lookups fast. Aliases do not change filesystem layout; they only select which catalog is used.
 - Options like retention, verification, and primary key policies are per-alias (per folder). Configure them with `st_opts()` after `st_init()`.
+- **Storage architecture (v0.0.9+):** Each aliased root stores:
+  - `.stamp/` - state only (catalog, locks, temp)
+  - `<path>/<filename>/` - artifact directories containing:
+    - `<filename>` - the actual file
+    - `stmeta/` - sidecar metadata
+    - `versions/` - version history for that specific artifact

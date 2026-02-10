@@ -82,7 +82,7 @@ st_save(
 )
 ```
 
-Note: after these saves each artifact has a sidecar (in `stmeta/`) and snapshots under `.stamp/versions/`.
+Note: after these saves each artifact has a sidecar (in `stmeta/` next to the artifact) and snapshots in its own `versions/` directory (per-artifact storage, not centralized).
 
 ## Inspect lineage
 

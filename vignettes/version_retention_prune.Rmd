@@ -260,7 +260,7 @@ merged
 On rare occasions a catalog file can become unreadable (disk issues, manual edit, or process crash). The package is conservative:
 
 - `.st_catalog_read()` will error if the catalog cannot be parsed. You can recover by removing the corrupted catalog file (it lives under `<root>/<state_dir>/catalog.qs2`) and re-running `st_save()`; the catalog will be recreated from the remaining snapshot directories.
-- Always back up the `catalog.qs2` (and `.stamp/versions/`) before running destructive operations in production.
+- Always back up the `catalog.qs2` (and artifact `versions/` directories) before running destructive operations in production.
 
 Example recovery steps (manual):
 

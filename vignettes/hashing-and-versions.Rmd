@@ -157,7 +157,10 @@ if (nrow(vids) > 1L) {
 
 ### Where are versions stored?
 
-Snapshots live under `.stamp/versions/<relative-path>/<version_id>/`.
+Snapshots live in a `versions/` directory **next to each artifact**, not centralized
+in `.stamp/`. Each artifact manages its own version history.
+
+**Storage pattern:** `<root>/<path>/<filename>/versions/<version_id>/`
 
 ```{r}
 p <- fs::path(root, "demo.qs")
@@ -166,9 +169,16 @@ x <- data.frame(a = 1:5)
 # Write once to create a version snapshot
 st_save(x, p, code = function(z) z)
 
-# Now list the versions tree
-vroot <- fs::path(root, "demo.qs", "versions")
-fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+# Version history is stored next to the artifact
+artifact_dir <- fs::path_dir(p)  # e.g., root/demo.qs/
+vroot <- fs::path(artifact_dir, "versions")
+
+if (fs::dir_exists(vroot)) {
+  cat("Versions directory:", vroot, "\n\n")
+  fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+} else {
+  cat("No versions directory found (versioning may be disabled)\n")
+}
 
 ```
 
@@ -177,7 +187,11 @@ Each snapshot dir contains:
 * `artifact` — a copy of the saved file
 * `sidecar.json` and/or `sidecar.qs2` — depending on `meta_format`
 
-Additionally each snapshot may include a `parents.json` file capturing committed lineage between artifacts; this is created when stamp records explicit parents during a commit. Sidecar metadata (in `stmeta/`) is the primary local source used to decide whether to write, while snapshots are the long-term committed record.
+Additionally each snapshot may include a `parents.json` file capturing committed lineage between artifacts; this is created when stamp records explicit parents during a commit. Sidecar metadata (in `stmeta/` next to the artifact) is the primary local source used to decide whether to write, while snapshots are the long-term committed record.
+
+**Note:** Version directories are now distributed (one `versions/` folder per artifact),
+not centralized in `.stamp/versions/`. This makes it easy to locate all history for
+a specific artifact.
 
 ## Integrity checks on load (optional)
 
@@ -212,8 +226,10 @@ A: `qs2` is preferred. If unavailable, **stamp** falls back to `{qs}` for read/w
 **Q: Sidecars not appearing.**
 A: Check `st_opts("meta_format", .get = TRUE)` — set to `"json"`, `"qs2"`, or `"both"`. Sidecars are written to `stmeta/` next to the artifact.
 
-**Q: Versions aren’t where I expect.**
-A: Version snapshots live under `.stamp/versions/<relative-path>/<version_id>/`. Use the code snippet above to explore the tree.
+**Q: Versions aren't where I expect.**
+A: Version snapshots now live **next to each artifact** in `<artifact-dir>/versions/<version_id>/`,
+not centralized in `.stamp/versions/`. Use `st_info(path)$snapshot_dir` to find the exact location,
+or explore `<artifact-dir>/versions/` directly.
 
 ## Tips & conventions
 
