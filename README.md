@@ -40,7 +40,7 @@ x <- data.frame(id = 1:3, val = letters[1:3])
 st_save(x, p, pk = "id")
 #> ✔ Saved [qs2] →
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs' @
-#>   version 87870e3e6f0a2701
+#>   version 6edb6435faec6f63
 y <- st_load(p)
 #> ✔ Loaded [qs2] ←
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs'
@@ -48,10 +48,10 @@ vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: 87870e3e6f0a2701 f617651b9c4d74eb cdbe771e53841cf7      <NA>        296
+#> 1: 6edb6435faec6f63 f617651b9c4d74eb cdbe771e53841cf7      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-02T16:29:07.788115Z           json
+#> 1: 2026-03-02T19:03:54.848221Z           json
 
 # Retention
 st_opts(retain_versions = 2)
@@ -61,35 +61,17 @@ st_save(transform(x, val = toupper(val)), p)
 #> ✔ Retention policy matched zero versions; nothing to prune.
 #> ✔ Saved [qs2] →
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs' @
-#>   version aa150bdce098bc42
+#>   version b21950afb080d8c9
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: aa150bdce098bc42 f617651b9c4d74eb d2b54b7e265bb11f      <NA>        263
-#> 2: 87870e3e6f0a2701 f617651b9c4d74eb cdbe771e53841cf7      <NA>        296
+#> 1: b21950afb080d8c9 f617651b9c4d74eb d2b54b7e265bb11f      <NA>        263
+#> 2: 6edb6435faec6f63 f617651b9c4d74eb cdbe771e53841cf7      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-02T16:29:07.937741Z           json
-#> 2: 2026-03-02T16:29:07.788115Z           json
-
-# Partitions
-base <- fs::path(root, "inputs/country_year")
-st_save_part(
-  data.frame(country = "PER", year = 2023, pop = 34.5),
-  base,
-  key = list(country = "PER", year = 2023),
-  pk = c("country", "year")
-)
-#> ✔ Retention policy matched zero versions; nothing to prune.
-#> ✔ Saved [qs2] →
-#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/inputs/country_year/country=per/year=2023/part.qs2'
-#>   @ version 7ddf961718a1ac07
-st_list_parts(base)
-#> [1] path
-#> <0 rows> (or 0-length row.names)
-st_load_parts(base, as = "rbind")
-#> data frame with 0 columns and 0 rows
+#> 1: 2026-03-02T19:03:54.994656Z           json
+#> 2: 2026-03-02T19:03:54.848221Z           json
 ```
 
 ## Managing Multiple Stamp Folders with Aliases

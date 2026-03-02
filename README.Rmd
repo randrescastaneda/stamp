@@ -54,7 +54,12 @@ st_save(transform(x, val = toupper(val)), p)
 vrs <- st_versions(p)
 head(vrs)
 
-# Partitions
+```
+
+```{r}
+#| echo: false
+#| eval: false
+# Partitions (under development)
 base <- fs::path(root, "inputs/country_year")
 st_save_part(
   data.frame(country = "PER", year = 2023, pop = 34.5),
@@ -62,8 +67,8 @@ st_save_part(
   key = list(country = "PER", year = 2023),
   pk = c("country", "year")
 )
-st_list_parts(base)
-st_load_parts(base, as = "rbind")
+st_list_parts(base) # Not working
+st_load_parts(base, as = "rbind") # Not working
 ```
 
 ## Managing Multiple Stamp Folders with Aliases
