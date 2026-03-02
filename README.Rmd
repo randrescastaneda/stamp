@@ -160,27 +160,21 @@ The functions below are organized by workflow. **New users** should start with *
 
 ### Primary Keys
 
-- **`st_add_pk(x, pk, path)`** - Add or update primary key definition for an artifact
-- **`st_get_pk(path)`** - Retrieve primary key columns from metadata
-- **`st_inspect_pk(x, pk)`** - Validate primary key uniqueness and coverage
+- **`st_add_pk(path, keys)`** - Add or update primary key definition for an artifact
+- **`st_get_pk(x_or_meta)`** - Retrieve primary key columns from metadata
+- **`st_inspect_pk(path)`** - Validate primary key uniqueness and coverage
 
-### Partitioned Data
+### Partitioned and Pruning Data (under development)
 
 - **`st_save_part(x, base, key, ...)`** - Save a single partition with Hive-style directories
 - **`st_auto_partition(x, base, partition_cols, ...)`** - Automatically split and save dataset by partition columns
 - **`st_load_parts(base, filter = NULL, as = "rbind")`** - Load and combine partitions matching a filter
 - **`st_list_parts(base, filter = NULL)`** - List available partitions without loading
 - **`st_part_path(base, key)`** - Construct path for a partition given its key
-
-### Retention & Pruning
-
-- **`st_prune(path, policy = NULL)`** - Remove old versions based on retention policy
-- **`st_prune_all(policy = NULL)`** - Prune all artifacts in catalog
-- **`st_retention_policy(...)`** - Create custom retention policy (keep N versions, recent days, or tag-based)
+- **`st_prune_versions(path, policy)`** - Remove old versions based on retention policy
 
 ### Aliases (Multi-Directory Support)
 
-- **`st_alias_register(name, root)`** - Register a named alias pointing to a stamp directory
 - **`st_alias_list()`** - List all registered aliases
 - **`st_alias_get(name = NULL)`** - Get configuration for an alias
 

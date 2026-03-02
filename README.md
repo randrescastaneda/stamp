@@ -30,36 +30,45 @@ root <- tempdir()
 st_init(root)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: C:/Users/wb535623/AppData/Local/Temp/2/RtmpAZV9Z4
-#>   state: C:/Users/wb535623/AppData/Local/Temp/2/RtmpAZV9Z4/.stamp
+#>   root: C:/Users/wb535623/AppData/Local/Temp/3/RtmpKEqsjN
+#>   state: C:/Users/wb535623/AppData/Local/Temp/3/RtmpKEqsjN/.stamp
 
 p <- fs::path(root, "demo.qs")
 x <- data.frame(id = 1:3, val = letters[1:3])
 
 # Save with primary key (code parameter tracks provenance - see vignettes)
 st_save(x, p, pk = "id")
-#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qsc:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qs]8;;' @ version 55e6d708f85dc0f3
+#> ✔ Saved [qs2] → 'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/demo.qs' @
+#>   version c1b7d814c9819dd3
 y <- st_load(p)
-#> ✔ Loaded [qs2] ← ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qsc:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qs]8;;'
+#> ✔ Loaded [qs2] ← 'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/demo.qs'
 vrs <- st_versions(p)
 head(vrs)
-#>          version_id      artifact_id     content_hash        code_hash size_bytes                  created_at sidecar_format
-#>              <char>           <char>           <char>           <char>      <num>                      <char>         <char>
-#> 1: 55e6d708f85dc0f3 b4e25ff824bb4cef cdbe771e53841cf7             <NA>        296 2026-02-10T21:53:56.048742Z           json
-#> 2: 77d3fabca8b80fbc b4e25ff824bb4cef d2b54b7e265bb11f 488e8fa49c740261        263 2026-02-10T21:17:44.985804Z           json
+#>          version_id      artifact_id     content_hash code_hash size_bytes
+#>              <char>           <char>           <char>    <char>      <num>
+#> 1: c1b7d814c9819dd3 67fbaada2b41bd3e cdbe771e53841cf7      <NA>        296
+#>                     created_at sidecar_format
+#>                         <char>         <char>
+#> 1: 2026-03-02T14:31:26.603584Z           json
 
 # Retention
 st_opts(retain_versions = 2)
 #> ✔ stamp options updated
 #>   retain_versions = "2"
 st_save(transform(x, val = toupper(val)), p)
-#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qsc:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/demo.qs]8;;' @ version 5c7dfcd6208ba1d3
+#> ✔ Retention policy matched zero versions; nothing to prune.
+#> ✔ Saved [qs2] → 'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/demo.qs' @
+#>   version 08ed3043ca781719
 vrs <- st_versions(p)
 head(vrs)
-#>          version_id      artifact_id     content_hash code_hash size_bytes                  created_at sidecar_format
-#>              <char>           <char>           <char>    <char>      <num>                      <char>         <char>
-#> 1: 5c7dfcd6208ba1d3 b4e25ff824bb4cef d2b54b7e265bb11f      <NA>        263 2026-02-10T21:53:56.203360Z           json
-#> 2: 55e6d708f85dc0f3 b4e25ff824bb4cef cdbe771e53841cf7      <NA>        296 2026-02-10T21:53:56.048742Z           json
+#>          version_id      artifact_id     content_hash code_hash size_bytes
+#>              <char>           <char>           <char>    <char>      <num>
+#> 1: 08ed3043ca781719 67fbaada2b41bd3e d2b54b7e265bb11f      <NA>        263
+#> 2: c1b7d814c9819dd3 67fbaada2b41bd3e cdbe771e53841cf7      <NA>        296
+#>                     created_at sidecar_format
+#>                         <char>         <char>
+#> 1: 2026-03-02T14:31:26.778614Z           json
+#> 2: 2026-03-02T14:31:26.603584Z           json
 
 # Partitions
 base <- fs::path(root, "inputs/country_year")
@@ -70,13 +79,17 @@ st_save_part(
   pk = c("country", "year")
 )
 #> ✔ Retention policy matched zero versions; nothing to prune.
-#> ✔ Saved [qs2] → ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/inputs/country_year/country=per/year=2023/part.qs2c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/inputs/country_year/country=per/year=2023/part.qs2]8;;' @ version 48c0bb9d51966d76
+#> ✔ Saved [qs2] →
+#>   'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/inputs/country_year/country=per/year=2023/part.qs2'
+#>   @ version 26147e16c6ce6616
 st_list_parts(base)
-#>                                                                                                   path country year
-#> 1 C:/Users/wb535623/AppData/Local/Temp/2/RtmpAZV9Z4/inputs/country_year/country=per/year=2023/part.qs2     per 2023
+#>                                                                                                   path
+#> 1 C:/Users/wb535623/AppData/Local/Temp/3/RtmpKEqsjN/inputs/country_year/country=per/year=2023/part.qs2
+#>   country year
+#> 1     per 2023
 st_load_parts(base, as = "rbind")
 #> ✔ Loaded [qs2] ←
-#> ']8;;file://c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/inputs/country_year/country=per/year=2023/part.qs2c:/users/wb535623/appdata/local/temp/2/rtmpazv9z4/inputs/country_year/country=per/year=2023/part.qs2]8;;'
+#>   'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/inputs/country_year/country=per/year=2023/part.qs2'
 #>   country year  pop
 #> 1     per 2023 34.5
 ```
@@ -200,13 +213,14 @@ covered in the [vignettes](#learn-more).
 
 ### Primary Keys
 
-- **`st_add_pk(x, pk, path)`** - Add or update primary key definition
-  for an artifact
-- **`st_get_pk(path)`** - Retrieve primary key columns from metadata
-- **`st_inspect_pk(x, pk)`** - Validate primary key uniqueness and
+- **`st_add_pk(path, keys)`** - Add or update primary key definition for
+  an artifact
+- **`st_get_pk(x_or_meta)`** - Retrieve primary key columns from
+  metadata
+- **`st_inspect_pk(path)`** - Validate primary key uniqueness and
   coverage
 
-### Partitioned Data
+### Partitioned and Pruning Data (under development)
 
 - **`st_save_part(x, base, key, ...)`** - Save a single partition with
   Hive-style directories
@@ -218,19 +232,11 @@ covered in the [vignettes](#learn-more).
   without loading
 - **`st_part_path(base, key)`** - Construct path for a partition given
   its key
-
-### Retention & Pruning
-
-- **`st_prune(path, policy = NULL)`** - Remove old versions based on
+- **`st_prune_versions(path, policy)`** - Remove old versions based on
   retention policy
-- **`st_prune_all(policy = NULL)`** - Prune all artifacts in catalog
-- **`st_retention_policy(...)`** - Create custom retention policy (keep
-  N versions, recent days, or tag-based)
 
 ### Aliases (Multi-Directory Support)
 
-- **`st_alias_register(name, root)`** - Register a named alias pointing
-  to a stamp directory
 - **`st_alias_list()`** - List all registered aliases
 - **`st_alias_get(name = NULL)`** - Get configuration for an alias
 
