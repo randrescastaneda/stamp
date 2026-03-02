@@ -33,25 +33,25 @@ st_init(root)
 #>   root: E:/PovcalNet/01.personal/wb535623/PIP/stamp/demo_stamp
 #>   state: E:/PovcalNet/01.personal/wb535623/PIP/stamp/demo_stamp/.stamp
 
-p <- fs::path(root, "demo.qs")
+p <- "demo.qs2"
 x <- data.frame(id = 1:3, val = letters[1:3])
 
 # Save with primary key (code parameter tracks provenance - see vignettes)
 st_save(x, p, pk = "id")
 #> ✔ Saved [qs2] →
-#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs' @
-#>   version 6edb6435faec6f63
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
+#>   e1575878e6d298ea
 y <- st_load(p)
 #> ✔ Loaded [qs2] ←
-#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs'
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2'
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: 6edb6435faec6f63 f617651b9c4d74eb cdbe771e53841cf7      <NA>        296
+#> 1: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-02T19:03:54.848221Z           json
+#> 1: 2026-03-02T20:26:58.905735Z           json
 
 # Retention
 st_opts(retain_versions = 2)
@@ -60,18 +60,18 @@ st_opts(retain_versions = 2)
 st_save(transform(x, val = toupper(val)), p)
 #> ✔ Retention policy matched zero versions; nothing to prune.
 #> ✔ Saved [qs2] →
-#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs' @
-#>   version b21950afb080d8c9
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
+#>   3021cb6f8ea6cb18
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: b21950afb080d8c9 f617651b9c4d74eb d2b54b7e265bb11f      <NA>        263
-#> 2: 6edb6435faec6f63 f617651b9c4d74eb cdbe771e53841cf7      <NA>        296
+#> 1: 3021cb6f8ea6cb18 c124606df64bb597 d2b54b7e265bb11f      <NA>        263
+#> 2: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-02T19:03:54.994656Z           json
-#> 2: 2026-03-02T19:03:54.848221Z           json
+#> 1: 2026-03-02T20:26:59.062988Z           json
+#> 2: 2026-03-02T20:26:58.905735Z           json
 ```
 
 ## Managing Multiple Stamp Folders with Aliases
