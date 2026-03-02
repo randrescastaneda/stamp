@@ -26,30 +26,32 @@ devtools::install_github("randrescastaneda/stamp")
 
 ``` r
 library(stamp)
-root <- tempdir()
+root <- "demo_stamp"
 st_init(root)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: C:/Users/wb535623/AppData/Local/Temp/3/RtmpKEqsjN
-#>   state: C:/Users/wb535623/AppData/Local/Temp/3/RtmpKEqsjN/.stamp
+#>   root: E:/PovcalNet/01.personal/wb535623/PIP/stamp/demo_stamp
+#>   state: E:/PovcalNet/01.personal/wb535623/PIP/stamp/demo_stamp/.stamp
 
 p <- fs::path(root, "demo.qs")
 x <- data.frame(id = 1:3, val = letters[1:3])
 
 # Save with primary key (code parameter tracks provenance - see vignettes)
 st_save(x, p, pk = "id")
-#> ✔ Saved [qs2] → 'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/demo.qs' @
-#>   version c1b7d814c9819dd3
+#> ✔ Saved [qs2] →
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs' @
+#>   version 87870e3e6f0a2701
 y <- st_load(p)
-#> ✔ Loaded [qs2] ← 'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/demo.qs'
+#> ✔ Loaded [qs2] ←
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs'
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: c1b7d814c9819dd3 67fbaada2b41bd3e cdbe771e53841cf7      <NA>        296
+#> 1: 87870e3e6f0a2701 f617651b9c4d74eb cdbe771e53841cf7      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-02T14:31:26.603584Z           json
+#> 1: 2026-03-02T16:29:07.788115Z           json
 
 # Retention
 st_opts(retain_versions = 2)
@@ -57,18 +59,19 @@ st_opts(retain_versions = 2)
 #>   retain_versions = "2"
 st_save(transform(x, val = toupper(val)), p)
 #> ✔ Retention policy matched zero versions; nothing to prune.
-#> ✔ Saved [qs2] → 'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/demo.qs' @
-#>   version 08ed3043ca781719
+#> ✔ Saved [qs2] →
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/demo.qs' @
+#>   version aa150bdce098bc42
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: 08ed3043ca781719 67fbaada2b41bd3e d2b54b7e265bb11f      <NA>        263
-#> 2: c1b7d814c9819dd3 67fbaada2b41bd3e cdbe771e53841cf7      <NA>        296
+#> 1: aa150bdce098bc42 f617651b9c4d74eb d2b54b7e265bb11f      <NA>        263
+#> 2: 87870e3e6f0a2701 f617651b9c4d74eb cdbe771e53841cf7      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-02T14:31:26.778614Z           json
-#> 2: 2026-03-02T14:31:26.603584Z           json
+#> 1: 2026-03-02T16:29:07.937741Z           json
+#> 2: 2026-03-02T16:29:07.788115Z           json
 
 # Partitions
 base <- fs::path(root, "inputs/country_year")
@@ -80,18 +83,13 @@ st_save_part(
 )
 #> ✔ Retention policy matched zero versions; nothing to prune.
 #> ✔ Saved [qs2] →
-#>   'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/inputs/country_year/country=per/year=2023/part.qs2'
-#>   @ version 26147e16c6ce6616
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo_stamp/inputs/country_year/country=per/year=2023/part.qs2'
+#>   @ version 7ddf961718a1ac07
 st_list_parts(base)
-#>                                                                                                   path
-#> 1 C:/Users/wb535623/AppData/Local/Temp/3/RtmpKEqsjN/inputs/country_year/country=per/year=2023/part.qs2
-#>   country year
-#> 1     per 2023
+#> [1] path
+#> <0 rows> (or 0-length row.names)
 st_load_parts(base, as = "rbind")
-#> ✔ Loaded [qs2] ←
-#>   'c:/users/wb535623/appdata/local/temp/3/rtmpkeqsjn/inputs/country_year/country=per/year=2023/part.qs2'
-#>   country year  pop
-#> 1     per 2023 34.5
+#> data frame with 0 columns and 0 rows
 ```
 
 ## Managing Multiple Stamp Folders with Aliases

@@ -36,7 +36,7 @@ devtools::install_github("randrescastaneda/stamp")
 
 ```{r}
 library(stamp)
-root <- tempdir()
+root <- "demo_stamp"
 st_init(root)
 
 p <- fs::path(root, "demo.qs")
@@ -204,3 +204,7 @@ For detailed guides and workflows, see the package vignettes:
 - **[Lineage and Rebuilds](https://randrescastaneda.github.io/stamp/articles/lineage-rebuilds.html)** - Dependency tracking and automated rebuilds
 - **[Version Retention](https://randrescastaneda.github.io/stamp/articles/version_retention_prune.html)** - Managing version history with retention policies
 - **[Stamp Directory](https://randrescastaneda.github.io/stamp/articles/stamp-directory.html)** - Understanding the `.stamp/` internal structure
+
+```{r, include = FALSE}
+unlink("demo_stamp", recursive = TRUE)
+```
