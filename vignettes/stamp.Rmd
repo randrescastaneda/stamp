@@ -602,7 +602,6 @@ st_list_parts("data/welfare_parts")[1:6, ]
 Define a partitioned builder writing one output partition per `(country, year, reporting_level)` summary row. Each output partition depends on: the corresponding welfare partition + CPI + GDP + population (all three macro artifacts are shared parents).
 
 ```{r partition-builder}
-partition_keys <- st_list_parts("data/welfare_parts")
 
 build_partition_summary <- function(path, parents) {
   welfare_parts_dir <- fs::path(root_dir, "data", "welfare_parts")
@@ -674,6 +673,45 @@ build_partition_summary <- function(path, parents) {
     x = out,
     code = build_partition_summary,
     code_label = "partition_summary"
+  )
+}
+```
+
+```{r partition-summary-build}
+# Populate outputs/summary_parts by running the builder for each welfare partition key
+summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
+for (i in seq_len(nrow(partition_keys))) {
+  key_row <- partition_keys[i, ]
+  # Reconstruct key list from the partition_keys table (drop non-key columns)
+  key_cols <- setdiff(names(key_row), "path")
+  key <- as.list(key_row[, key_cols, drop = FALSE])
+  key <- Filter(Negate(is.na), key)
+
+  # Construct the output partition path
+  out_path <- st_part_path(
+    "outputs/summary_parts",
+    key,
+    format = "qs2"
+  )
+
+  # Build parents list: welfare partition + the three macro files
+  welfare_path <- st_part_path("data/welfare_parts", key, format = NULL)
+  parents_i <- list(
+    list(path = welfare_path,              version_id = st_latest(welfare_path,              alias = NULL)),
+    list(path = "data/macro/cpi.qs2",        version_id = st_latest("data/macro/cpi.qs2",        alias = NULL)),
+    list(path = "data/macro/gdp.qs2",        version_id = st_latest("data/macro/gdp.qs2",        alias = NULL)),
+    list(path = "data/macro/population.qs2", version_id = st_latest("data/macro/population.qs2", alias = NULL))
+  )
+
+  result <- build_partition_summary(out_path, parents_i)
+  st_save(
+    result$x,
+    out_path,
+    parents = parents_i,
+    pk = c("country", "year", "reporting_level"),
+    code = result$code,
+    code_label = result$code_label,
+    alias = NULL
   )
 }
 ```
