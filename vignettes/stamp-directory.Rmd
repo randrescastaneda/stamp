@@ -207,8 +207,9 @@ v3 <- data.frame(x = 1:5, y = 10:14)
 st_save(v3, test_path, code_label = "added column")
 
 # Version history is stored NEXT TO the artifact, not in .stamp/
-# Extract the artifact directory (e.g., demo_dir/data/test.qs2/)
-artifact_dir <- fs::path_dir(test_path)
+# Extract the artifact directory from sidecar info  
+info <- st_info(test_path, alias = NULL)
+artifact_dir <- fs::path_dir(info$sidecar$path)
 versions_dir <- fs::path(artifact_dir, "versions")
 
 if (fs::dir_exists(versions_dir)) {
@@ -653,7 +654,8 @@ if (fs::file_exists(catalog_path)) {
 ```{r explore-snapshots}
 # Get all version directories for an artifact
 # Version history is now stored NEXT TO the artifact, not in .stamp/
-artifact_dir <- fs::path_dir(test_path)  # e.g., demo_dir/data/test.qs2/
+info <- st_info(test_path, alias = NULL)
+artifact_dir <- fs::path_dir(info$sidecar$path)
 versions_dir <- fs::path(artifact_dir, "versions")
 
 if (fs::dir_exists(versions_dir)) {
@@ -737,17 +739,18 @@ fs::file_delete(catalog_path)
 # Check total .stamp/ state size
 stamp_dir <- fs::path(demo_dir, ".stamp")
 info <- fs::dir_info(stamp_dir, recurse = TRUE)
-data.table::data.table(stamp_state_mb = sum(info$size) / 1024^2)
+data.table::data.table(stamp_state_mb = sum(info$size, na.rm = TRUE) / 1024^2)
 
 # Find artifacts with large version histories
 # Version directories are now distributed: <artifact-dir>/versions/
+
 all_files <- fs::dir_info(demo_dir, recurse = TRUE, all = TRUE)
-version_files <- all_files[grepl("/versions/", all_files$path), ]
+version_files <- all_files[grepl("/versions/", all_files$path) & all_files$type == "file", ]
 if (nrow(version_files) > 0) {
-  # Group by artifact and sum sizes
+  # Group by artifact and sum sizes of version files
   version_files$artifact <- dirname(dirname(version_files$path))
   agg <- aggregate(size ~ artifact, version_files, sum)
-  agg[order(-agg$size), ][1:10, ]
+  agg[order(-agg$size), ]
 }
 ```
 
