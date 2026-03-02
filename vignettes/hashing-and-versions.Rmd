@@ -52,15 +52,15 @@ st_opts(
 root <- tempdir()
 st_init(root)
 
-p <- fs::path(root, "demo.qs")
+p <- "demo.qs"
 x <- data.frame(a = 1:3)
 
 # First write: creates artifact + sidecars + catalog entry
-st_save(x, p, code = function(z) z)
+st_save(x, p, code = function(z) z, alias = NULL)
 
 # Second write, same content & same code: skipped (no new version)
-st_save(x, p, code = function(z) z)
-nrow(st_versions(p)) # should be 1
+st_save(x, p, code = function(z) z, alias = NULL)
+nrow(st_versions(p, alias = NULL)) # should be 1
 ```
 
 In the snippet above stamp serializes `x` in a deterministic way and computes a content hash. If both the content hash and (when provided) the code hash match the stored metadata, no new version is created when `versioning = "content"`.
@@ -71,9 +71,9 @@ If you **change content** (or **change the code**), a new version is recorded:
 
 ```{r}
 x2 <- transform(x, a = a + 1L)
-st_save(x2, p, code = function(z) z)
-nrow(st_versions(p)) # now 2
-st_latest(p) # latest version id (string)
+st_save(x2, p, code = function(z) z, alias = NULL)
+nrow(st_versions(p, alias = NULL)) # now 2
+st_latest(p, alias = NULL) # latest version id (string)
 ```
 
 > **Policy:** By design, changing the `code=` you pass to `st_save()` creates a new version even if `x` is identical. This makes code provenance explicit.
@@ -86,7 +86,7 @@ A short practical pattern:
 ## Inspect sidecars & metadata
 
 ```{r}
-meta <- st_read_sidecar(p)
+meta <- st_read_sidecar(p, alias = NULL)
 meta[c(
   "format",
   "created_at",
@@ -115,14 +115,14 @@ Use these **before** doing expensive work, to decide whether to recompute.
 x_same <- x2
 x_new <- transform(x2, a = a + 10L)
 
-st_changed(p, x = x_same, code = function(z) z)
-st_changed_reason(p, x = x_same, code = function(z) z) # "no_change"
+st_changed(p, x = x_same, code = function(z) z, alias = NULL)
+st_changed_reason(p, x = x_same, code = function(z) z, alias = NULL) # "no_change"
 
-st_changed(p, x = x_new, code = function(z) z)
-st_changed_reason(p, x = x_new, code = function(z) z) # "content"
+st_changed(p, x = x_new, code = function(z) z, alias = NULL)
+st_changed_reason(p, x = x_new, code = function(z) z, alias = NULL) # "content"
 
-st_should_save(p, x = x_same, code = function(z) z) # recommends skip
-st_should_save(p, x = x_new, code = function(z) z) # recommends save
+st_should_save(p, x = x_same, code = function(z) z, alias = NULL) # recommends skip
+st_should_save(p, x = x_new, code = function(z) z, alias = NULL) # recommends save
 ```
 
 When you call `st_changed()` or `st_changed_reason()` you avoid performing any file writes. These helpers are ideal as guards inside functions that compute expensive results only when necessary:
@@ -140,16 +140,16 @@ if (st_should_save(p, x = out, code = my_transform)$save) {
 ## Loading specific versions
 
 ```{r}
-vids <- st_versions(p)
+vids <- st_versions(p, alias = NULL)
 head(vids)
 
-vid_latest <- st_latest(p)
-obj_latest <- st_load_version(p, vid_latest)
+vid_latest <- st_latest(p, alias = NULL)
+obj_latest <- st_load_version(p, vid_latest, alias = NULL)
 
 # Load an older version by id
 if (nrow(vids) > 1L) {
   vid_old <- vids$version_id[[nrow(vids)]]
-  obj_old <- st_load_version(p, vid_old)
+  obj_old <- st_load_version(p, vid_old, alias = NULL)
 }
 ```
 
@@ -157,18 +157,29 @@ if (nrow(vids) > 1L) {
 
 ### Where are versions stored?
 
-Snapshots live under `.stamp/versions/<relative-path>/<version_id>/`.
+Snapshots live in a `versions/` directory **next to each artifact**, not centralized
+in `.stamp/`. Each artifact manages its own version history.
+
+**Storage pattern:** `<root>/<path>/<filename>/versions/<version_id>/`
 
 ```{r}
-p <- fs::path(root, "demo.qs")
+p <- "demo.qs"
 x <- data.frame(a = 1:5)
 
 # Write once to create a version snapshot
-st_save(x, p, code = function(z) z)
+st_save(x, p, code = function(z) z, alias = NULL)
 
-# Now list the versions tree
-vroot <- fs::path(root, "demo.qs", "versions")
-fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+# Version history is stored next to the artifact
+info <- st_info(p, alias = NULL)
+artifact_dir <- fs::path_dir(info$sidecar$path)  # e.g., root/demo.qs/
+vroot <- fs::path(artifact_dir, "versions")
+
+if (fs::dir_exists(vroot)) {
+  cat("Versions directory:", vroot, "\n\n")
+  fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+} else {
+  cat("No versions directory found (versioning may be disabled)\n")
+}
 
 ```
 
@@ -177,14 +188,18 @@ Each snapshot dir contains:
 * `artifact` — a copy of the saved file
 * `sidecar.json` and/or `sidecar.qs2` — depending on `meta_format`
 
-Additionally each snapshot may include a `parents.json` file capturing committed lineage between artifacts; this is created when stamp records explicit parents during a commit. Sidecar metadata (in `stmeta/`) is the primary local source used to decide whether to write, while snapshots are the long-term committed record.
+Additionally each snapshot may include a `parents.json` file capturing committed lineage between artifacts; this is created when stamp records explicit parents during a commit. Sidecar metadata (in `stmeta/` next to the artifact) is the primary local source used to decide whether to write, while snapshots are the long-term committed record.
+
+**Note:** Version directories are now distributed (one `versions/` folder per artifact),
+not centralized in `.stamp/versions/`. This makes it easy to locate all history for
+a specific artifact.
 
 ## Integrity checks on load (optional)
 
-If `verify_on_load = TRUE` and a `content_hash` exists in the sidecar, `st_load()` recomputes the object’s hash and warns if it differs (indicating the file changed outside **stamp**).
+If `verify_on_load = TRUE` and a `content_hash` exists in the sidecar, `st_load()` recomputes the object's hash and warns if it differs (indicating the file changed outside **stamp**).
 
 ```{r}
-invisible(st_load(p)) # triggers optional verify; warns on mismatch
+invisible(st_load(p, alias = NULL)) # triggers optional verify; warns on mismatch
 ```
 
 If `verify_on_load = TRUE`, `st_load()` recomputes `st_hash_obj()` and compares it to the `content_hash` recorded in the sidecar or snapshot. A mismatch usually means the file was modified outside of stamp and re-saving is recommended.
@@ -212,8 +227,10 @@ A: `qs2` is preferred. If unavailable, **stamp** falls back to `{qs}` for read/w
 **Q: Sidecars not appearing.**
 A: Check `st_opts("meta_format", .get = TRUE)` — set to `"json"`, `"qs2"`, or `"both"`. Sidecars are written to `stmeta/` next to the artifact.
 
-**Q: Versions aren’t where I expect.**
-A: Version snapshots live under `.stamp/versions/<relative-path>/<version_id>/`. Use the code snippet above to explore the tree.
+**Q: Versions aren't where I expect.**
+A: Version snapshots now live **next to each artifact** in `<artifact-dir>/versions/<version_id>/`,
+not centralized in `.stamp/versions/`. Use `st_info(path)$snapshot_dir` to find the exact location,
+or explore `<artifact-dir>/versions/` directly.
 
 ## Tips & conventions
 

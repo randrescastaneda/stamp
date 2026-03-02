@@ -57,41 +57,43 @@ root <- tempdir()
 st_init(root)
 
 # A
-pA <- fs::path(root, "A.qs")
+pA <- "A.qs"
 xA <- data.frame(a = 1:3)
-st_save(xA, pA, code = function(z) z)
+st_save(xA, pA, code = function(z) z, alias = NULL)
 
 # B depends on A
-pB <- fs::path(root, "B.qs")
+pB <- "B.qs"
 xB <- transform(xA, b = a * 2)
 st_save(
   xB,
   pB,
   code = function(z) z,
-  parents = list(list(path = pA, version_id = st_latest(pA)))
+  parents = list(list(path = pA, version_id = st_latest(pA, alias = NULL))),
+  alias = NULL
 )
 
 # C depends on B
-pC <- fs::path(root, "C.qs")
+pC <- "C.qs"
 xC <- transform(xB, c = b + 1L)
 st_save(
   xC,
   pC,
   code = function(z) z,
-  parents = list(list(path = pB, version_id = st_latest(pB)))
+  parents = list(list(path = pB, version_id = st_latest(pB, alias = NULL))),
+  alias = NULL
 )
 ```
 
-Note: after these saves each artifact has a sidecar (in `stmeta/`) and snapshots under `.stamp/versions/`.
+Note: after these saves each artifact has a sidecar (in `stmeta/` next to the artifact) and snapshots in its own `versions/` directory (per-artifact storage, not centralized).
 
 ## Inspect lineage
 
 ```{r}
 # Immediate children of A (depth 1)
-st_children(pA, depth = 1)
+st_children(pA, depth = 1, alias = NULL)
 
 # Full lineage (parents of an artifact)
-st_lineage(pC, depth = Inf)
+st_lineage(pC, depth = Inf, alias = NULL)
 ```
 
 ## Make a change upstream & detect staleness
@@ -99,7 +101,7 @@ st_lineage(pC, depth = Inf)
 ```{r}
 # Change A → new version
 xA2 <- transform(xA, a = a + 10L)
-st_save(xA2, pA, code = function(z) z)
+st_save(xA2, pA, code = function(z) z, alias = NULL)
 
 # Strict staleness
 st_is_stale(pB) # TRUE (B's recorded A version is now old)
@@ -110,7 +112,7 @@ st_is_stale(pC) # FALSE (C points to B, which hasn't changed yet)
 
 Two strategies:
 
-* **strict**: only items whose *recorded* parent IDs differ from parents’ *current latest*.
+* **strict**: only items whose *recorded* parent IDs differ from parents' *current latest*.
 * **propagate**: assume targets will change and plan descendants in BFS layers.
 
 ```{r}
@@ -135,7 +137,7 @@ st_clear_builders()
 # Register a builder for B: rebuild from A's committed version
 st_register_builder(pB, function(path, parents) {
   # parents is list(list(path=..., version_id=...))
-  A <- st_load_version(parents[[1]]$path, parents[[1]]$version_id)
+  A <- st_load_version(parents[[1]]$path, parents[[1]]$version_id, alias = NULL)
   list(
     x = transform(A, b = a * 2),
     code = function(z) z,
@@ -145,7 +147,7 @@ st_register_builder(pB, function(path, parents) {
 
 # Register a builder for C: rebuild from B's committed version
 st_register_builder(pC, function(path, parents) {
-  B <- st_load_version(parents[[1]]$path, parents[[1]]$version_id)
+  B <- st_load_version(parents[[1]]$path, parents[[1]]$version_id, alias = NULL)
   list(
     x = transform(B, c = b + 1L),
     code = function(z) z,
@@ -173,14 +175,17 @@ st_plan_rebuild(pB, depth = Inf, mode = "propagate")
 ## Inspect snapshots on disk
 
 ```{r}
-vroot <- fs::path(root, "A.qs", "versions")
-fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+vroot <- fs::path_dir(st_info(pA, alias = NULL)$sidecar$path)
+vroot <- fs::path(vroot, "versions")
+if (fs::dir_exists(vroot)) {
+  fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+}
 ```
 
 **Tip:** `st_info(path)` summarizes sidecar, catalog status, and the latest snapshot dir, plus parsed `parents.json` from the committed snapshot (if present).
 
 ```{r}
-st_info(pC)
+st_info(pC, alias = NULL)
 ```
 
 ### Takeaways
