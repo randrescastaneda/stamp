@@ -679,7 +679,11 @@ build_partition_summary <- function(path, parents) {
 
 ```{r partition-summary-build}
 # Populate outputs/summary_parts by running the builder for each welfare partition key
+partition_keys <- st_list_parts("data/welfare_parts")
 summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
+if (nrow(partition_keys) == 0) {
+  stop("No welfare partitions found in 'data/welfare_parts'.")
+}
 for (i in seq_len(nrow(partition_keys))) {
   key_row <- partition_keys[i, ]
   # Reconstruct key list from the partition_keys table (drop non-key columns)
