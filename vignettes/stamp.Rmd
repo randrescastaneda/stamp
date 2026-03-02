@@ -751,8 +751,8 @@ for (p in stale_paths) {
   key <- setNames(lapply(kv, function(x) x[2]), lapply(kv, function(x) x[1]))
   parents <- list(
     list(
-      path = st_part_path("data/welfare_parts", key, alias = NULL),
-      version_id = st_latest(st_part_path("data/welfare_parts", key, alias = NULL), alias = NULL)
+      path = st_part_path("data/welfare_parts", key),
+      version_id = st_latest(st_part_path("data/welfare_parts", key), alias = NULL)
     ),
     list(
       path = "data/macro/cpi.qs2",
