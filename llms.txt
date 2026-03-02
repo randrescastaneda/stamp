@@ -17,131 +17,75 @@ devtools::install_github("randrescastaneda/stamp")
 
 ``` r
 library(stamp)
-root <- tempdir()
+root <- "demo_stamp"
 st_init(root)
 #> ✔ stamp initialized
-#>   root: C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS
-#>   state: C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/.stamp
+#>   alias: default
+#>   root: E:/PovcalNet/01.personal/wb535623/PIP/stamp/demo_stamp
+#>   state: E:/PovcalNet/01.personal/wb535623/PIP/stamp/demo_stamp/.stamp
 
-p <- fs::path(root, "demo.qs")
+p <- "demo.qs2"
 x <- data.frame(id = 1:3, val = letters[1:3])
 
-st_save(x, p, pk = "id", code = function(z) z)
-#> ✔ Saved [qs] → 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs' @
-#>   version 9f17a32f99df9990
+# Save with primary key (code parameter tracks provenance - see vignettes)
+st_save(x, p, pk = "id")
+#> ✔ Saved [qs2] →
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
+#>   e1575878e6d298ea
 y <- st_load(p)
-#> ✔ Loaded [qs] ← 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs'
+#> ✔ Loaded [qs2] ←
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2'
 vrs <- st_versions(p)
 head(vrs)
-#>          version_id      artifact_id     content_hash        code_hash
-#>              <char>           <char>           <char>           <char>
-#> 1: 9f17a32f99df9990 526fcbc6552f1098 cdbe771e53841cf7 488e8fa49c740261
-#>    size_bytes                  created_at sidecar_format
-#>         <num>                      <char>         <char>
-#> 1:        170 2025-12-22T10:40:28.932216Z           json
+#>          version_id      artifact_id     content_hash code_hash size_bytes
+#>              <char>           <char>           <char>    <char>      <num>
+#> 1: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      <NA>        296
+#>                     created_at sidecar_format
+#>                         <char>         <char>
+#> 1: 2026-03-02T20:26:58.905735Z           json
 
 # Retention
 st_opts(retain_versions = 2)
 #> ✔ stamp options updated
 #>   retain_versions = "2"
-st_save(transform(x, val = toupper(val)), p, code = function(z) z)
-#> ✔ Retention policy matched zero versions; nothing to prune.
-#> ✔ Saved [qs] → 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs' @
-#>   version 68b91238470c74fc
-vrs <- st_versions(p)
-head(vrs)
-#>          version_id      artifact_id     content_hash        code_hash
-#>              <char>           <char>           <char>           <char>
-#> 1: 68b91238470c74fc 526fcbc6552f1098 d2b54b7e265bb11f 488e8fa49c740261
-#> 2: 9f17a32f99df9990 526fcbc6552f1098 cdbe771e53841cf7 488e8fa49c740261
-#>    size_bytes                  created_at sidecar_format
-#>         <num>                      <char>         <char>
-#> 1:        149 2025-12-22T10:40:29.104312Z           json
-#> 2:        170 2025-12-22T10:40:28.932216Z           json
-
-# Partitions
-base <- fs::path(root, "inputs/country_year")
-st_save_part(
-  data.frame(country = "PER", year = 2023, pop = 34.5),
-  base,
-  key = list(country = "PER", year = 2023),
-  pk = c("country", "year")
-)
+st_save(transform(x, val = toupper(val)), p)
 #> ✔ Retention policy matched zero versions; nothing to prune.
 #> ✔ Saved [qs2] →
-#>   'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2'
-#>   @ version 2201f3bf291ca2f2
-st_list_parts(base)
-#>                                                                                                   path
-#> 1 C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2
-#>   country year
-#> 1     PER 2023
-st_load_parts(base, as = "rbind")
-#> ✔ Loaded [qs2] ←
-#>   'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2'
-#>   country year  pop
-#> 1     PER 2023 34.5
+#>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
+#>   3021cb6f8ea6cb18
+vrs <- st_versions(p)
+head(vrs)
+#>          version_id      artifact_id     content_hash code_hash size_bytes
+#>              <char>           <char>           <char>    <char>      <num>
+#> 1: 3021cb6f8ea6cb18 c124606df64bb597 d2b54b7e265bb11f      <NA>        263
+#> 2: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      <NA>        296
+#>                     created_at sidecar_format
+#>                         <char>         <char>
+#> 1: 2026-03-02T20:26:59.062988Z           json
+#> 2: 2026-03-02T20:26:58.905735Z           json
 ```
 
-## Folder Structure
+## Managing Multiple Stamp Folders with Aliases
 
-`stamp` creates two directories when you call
-[`st_init()`](https://randrescastaneda.github.io/stamp/reference/st_init.md):
+See the vignette “Using Aliases with stamp” for a comprehensive guide:
 
-- **`.stamp/`** - Internal state directory containing:
-  - `catalog.json` - Index of all artifacts and their versions
-  - `versions/` - Version snapshots organized by artifact and version ID
-  - `temp/` and `logs/` - Working directories
-- **`.st_data/`** - Data folder where your actual files are stored:
-  - Artifacts are organized as `.st_data/<filename>/<filename>`
-  - Subdirectories work too: `.st_data/<subdir>/<filename>/<filename>`
-
-### Path Handling
-
-You can reference artifacts using:
-
-1.  **Bare filenames** - `"data.qs2"` → stored in
-    `.st_data/data.qs2/data.qs2`
-2.  **Relative paths with subdirectories** - `"results/model.rds"` →
-    stored in `.st_data/results/model.rds/model.rds`
-3.  **Absolute paths under project root** - These are converted to
-    relative paths for versioning
-
-The data folder name is configurable via
-`st_opts(data_folder = ".my_data")`.
-
-### Example Structure
-
-``` text
-my_project/
-├── .stamp/              # State directory (managed by stamp)
-│   ├── catalog.json
-│   └── versions/
-│       └── <artifact_id>/
-│           └── <version_id>/
-│               ├── artifact
-│               └── sidecar.json
-└── .st_data/            # Data directory (your files)
-    ├── data.qs2/
-    │   └── data.qs2     # Current version
-    └── results/
-        └── model.rds/
-            └── model.rds
-```
+- Online:
+  <https://randrescastaneda.github.io/stamp/articles/using-alias.html>
+- Source: `vignettes/using-alias.Rmd`
 
 ## File Formats
 
 `stamp` supports multiple serialization formats. The two binary formats
 have distinct implementations:
 
-| Extension | Format | Package Required                                   | Notes                                                |
-|-----------|--------|----------------------------------------------------|------------------------------------------------------|
-| `.qs2`    | qs2    | [qs2](https://github.com/qsbase/qs2)               | New qs2 binary format (recommended for new projects) |
-| `.qs`     | qs     | [qs](https://github.com/qsbase/qs)                 | Legacy qs binary format                              |
-| `.rds`    | rds    | (base R)                                           | R serialized format                                  |
-| `.csv`    | csv    | [data.table](https://r-datatable.com)              | Comma-separated values                               |
-| `.fst`    | fst    | [fst](http://www.fstpackage.org)                   | Fast columnar format                                 |
-| `.json`   | json   | [jsonlite](https://jeroen.r-universe.dev/jsonlite) | JSON format                                          |
+| Extension | Format | Package Required                                   | Notes                                                    |
+|-----------|--------|----------------------------------------------------|----------------------------------------------------------|
+| `.qs2`    | qs2    | [qs2](https://github.com/qsbase/qs2)               | New qs2 binary format (recommended for new projects)     |
+| `.qs`     | qs     | `{qs}`                                             | Legacy qs binary format (deprecated; use `.qs2` instead) |
+| `.rds`    | rds    | (base R)                                           | R serialized format                                      |
+| `.csv`    | csv    | [data.table](https://r-datatable.com)              | Comma-separated values                                   |
+| `.fst`    | fst    | [fst](http://www.fstpackage.org)                   | Fast columnar format                                     |
+| `.json`   | json   | [jsonlite](https://jeroen.r-universe.dev/jsonlite) | JSON format                                              |
 
 **Important**: `.qs` and `.qs2` are **different formats** and require
 their respective packages. There is no automatic fallback between them.
@@ -149,14 +93,17 @@ If you attempt to save/load a `.qs2` file without
 [qs2](https://github.com/qsbase/qs2) installed, `stamp` will abort with
 a clear error message.
 
+> **Migration Note**: Existing `.qs` files can still be loaded if `{qs}`
+> is installed. To migrate to `.qs2`, load with
+> [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)
+> and re-save with `format = "qs2"`. The `.qs2` format offers better
+> performance and is actively maintained.
+
 ### Installing Format Packages
 
 ``` r
 # For qs2 format support
 install.packages("qs2")
-
-# For legacy qs format support
-install.packages("qs")
 
 # For fst format support
 install.packages("fst")
@@ -170,9 +117,6 @@ install.packages("fst")
 # Uses qs2 format (requires {qs2})
 st_save(data, "output.qs2")
 
-# Uses qs format (requires {qs})
-st_save(data, "output.qs")
-
 # Uses RDS (base R, always available)
 st_save(data, "output.rds")
 ```
@@ -183,13 +127,140 @@ You can also specify format explicitly:
 st_save(data, "output", format = "qs2")
 ```
 
-Why stamp? Sidecars: hashes, provenance, PKs.
+## Core Functions
 
-Retention: keep latest N and/or recent days.
+The functions below are organized by workflow. **New users** should
+start with *Initialization*, *Save & Load*, and *Versioning* sections.
+Advanced features like partitions, lineage tracking, and aliases are
+covered in the [vignettes](#learn-more).
 
-Partitions: Hive-style directories, easy bind & filter.
+### Initialization & Configuration
 
-See vignettes for retention + partition details.
+- **`st_init(root)`** - Initialize stamp in a directory, creating the
+  `.stamp/` state folder
+- **[`st_opts()`](https://randrescastaneda.github.io/stamp/reference/st_opts.md)** -
+  Get or set package options (versioning mode, retention policies,
+  metadata format)
+- **[`st_opts_reset()`](https://randrescastaneda.github.io/stamp/reference/st_opts_reset.md)** -
+  Reset all options to defaults
+
+### Save & Load
+
+- **`st_save(x, path, ...)`** - Save an artifact with automatic
+  versioning, metadata, and lineage tracking
+  - Optional: `pk` (primary key), `parents` (lineage), `code`
+    (provenance), `domain` (category), `alias` (target directory)
+- **`st_load(path, ...)`** - Load the latest version of an artifact
+  - Optional: `verify = TRUE` (check content hash), `alias` (source
+    directory)
+- **`st_load_version(path, version_id)`** - Load a specific historical
+  version by ID
+
+### Versioning & History
+
+- **`st_versions(path)`** - List all versions of an artifact with
+  metadata (timestamp, size, hashes)
+- **`st_latest(path)`** - Get the version ID of the most recent version
+- **`st_changed(x, path)`** - Check if an object differs from the saved
+  version
+- **`st_changed_reason(x, path)`** - Explain why content/code changed
+- **`st_should_save(x, path)`** - Determine whether saving would create
+  a new version
+
+### Lineage & Dependencies
+
+- **`st_lineage(path, depth = 1)`** - Show parent artifacts (inputs) for
+  a given artifact
+- **`st_children(path, depth = 1)`** - Show child artifacts (outputs)
+  that depend on this artifact
+- **`st_is_stale(path)`** - Check if an artifact needs rebuilding
+  because parents changed
+
+### Metadata & Inspection
+
+- **`st_info(path)`** - Get comprehensive artifact information (sidecar,
+  catalog, snapshot location, parents)
+- **`st_read_sidecar(path)`** - Read sidecar metadata (hashes,
+  timestamps, primary keys, domain, parents)
+- **`st_hash_obj(x)`** - Compute stable hash for any R object
+- **`st_hash_code(code)`** - Compute hash of code/function
+- **`st_hash_file(path)`** - Compute SHA-256 hash of file on disk
+
+### Primary Keys
+
+- **`st_add_pk(path, keys)`** - Add or update primary key definition for
+  an artifact
+- **`st_get_pk(x_or_meta)`** - Retrieve primary key columns from
+  metadata
+- **`st_inspect_pk(path)`** - Validate primary key uniqueness and
+  coverage
+
+### Partitioned and Pruning Data (under development)
+
+- **`st_save_part(x, base, key, ...)`** - Save a single partition with
+  Hive-style directories
+- **`st_auto_partition(x, base, partition_cols, ...)`** - Automatically
+  split and save dataset by partition columns
+- **`st_load_parts(base, filter = NULL, as = "rbind")`** - Load and
+  combine partitions matching a filter
+- **`st_list_parts(base, filter = NULL)`** - List available partitions
+  without loading
+- **`st_part_path(base, key)`** - Construct path for a partition given
+  its key
+- **`st_prune_versions(path, policy)`** - Remove old versions based on
+  retention policy
+
+### Aliases (Multi-Directory Support)
+
+- **[`st_alias_list()`](https://randrescastaneda.github.io/stamp/reference/st_alias_list.md)** -
+  List all registered aliases
+- **`st_alias_get(name = NULL)`** - Get configuration for an alias
+
+### Builders & Rebuilds ⚠️ *Experimental*
+
+> **Note**: The builder system is under active development. Safe for
+> prototyping, but consider pinning your stamp version in production
+> code until the API stabilizes (expected in v1.0).
+
+- **`st_register_builder(path, builder_fn)`** - Register a function to
+  rebuild an artifact from its parents
+- **`st_clear_builders(paths = NULL)`** - Clear registered builders
+- **`st_plan_rebuild(targets, ...)`** - Compute rebuild plan (which
+  targets are stale and why)
+- **`st_rebuild(plan)`** - Execute a rebuild plan, calling builders and
+  saving results
+
+### Filtering Helpers ⚠️ *Experimental*
+
+> **Note**: Advanced filtering utilities are under development.
+
+- **`st_filter(df, filters = list(), strict = TRUE)`** - Apply named
+  list filters to data frames (used internally for partition queries)
+
+## Learn More
+
+For detailed guides and workflows, see the package vignettes:
+
+- **[Setup and
+  Basics](https://randrescastaneda.github.io/stamp/articles/setup-and-basics.html)** -
+  Getting started with stamp
+- **[Hashing and
+  Versions](https://randrescastaneda.github.io/stamp/articles/hashing-and-versions.html)** -
+  Understanding content hashing and version control
+- **[Using
+  Aliases](https://randrescastaneda.github.io/stamp/articles/using-alias.html)** -
+  Managing multiple stamp directories
+- **[Partitions](https://randrescastaneda.github.io/stamp/articles/partitions.html)** -
+  Working with partitioned datasets
+- **[Lineage and
+  Rebuilds](https://randrescastaneda.github.io/stamp/articles/lineage-rebuilds.html)** -
+  Dependency tracking and automated rebuilds
+- **[Version
+  Retention](https://randrescastaneda.github.io/stamp/articles/version_retention_prune.html)** -
+  Managing version history with retention policies
+- **[Stamp
+  Directory](https://randrescastaneda.github.io/stamp/articles/stamp-directory.html)** -
+  Understanding the `.stamp/` internal structure
 
 # Package index
 

@@ -8,6 +8,11 @@ to use; it does not change any on-disk paths. All artifact paths remain
 the same regardless of alias; only the catalog, versions, and options
 used are selected by alias.
 
+**Storage model (v0.0.9+):** Artifacts are stored as
+`<root>/<path>/<filename>/<filename>` with version history in
+`<root>/<path>/<filename>/versions/`. The `.stamp/` directory within
+each aliased root contains only state (catalog, locks, temp files).
+
 Key properties:
 
 - Aliases select a specific stamp folder initialized via
@@ -32,21 +37,21 @@ root_b <- fs::path(tempdir(), "projB")
 st_init(root_a, alias = "A")
 #> ✔ stamp initialized
 #>   alias: A
-#>   root: /tmp/RtmpAT0h5B/projA
-#>   state: /tmp/RtmpAT0h5B/projA/.stamp
+#>   root: /tmp/RtmpPb77GK/projA
+#>   state: /tmp/RtmpPb77GK/projA/.stamp
 st_init(root_b, alias = "B")
 #> ✔ stamp initialized
 #>   alias: B
-#>   root: /tmp/RtmpAT0h5B/projB
-#>   state: /tmp/RtmpAT0h5B/projB/.stamp
+#>   root: /tmp/RtmpPb77GK/projB
+#>   state: /tmp/RtmpPb77GK/projB/.stamp
 
 # Inspect what was created
 fs::dir_tree(fs::path(root_a, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpAT0h5B/projA/.stamp
+#> /tmp/RtmpPb77GK/projA/.stamp
 #> ├── logs
 #> └── temp
 fs::dir_tree(fs::path(root_b, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpAT0h5B/projB/.stamp
+#> /tmp/RtmpPb77GK/projB/.stamp
 #> ├── logs
 #> └── temp
 ```
@@ -56,18 +61,18 @@ You can inspect registered aliases:
 ``` r
 st_alias_list()
 #>   alias                  root state_dir                   stamp_path
-#> 1     A /tmp/RtmpAT0h5B/projA    .stamp /tmp/RtmpAT0h5B/projA/.stamp
-#> 2     B /tmp/RtmpAT0h5B/projB    .stamp /tmp/RtmpAT0h5B/projB/.stamp
+#> 1     A /tmp/RtmpPb77GK/projA    .stamp /tmp/RtmpPb77GK/projA/.stamp
+#> 2     B /tmp/RtmpPb77GK/projB    .stamp /tmp/RtmpPb77GK/projB/.stamp
 # Get alias details
 st_alias_get("A")
 #> $root
-#> /tmp/RtmpAT0h5B/projA
+#> /tmp/RtmpPb77GK/projA
 #> 
 #> $state_dir
 #> [1] ".stamp"
 #> 
 #> $stamp_path
-#> /tmp/RtmpAT0h5B/projA/.stamp
+#> /tmp/RtmpPb77GK/projA/.stamp
 ```
 
 ## Saving and Loading with Aliases
@@ -81,11 +86,11 @@ pB <- fs::path(root_b, "data.qs")
 
 # Save different data to A and B to ensure versions are created
 st_save(data.frame(id = 1:2), pA, alias = "A")
-#> ✔ Saved [qs2] → /tmp/RtmpAT0h5B/projA/data.qs @
-#> version da0e7928ad6e8edb
+#> ✔ Saved [qs2] → /tmp/RtmpPb77GK/projA/data.qs @
+#> version 5a45b4c6232374d5
 st_save(data.frame(id = 3:4), pB, alias = "B")
-#> ✔ Saved [qs2] → /tmp/RtmpAT0h5B/projB/data.qs @
-#> version 6d3f67aed6eeb33e
+#> ✔ Saved [qs2] → /tmp/RtmpPb77GK/projB/data.qs @
+#> version 06b310c3563b53b0
 
 # Each alias has its own version history
 st_versions(pA, alias = "A")
@@ -93,13 +98,13 @@ st_versions(pB, alias = "B")
 
 # Loading respects the alias
 objA <- st_load(pA, alias = "A")
-#> Warning: No primary key recorded for /tmp/RtmpAT0h5B/projA/data.qs.
+#> Warning: No primary key recorded for /tmp/RtmpPb77GK/projA/data.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/RtmpAT0h5B/projA/data.qs
+#> ✔ Loaded [qs2] ← /tmp/RtmpPb77GK/projA/data.qs
 objB <- st_load(pB, alias = "B")
-#> Warning: No primary key recorded for /tmp/RtmpAT0h5B/projB/data.qs.
+#> Warning: No primary key recorded for /tmp/RtmpPb77GK/projB/data.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/RtmpAT0h5B/projB/data.qs
+#> ✔ Loaded [qs2] ← /tmp/RtmpPb77GK/projB/data.qs
 list(A = objA, B = objB)
 #> $A
 #>   id
@@ -112,18 +117,33 @@ list(A = objA, B = objB)
 #> 2  4
 
 # Inspect what was created within the stamp folders
-fs::dir_tree(fs::path(root_a, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpAT0h5B/projA/.stamp
-#> ├── catalog.lock
-#> ├── catalog.qs2
-#> ├── logs
-#> └── temp
-fs::dir_tree(fs::path(root_b, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpAT0h5B/projB/.stamp
-#> ├── catalog.lock
-#> ├── catalog.qs2
-#> ├── logs
-#> └── temp
+# Note: Artifacts are stored as <root>/<path>/<filename>/<filename>
+# with versions in <root>/<path>/<filename>/versions/
+cat("\nStructure in root_a:\n")
+#> 
+#> Structure in root_a:
+fs::dir_tree(root_a, recurse = 2)
+#> /tmp/RtmpPb77GK/projA
+#> └── data.qs
+#>     ├── data.qs
+#>     ├── data.qs.lock
+#>     ├── stmeta
+#>     │   └── data.qs.stmeta.json
+#>     └── versions
+#>         └── 5a45b4c6232374d5
+
+cat("\nStructure in root_b:\n")
+#> 
+#> Structure in root_b:
+fs::dir_tree(root_b, recurse = 2)
+#> /tmp/RtmpPb77GK/projB
+#> └── data.qs
+#>     ├── data.qs
+#>     ├── data.qs.lock
+#>     ├── stmeta
+#>     │   └── data.qs.stmeta.json
+#>     └── versions
+#>         └── 06b310c3563b53b0
 ```
 
 Version resolution is non-interactive. `NULL` or `0` resolve to the
@@ -132,13 +152,13 @@ latest version:
 ``` r
 # Load latest (using default version = NULL for latest)
 latestA <- st_load(pA, alias = "A")
-#> Warning: No primary key recorded for /tmp/RtmpAT0h5B/projA/data.qs.
+#> Warning: No primary key recorded for /tmp/RtmpPb77GK/projA/data.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/RtmpAT0h5B/projA/data.qs
+#> ✔ Loaded [qs2] ← /tmp/RtmpPb77GK/projA/data.qs
 latestB <- st_load(pB, alias = "B")
-#> Warning: No primary key recorded for /tmp/RtmpAT0h5B/projB/data.qs.
+#> Warning: No primary key recorded for /tmp/RtmpPb77GK/projB/data.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/RtmpAT0h5B/projB/data.qs
+#> ✔ Loaded [qs2] ← /tmp/RtmpPb77GK/projB/data.qs
 
 list(latestA = latestA, latestB = latestB)
 #> $latestA
@@ -164,8 +184,8 @@ st_switch("A")
 
 # Now calls without alias use whatever folder default points to
 st_save(data.frame(id = 5), fs::path(root_a, "more.qs"))
-#> ✔ Saved [qs2] → /tmp/RtmpAT0h5B/projA/more.qs @
-#> version fe6f35656b629699
+#> ✔ Saved [qs2] → /tmp/RtmpPb77GK/projA/more.qs @
+#> version c784616570d476cf
 ```
 
 ## Constraints and Conflicts
@@ -209,3 +229,9 @@ st_save(data.frame(id = 5), fs::path(root_a, "more.qs"))
   [`st_opts()`](https://randrescastaneda.github.io/stamp/reference/st_opts.md)
   after
   [`st_init()`](https://randrescastaneda.github.io/stamp/reference/st_init.md).
+- **Storage architecture (v0.0.9+):** Each aliased root stores:
+  - `.stamp/` - state only (catalog, locks, temp)
+  - `<path>/<filename>/` - artifact directories containing:
+    - `<filename>` - the actual file
+    - `stmeta/` - sidecar metadata
+    - `versions/` - version history for that specific artifact

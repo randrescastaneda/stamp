@@ -84,6 +84,12 @@ single R session. An alias is a selector for which folder configuration
 to use; it does not change any on-disk paths. All artifact paths remain
 the same regardless of alias; only the catalog, versions, and options
 used are selected by alias.</p>
+<p><strong>Storage model (v0.0.9+):</strong> Artifacts are stored as
+<code>&lt;root&gt;/&lt;path&gt;/&lt;filename&gt;/&lt;filename&gt;</code>
+with version history in
+<code>&lt;root&gt;/&lt;path&gt;/&lt;filename&gt;/versions/</code>. The
+<code>.stamp/</code> directory within each aliased root contains only
+state (catalog, locks, temp files).</p>
 <p>Key properties:</p>
 <ul>
 <li>Aliases select a specific stamp folder initialized via
@@ -109,39 +115,39 @@ with <code><a href="../reference/st_switch.html">st_switch()</a></code>.</li>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">root_a</span>, alias <span class="op">=</span> <span class="st">"A"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
 <span><span class="co">#&gt;   alias: A</span></span>
-<span><span class="co">#&gt;   root: /tmp/RtmpAT0h5B/projA</span></span>
-<span><span class="co">#&gt;   state: /tmp/RtmpAT0h5B/projA/.stamp</span></span>
+<span><span class="co">#&gt;   root: /tmp/RtmpPb77GK/projA</span></span>
+<span><span class="co">#&gt;   state: /tmp/RtmpPb77GK/projA/.stamp</span></span>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">root_b</span>, alias <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
 <span><span class="co">#&gt;   alias: B</span></span>
-<span><span class="co">#&gt;   root: /tmp/RtmpAT0h5B/projB</span></span>
-<span><span class="co">#&gt;   state: /tmp/RtmpAT0h5B/projB/.stamp</span></span>
+<span><span class="co">#&gt;   root: /tmp/RtmpPb77GK/projB</span></span>
+<span><span class="co">#&gt;   state: /tmp/RtmpPb77GK/projB/.stamp</span></span>
 <span></span>
 <span><span class="co"># Inspect what was created</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root_a</span>, <span class="st">".stamp"</span><span class="op">)</span>, recurse <span class="op">=</span> <span class="cn">TRUE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpAT0h5B/projA/.stamp</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpPb77GK/projA/.stamp</span></span></span>
 <span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">logs</span></span></span>
 <span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">temp</span></span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root_b</span>, <span class="st">".stamp"</span><span class="op">)</span>, recurse <span class="op">=</span> <span class="cn">TRUE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpAT0h5B/projB/.stamp</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpPb77GK/projB/.stamp</span></span></span>
 <span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">logs</span></span></span>
 <span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">temp</span></span></span></code></pre></div>
 <p>You can inspect registered aliases:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_alias_list.html">st_alias_list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   alias                  root state_dir                   stamp_path</span></span>
-<span><span class="co">#&gt; 1     A /tmp/RtmpAT0h5B/projA    .stamp /tmp/RtmpAT0h5B/projA/.stamp</span></span>
-<span><span class="co">#&gt; 2     B /tmp/RtmpAT0h5B/projB    .stamp /tmp/RtmpAT0h5B/projB/.stamp</span></span>
+<span><span class="co">#&gt; 1     A /tmp/RtmpPb77GK/projA    .stamp /tmp/RtmpPb77GK/projA/.stamp</span></span>
+<span><span class="co">#&gt; 2     B /tmp/RtmpPb77GK/projB    .stamp /tmp/RtmpPb77GK/projB/.stamp</span></span>
 <span><span class="co"># Get alias details</span></span>
 <span><span class="fu"><a href="../reference/st_alias_get.html">st_alias_get</a></span><span class="op">(</span><span class="st">"A"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $root</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpAT0h5B/projA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpPb77GK/projA</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $state_dir</span></span>
 <span><span class="co">#&gt; [1] ".stamp"</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $stamp_path</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpAT0h5B/projA/.stamp</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpPb77GK/projA/.stamp</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="saving-and-loading-with-aliases">Saving and Loading with Aliases<a class="anchor" aria-label="anchor" href="#saving-and-loading-with-aliases"></a>
@@ -154,11 +160,11 @@ select which catalog/versions apply:</p>
 <span></span>
 <span><span class="co"># Save different data to A and B to ensure versions are created</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, <span class="va">pA</span>, alias <span class="op">=</span> <span class="st">"A"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projA/data.qs</span> @</span></span>
-<span><span class="co">#&gt; version <span style="color: #00BB00;">da0e7928ad6e8edb</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpPb77GK/projA/data.qs</span> @</span></span>
+<span><span class="co">#&gt; version <span style="color: #00BB00;">5a45b4c6232374d5</span></span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>, <span class="va">pB</span>, alias <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projB/data.qs</span> @</span></span>
-<span><span class="co">#&gt; version <span style="color: #00BB00;">6d3f67aed6eeb33e</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpPb77GK/projB/data.qs</span> @</span></span>
+<span><span class="co">#&gt; version <span style="color: #00BB00;">06b310c3563b53b0</span></span></span>
 <span></span>
 <span><span class="co"># Each alias has its own version history</span></span>
 <span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pA</span>, alias <span class="op">=</span> <span class="st">"A"</span><span class="op">)</span></span>
@@ -166,13 +172,13 @@ select which catalog/versions apply:</p>
 <span></span>
 <span><span class="co"># Loading respects the alias</span></span>
 <span><span class="va">objA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">pA</span>, alias <span class="op">=</span> <span class="st">"A"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projA/data.qs</span>.</span></span>
+<span><span class="co">#&gt; Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpPb77GK/projA/data.qs</span>.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projA/data.qs</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpPb77GK/projA/data.qs</span></span></span>
 <span><span class="va">objB</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">pB</span>, alias <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projB/data.qs</span>.</span></span>
+<span><span class="co">#&gt; Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpPb77GK/projB/data.qs</span>.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projB/data.qs</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpPb77GK/projB/data.qs</span></span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="va">objA</span>, B <span class="op">=</span> <span class="va">objB</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $A</span></span>
 <span><span class="co">#&gt;   id</span></span>
@@ -185,30 +191,45 @@ select which catalog/versions apply:</p>
 <span><span class="co">#&gt; 2  4</span></span>
 <span></span>
 <span><span class="co"># Inspect what was created within the stamp folders</span></span>
-<span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root_a</span>, <span class="st">".stamp"</span><span class="op">)</span>, recurse <span class="op">=</span> <span class="cn">TRUE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpAT0h5B/projA/.stamp</span></span></span>
-<span><span class="co">#&gt; ├── catalog.lock</span></span>
-<span><span class="co">#&gt; ├── catalog.qs2</span></span>
-<span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">logs</span></span></span>
-<span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">temp</span></span></span>
-<span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root_b</span>, <span class="st">".stamp"</span><span class="op">)</span>, recurse <span class="op">=</span> <span class="cn">TRUE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpAT0h5B/projB/.stamp</span></span></span>
-<span><span class="co">#&gt; ├── catalog.lock</span></span>
-<span><span class="co">#&gt; ├── catalog.qs2</span></span>
-<span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">logs</span></span></span>
-<span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">temp</span></span></span></code></pre></div>
+<span><span class="co"># Note: Artifacts are stored as &lt;root&gt;/&lt;path&gt;/&lt;filename&gt;/&lt;filename&gt;</span></span>
+<span><span class="co"># with versions in &lt;root&gt;/&lt;path&gt;/&lt;filename&gt;/versions/</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nStructure in root_a:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Structure in root_a:</span></span>
+<span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">root_a</span>, recurse <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpPb77GK/projA</span></span></span>
+<span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">data.qs</span></span></span>
+<span><span class="co">#&gt;     ├── data.qs</span></span>
+<span><span class="co">#&gt;     ├── data.qs.lock</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">stmeta</span></span></span>
+<span><span class="co">#&gt;     │   └── data.qs.stmeta.json</span></span>
+<span><span class="co">#&gt;     └── <span style="color: #0000BB; font-weight: bold;">versions</span></span></span>
+<span><span class="co">#&gt;         └── <span style="color: #0000BB; font-weight: bold;">5a45b4c6232374d5</span></span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nStructure in root_b:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Structure in root_b:</span></span>
+<span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">root_b</span>, recurse <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpPb77GK/projB</span></span></span>
+<span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">data.qs</span></span></span>
+<span><span class="co">#&gt;     ├── data.qs</span></span>
+<span><span class="co">#&gt;     ├── data.qs.lock</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">stmeta</span></span></span>
+<span><span class="co">#&gt;     │   └── data.qs.stmeta.json</span></span>
+<span><span class="co">#&gt;     └── <span style="color: #0000BB; font-weight: bold;">versions</span></span></span>
+<span><span class="co">#&gt;         └── <span style="color: #0000BB; font-weight: bold;">06b310c3563b53b0</span></span></span></code></pre></div>
 <p>Version resolution is non-interactive. <code>NULL</code> or
 <code>0</code> resolve to the latest version:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load latest (using default version = NULL for latest)</span></span>
 <span><span class="va">latestA</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">pA</span>, alias <span class="op">=</span> <span class="st">"A"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projA/data.qs</span>.</span></span>
+<span><span class="co">#&gt; Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpPb77GK/projA/data.qs</span>.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projA/data.qs</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpPb77GK/projA/data.qs</span></span></span>
 <span><span class="va">latestB</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">pB</span>, alias <span class="op">=</span> <span class="st">"B"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projB/data.qs</span>.</span></span>
+<span><span class="co">#&gt; Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpPb77GK/projB/data.qs</span>.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projB/data.qs</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpPb77GK/projB/data.qs</span></span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>latestA <span class="op">=</span> <span class="va">latestA</span>, latestB <span class="op">=</span> <span class="va">latestB</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $latestA</span></span>
@@ -233,8 +254,8 @@ keep legacy state in sync:</p>
 <span></span>
 <span><span class="co"># Now calls without alias use whatever folder default points to</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root_a</span>, <span class="st">"more.qs"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpAT0h5B/projA/more.qs</span> @</span></span>
-<span><span class="co">#&gt; version <span style="color: #00BB00;">fe6f35656b629699</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpPb77GK/projA/more.qs</span> @</span></span>
+<span><span class="co">#&gt; version <span style="color: #00BB00;">c784616570d476cf</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="constraints-and-conflicts">Constraints and Conflicts<a class="anchor" aria-label="anchor" href="#constraints-and-conflicts"></a>
@@ -287,6 +308,27 @@ is used.</li>
 <li>Options like retention, verification, and primary key policies are
 per-alias (per folder). Configure them with <code><a href="../reference/st_opts.html">st_opts()</a></code> after
 <code><a href="../reference/st_init.html">st_init()</a></code>.</li>
+<li>
+<strong>Storage architecture (v0.0.9+):</strong> Each aliased root
+stores:
+<ul>
+<li>
+<code>.stamp/</code> - state only (catalog, locks, temp)</li>
+<li>
+<code>&lt;path&gt;/&lt;filename&gt;/</code> - artifact directories
+containing:
+<ul>
+<li>
+<code>&lt;filename&gt;</code> - the actual file</li>
+<li>
+<code>stmeta/</code> - sidecar metadata</li>
+<li>
+<code>versions/</code> - version history for that specific
+artifact</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

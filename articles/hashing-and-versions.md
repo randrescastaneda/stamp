@@ -68,30 +68,30 @@ st_init(root)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpcdMmZz
-    ##   state: /tmp/RtmpcdMmZz/.stamp
+    ##   root: /tmp/RtmpHVkJOw
+    ##   state: /tmp/RtmpHVkJOw/.stamp
 
 ``` r
-p <- fs::path(root, "demo.qs")
+p <- "demo.qs"
 x <- data.frame(a = 1:3)
 
 # First write: creates artifact + sidecars + catalog entry
-st_save(x, p, code = function(z) z)
+st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpcdMmZz/demo.qs @
-    ## version 3582f3eb4922f100
+    ## ✔ Saved [qs2] → /tmp/RtmpHVkJOw/demo.qs @
+    ## version 2715e267fbfabb37
 
 ``` r
 # Second write, same content & same code: skipped (no new version)
-st_save(x, p, code = function(z) z)
+st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpcdMmZz/demo.qs @
-    ## version e3d49f5321a599b4
+    ## ✔ Saved [qs2] → /tmp/RtmpHVkJOw/demo.qs @
+    ## version c38931c66faa3bde
 
 ``` r
-nrow(st_versions(p)) # should be 1
+nrow(st_versions(p, alias = NULL)) # should be 1
 ```
 
     ## [1] 2
@@ -112,23 +112,23 @@ recorded:
 
 ``` r
 x2 <- transform(x, a = a + 1L)
-st_save(x2, p, code = function(z) z)
+st_save(x2, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpcdMmZz/demo.qs @
-    ## version a074f67fc5100018
+    ## ✔ Saved [qs2] → /tmp/RtmpHVkJOw/demo.qs @
+    ## version 5915261145fdd4f8
 
 ``` r
-nrow(st_versions(p)) # now 2
+nrow(st_versions(p, alias = NULL)) # now 2
 ```
 
     ## [1] 3
 
 ``` r
-st_latest(p) # latest version id (string)
+st_latest(p, alias = NULL) # latest version id (string)
 ```
 
-    ## [1] "a074f67fc5100018"
+    ## [1] "5915261145fdd4f8"
 
 > **Policy:** By design, changing the `code=` you pass to
 > [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md)
@@ -150,7 +150,7 @@ A short practical pattern:
 ## Inspect sidecars & metadata
 
 ``` r
-meta <- st_read_sidecar(p)
+meta <- st_read_sidecar(p, alias = NULL)
 meta[c(
   "format",
   "created_at",
@@ -165,7 +165,7 @@ meta[c(
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2026-01-28T15:50:04.982391Z"
+    ## [1] "2026-03-02T21:47:12.153852Z"
     ## 
     ## $size_bytes
     ## [1] 195
@@ -208,7 +208,7 @@ recompute.
 x_same <- x2
 x_new <- transform(x2, a = a + 10L)
 
-st_changed(p, x = x_same, code = function(z) z)
+st_changed(p, x = x_same, code = function(z) z, alias = NULL)
 ```
 
     ## $changed
@@ -228,13 +228,13 @@ st_changed(p, x = x_same, code = function(z) z)
     ## [1] FALSE
 
 ``` r
-st_changed_reason(p, x = x_same, code = function(z) z) # "no_change"
+st_changed_reason(p, x = x_same, code = function(z) z, alias = NULL) # "no_change"
 ```
 
     ## [1] "no_change"
 
 ``` r
-st_changed(p, x = x_new, code = function(z) z)
+st_changed(p, x = x_new, code = function(z) z, alias = NULL)
 ```
 
     ## $changed
@@ -254,13 +254,13 @@ st_changed(p, x = x_new, code = function(z) z)
     ## [1] FALSE
 
 ``` r
-st_changed_reason(p, x = x_new, code = function(z) z) # "content"
+st_changed_reason(p, x = x_new, code = function(z) z, alias = NULL) # "content"
 ```
 
     ## [1] "content"
 
 ``` r
-st_should_save(p, x = x_same, code = function(z) z) # recommends skip
+st_should_save(p, x = x_same, code = function(z) z, alias = NULL) # recommends skip
 ```
 
     ## $save
@@ -270,7 +270,7 @@ st_should_save(p, x = x_same, code = function(z) z) # recommends skip
     ## [1] "no_change_policy"
 
 ``` r
-st_should_save(p, x = x_new, code = function(z) z) # recommends save
+st_should_save(p, x = x_new, code = function(z) z, alias = NULL) # recommends save
 ```
 
     ## $save
@@ -299,39 +299,39 @@ if (st_should_save(p, x = out, code = my_transform)$save) {
 ## Loading specific versions
 
 ``` r
-vids <- st_versions(p)
+vids <- st_versions(p, alias = NULL)
 head(vids)
 ```
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: a074f67fc5100018 5fe3ccbc3d051c6c 7e25cdd35cd37239 488e8fa49c740261
-    ## 2: e3d49f5321a599b4 5fe3ccbc3d051c6c 1811ba4b2bd2a26a 488e8fa49c740261
-    ## 3: 3582f3eb4922f100 5fe3ccbc3d051c6c 1811ba4b2bd2a26a 488e8fa49c740261
+    ## 1: 5915261145fdd4f8 6d986efd1fa50585 7e25cdd35cd37239 488e8fa49c740261
+    ## 2: c38931c66faa3bde 6d986efd1fa50585 1811ba4b2bd2a26a 488e8fa49c740261
+    ## 3: 2715e267fbfabb37 6d986efd1fa50585 1811ba4b2bd2a26a 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        195 2026-01-28T15:50:04.982391Z           both
-    ## 2:        244 2026-01-28T15:50:04.863068Z           both
-    ## 3:        244 2026-01-28T15:50:04.805841Z           both
+    ## 1:        195 2026-03-02T21:47:12.153852Z           both
+    ## 2:        244 2026-03-02T21:47:12.031792Z           both
+    ## 3:        244 2026-03-02T21:47:11.972090Z           both
 
 ``` r
-vid_latest <- st_latest(p)
-obj_latest <- st_load_version(p, vid_latest)
+vid_latest <- st_latest(p, alias = NULL)
+obj_latest <- st_load_version(p, vid_latest, alias = NULL)
 ```
 
-    ## ✔ Loaded ← /tmp/RtmpcdMmZz/demo.qs @
-    ## a074f67fc5100018 [qs2]
+    ## ✔ Loaded ← demo.qs @ 5915261145fdd4f8
+    ## [qs2]
 
 ``` r
 # Load an older version by id
 if (nrow(vids) > 1L) {
   vid_old <- vids$version_id[[nrow(vids)]]
-  obj_old <- st_load_version(p, vid_old)
+  obj_old <- st_load_version(p, vid_old, alias = NULL)
 }
 ```
 
-    ## ✔ Loaded ← /tmp/RtmpcdMmZz/demo.qs @
-    ## 3582f3eb4922f100 [qs2]
+    ## ✔ Loaded ← demo.qs @ 2715e267fbfabb37
+    ## [qs2]
 
 [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md)
 returns a table of version metadata. Each row includes the `version_id`,
@@ -342,42 +342,37 @@ to restore the artifact as it was at that version.
 
 ### Where are versions stored?
 
-Snapshots live under `.stamp/versions/<relative-path>/<version_id>/`.
+Snapshots live in a `versions/` directory **next to each artifact**, not
+centralized in `.stamp/`. Each artifact manages its own version history.
+
+**Storage pattern:** `<root>/<path>/<filename>/versions/<version_id>/`
 
 ``` r
-p <- fs::path(root, "demo.qs")
+p <- "demo.qs"
 x <- data.frame(a = 1:5)
 
 # Write once to create a version snapshot
-st_save(x, p, code = function(z) z)
+st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpcdMmZz/demo.qs @
-    ## version 6d88f6c257606170
+    ## ✔ Saved [qs2] → /tmp/RtmpHVkJOw/demo.qs @
+    ## version 69038866a252915f
 
 ``` r
-# Now list the versions tree
-vroot <- fs::path(root, "demo.qs", "versions")
-fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+# Version history is stored next to the artifact
+info <- st_info(p, alias = NULL)
+artifact_dir <- fs::path_dir(info$sidecar$path)  # e.g., root/demo.qs/
+vroot <- fs::path(artifact_dir, "versions")
+
+if (fs::dir_exists(vroot)) {
+  cat("Versions directory:", vroot, "\n\n")
+  fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+} else {
+  cat("No versions directory found (versioning may be disabled)\n")
+}
 ```
 
-    ## /tmp/RtmpcdMmZz/demo.qs/versions
-    ## ├── 3582f3eb4922f100
-    ## │   ├── artifact
-    ## │   ├── sidecar.json
-    ## │   └── sidecar.qs2
-    ## ├── 6d88f6c257606170
-    ## │   ├── artifact
-    ## │   ├── sidecar.json
-    ## │   └── sidecar.qs2
-    ## ├── a074f67fc5100018
-    ## │   ├── artifact
-    ## │   ├── sidecar.json
-    ## │   └── sidecar.qs2
-    ## └── e3d49f5321a599b4
-    ##     ├── artifact
-    ##     ├── sidecar.json
-    ##     └── sidecar.qs2
+    ## No versions directory found (versioning may be disabled)
 
 Each snapshot dir contains:
 
@@ -386,9 +381,13 @@ Each snapshot dir contains:
 
 Additionally each snapshot may include a `parents.json` file capturing
 committed lineage between artifacts; this is created when stamp records
-explicit parents during a commit. Sidecar metadata (in `stmeta/`) is the
-primary local source used to decide whether to write, while snapshots
-are the long-term committed record.
+explicit parents during a commit. Sidecar metadata (in `stmeta/` next to
+the artifact) is the primary local source used to decide whether to
+write, while snapshots are the long-term committed record.
+
+**Note:** Version directories are now distributed (one `versions/`
+folder per artifact), not centralized in `.stamp/versions/`. This makes
+it easy to locate all history for a specific artifact.
 
 ## Integrity checks on load (optional)
 
@@ -398,13 +397,13 @@ recomputes the object’s hash and warns if it differs (indicating the
 file changed outside **stamp**).
 
 ``` r
-invisible(st_load(p)) # triggers optional verify; warns on mismatch
+invisible(st_load(p, alias = NULL)) # triggers optional verify; warns on mismatch
 ```
 
-    ## Warning: No primary key recorded for /tmp/RtmpcdMmZz/demo.qs.
+    ## Warning: No primary key recorded for /tmp/RtmpHVkJOw/demo.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/RtmpcdMmZz/demo.qs
+    ## ✔ Loaded [qs2] ← /tmp/RtmpHVkJOw/demo.qs
 
 If `verify_on_load = TRUE`,
 [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)
@@ -447,17 +446,18 @@ was modified outside **stamp** or the sidecar is stale. Re-save to
 repair.
 
 **Q: `qs2` isn’t installed.** A: `qs2` is preferred. If unavailable,
-**stamp** falls back to [qs](https://github.com/qsbase/qs) for
-read/write under the `"qs2"` handler. Install
-[qs2](https://github.com/qsbase/qs2) for best performance.
+**stamp** falls back to `{qs}` for read/write under the `"qs2"` handler.
+Install [qs2](https://github.com/qsbase/qs2) for best performance.
 
 **Q: Sidecars not appearing.** A: Check
 `st_opts("meta_format", .get = TRUE)` — set to `"json"`, `"qs2"`, or
 `"both"`. Sidecars are written to `stmeta/` next to the artifact.
 
-**Q: Versions aren’t where I expect.** A: Version snapshots live under
-`.stamp/versions/<relative-path>/<version_id>/`. Use the code snippet
-above to explore the tree.
+**Q: Versions aren’t where I expect.** A: Version snapshots now live
+**next to each artifact** in `<artifact-dir>/versions/<version_id>/`,
+not centralized in `.stamp/versions/`. Use `st_info(path)$snapshot_dir`
+to find the exact location, or explore `<artifact-dir>/versions/`
+directly.
 
 ## Tips & conventions
 

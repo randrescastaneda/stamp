@@ -28,26 +28,32 @@ on.exit(setwd(old_wd), add = TRUE)
 st_init(root = root_dir)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: /tmp/RtmpR7lyEd/s
-#>   state: /tmp/RtmpR7lyEd/s/.stamp
-
-# Define subdirectories (they will be created as needed)
-welfare_dir <- fs::path(root_dir, "data", "welfare")
-macro_dir <- fs::path(root_dir, "data", "macro")
-population_dir <- macro_dir
-outputs_dir <- fs::path(root_dir, "outputs") |>
-  fs::dir_create()
-welfare_parts_dir <- fs::path(root_dir, "data", "welfare_parts")
-summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
-
-fs::dir_create(c(welfare_dir, macro_dir, welfare_parts_dir, summary_parts_dir))
+#>   root: /tmp/Rtmpf7eitp/s
+#>   state: /tmp/Rtmpf7eitp/s/.stamp
 
 # Helper: list only data files with known extensions to avoid locks/sidecars
+# Returns relative paths from alias root (suitable for st_load)
 data_files <- function(dir) {
-  f <- fs::dir_ls(dir)
+  # Convert dir to relative path from root_dir if it's absolute
+  rel_dir <- if (fs::is_absolute_path(dir)) {
+    as.character(fs::path_rel(dir, start = root_dir))
+  } else {
+    dir
+  }
+  
+  # Get absolute path for listing
+  abs_dir <- fs::path(root_dir, rel_dir)
+  if (!fs::dir_exists(abs_dir)) {
+    return(character(0))
+  }
+  
+  f <- fs::dir_ls(abs_dir)
   ext <- tolower(fs::path_ext(f))
   allowed <- c("qs2", "rds", "csv", "fst", "json")
-  f[ext %in% allowed]
+  f <- f[ext %in% allowed]
+  
+  # Return relative paths from root_dir
+  as.character(fs::path_rel(f, start = root_dir))
 }
 ```
 
@@ -90,8 +96,6 @@ We’ll create small synthetic micro datasets with columns: `country`,
 `year`, `reporting_level`, `hh_id`, `welfare`, `weight`.
 
 ``` r
-fs::dir_create(welfare_dir)
-
 welfare_specs <- data.frame(
   country = c("COL", "COL", "MEX", "MEX", "PRY", "PRY"),
   year = c(2010, 2012, 2010, 2015, 2011, 2014),
@@ -126,35 +130,33 @@ welfare_paths <- list()
 for (i in seq_len(nrow(welfare_specs))) {
   row <- welfare_specs[i, ]
   dt <- simulate_welfare(row$country, row$year)
-  fn <- fs::path(welfare_dir, sprintf("%s_%d.qs2", row$country, row$year))
+  fn <- sprintf("data/welfare/%s_%d.qs2", row$country, row$year)
   # Primary key columns include household id for uniqueness
   st_save(
     dt,
     fn,
     pk = c("country", "year", "reporting_level", "hh_id"),
-    domain = "welfare"
+    domain = "welfare",
+    alias = NULL
   )
   welfare_paths[[length(welfare_paths) + 1]] <- fn
 }
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2 @ version
-#>   417c7eefee7da29d
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2 @ version
-#>   36a516036d6dd00c
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2 @ version
-#>   ad1f74be26f42903
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2 @ version
-#>   f95970cf40e02cbb
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2 @ version
-#>   6aa96405ae61a66c
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2 @ version
-#>   57ce8c26e539e6f6
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/data/welfare/COL_2010.qs2 @ version
+#>   d0e78a201bb84b31
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/data/welfare/COL_2012.qs2 @ version
+#>   259a013bc687613d
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/data/welfare/MEX_2010.qs2 @ version
+#>   1cbf75a66c5dbac8
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/data/welfare/MEX_2015.qs2 @ version
+#>   c2228af0000f0ec4
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/data/welfare/PRY_2011.qs2 @ version
+#>   d1f1086a235a4603
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/data/welfare/PRY_2014.qs2 @ version
+#>   43b9ee08bfe29f1f
 unlist(welfare_paths)
-#> [1] "/tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2"
-#> [2] "/tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2"
-#> [3] "/tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2"
-#> [4] "/tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2"
-#> [5] "/tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2"
-#> [6] "/tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2"
+#> [1] "data/welfare/COL_2010.qs2" "data/welfare/COL_2012.qs2"
+#> [3] "data/welfare/MEX_2010.qs2" "data/welfare/MEX_2015.qs2"
+#> [5] "data/welfare/PRY_2011.qs2" "data/welfare/PRY_2014.qs2"
 ```
 
 Each call to
@@ -165,16 +167,16 @@ including PK.
 Inspect one artifact:
 
 ``` r
-st_info(fs::path(welfare_dir, "COL_2010.qs2"))
+st_info("data/welfare/COL_2010.qs2", alias = NULL)
 #> $sidecar
 #> $sidecar$path
-#> [1] "/tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2"
+#> [1] "/tmp/Rtmpf7eitp/s/data/welfare/COL_2010.qs2"
 #> 
 #> $sidecar$format
 #> [1] "qs2"
 #> 
 #> $sidecar$created_at
-#> [1] "2026-01-28T15:50:47.038602Z"
+#> [1] "2026-03-02T21:47:51.199854Z"
 #> 
 #> $sidecar$size_bytes
 #> [1] 4805
@@ -208,14 +210,14 @@ st_info(fs::path(welfare_dir, "COL_2010.qs2"))
 #> 
 #> $catalog
 #> $catalog$latest_version_id
-#> [1] "417c7eefee7da29d"
+#> [1] "d0e78a201bb84b31"
 #> 
 #> $catalog$n_versions
 #> [1] 1
 #> 
 #> 
 #> $snapshot_dir
-#> /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2/versions/417c7eefee7da29d
+#> /tmp/Rtmpf7eitp/s/data/welfare/COL_2010.qs2/versions/d0e78a201bb84b31
 #> 
 #> $parents
 #> list()
@@ -226,8 +228,6 @@ st_info(fs::path(welfare_dir, "COL_2010.qs2"))
 CPI & population are reporting-level granular; GDP is country-year only.
 
 ``` r
-fs::dir_create(macro_dir)
-
 years <- 2010:2015
 countries_macro <- c("COL", "MEX", "PRY", "BRA", "ARG")
 levels_all <- c("national", "urban", "rural")
@@ -264,40 +264,43 @@ gdp <- simulate_gdp()
 
 st_save(
   cpi,
-  fs::path(macro_dir, "cpi.qs2"),
+  "data/macro/cpi.qs2",
   pk = c("country", "year", "reporting_level"),
-  domain = "macro"
+  domain = "macro",
+  alias = NULL
 )
 #> ✔ Saved [qs2] →
-#> /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2 @ version cf6a9e4fc574b256
+#> /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2 @ version 2aee33728fc9d6f3
 st_save(
   pop,
-  fs::path(macro_dir, "population.qs2"),
+  "data/macro/population.qs2",
   pk = c("country", "year", "reporting_level"),
-  domain = "macro"
+  domain = "macro",
+  alias = NULL
 )
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/data/macro/population.qs2 @ version
-#>   67d6e2eef7b3f61f
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/data/macro/population.qs2 @ version
+#>   d81d0b5554253c52
 st_save(
   gdp,
-  fs::path(macro_dir, "gdp.qs2"),
+  "data/macro/gdp.qs2",
   pk = c("country", "year"),
-  domain = "macro"
+  domain = "macro",
+  alias = NULL
 )
 #> ✔ Saved [qs2] →
-#> /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2 @ version c18a04d73750ead8
+#> /tmp/Rtmpf7eitp/s/data/macro/gdp.qs2 @ version f3351ae8f44e683a
 ```
 
 Version listing for CPI:
 
 ``` r
-print(st_versions(fs::path(macro_dir, "cpi.qs2")))
+print(st_versions("data/macro/cpi.qs2", alias = NULL))
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: cf6a9e4fc574b256 9843ac63b559e3b0 c1456c61190cd9b6      <NA>        880
+#> 1: 2aee33728fc9d6f3 8b7fdf2ae6facba3 c1456c61190cd9b6      <NA>        880
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-01-28T15:50:47.670951Z           json
+#> 1: 2026-03-02T21:47:51.793339Z           json
 ```
 
 ### 3. Aggregation Function `foo()` and Output Table
@@ -309,7 +312,7 @@ the function for self-containment.
 ``` r
 foo <- function() {
   # Load all welfare micro artifacts (only recognized data files)
-  welfare_files <- data_files(welfare_dir)
+  welfare_files <- data_files("data/welfare")
   if (length(welfare_files) == 0) {
     cat("No welfare files found; returning empty table.\n")
     return(data.table::data.table())
@@ -326,9 +329,9 @@ foo <- function() {
     by = .(country, year, reporting_level)
   ]
 
-  cpi <- st_load(fs::path(macro_dir, "cpi.qs2"))
-  gdp <- st_load(fs::path(macro_dir, "gdp.qs2"))
-  pop <- st_load(fs::path(macro_dir, "population.qs2"))
+  cpi <- st_load("data/macro/cpi.qs2", alias = NULL)
+  gdp <- st_load("data/macro/gdp.qs2", alias = NULL)
+  pop <- st_load("data/macro/population.qs2", alias = NULL)
 
   # Merge; CPI & population contain rows not present in welfare; keep welfare rows only
   out <- merge(
@@ -364,15 +367,15 @@ foo <- function() {
 
 # Call foo() to compute summary (empty if no data found)
 summary_table <- foo()
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/population.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/population.qs2
 if (nrow(summary_table) > 0) {
   head(summary_table)
 } else {
@@ -402,54 +405,34 @@ Save the summary with lineage: parents include all welfare micro
 datasets plus CPI/GDP/population.
 
 ``` r
-# Define output path before save attempt
-out_summary_path <- fs::path(outputs_dir, "welfare_summary.qs2")
-
 # Only save summary if it has data (i.e., welfare data was available)
 if (nrow(summary_table) > 0) {
   parent_paths <- c(
-    data_files(welfare_dir),
-    fs::path(macro_dir, "cpi.qs2"),
-    fs::path(macro_dir, "gdp.qs2"),
-    fs::path(macro_dir, "population.qs2")
+    data_files("data/welfare"),
+    "data/macro/cpi.qs2",
+    "data/macro/gdp.qs2",
+    "data/macro/population.qs2"
   )
   parents <- lapply(parent_paths, function(p) {
-    list(path = p, version_id = st_latest(p))
+    list(path = p, version_id = st_latest(p, alias = NULL))
   })
 
   st_save(
     summary_table,
-    out_summary_path,
+    "outputs/welfare_summary.qs2",
     pk = c("country", "year", "reporting_level"),
     parents = parents,
-    domain = "summary"
+    domain = "summary",
+    alias = NULL
   )
-  st_lineage(out_summary_path, depth = 1)
+  st_lineage("outputs/welfare_summary.qs2", depth = 1, alias = NULL)
 } else {
   cat("Summary table is empty; skipping save and lineage demo.\n")
 }
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 @ version
-#>   ecd4d43b8cb62fd9
-#>   level                                    child_path    child_version
-#> 1     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#> 2     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#> 3     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#> 4     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#> 5     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#> 6     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#> 7     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#> 8     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#> 9     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 ecd4d43b8cb62fd9
-#>                                   parent_path   parent_version
-#> 1 /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2 417c7eefee7da29d
-#> 2 /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2 36a516036d6dd00c
-#> 3 /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2 ad1f74be26f42903
-#> 4 /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2 f95970cf40e02cbb
-#> 5 /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2 6aa96405ae61a66c
-#> 6 /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2 57ce8c26e539e6f6
-#> 7        /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2 cf6a9e4fc574b256
-#> 8        /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2 c18a04d73750ead8
-#> 9 /tmp/RtmpR7lyEd/s/data/macro/population.qs2 67d6e2eef7b3f61f
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/outputs/welfare_summary.qs2 @ version
+#>   ad22b87392ade028
+#> [1] level          child_path     child_version  parent_path    parent_version
+#> <0 rows> (or 0-length row.names)
 ```
 
 Note: to make provenance explicit, pass the producing function as
@@ -509,61 +492,53 @@ bar <- function(welfare_list, cpi_tbl, gdp_tbl, pop_tbl) {
 }
 
 # Example: load inputs outside the worker and call bar()
-welfare_files <- data_files(welfare_dir)
+welfare_files <- data_files("data/welfare")
 if (length(welfare_files) > 0) {
   welfare_list <- lapply(welfare_files, st_load)
-  cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
-  gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
-  pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
+  cpi_tbl <- st_load("data/macro/cpi.qs2", alias = NULL)
+  gdp_tbl <- st_load("data/macro/gdp.qs2", alias = NULL)
+  pop_tbl <- st_load("data/macro/population.qs2", alias = NULL)
 
   summary_table2 <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
   if (nrow(summary_table2) > 0) {
+    parent_paths <- c(
+      data_files("data/welfare"),
+      "data/macro/cpi.qs2",
+      "data/macro/gdp.qs2",
+      "data/macro/population.qs2"
+    )
+    parents <- lapply(parent_paths, function(p) {
+      list(path = p, version_id = st_latest(p, alias = NULL))
+    })
     st_save(
       summary_table2,
-      out_summary_path,
+      "outputs/welfare_summary.qs2",
       pk = c("country", "year", "reporting_level"),
       parents = parents,
       code = bar, # addition the function as parent so st_save() can track it
-      domain = "summary"
+      domain = "summary",
+      alias = NULL
     )
-    st_lineage(out_summary_path, depth = 1)
+    st_lineage("outputs/welfare_summary.qs2", depth = 1, alias = NULL)
   } else {
     cat("Summary table2 is empty; skipping save.\n")
   }
 } else {
   cat("No welfare data to process in bar-and-save example.\n")
 }
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/population.qs2
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 @ version
-#>   6fdd4791ace10c4a
-#>   level                                    child_path    child_version
-#> 1     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#> 2     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#> 3     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#> 4     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#> 5     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#> 6     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#> 7     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#> 8     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#> 9     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 6fdd4791ace10c4a
-#>                                   parent_path   parent_version
-#> 1 /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2 417c7eefee7da29d
-#> 2 /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2 36a516036d6dd00c
-#> 3 /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2 ad1f74be26f42903
-#> 4 /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2 f95970cf40e02cbb
-#> 5 /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2 6aa96405ae61a66c
-#> 6 /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2 57ce8c26e539e6f6
-#> 7        /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2 cf6a9e4fc574b256
-#> 8        /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2 c18a04d73750ead8
-#> 9 /tmp/RtmpR7lyEd/s/data/macro/population.qs2 67d6e2eef7b3f61f
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/population.qs2
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/outputs/welfare_summary.qs2 @ version
+#>   e2f82ab5a6903f88
+#> [1] level          child_path     child_version  parent_path    parent_version
+#> <0 rows> (or 0-length row.names)
 ```
 
 Handling multiple function dependencies
@@ -593,25 +568,25 @@ We change CPI for COL 2012 (all reporting levels) to illustrate a new
 version and stale downstream artifact.
 
 ``` r
-cpi2 <- st_load(fs::path(macro_dir, "cpi.qs2"))
+cpi2 <- st_load("data/macro/cpi.qs2", alias = NULL)
 #> ✔ Loaded [qs2] ←
-#> /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2
+#> /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2
 cpi2[country == "COL" & year == 2012, cpi := cpi * 1.05] # 5% adjustment
-st_save(cpi2, fs::path(macro_dir, "cpi.qs2")) # new version recorded
+st_save(cpi2, "data/macro/cpi.qs2", alias = NULL) # new version recorded
 #> ✔ Saved [qs2] →
-#> /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2 @ version 65f6bf2b05f4831f
-st_versions(fs::path(macro_dir, "cpi.qs2"))[1:3]
+#> /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2 @ version a949393c999cc289
+st_versions("data/macro/cpi.qs2", alias = NULL)[1:3]
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: 65f6bf2b05f4831f 9843ac63b559e3b0 24996ec3b7463f5f      <NA>        895
-#> 2: cf6a9e4fc574b256 9843ac63b559e3b0 c1456c61190cd9b6      <NA>        880
+#> 1: a949393c999cc289 8b7fdf2ae6facba3 24996ec3b7463f5f      <NA>        895
+#> 2: 2aee33728fc9d6f3 8b7fdf2ae6facba3 c1456c61190cd9b6      <NA>        880
 #> 3:             <NA>             <NA>             <NA>      <NA>         NA
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-01-28T15:50:48.940267Z           json
-#> 2: 2026-01-28T15:50:47.670951Z           json
+#> 1: 2026-03-02T21:47:52.922615Z           json
+#> 2: 2026-03-02T21:47:51.793339Z           json
 #> 3:                        <NA>           <NA>
-st_is_stale(out_summary_path) # should be TRUE
+st_is_stale("outputs/welfare_summary.qs2") # should be TRUE
 #> [1] TRUE
 ```
 
@@ -686,7 +661,7 @@ functions in `code`:
 
 ``` r
 # Example: register a builder that uses the provided `parents` list and avoids global loads
-st_register_builder(out_summary_path, function(path, parents) {
+st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
   # parents is a list of lists: each element has $path and $version_id
   # Filter parent paths to identify welfare partitions vs macros, then load them
   welfare_parent_paths <- vapply(
@@ -695,12 +670,12 @@ st_register_builder(out_summary_path, function(path, parents) {
     logical(1)
   )
   welfare_list <- lapply(parents[welfare_parent_paths], function(p) {
-    st_load(p$path)
+    st_load(p$path, alias = NULL)
   })
 
-  cpi_tbl <- st_load(fs::path(macro_dir, "cpi.qs2"))
-  gdp_tbl <- st_load(fs::path(macro_dir, "gdp.qs2"))
-  pop_tbl <- st_load(fs::path(macro_dir, "population.qs2"))
+  cpi_tbl <- st_load("data/macro/cpi.qs2", alias = NULL)
+  gdp_tbl <- st_load("data/macro/gdp.qs2", alias = NULL)
+  pop_tbl <- st_load("data/macro/population.qs2", alias = NULL)
 
   # Produce the output using a helper function (bar) that accepts pre-loaded inputs
   out <- bar(welfare_list, cpi_tbl, gdp_tbl, pop_tbl)
@@ -712,23 +687,21 @@ st_register_builder(out_summary_path, function(path, parents) {
     code_label = "aggregate_welfare_partitioned"
   )
 })
-#> ✔ Registered builder for /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2
-#>   (default)
+#> ✔ Registered builder for outputs/welfare_summary.qs2
+#> (default)
 ```
 
 Inspect the plan before running it:
 
 ``` r
 plan <- st_plan_rebuild(
-  targets = out_summary_path,
+  targets = "outputs/welfare_summary.qs2",
   include_targets = TRUE,
   mode = "strict"
 )
 print(plan)
-#>   level                                          path         reason
-#> 1     0 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 parent_changed
-#>   latest_version_before
-#> 1      6fdd4791ace10c4a
+#>   level                        path         reason latest_version_before
+#> 1     0 outputs/welfare_summary.qs2 parent_changed      e2f82ab5a6903f88
 ```
 
 Run the plan to execute the builders and record new versions:
@@ -736,21 +709,13 @@ Run the plan to execute the builders and record new versions:
 ``` r
 st_rebuild(plan)
 #> ✔ Rebuild level 0: 1 artifact
-#>   • /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 (parent_changed)
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/population.qs2
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 @ version
-#>   76c1aec6042378c7
-#> OK @ version 76c1aec6042378c7
+#>   • outputs/welfare_summary.qs2 (parent_changed)
+#> Warning: FAILED: ✖ Absolute path
+#> /home/runner/work/stamp/stamp/vignettes/data/welfare/COL_2010.qs2 is not under
+#> alias root. ℹ Alias "default" root: /tmp/Rtmpf7eitp/s ℹ Provide a relative path
+#> or an absolute path under the alias root.
 #> ✔ Rebuild summary
-#>   built 1
+#>   failed 1
 ```
 
 This example shows the recommended pattern: load from `parents`, call a
@@ -762,44 +727,40 @@ changes for future incremental rebuilds.
 Plan & rebuild using a registered builder for the summary artifact.
 
 ``` r
-st_register_builder(out_summary_path, function(path, parents) {
+st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
   list(x = foo(), code = foo, code_label = "aggregate_welfare")
 })
-#> ✔ Registered builder for /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2
-#>   (default)
+#> ✔ Registered builder for outputs/welfare_summary.qs2
+#> (default)
 
 plan <- st_plan_rebuild(
-  targets = out_summary_path,
+  targets = "outputs/welfare_summary.qs2",
   include_targets = TRUE,
   mode = "strict"
 )
 plan
-#> [1] level                 path                  reason               
-#> [4] latest_version_before
-#> <0 rows> (or 0-length row.names)
+#>   level                        path         reason latest_version_before
+#> 1     0 outputs/welfare_summary.qs2 parent_changed      e2f82ab5a6903f88
 st_rebuild(plan)
-#> ✔ Nothing to rebuild (empty plan).
-st_lineage(out_summary_path, depth = 1)
-#>   level                                    child_path    child_version
-#> 1     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#> 2     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#> 3     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#> 4     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#> 5     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#> 6     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#> 7     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#> 8     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#> 9     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 76c1aec6042378c7
-#>                                   parent_path   parent_version
-#> 1 /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2 417c7eefee7da29d
-#> 2 /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2 36a516036d6dd00c
-#> 3 /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2 ad1f74be26f42903
-#> 4 /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2 f95970cf40e02cbb
-#> 5 /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2 6aa96405ae61a66c
-#> 6 /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2 57ce8c26e539e6f6
-#> 7        /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2 65f6bf2b05f4831f
-#> 8        /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2 c18a04d73750ead8
-#> 9 /tmp/RtmpR7lyEd/s/data/macro/population.qs2 67d6e2eef7b3f61f
+#> ✔ Rebuild level 0: 1 artifact
+#>   • outputs/welfare_summary.qs2 (parent_changed)
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/population.qs2
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/outputs/welfare_summary.qs2 @ version
+#>   a15cf16d49484065
+#> OK @ version a15cf16d49484065
+#> ✔ Rebuild summary
+#>   built 1
+st_lineage("outputs/welfare_summary.qs2", depth = 1, alias = NULL)
+#> [1] level          child_path     child_version  parent_path    parent_version
+#> <0 rows> (or 0-length row.names)
 ```
 
 ### 5. Add New Data (ARG 2015 Welfare)
@@ -811,53 +772,55 @@ tables already. Only the summary rows for ARG 2015 will be newly added.
 dt_arg_2015 <- simulate_welfare("ARG", 2015)
 st_save(
   dt_arg_2015,
-  fs::path(welfare_dir, "ARG_2015.qs2"),
+  "data/welfare/ARG_2015.qs2",
   pk = c("country", "year", "reporting_level", "hh_id"),
-  domain = "welfare"
+  domain = "welfare",
+  alias = NULL
 )
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/data/welfare/ARG_2015.qs2 @ version
-#>   3e74c8f76594f0d6
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/data/welfare/ARG_2015.qs2 @ version
+#>   24abb140c86a3d25
 
 # Only recompute and save summary if we have welfare data
-if (length(data_files(welfare_dir)) > 0 && nrow(summary_table) > 0) {
+if (length(data_files("data/welfare")) > 0 && nrow(summary_table) > 0) {
   parents2 <- lapply(
     c(
-      data_files(welfare_dir),
-      fs::path(macro_dir, "cpi.qs2"),
-      fs::path(macro_dir, "gdp.qs2"),
-      fs::path(macro_dir, "population.qs2")
+      data_files("data/welfare"),
+      "data/macro/cpi.qs2",
+      "data/macro/gdp.qs2",
+      "data/macro/population.qs2"
     ),
-    function(p) list(path = p, version_id = st_latest(p))
+    function(p) list(path = p, version_id = st_latest(p, alias = NULL))
   )
   summary_table_new <- foo()
   if (nrow(summary_table_new) > 0) {
     st_save(
       summary_table_new,
-      out_summary_path,
+      "outputs/welfare_summary.qs2",
       pk = c("country", "year", "reporting_level"),
       parents = parents2,
-      domain = "summary"
+      domain = "summary",
+      alias = NULL
     )
-    head(st_load(out_summary_path))
+    head(st_load("outputs/welfare_summary.qs2", alias = NULL))
   } else {
     cat("Summary table after adding ARG 2015 is empty; skipping save.\n")
   }
 } else {
   cat("Insufficient data to recompute summary.\n")
 }
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/ARG_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/data/macro/population.qs2
-#> ✔ Saved [qs2] → /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 @ version
-#>   e580c61b58fd9888
-#> ✔ Loaded [qs2] ← /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/ARG_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/data/macro/population.qs2
+#> ✔ Saved [qs2] → /tmp/Rtmpf7eitp/s/outputs/welfare_summary.qs2 @ version
+#>   5e6131f7785fc293
+#> ✔ Loaded [qs2] ← /tmp/Rtmpf7eitp/s/outputs/welfare_summary.qs2
 #>    country  year reporting_level welfare_mean welfare_median welfare_sd
 #>     <char> <int>          <char>        <num>          <num>      <num>
 #> 1:     ARG  2015        national     3.100148          2.510   1.700340
@@ -884,8 +847,6 @@ store partitions per `(country, year, reporting_level)` using
 and then recompute only the affected partitions when an input changes.
 
 ``` r
-fs::dir_create(welfare_parts_dir)
-
 # Write partitioned welfare (one partition per country/year/reporting_level)
 for (i in seq_len(nrow(welfare_specs))) {
   row <- welfare_specs[i, ]
@@ -895,58 +856,46 @@ for (i in seq_len(nrow(welfare_specs))) {
     part_dt <- dt[reporting_level == rl]
     st_save_part(
       part_dt,
-      base = welfare_parts_dir,
+      base = "data/welfare_parts",
       key = list(country = row$country, year = row$year, reporting_level = rl),
       code_label = "welfare_partition",
-      pk = c("country", "year", "reporting_level", "hh_id")
+      pk = c("country", "year", "reporting_level", "hh_id"),
+      alias = NULL
     )
   }
 }
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
-#>   @ version 340687c05e121c17
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
+#>   @ version ab06fc96d71fbbc7
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
-#>   @ version 55146dee242ab4e1
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
+#>   @ version 2bbc47c18fc1476c
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
-#>   @ version 733ef75993438e36
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
+#>   @ version 6b3df083a455196c
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
-#>   @ version 5025b069fcf575d9
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
+#>   @ version a1cad8a8b1143b69
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2010/part.qs2
-#>   @ version 20ab8744b3223648
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2010/part.qs2
+#>   @ version 8c5ab2e20e22cf03
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
-#>   @ version 0bdb234ae7949a47
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
+#>   @ version 2402b52d114f04e9
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2015/part.qs2
-#>   @ version 318baa9021f4afb2
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2015/part.qs2
+#>   @ version 0a6819797ddf876c
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
-#>   @ version d7b241c15ff2f582
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
+#>   @ version bc8f2b9c41b9b39d
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=PRY/reporting_level=national/year=2011/part.qs2
-#>   @ version 952762c72bda3483
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=PRY/reporting_level=national/year=2011/part.qs2
+#>   @ version 372e2241886da5a2
 #> ✔ Saved [qs2] →
-#>   /tmp/RtmpR7lyEd/s/data/welfare_parts/country=PRY/reporting_level=national/year=2014/part.qs2
-#>   @ version 22213960b92d0214
-st_list_parts(welfare_parts_dir)[1:6, ]
-#>                                                                                        path
-#> 1 /tmp/RtmpR7lyEd/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
-#> 2 /tmp/RtmpR7lyEd/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
-#> 3 /tmp/RtmpR7lyEd/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
-#> 4 /tmp/RtmpR7lyEd/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
-#> 5 /tmp/RtmpR7lyEd/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
-#> 6 /tmp/RtmpR7lyEd/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
-#>   country reporting_level year
-#> 1     COL           rural 2010
-#> 2     COL           rural 2012
-#> 3     COL           urban 2010
-#> 4     COL           urban 2012
-#> 5     MEX           rural 2010
-#> 6     MEX           rural 2015
+#>   /tmp/Rtmpf7eitp/s/data/welfare_parts/country=PRY/reporting_level=national/year=2014/part.qs2
+#>   @ version 47d54277d4c3f141
+st_list_parts("data/welfare_parts")[1:6, ]
+#> [1] NA NA NA NA NA NA
 ```
 
 Define a partitioned builder writing one output partition per
@@ -955,11 +904,12 @@ depends on: the corresponding welfare partition + CPI + GDP + population
 (all three macro artifacts are shared parents).
 
 ``` r
-fs::dir_create(summary_parts_dir)
-
-partition_keys <- st_list_parts(welfare_parts_dir)
+partition_keys <- st_list_parts("data/welfare_parts")
 
 build_partition_summary <- function(path, parents) {
+  welfare_parts_dir <- fs::path(root_dir, "data", "welfare_parts")
+  summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
+  
   # path is the final destination for this partition artifact
   # Extract key by parsing path (we stored key in directory names)
   rel <- fs::path_rel(path, start = summary_parts_dir)
@@ -981,8 +931,8 @@ build_partition_summary <- function(path, parents) {
   }
 
   # Load welfare partition matching key
-  w_path <- st_part_path(welfare_parts_dir, key, format = NULL)
-  w <- st_load(w_path)
+  w_path <- st_part_path("data/welfare_parts", key, format = NULL)
+  w <- st_load(w_path, alias = NULL)
 
   stats <- w[,
     .(
@@ -995,17 +945,17 @@ build_partition_summary <- function(path, parents) {
   ]
 
   # Load macro (shared) and subset to key
-  cpi <- st_load(fs::path(macro_dir, "cpi.qs2"))[
+  cpi <- st_load("data/macro/cpi.qs2", alias = NULL)[
     country == key$country &
       year == as.integer(key$year) &
       reporting_level == key$reporting_level
   ]
-  pop <- st_load(fs::path(macro_dir, "population.qs2"))[
+  pop <- st_load("data/macro/population.qs2", alias = NULL)[
     country == key$country &
       year == as.integer(key$year) &
       reporting_level == key$reporting_level
   ]
-  gdp <- st_load(fs::path(macro_dir, "gdp.qs2"))[
+  gdp <- st_load("data/macro/gdp.qs2", alias = NULL)[
     country == key$country & year == as.integer(key$year)
   ]
 
@@ -1031,8 +981,47 @@ build_partition_summary <- function(path, parents) {
 ```
 
 ``` r
+# Populate outputs/summary_parts by running the builder for each welfare partition key
+summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
+for (i in seq_len(nrow(partition_keys))) {
+  key_row <- partition_keys[i, ]
+  # Reconstruct key list from the partition_keys table (drop non-key columns)
+  key_cols <- setdiff(names(key_row), "path")
+  key <- as.list(key_row[, key_cols, drop = FALSE])
+  key <- Filter(Negate(is.na), key)
+
+  # Construct the output partition path
+  out_path <- st_part_path(
+    "outputs/summary_parts",
+    key,
+    format = "qs2"
+  )
+
+  # Build parents list: welfare partition + the three macro files
+  welfare_path <- st_part_path("data/welfare_parts", key, format = NULL)
+  parents_i <- list(
+    list(path = welfare_path,              version_id = st_latest(welfare_path,              alias = NULL)),
+    list(path = "data/macro/cpi.qs2",        version_id = st_latest("data/macro/cpi.qs2",        alias = NULL)),
+    list(path = "data/macro/gdp.qs2",        version_id = st_latest("data/macro/gdp.qs2",        alias = NULL)),
+    list(path = "data/macro/population.qs2", version_id = st_latest("data/macro/population.qs2", alias = NULL))
+  )
+
+  result <- build_partition_summary(out_path, parents_i)
+  st_save(
+    result$x,
+    out_path,
+    parents = parents_i,
+    pk = c("country", "year", "reporting_level"),
+    code = result$code,
+    code_label = result$code_label,
+    alias = NULL
+  )
+}
+```
+
+``` r
 # List a few partitioned summary partitions
-st_list_parts(summary_parts_dir)[1:6, ]
+st_list_parts("outputs/summary_parts")[1:6, ]
 #> [1] NA NA NA NA NA NA
 ```
 
@@ -1043,16 +1032,16 @@ COL 2012 across reporting levels.
 
 ``` r
 # Modify CPI again (COL 2012) to trigger staleness
-cpi3 <- st_load(fs::path(macro_dir, "cpi.qs2"))
+cpi3 <- st_load("data/macro/cpi.qs2", alias = NULL)
 #> ✔ Loaded [qs2] ←
-#> /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2
+#> /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2
 cpi3[country == "COL" & year == 2012, cpi := cpi * 1.02]
-st_save(cpi3, fs::path(macro_dir, "cpi.qs2"))
+st_save(cpi3, "data/macro/cpi.qs2", alias = NULL)
 #> ✔ Saved [qs2] →
-#> /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2 @ version 19972b4addfff138
+#> /tmp/Rtmpf7eitp/s/data/macro/cpi.qs2 @ version 366c22052ef27978
 
 # Detect which partition outputs are stale (simple check: those whose parent CPI version differs)
-summary_parts <- st_list_parts(summary_parts_dir)
+summary_parts <- st_list_parts("outputs/summary_parts")
 stale_idx <- vapply(summary_parts$path, st_is_stale, logical(1))
 summary_parts[stale_idx, ]
 #> character(0)
@@ -1062,6 +1051,7 @@ Rebuild only stale partitions (manually filtered):
 
 ``` r
 stale_paths <- summary_parts$path[stale_idx]
+summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
 for (p in stale_paths) {
   # reconstruct key from path to identify its welfare partition parent
   rel <- fs::path_rel(p, start = summary_parts_dir)
@@ -1070,20 +1060,20 @@ for (p in stale_paths) {
   key <- setNames(lapply(kv, function(x) x[2]), lapply(kv, function(x) x[1]))
   parents <- list(
     list(
-      path = st_part_path(welfare_parts_dir, key),
-      version_id = st_latest(st_part_path(welfare_parts_dir, key))
+      path = st_part_path("data/welfare_parts", key),
+      version_id = st_latest(st_part_path("data/welfare_parts", key), alias = NULL)
     ),
     list(
-      path = fs::path(macro_dir, "cpi.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "cpi.qs2"))
+      path = "data/macro/cpi.qs2",
+      version_id = st_latest("data/macro/cpi.qs2", alias = NULL)
     ),
     list(
-      path = fs::path(macro_dir, "gdp.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "gdp.qs2"))
+      path = "data/macro/gdp.qs2",
+      version_id = st_latest("data/macro/gdp.qs2", alias = NULL)
     ),
     list(
-      path = fs::path(macro_dir, "population.qs2"),
-      version_id = st_latest(fs::path(macro_dir, "population.qs2"))
+      path = "data/macro/population.qs2",
+      version_id = st_latest("data/macro/population.qs2", alias = NULL)
     )
   )
   b <- build_partition_summary(p, parents)
@@ -1093,7 +1083,8 @@ for (p in stale_paths) {
     parents = parents,
     pk = c("country", "year", "reporting_level"),
     code = b$code,
-    code_label = b$code_label
+    code_label = b$code_label,
+    alias = NULL
   )
 }
 ```
@@ -1115,29 +1106,18 @@ We demonstrated:
 Explore lineage further:
 
 ``` r
-st_lineage(out_summary_path, depth = 2)[1:10, ]
-#>    level                                    child_path    child_version
-#> 1      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 2      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 3      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 4      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 5      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 6      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 7      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 8      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 9      1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#> 10     1 /tmp/RtmpR7lyEd/s/outputs/welfare_summary.qs2 e580c61b58fd9888
-#>                                    parent_path   parent_version
-#> 1  /tmp/RtmpR7lyEd/s/data/welfare/ARG_2015.qs2 3e74c8f76594f0d6
-#> 2  /tmp/RtmpR7lyEd/s/data/welfare/COL_2010.qs2 417c7eefee7da29d
-#> 3  /tmp/RtmpR7lyEd/s/data/welfare/COL_2012.qs2 36a516036d6dd00c
-#> 4  /tmp/RtmpR7lyEd/s/data/welfare/MEX_2010.qs2 ad1f74be26f42903
-#> 5  /tmp/RtmpR7lyEd/s/data/welfare/MEX_2015.qs2 f95970cf40e02cbb
-#> 6  /tmp/RtmpR7lyEd/s/data/welfare/PRY_2011.qs2 6aa96405ae61a66c
-#> 7  /tmp/RtmpR7lyEd/s/data/welfare/PRY_2014.qs2 57ce8c26e539e6f6
-#> 8         /tmp/RtmpR7lyEd/s/data/macro/cpi.qs2 65f6bf2b05f4831f
-#> 9         /tmp/RtmpR7lyEd/s/data/macro/gdp.qs2 c18a04d73750ead8
-#> 10 /tmp/RtmpR7lyEd/s/data/macro/population.qs2 67d6e2eef7b3f61f
+st_lineage("outputs/welfare_summary.qs2", depth = 2, alias = NULL)[1:10, ]
+#>      level child_path child_version parent_path parent_version
+#> NA      NA       <NA>          <NA>        <NA>           <NA>
+#> NA.1    NA       <NA>          <NA>        <NA>           <NA>
+#> NA.2    NA       <NA>          <NA>        <NA>           <NA>
+#> NA.3    NA       <NA>          <NA>        <NA>           <NA>
+#> NA.4    NA       <NA>          <NA>        <NA>           <NA>
+#> NA.5    NA       <NA>          <NA>        <NA>           <NA>
+#> NA.6    NA       <NA>          <NA>        <NA>           <NA>
+#> NA.7    NA       <NA>          <NA>        <NA>           <NA>
+#> NA.8    NA       <NA>          <NA>        <NA>           <NA>
+#> NA.9    NA       <NA>          <NA>        <NA>           <NA>
 ```
 
 **Warning: The code below will permanently delete the temporary vignette

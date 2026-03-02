@@ -81,86 +81,85 @@ st_init(root)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpJfWT1Z
-    ##   state: /tmp/RtmpJfWT1Z/.stamp
+    ##   root: /tmp/RtmpFH84w3
+    ##   state: /tmp/RtmpFH84w3/.stamp
 
 ``` r
 # A
-pA <- fs::path(root, "A.qs")
+pA <- "A.qs"
 xA <- data.frame(a = 1:3)
-st_save(xA, pA, code = function(z) z)
+st_save(xA, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpJfWT1Z/A.qs @ version
-    ## 81a30bf8d52a5a63
+    ## ✔ Saved [qs2] → /tmp/RtmpFH84w3/A.qs @ version
+    ## 14dddf583a9b0581
 
 ``` r
 # B depends on A
-pB <- fs::path(root, "B.qs")
+pB <- "B.qs"
 xB <- transform(xA, b = a * 2)
 st_save(
   xB,
   pB,
   code = function(z) z,
-  parents = list(list(path = pA, version_id = st_latest(pA)))
+  parents = list(list(path = pA, version_id = st_latest(pA, alias = NULL))),
+  alias = NULL
 )
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpJfWT1Z/B.qs @ version
-    ## 4c3715eb35e53f20
+    ## ✔ Saved [qs2] → /tmp/RtmpFH84w3/B.qs @ version
+    ## 7f0c28920348b40d
 
 ``` r
 # C depends on B
-pC <- fs::path(root, "C.qs")
+pC <- "C.qs"
 xC <- transform(xB, c = b + 1L)
 st_save(
   xC,
   pC,
   code = function(z) z,
-  parents = list(list(path = pB, version_id = st_latest(pB)))
+  parents = list(list(path = pB, version_id = st_latest(pB, alias = NULL))),
+  alias = NULL
 )
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpJfWT1Z/C.qs @ version
-    ## 0588277e72afc54e
+    ## ✔ Saved [qs2] → /tmp/RtmpFH84w3/C.qs @ version
+    ## 27e91c523291711c
 
-Note: after these saves each artifact has a sidecar (in `stmeta/`) and
-snapshots under `.stamp/versions/`.
+Note: after these saves each artifact has a sidecar (in `stmeta/` next
+to the artifact) and snapshots in its own `versions/` directory
+(per-artifact storage, not centralized).
 
 ## Inspect lineage
 
 ``` r
 # Immediate children of A (depth 1)
-st_children(pA, depth = 1)
+st_children(pA, depth = 1, alias = NULL)
 ```
 
-    ##             child_path    child_version          parent_path   parent_version
-    ## 1 /tmp/RtmpJfWT1Z/B.qs 4c3715eb35e53f20 /tmp/RtmpJfWT1Z/A.qs 81a30bf8d52a5a63
-    ##   level
-    ## 1     1
+    ##             child_path    child_version
+    ## 1 /tmp/RtmpFH84w3/B.qs 7f0c28920348b40d
+    ##                                    parent_path   parent_version level
+    ## 1 /home/runner/work/stamp/stamp/vignettes/A.qs 14dddf583a9b0581     1
 
 ``` r
 # Full lineage (parents of an artifact)
-st_lineage(pC, depth = Inf)
+st_lineage(pC, depth = Inf, alias = NULL)
 ```
 
-    ##   level           child_path    child_version          parent_path
-    ## 1     1 /tmp/RtmpJfWT1Z/C.qs 0588277e72afc54e /tmp/RtmpJfWT1Z/B.qs
-    ## 2     2 /tmp/RtmpJfWT1Z/B.qs 4c3715eb35e53f20 /tmp/RtmpJfWT1Z/A.qs
-    ##     parent_version
-    ## 1 4c3715eb35e53f20
-    ## 2 81a30bf8d52a5a63
+    ## [1] level          child_path     child_version  parent_path    parent_version
+    ## <0 rows> (or 0-length row.names)
 
 ## Make a change upstream & detect staleness
 
 ``` r
 # Change A → new version
 xA2 <- transform(xA, a = a + 10L)
-st_save(xA2, pA, code = function(z) z)
+st_save(xA2, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpJfWT1Z/A.qs @ version
-    ## 448aa4ba4ba5645f
+    ## ✔ Saved [qs2] → /tmp/RtmpFH84w3/A.qs @ version
+    ## bbc0d98563d1eb86
 
 ``` r
 # Strict staleness
@@ -191,7 +190,7 @@ plan_strict
 ```
 
     ##   level                 path         reason latest_version_before
-    ## 1     1 /tmp/RtmpJfWT1Z/B.qs parent_changed      4c3715eb35e53f20
+    ## 1     1 /tmp/RtmpFH84w3/B.qs parent_changed      7f0c28920348b40d
 
 ``` r
 # Propagate: includes B (level 1) and C (level 2)
@@ -200,7 +199,7 @@ plan
 ```
 
     ##   level                 path           reason latest_version_before
-    ## 1     1 /tmp/RtmpJfWT1Z/B.qs upstream_changed      4c3715eb35e53f20
+    ## 1     1 /tmp/RtmpFH84w3/B.qs upstream_changed      7f0c28920348b40d
 
 ## Register builders and rebuild in level order
 
@@ -219,7 +218,7 @@ st_clear_builders()
 # Register a builder for B: rebuild from A's committed version
 st_register_builder(pB, function(path, parents) {
   # parents is list(list(path=..., version_id=...))
-  A <- st_load_version(parents[[1]]$path, parents[[1]]$version_id)
+  A <- st_load_version(parents[[1]]$path, parents[[1]]$version_id, alias = NULL)
   list(
     x = transform(A, b = a * 2),
     code = function(z) z,
@@ -228,13 +227,12 @@ st_register_builder(pB, function(path, parents) {
 })
 ```
 
-    ## ✔ Registered builder for /tmp/RtmpJfWT1Z/B.qs
-    ## (default)
+    ## ✔ Registered builder for B.qs (default)
 
 ``` r
 # Register a builder for C: rebuild from B's committed version
 st_register_builder(pC, function(path, parents) {
-  B <- st_load_version(parents[[1]]$path, parents[[1]]$version_id)
+  B <- st_load_version(parents[[1]]$path, parents[[1]]$version_id, alias = NULL)
   list(
     x = transform(B, c = b + 1L),
     code = function(z) z,
@@ -243,8 +241,7 @@ st_register_builder(pC, function(path, parents) {
 })
 ```
 
-    ## ✔ Registered builder for /tmp/RtmpJfWT1Z/C.qs
-    ## (default)
+    ## ✔ Registered builder for C.qs (default)
 
 ``` r
 # Dry run first (uses registered builders found by st_rebuild when rebuild_fun is NULL)
@@ -252,7 +249,7 @@ st_rebuild(plan, dry_run = TRUE)
 ```
 
     ## ✔ Rebuild level 1: 1 artifact
-    ##   • /tmp/RtmpJfWT1Z/B.qs (upstream_changed)
+    ##   • /tmp/RtmpFH84w3/B.qs (upstream_changed)
     ##   DRY RUN
     ## ✔ Rebuild summary
     ##   dry_run 1
@@ -263,19 +260,22 @@ res <- st_rebuild(plan, dry_run = FALSE)
 ```
 
     ## ✔ Rebuild level 1: 1 artifact
-    ##   • /tmp/RtmpJfWT1Z/B.qs (upstream_changed)
-    ## ✔ Loaded ← /tmp/RtmpJfWT1Z/A.qs @ 448aa4ba4ba5645f [qs2]
-    ## ✔ Saved [qs2] → /tmp/RtmpJfWT1Z/B.qs @ version b97ee110482e1933
-    ## OK @ version b97ee110482e1933
+    ##   • /tmp/RtmpFH84w3/B.qs (upstream_changed)
+
+    ## Warning: FAILED: No builder registered for path: /tmp/RtmpFH84w3/B.qs and no rebuild_fun
+    ## provided.
+
     ## ✔ Rebuild summary
-    ##   built 1
+    ##   failed 1
 
 ``` r
 res
 ```
 
-    ##   level                 path           reason status       version_id msg
-    ## 1     1 /tmp/RtmpJfWT1Z/B.qs upstream_changed  built b97ee110482e1933
+    ##   level                 path           reason status version_id
+    ## 1     1 /tmp/RtmpFH84w3/B.qs upstream_changed failed       <NA>
+    ##                                                                                 msg
+    ## 1 No builder registered for path: /tmp/RtmpFH84w3/B.qs and no rebuild_fun provided.
 
 After rebuilding B, **C** becomes strictly stale if **B** changes again
 later. You can re-plan from B to keep propagating:
@@ -284,55 +284,48 @@ later. You can re-plan from B to keep propagating:
 st_is_stale(pB)
 ```
 
-    ## [1] FALSE
+    ## [1] TRUE
 
 ``` r
 st_is_stale(pC)
 ```
 
-    ## [1] TRUE
+    ## [1] FALSE
 
 ``` r
 st_plan_rebuild(pB, depth = Inf, mode = "propagate")
 ```
 
     ##   level                 path           reason latest_version_before
-    ## 1     1 /tmp/RtmpJfWT1Z/C.qs upstream_changed      0588277e72afc54e
+    ## 1     1 /tmp/RtmpFH84w3/C.qs upstream_changed      27e91c523291711c
 
 ## Inspect snapshots on disk
 
 ``` r
-vroot <- fs::path(root, "A.qs", "versions")
-fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+vroot <- fs::path_dir(st_info(pA, alias = NULL)$sidecar$path)
+vroot <- fs::path(vroot, "versions")
+if (fs::dir_exists(vroot)) {
+  fs::dir_tree(vroot, recurse = TRUE, all = TRUE)
+}
 ```
-
-    ## /tmp/RtmpJfWT1Z/A.qs/versions
-    ## ├── 448aa4ba4ba5645f
-    ## │   ├── artifact
-    ## │   ├── sidecar.json
-    ## │   └── sidecar.qs2
-    ## └── 81a30bf8d52a5a63
-    ##     ├── artifact
-    ##     ├── sidecar.json
-    ##     └── sidecar.qs2
 
 **Tip:** `st_info(path)` summarizes sidecar, catalog status, and the
 latest snapshot dir, plus parsed `parents.json` from the committed
 snapshot (if present).
 
 ``` r
-st_info(pC)
+st_info(pC, alias = NULL)
 ```
 
     ## $sidecar
     ## $sidecar$path
-    ## [1] "/tmp/RtmpJfWT1Z/C.qs"
+    ## [1] "/tmp/RtmpFH84w3/C.qs"
     ## 
     ## $sidecar$format
     ## [1] "qs2"
     ## 
     ## $sidecar$created_at
-    ## [1] "2026-01-28T15:50:07.745564Z"
+    ## [1] "2026-03-02T21:47:14.965438Z"
     ## 
     ## $sidecar$size_bytes
     ## [1] 266
@@ -350,8 +343,8 @@ st_info(pC)
     ## NULL
     ## 
     ## $sidecar$parents
-    ##                   path       version_id
-    ## 1 /tmp/RtmpJfWT1Z/B.qs 4c3715eb35e53f20
+    ##   path       version_id
+    ## 1 B.qs 7f0c28920348b40d
     ## 
     ## $sidecar$attrs
     ## list()
@@ -359,22 +352,22 @@ st_info(pC)
     ## 
     ## $catalog
     ## $catalog$latest_version_id
-    ## [1] "0588277e72afc54e"
+    ## [1] "27e91c523291711c"
     ## 
     ## $catalog$n_versions
     ## [1] 1
     ## 
     ## 
     ## $snapshot_dir
-    ## /tmp/RtmpJfWT1Z/C.qs/versions/0588277e72afc54e
+    ## /tmp/RtmpFH84w3/C.qs/versions/27e91c523291711c
     ## 
     ## $parents
     ## $parents[[1]]
     ## $parents[[1]]$path
-    ## [1] "/tmp/RtmpJfWT1Z/B.qs"
+    ## [1] "B.qs"
     ## 
     ## $parents[[1]]$version_id
-    ## [1] "4c3715eb35e53f20"
+    ## [1] "7f0c28920348b40d"
 
 ### Takeaways
 

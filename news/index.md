@@ -234,9 +234,7 @@
 
 - **BREAKING**: `.qs` and `.qs2` are now treated as distinct formats
   with separate handlers
-  - `.qs` files use the [qs](https://github.com/qsbase/qs) package
-    ([`qs::qread`](https://rdrr.io/pkg/qs/man/qread.html) /
-    [`qs::qsave`](https://rdrr.io/pkg/qs/man/qsave.html))
+  - `.qs` files use the `{qs}` package (`qs::qread` / `qs::qsave`)
   - `.qs2` files use the [qs2](https://github.com/qsbase/qs2) package
     ([`qs2::qs_read`](https://rdrr.io/pkg/qs2/man/qs_read.html) /
     [`qs2::qs_save`](https://rdrr.io/pkg/qs2/man/qs_save.html))

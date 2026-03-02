@@ -22,8 +22,9 @@ project.
 
 [`st_init()`](https://randrescastaneda.github.io/stamp/reference/st_init.md)
 prepares a small internal state directory (by default `.stamp/`) to hold
-temporary files, logs, sidecars, and version snapshots. Use a temporary
-directory for vignette examples so saves and snapshots are isolated.
+the catalog, temporary files, and logs. **Artifacts and their version
+histories are stored directly in your project structure**, not inside
+`.stamp/`.
 
 ``` r
 # Use a private temp dir so the vignette is reproducible locally
@@ -34,21 +35,24 @@ st_init(tdir)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpuomfRe/stamp-vignette
-    ##   state: /tmp/RtmpuomfRe/stamp-vignette/.stamp
+    ##   root: /tmp/RtmpiRnnNO/stamp-vignette
+    ##   state: /tmp/RtmpiRnnNO/stamp-vignette/.stamp
 
 ``` r
-# Inspect created structure
+# Inspect created structure - note .stamp/ contains only state
 fs::path(tdir, ".stamp") |>
   fs::dir_tree(recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/RtmpuomfRe/stamp-vignette/.stamp
+    ## /tmp/RtmpiRnnNO/stamp-vignette/.stamp
     ## ├── logs
     ## └── temp
 
 Notes - Default state dir: `.stamp/` (you can override via
-`st_init(state_dir = "_stamp")`).
+`st_init(state_dir = "_stamp")`). - **Storage model (v0.0.9+):**
+Artifacts are stored as `<path>/<filename>/<filename>` with version
+history in `<path>/<filename>/versions/`. The `.stamp/` directory
+contains only the catalog, locks, and temp files.
 
 ## 2. Options (`st_opts()`)
 
@@ -170,34 +174,52 @@ for robust writes.
 performs an atomic write (temp file then move), writes sidecar metadata,
 and — depending on `versioning` — records a version snapshot.
 
+**Storage structure:** When you save to a path like
+`"outputs/example.qs2"`, stamp creates: -
+`outputs/example.qs2/example.qs2` - the actual file -
+`outputs/example.qs2/stmeta/` - sidecar metadata directory -
+`outputs/example.qs2/versions/` - version history (when versioning
+enabled)
+
 ``` r
 x <- data.frame(a = 1:3, b = letters[1:3])
-outdir <- fs::path(tdir, "stamp-output")
-fs::dir_create(outdir)
 
-res <- st_save(x, fs::path(outdir, "example.qs2"), metadata = list(description = "toy"))
+res <- st_save(x, "stamp-output/example.qs2", metadata = list(description = "toy"), alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2 @
-    ##   version f237f26e6fdaff82
+    ## ✔ Saved [qs2] → /tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2 @
+    ##   version a09ade72e1a65066
 
 ``` r
 res$path
 ```
 
-    ## [1] "/tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2"
+    ## [1] "/tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2"
+
+``` r
+# Inspect the created structure
+artifact_dir <- fs::path_dir(res$path)
+fs::dir_tree(artifact_dir, recurse = 1)
+```
+
+    ## /tmp/RtmpiRnnNO/stamp-vignette/stamp-output
+    ## └── example.qs2
+    ##     ├── example.qs2
+    ##     ├── example.qs2.lock
+    ##     ├── stmeta
+    ##     └── versions
 
 ``` r
 # load back (format auto-detected)
-y <- st_load(res$path)
+y <- st_load("stamp-output/example.qs2", alias = NULL)
 ```
 
     ## Warning: No primary key recorded for
-    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2.
+    ## /tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2
+    ## /tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2
 
 ``` r
 identical(x, y)
@@ -231,37 +253,37 @@ st_opts(versioning = "timestamp")  # Force version on every save
 
 ``` r
 # Create multiple versions by modifying and saving
-v_path <- fs::path(outdir, "versioned.qs2")
+v_path <- "versioned.qs2"
 
 # Version 1
 v1 <- data.frame(x = 1:3, y = c("a", "b", "c"))
-st_save(v1, v_path, code_label = "initial")
+st_save(v1, v_path, code_label = "initial", alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2 @
-    ##   version fdb85ccf0014c20f
+    ## ✔ Saved [qs2] → /tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2 @ version
+    ##   c14e98e3ea238067
 
 ``` r
 Sys.sleep(1.1)  # ensure distinct timestamps on all platforms
 
 # Version 2
 v2 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"))
-st_save(v2, v_path, code_label = "added rows")
+st_save(v2, v_path, code_label = "added rows", alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2 @
-    ##   version 2988c8d66a5ef9b1
+    ## ✔ Saved [qs2] → /tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2 @ version
+    ##   4ba00d27ed1486f3
 
 ``` r
 Sys.sleep(1.1)
 
 # Version 3
 v3 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"), z = 10:14)
-st_save(v3, v_path, code_label = "added column z")
+st_save(v3, v_path, code_label = "added column z", alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2 @
-    ##   version f2b8db5546cdc965
+    ## ✔ Saved [qs2] → /tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2 @ version
+    ##   8ebfbb36c4137b81
 
 ``` r
 # Check available versions (explicit alias auto-detect)
@@ -293,21 +315,20 @@ if (nrow(versions) == 0) {
 
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: f2b8db5546cdc965 2026-01-28T15:50:34.329705Z        287
-    ## 2: 2988c8d66a5ef9b1 2026-01-28T15:50:33.181683Z        262
-    ## 3: fdb85ccf0014c20f 2026-01-28T15:50:31.965345Z        261
+    ## 1: 8ebfbb36c4137b81 2026-03-02T21:47:38.770332Z        287
+    ## 2: 4ba00d27ed1486f3 2026-03-02T21:47:37.623929Z        262
+    ## 3: c14e98e3ea238067 2026-03-02T21:47:36.409983Z        261
 
-    ## Warning: No primary key recorded for
-    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2.
+    ## Warning: No primary key recorded for /tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/versioned.qs2
+    ## /tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2
 
     ## Current: 5 rows, 3 columns
 
-    ## ✔ Loaded ← stamp-output/versioned.qs2 @
-    ## 2988c8d66a5ef9b1 [qs2]
+    ## ✔ Loaded ← versioned.qs2 @ 4ba00d27ed1486f3
+    ## [qs2]
 
     ## Previous (v-1): 5 rows, 2 columns
 
@@ -331,8 +352,8 @@ if (nrow(versions) == 0) {
   }
 ```
 
-    ## ✔ Loaded ← stamp-output/versioned.qs2 @
-    ## fdb85ccf0014c20f [qs2]
+    ## ✔ Loaded ← versioned.qs2 @ c14e98e3ea238067
+    ## [qs2]
 
 ``` r
   if (isTRUE(older_ok)) {
@@ -354,8 +375,8 @@ if (nrow(versions) == 0) {
   )
 ```
 
-    ## ✔ Loaded ← stamp-output/versioned.qs2 @
-    ## fdb85ccf0014c20f [qs2]
+    ## ✔ Loaded ← versioned.qs2 @ c14e98e3ea238067
+    ## [qs2]
 
 ``` r
   if (isTRUE(spec_ok) && isTRUE(older_ok)) {
@@ -403,10 +424,13 @@ selected <- st_load(v_path, version = "select")
 
 ## 5. Sidecars (quick metadata)
 
-Sidecars live in an `stmeta/` sibling directory next to the artifact and
-contain metadata such as `path`, `format`, `created_at` (UTC),
-`size_bytes`, `content_hash`, `code_hash`, `code_label`, and `parents`
-(a quick view).
+Sidecars live in an `stmeta/` directory next to the artifact (inside the
+artifact’s parent directory) and contain metadata such as `path`,
+`format`, `created_at` (UTC), `size_bytes`, `content_hash`, `code_hash`,
+`code_label`, and `parents` (a quick view).
+
+**Example:** For artifact at `outputs/example.qs2/example.qs2`, the
+sidecar is at `outputs/example.qs2/stmeta/sidecar.json`.
 
 ``` r
 sc <- st_read_sidecar(res$path)
@@ -414,9 +438,9 @@ str(sc)
 ```
 
     ## List of 11
-    ##  $ path        : chr "/tmp/RtmpuomfRe/stamp-vignette/stamp-output/example.qs2"
+    ##  $ path        : chr "/tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2"
     ##  $ format      : chr "qs2"
-    ##  $ created_at  : chr "2026-01-28T15:50:31.660943Z"
+    ##  $ created_at  : chr "2026-03-02T21:47:36.069790Z"
     ##  $ size_bytes  : int 256
     ##  $ content_hash: chr "99235ac79dea7ab0"
     ##  $ code_hash   : NULL
@@ -431,12 +455,16 @@ even when a version snapshot may not be recorded (e.g., when
 `versioning = "content"` and nothing changed). For reproducible lineage
 and rebuilds,
 [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md)
-writes a snapshot under `.stamp/versions/` that includes committed
-copies of the artifact and its parents.json.
+writes a snapshot in the artifact’s `versions/` directory that includes
+committed copies of the artifact and its parents.json.
 
 ## 6. Versions, lineage, and inspection
 
-The package maintains a simple catalog of versions. Useful functions:
+The package maintains a simple catalog of versions. Version snapshots
+are stored in a `versions/` directory next to each artifact (not
+centralized in `.stamp/`).
+
+Useful functions:
 
 - `st_versions(path)` — list recorded versions for an artifact.
 - `st_latest(path)` — get the latest version id.
@@ -452,37 +480,37 @@ Example that demonstrates parents and lineage (parents passed to
 
 ``` r
 # upstream artifact
-in_path <- fs::path(outdir, "upstream.qs")
-st_save(data.frame(id=1:3), in_path)
+in_path <- "upstream.qs"
+st_save(data.frame(id=1:3), in_path, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/upstream.qs @
-    ##   version 110bd70835013513
+    ## ✔ Saved [qs2] → /tmp/RtmpiRnnNO/stamp-vignette/upstream.qs @ version
+    ##   b18eda93d9551d27
 
 ``` r
-in_vid <- st_latest(in_path)
+in_vid <- st_latest(in_path, alias = NULL)
 
 # derived artifact recording parent info
-out_path <- fs::path(outdir, "derived.qs")
+out_path <- "derived.qs"
 parents <- list(list(path = in_path, version_id = in_vid))
-st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply")
+st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply", alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs @
-    ##   version da659559a434d2c9
+    ## ✔ Saved [qs2] → /tmp/RtmpiRnnNO/stamp-vignette/derived.qs @ version
+    ##   273f3281084693cd
 
 ``` r
-st_info(out_path)$sidecar
+st_info(out_path, alias = NULL)$sidecar
 ```
 
     ## $path
-    ## [1] "/tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs"
+    ## [1] "/tmp/RtmpiRnnNO/stamp-vignette/derived.qs"
     ## 
     ## $format
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2026-01-28T15:50:34.848972Z"
+    ## [1] "2026-03-02T21:47:39.284862Z"
     ## 
     ## $size_bytes
     ## [1] 256
@@ -500,26 +528,26 @@ st_info(out_path)$sidecar
     ## [1] "multiply"
     ## 
     ## $parents
-    ##                                                      path       version_id
-    ## 1 /tmp/RtmpuomfRe/stamp-vignette/stamp-output/upstream.qs 110bd70835013513
+    ##          path       version_id
+    ## 1 upstream.qs b18eda93d9551d27
     ## 
     ## $attrs
     ## list()
 
 ``` r
-st_lineage(out_path, depth = 1)
+st_lineage(out_path, depth = 1, alias = NULL)
 ```
 
-    ##   level                                             child_path    child_version
-    ## 1     1 /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs da659559a434d2c9
-    ##                                               parent_path   parent_version
-    ## 1 /tmp/RtmpuomfRe/stamp-vignette/stamp-output/upstream.qs 110bd70835013513
+    ## [1] level          child_path     child_version  parent_path    parent_version
+    ## <0 rows> (or 0-length row.names)
 
 Notes on behavior - The sidecar always contains `parents` for quick
 inspection. However, in the default `versioning = "content"` mode a new
 committed snapshot (and its `parents.json`) will only be created when
 content or code changed. The vignette code above deliberately saves
-upstream and derived artifacts so a snapshot is recorded.
+upstream and derived artifacts so a snapshot is recorded. - Version
+snapshots are stored in `<artifact-dir>/versions/<version_id>/`, not in
+`.stamp/versions/` (the centralized storage was removed in v0.0.9).
 
 ## 7. Primary-key helpers (optional)
 
@@ -544,13 +572,11 @@ st_add_pk(out_path, keys = c("id"))
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
-    ## Warning: No primary key recorded for
-    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs.
+    ## Warning: No primary key recorded for /tmp/RtmpiRnnNO/stamp-vignette/derived.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs
-    ## ✔ Recorded primary key for
-    ##   /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs --> id
+    ## ✔ Loaded [qs2] ← /tmp/RtmpiRnnNO/stamp-vignette/derived.qs
+    ## ✔ Recorded primary key for derived.qs --> id
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
@@ -562,11 +588,11 @@ st_inspect_pk(out_path)
 
 ``` r
 # load and filter by pk using st_filter
-df <- st_load(out_path)
+df <- st_load(out_path, alias = NULL)
 ```
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpuomfRe/stamp-vignette/stamp-output/derived.qs
+    ## /tmp/RtmpiRnnNO/stamp-vignette/derived.qs
 
 ``` r
 st_filter(df, list(id = 1))
@@ -585,10 +611,10 @@ simplest call applies the default project policy; you can also pass
 
 ``` r
 # dry-run to preview deletions for this artifact
-st_prune_versions(path = out_path, policy = 5, dry_run = TRUE)
+st_prune_versions(path = out_path, policy = 5, dry_run = TRUE, alias = NULL)
 
 # apply retention (non-dry)
-st_prune_versions(path = out_path, policy = list(n = 5, days = 30), dry_run = FALSE)
+st_prune_versions(path = out_path, policy = list(n = 5, days = 30), dry_run = FALSE, alias = NULL)
 ```
 
 ## 9. Tips and conventions

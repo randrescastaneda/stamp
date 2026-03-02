@@ -47,12 +47,12 @@ fs::dir_create(demo_dir)
 st_init(demo_dir)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: /tmp/RtmpQJPGvx/stamp-demo
-#>   state: /tmp/RtmpQJPGvx/stamp-demo/.stamp
+#>   root: /tmp/RtmpuJfufb/stamp-demo
+#>   state: /tmp/RtmpuJfufb/stamp-demo/.stamp
 
 # Inspect what was created
 fs::dir_tree(fs::path(demo_dir, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpQJPGvx/stamp-demo/.stamp
+#> /tmp/RtmpuJfufb/stamp-demo/.stamp
 #> ├── logs
 #> └── temp
 ```
@@ -82,8 +82,8 @@ version history.
 test_data <- data.frame(x = 1:5, y = letters[1:5])
 test_path <- fs::path(demo_dir, "data", "test.qs2")
 st_save(test_data, test_path)
-#> ✔ Saved [qs2] → /tmp/RtmpQJPGvx/stamp-demo/data/test.qs2 @ version
-#>   d455f29c69d11ceb
+#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
+#>   bd506b3f4ca082e0
 
 # Check versions exist
 versions_before <- st_versions(test_path)
@@ -94,8 +94,8 @@ nrow(versions_before)
 st_init(demo_dir)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: /tmp/RtmpQJPGvx/stamp-demo
-#>   state: /tmp/RtmpQJPGvx/stamp-demo/.stamp
+#>   root: /tmp/RtmpuJfufb/stamp-demo
+#>   state: /tmp/RtmpuJfufb/stamp-demo/.stamp
 
 # Version history is preserved
 versions_after <- st_versions(test_path)
@@ -116,28 +116,49 @@ identical(versions_before, versions_after)
 
 ### 2.1 High-Level Layout
 
-    .stamp/                          # Root state directory
-    ├── catalog.qs2                  # Central version registry (created on first save)
-    ├── catalog.lock                 # Lock file for concurrent access control
-    ├── temp/                        # Temporary files during atomic writes
-    ├── logs/                        # Reserved for future logging features
-    └── versions/                    # Version snapshots (created on first save)
-        ├── data/                    # Mirrors your project structure
-        │   └── test.qs2/            # One folder per artifact
-        │       ├── 20250108T121500Z-abc12345/   # Version snapshot directory
-        │       │   ├── artifact                  # Snapshot of the file itself
-        │       │   ├── sidecar.json              # Metadata at save time
-        │       │   ├── sidecar.qs2               # (optional) Binary metadata
-        │       │   └── parents.json              # Lineage information
-        │       └── 20250108T143000Z-def67890/   # Another version
-        │           └── ...
-        └── external/                # Artifacts outside project root
-            └── a1b2c3d4-external.csv/
-                └── ...
+    <project-root>/
+    ├── .stamp/                      # State directory (catalog, locks, temp)
+    │   ├── catalog.qs2              # Central version registry
+    │   ├── catalog.lock             # Lock file for concurrent access
+    │   ├── temp/                    # Temporary files during atomic writes
+    │   └── logs/                    # Reserved for future logging
+    │
+    ├── results/                     # Your project structure (example)
+    │   └── model.rds/               # Artifact directory
+    │       ├── model.rds            # The actual artifact file
+    │       ├── stmeta/              # Sidecar metadata directory
+    │       │   ├── sidecar.json     # JSON metadata
+    │       │   └── sidecar.qs2      # (optional) Binary metadata
+    │       └── versions/            # Version history (per-artifact)
+    │           ├── 20250108T121500Z-abc12345/   # Version snapshot
+    │           │   ├── artifact                  # Snapshot of the file
+    │           │   ├── sidecar.json              # Metadata at save time
+    │           │   ├── sidecar.qs2               # (optional) Binary metadata
+    │           │   └── parents.json              # Lineage information
+    │           └── 20250108T143000Z-def67890/   # Another version
+    │               └── ...
+    │
+    └── data.qs2/                    # Bare filename (no subdirectory path)
+        ├── data.qs2                 # The actual artifact file
+        ├── stmeta/                  # Sidecar metadata
+        └── versions/                # Version history for this artifact
 
 Let’s explore each component:
 
-### 2.2 The Catalog: `catalog.qs2`
+### 2.2 State Directory: `.stamp/`
+
+The `.stamp/` directory contains **only state** - no artifact data:
+
+- **`catalog.qs2`** - Central registry of all artifacts and versions
+- **`catalog.lock`** - Concurrency control for catalog updates
+- **`temp/`** - Temporary files during atomic writes
+- **`logs/`** - Reserved for future use
+
+**Key change (v0.0.9):** Version snapshots are **no longer** under
+`.stamp/versions/`. They now live alongside each artifact in
+per-artifact `versions/` directories.
+
+### 2.3 The Catalog: `catalog.qs2`
 
 The catalog is a **central registry** tracking all artifacts and their
 versions. It’s a QS2-serialized list containing two `data.table`
@@ -171,19 +192,19 @@ catalog <- list(
 versions <- st_versions(test_path)
 str(versions)
 #> Classes 'data.table' and 'data.frame':   1 obs. of  7 variables:
-#>  $ version_id    : chr "d455f29c69d11ceb"
-#>  $ artifact_id   : chr "88478e560fa3b3e2"
+#>  $ version_id    : chr "bd506b3f4ca082e0"
+#>  $ artifact_id   : chr "b91300b77e4cce46"
 #>  $ content_hash  : chr "2d26c6e5d9121bfd"
 #>  $ code_hash     : chr NA
 #>  $ size_bytes    : num 262
-#>  $ created_at    : chr "2026-01-28T15:50:38.249775Z"
+#>  $ created_at    : chr "2026-03-02T21:47:42.492914Z"
 #>  $ sidecar_format: chr "json"
 #>  - attr(*, ".internal.selfref")=<externalptr>
 
 # Get latest version ID
 latest_id <- st_latest(test_path)
 latest_id
-#> [1] "d455f29c69d11ceb"
+#> [1] "bd506b3f4ca082e0"
 
 # Get comprehensive info (catalog + sidecar + snapshot location)
 info <- st_info(test_path)
@@ -191,14 +212,15 @@ str(info, max.level = 1)
 #> List of 4
 #>  $ sidecar     :List of 10
 #>  $ catalog     :List of 2
-#>  $ snapshot_dir: 'fs_path' chr "/tmp/RtmpQJPGvx/stamp-demo/data/test.qs2/versions/d455f29c69d11ceb"
+#>  $ snapshot_dir: 'fs_path' chr "/tmp/RtmpuJfufb/stamp-demo/data/test.qs2/versions/bd506b3f4ca082e0"
 #>  $ parents     : list()
 ```
 
-### 2.3 Version Snapshots: `versions/`
+### 2.4 Version Snapshots: Per-Artifact `versions/`
 
 Each time you save an artifact (and versioning is enabled), a new
-**immutable snapshot** is created:
+**immutable snapshot** is created in a `versions/` directory **next to
+the artifact itself**:
 
 ``` r
 # Save the same artifact multiple times with changes
@@ -207,25 +229,30 @@ st_opts(versioning = "timestamp")  # ensure snapshots are created
 #>   versioning = "timestamp"
 v1 <- data.frame(x = 1:3)
 st_save(v1, test_path, code_label = "initial")
-#> ✔ Saved [qs2] → /tmp/RtmpQJPGvx/stamp-demo/data/test.qs2 @ version
-#>   b4ca78ebe7522cff
+#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
+#>   3fa545d7ffeba734
 Sys.sleep(1.1)
 
 v2 <- data.frame(x = 1:5)
 st_save(v2, test_path, code_label = "added rows")
-#> ✔ Saved [qs2] → /tmp/RtmpQJPGvx/stamp-demo/data/test.qs2 @ version
-#>   2d66d94d67a29e56
+#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
+#>   7f2ac5466857e066
 Sys.sleep(1.1)
 
 v3 <- data.frame(x = 1:5, y = 10:14)
 st_save(v3, test_path, code_label = "added column")
-#> ✔ Saved [qs2] → /tmp/RtmpQJPGvx/stamp-demo/data/test.qs2 @ version
-#>   5f39378acde977ad
+#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
+#>   7b77962591247e68
 
-# Each version gets its own directory
-vroot <- fs::path(demo_dir, ".stamp", "versions")
-if (fs::dir_exists(vroot)) {
-  fs::dir_tree(vroot, recurse = 2)
+# Version history is stored NEXT TO the artifact, not in .stamp/
+# Extract the artifact directory from sidecar info  
+info <- st_info(test_path, alias = NULL)
+artifact_dir <- fs::path_dir(info$sidecar$path)
+versions_dir <- fs::path(artifact_dir, "versions")
+
+if (fs::dir_exists(versions_dir)) {
+  cat("Version snapshots location:", versions_dir, "\n")
+  fs::dir_tree(versions_dir, recurse = 1)
 } else {
   cat("No versions directory found (versioning may be off).\n")
 }
@@ -238,6 +265,9 @@ st_opts(versioning = "content")
 ```
 
 **What’s inside a version snapshot directory?**
+
+Each version snapshot (e.g.,
+`<artifact-dir>/versions/20250108T121500Z-abc12345/`) contains:
 
 1.  **`artifact`** - A complete copy of the file at that point in time
 2.  **`sidecar.json` / `sidecar.qs2`** - Metadata including:
@@ -257,6 +287,8 @@ latest_info <- st_info(test_path)
 latest_vdir <- latest_info$snapshot_dir
 
 if (!is.na(latest_vdir) && fs::dir_exists(latest_vdir)) {
+  cat("Latest snapshot directory:", latest_vdir, "\n\n")
+  
   # List contents - note: parents.json only exists if parents were specified
   fs::dir_ls(latest_vdir)
   
@@ -269,10 +301,12 @@ if (!is.na(latest_vdir) && fs::dir_exists(latest_vdir)) {
 } else {
   cat("No snapshot directory recorded for test_path; ensure versioning created snapshots.\n")
 }
+#> Latest snapshot directory: /tmp/RtmpuJfufb/stamp-demo/data/test.qs2/versions/7b77962591247e68 
+#> 
 #> List of 5
-#>  $ path      : chr "/tmp/RtmpQJPGvx/stamp-demo/data/test.qs2"
+#>  $ path      : chr "/tmp/RtmpuJfufb/stamp-demo/data/test.qs2"
 #>  $ format    : chr "qs2"
-#>  $ created_at: chr "2026-01-28T15:50:41.093837Z"
+#>  $ created_at: chr "2026-03-02T21:47:45.314266Z"
 #>  $ size_bytes: int 265
 #>  $ code_label: chr "added column"
 ```
@@ -292,8 +326,8 @@ st_opts(versioning = "timestamp")
 upstream_path <- fs::path(demo_dir, "data", "upstream.qs2")
 upstream_data <- data.frame(id = 1:10, value = rnorm(10))
 st_save(upstream_data, upstream_path, code_label = "upstream data")
-#> ✔ Saved [qs2] → /tmp/RtmpQJPGvx/stamp-demo/data/upstream.qs2 @ version
-#>   b7150b0045f539ff
+#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/upstream.qs2 @ version
+#>   f235bf452db32f60
 upstream_version <- st_latest(upstream_path)
 
 # Now create a derived artifact with parent reference
@@ -305,8 +339,8 @@ st_save(
   parents = list(list(path = upstream_path, version_id = upstream_version)),
   code_label = "derived from upstream"
 )
-#> ✔ Saved [qs2] → /tmp/RtmpQJPGvx/stamp-demo/data/derived.qs2 @ version
-#>   af0a195c3cbf57dc
+#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/derived.qs2 @ version
+#>   d401e0212abe39b5
 
 # Now check the derived artifact's snapshot - parents.json will be present
 derived_info <- st_info(derived_path)
@@ -327,8 +361,8 @@ if (!is.na(derived_vdir) && fs::dir_exists(derived_vdir)) {
 }
 #> List of 1
 #>  $ :List of 2
-#>   ..$ path      : chr "/tmp/RtmpQJPGvx/stamp-demo/data/upstream.qs2"
-#>   ..$ version_id: chr "b7150b0045f539ff"
+#>   ..$ path      : chr "/tmp/RtmpuJfufb/stamp-demo/data/upstream.qs2"
+#>   ..$ version_id: chr "f235bf452db32f60"
 
 # Reset to default versioning for the remainder
 st_opts(versioning = "content")
@@ -336,79 +370,76 @@ st_opts(versioning = "content")
 #>   versioning = "content"
 ```
 
-### 2.4 Artifact Organization: Path-Based vs. External Storage
+### 2.5 Artifact Storage: Direct-Path Model
 
-The `versions/` directory organizes snapshots differently depending on
-whether the artifact is **inside or outside your project directory**.
-This affects how you’ll find version snapshots on disk.
+**Key concept (v0.0.9):** Artifacts are stored **directly** at the path
+you specify, wrapped in a parent directory:
 
-#### Artifacts Inside Project Root (Path-Based Organization)
+    st_save(data, "results/model.rds")  →  <root>/results/model.rds/model.rds
+    st_save(data, "data.qs2")           →  <root>/data.qs2/data.qs2
 
-When you save an artifact that lives inside your project directory,
-stamp mirrors the **relative path** structure:
+This creates a predictable structure:
 
-**Example:** Project root is `/home/user/myproject/`, and you save
-`/home/user/myproject/data/cleaned.rds`
+    <root>/
+    ├── results/
+    │   └── model.rds/              # Artifact directory
+    │       ├── model.rds           # The actual file
+    │       ├── stmeta/             # Sidecar metadata
+    │       └── versions/           # Version history for THIS artifact
+    │           ├── 20250108T121500Z-abc12345/
+    │           └── 20250108T143000Z-def67890/
+    │
+    └── data.qs2/                   # Bare filename
+        ├── data.qs2                # The actual file
+        ├── stmeta/                 # Sidecar metadata
+        └── versions/               # Version history for THIS artifact
+            └── 20250108T120000Z-xyz98765/
 
-    .stamp/versions/
-    └── data/                        # Mirrors the relative path "data/"
-        └── cleaned.rds/             # One directory per artifact
-            ├── 20250108T121500Z-abc12345/  # Version 1
-            ├── 20250108T143000Z-def67890/  # Version 2
-            └── 20250108T165500Z-ghi13579/  # Version 3
+#### Why This Structure?
 
-The path `data/cleaned.rds/` mirrors your project structure, making
-versions easy to locate.
-
-#### Artifacts Outside Project Root (Hash-Based Organization)
-
-When you save an artifact **outside** your project directory (e.g., in a
-temp folder or shared drive), stamp cannot use a relative path. Instead,
-it uses a **hash-based identifier** to prevent naming collisions:
-
-**Example:** Project root is `/home/user/myproject/`, but you save
-`/tmp/external_data.csv`
-
-    .stamp/versions/
-    └── external/                    # Special folder for out-of-project artifacts
-        └── a1b2c3d4-external_data.csv/   # Hash prefix + basename
-            ├── 20250108T121500Z-abc12345/
-            └── 20250108T143000Z-def67890/
-
-Here `a1b2c3d4` is the first 8 characters of the artifact’s unique ID
-(hash of its absolute path). This ensures that two files with the same
-name but different absolute paths don’t collide.
+1.  **Transparency**: Artifacts live where you expect them - at the path
+    you specified
+2.  **Co-location**: Version history, metadata, and the artifact itself
+    are grouped together
+3.  **Simplicity**: No need to search `.stamp/versions/` - everything is
+    in one place
+4.  **Distributed**: Each artifact manages its own version history
+    independently
 
 #### Real-World Example
 
 ``` r
-# Scenario 1: File inside project (uses relative path)
+# Save to a subdirectory path
 project_file <- fs::path(demo_dir, "outputs", "results.qs2")
 st_save(data.frame(x = 1:5), project_file)
 
-# Versions stored at: .stamp/versions/outputs/results.qs2/
-# ✓ Easy to navigate - mirrors your project structure
+# Creates:
+#   <demo_dir>/outputs/results.qs2/results.qs2  (the file)
+#   <demo_dir>/outputs/results.qs2/stmeta/      (metadata)
+#   <demo_dir>/outputs/results.qs2/versions/    (history)
 
-# Scenario 2: File outside project (uses hash + basename)
-external_file <- fs::path_temp("temp_results.qs2")
-st_save(data.frame(y = 6:10), external_file)
+# Save a bare filename
+bare_file <- fs::path(demo_dir, "summary.qs2")
+st_save(data.frame(y = 6:10), bare_file)
 
-# Versions stored at: .stamp/versions/external/<hash>-temp_results.qs2/
-# ✓ Collision-free - different absolute paths get different hashes
+# Creates:
+#   <demo_dir>/summary.qs2/summary.qs2  (the file)
+#   <demo_dir>/summary.qs2/stmeta/      (metadata)
+#   <demo_dir>/summary.qs2/versions/    (history)
 ```
 
-#### Why This Matters
+#### Loading Artifacts
 
-1.  **Inside project**: Intuitive navigation - version directories match
-    your project structure
-2.  **Outside project**: Still tracked, but requires using
-    [`st_info()`](https://randrescastaneda.github.io/stamp/reference/st_info.md)
-    to find the exact snapshot location
-3.  **Collision safety**: Two files named `data.csv` at different
-    absolute paths never conflict
+When you load, just use the original path you saved with:
 
-**Best practice:** Keep artifacts inside your project directory when
-possible for easier manual inspection of the `.stamp/versions/` tree.
+``` r
+# Load using the same path you saved with
+data <- st_load("outputs/results.qs2")  # stamp finds outputs/results.qs2/results.qs2
+data <- st_load("summary.qs2")          # stamp finds summary.qs2/summary.qs2
+```
+
+Stamp automatically resolves the path to find the actual file in its
+directory wrapper.
 
 ------------------------------------------------------------------------
 
@@ -519,20 +550,20 @@ st_opts(versioning = "timestamp")
 #>   versioning = "timestamp"
 v_same <- data.frame(x = 1:3)
 st_save(v_same, test_path, code_label = "first")
-#> ✔ Saved [qs2] → /tmp/RtmpQJPGvx/stamp-demo/data/test.qs2 @ version
-#>   43acd9365b98c284
+#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
+#>   49fe2f0ad08e8186
 Sys.sleep(0.2)
 st_save(v_same, test_path, code_label = "second identical")  # Still creates version!
-#> ✔ Saved [qs2] → /tmp/RtmpQJPGvx/stamp-demo/data/test.qs2 @ version
-#>   67c6062ba0e46ac7
+#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
+#>   d286d6c1bc08fba4
 
 # Check: two versions with identical content
 recent_versions <- st_versions(test_path)
 tail(recent_versions[, .(version_id, created_at, content_hash)], 2)
 #>          version_id                  created_at     content_hash
 #>              <char>                      <char>           <char>
-#> 1: b4ca78ebe7522cff 2026-01-28T15:50:38.729107Z 41c16cfe6598913b
-#> 2: d455f29c69d11ceb 2026-01-28T15:50:38.249775Z 2d26c6e5d9121bfd
+#> 1: 3fa545d7ffeba734 2026-03-02T21:47:42.956123Z 41c16cfe6598913b
+#> 2: bd506b3f4ca082e0 2026-03-02T21:47:42.492914Z 2d26c6e5d9121bfd
 
 # Reset to default
 st_opts(versioning = "content")
@@ -570,11 +601,11 @@ These functions power the `.stamp/` infrastructure (from
 **Version Management:**
 
 ``` r
-.st_versions_root()           # Get versions/ directory path
 .st_version_dir(rel_path, vid, alias)    # Compute specific version snapshot path
 .st_version_commit_files()    # Copy artifact + sidecars to snapshot
 .st_version_read_parents()    # Read parents.json from snapshot
 .st_version_write_parents()   # Write parents.json to snapshot
+# Note: .st_versions_root() is deprecated (centralized storage removed in v0.0.9)
 ```
 
 ### 4.2 Concurrency and Safety
@@ -680,23 +711,23 @@ if (nrow(versions) < 2) {
 versions[, .(version_id, created_at, size_bytes)]
 #>          version_id                  created_at size_bytes
 #>              <char>                      <char>      <num>
-#> 1: 67c6062ba0e46ac7 2026-01-28T15:50:41.877119Z        245
-#> 2: 43acd9365b98c284 2026-01-28T15:50:41.633795Z        245
-#> 3: 5f39378acde977ad 2026-01-28T15:50:41.093837Z        265
-#> 4: 2d66d94d67a29e56 2026-01-28T15:50:39.950644Z        246
-#> 5: b4ca78ebe7522cff 2026-01-28T15:50:38.729107Z        245
-#> 6: d455f29c69d11ceb 2026-01-28T15:50:38.249775Z        262
+#> 1: d286d6c1bc08fba4 2026-03-02T21:47:46.131465Z        245
+#> 2: 49fe2f0ad08e8186 2026-03-02T21:47:45.895910Z        245
+#> 3: 7b77962591247e68 2026-03-02T21:47:45.314266Z        265
+#> 4: 7f2ac5466857e066 2026-03-02T21:47:44.173034Z        246
+#> 5: 3fa545d7ffeba734 2026-03-02T21:47:42.956123Z        245
+#> 6: bd506b3f4ca082e0 2026-03-02T21:47:42.492914Z        262
 
 # Get comprehensive info
 info <- st_info(test_path)
 info$catalog      # Latest version and count
 #> $latest_version_id
-#> [1] "67c6062ba0e46ac7"
+#> [1] "d286d6c1bc08fba4"
 #> 
 #> $n_versions
 #> [1] 6
 info$snapshot_dir # Path to latest snapshot
-#> /tmp/RtmpQJPGvx/stamp-demo/data/test.qs2/versions/67c6062ba0e46ac7
+#> /tmp/RtmpuJfufb/stamp-demo/data/test.qs2/versions/d286d6c1bc08fba4
 
 # Load a specific historical version (previous), safely
 if (nrow(versions) > 1) {
@@ -707,7 +738,7 @@ if (nrow(versions) > 1) {
     cat("Previous version not available; skipping load.\n")
   }
 }
-#> ✔ Loaded ← data/test.qs2 @ 43acd9365b98c284
+#> ✔ Loaded ← data/test.qs2 @ 49fe2f0ad08e8186
 #> [qs2]
 #> 'data.frame':    3 obs. of  1 variable:
 #>  $ x: int  1 2 3
@@ -733,16 +764,22 @@ if (fs::file_exists(catalog_path)) {
 
 ``` r
 # Get all version directories for an artifact
-versions_root <- fs::path(demo_dir, ".stamp", "versions")
-artifact_dir <- fs::path(versions_root, "data", "test.qs2")
+# Version history is now stored NEXT TO the artifact, not in .stamp/
+info <- st_info(test_path, alias = NULL)
+artifact_dir <- fs::path_dir(info$sidecar$path)
+versions_dir <- fs::path(artifact_dir, "versions")
 
-if (fs::dir_exists(artifact_dir)) {
+if (fs::dir_exists(versions_dir)) {
+  cat("Versions directory:", versions_dir, "\n\n")
+  
   # List all version snapshots
-  snapshot_dirs <- fs::dir_ls(artifact_dir, type = "directory")
+  snapshot_dirs <- fs::dir_ls(versions_dir, type = "directory")
+  cat("Found", length(snapshot_dirs), "version snapshots\n\n")
   
   # Inspect contents of latest snapshot
   if (length(snapshot_dirs) > 0) {
     latest <- snapshot_dirs[length(snapshot_dirs)]
+    cat("Latest snapshot:", latest, "\n")
     fs::dir_tree(latest)
     
     # Read parents.json if present
@@ -752,7 +789,10 @@ if (fs::dir_exists(artifact_dir)) {
       str(parents)
     }
   }
+} else {
+  cat("No versions directory found for this artifact\n")
 }
+#> No versions directory found for this artifact
 ```
 
 ------------------------------------------------------------------------
@@ -810,20 +850,27 @@ fs::file_delete(catalog_path)
 
 ### 6.3 Disk Space Issues
 
-**Symptom:** `.stamp/versions/` grows very large.
+**Symptom:** Version history grows very large across many artifacts.
 
 **Diagnosis:**
 
 ``` r
-# Check total size
+# Check total .stamp/ state size
+stamp_dir <- fs::path(demo_dir, ".stamp")
 info <- fs::dir_info(stamp_dir, recurse = TRUE)
-data.table::data.table(total_mb = sum(info$size) / 1024^2)
+data.table::data.table(stamp_state_mb = sum(info$size, na.rm = TRUE) / 1024^2)
 
-# Find largest directories
-info <- data.table::as.data.table(
-  fs::dir_info(fs::path(stamp_dir, "versions"), recurse = TRUE)
-)
-info[order(-size)][1:10]
+# Find artifacts with large version histories
+# Version directories are now distributed: <artifact-dir>/versions/
+
+all_files <- fs::dir_info(demo_dir, recurse = TRUE, all = TRUE)
+version_files <- all_files[grepl("/versions/", all_files$path) & all_files$type == "file", ]
+if (nrow(version_files) > 0) {
+  # Group by artifact and sum sizes of version files
+  version_files$artifact <- dirname(dirname(version_files$path))
+  agg <- aggregate(size ~ artifact, version_files, sum)
+  agg[order(-agg$size), ]
+}
 ```
 
 **Solution:**
@@ -864,28 +911,7 @@ reading. If this happens frequently, check for:
 - Concurrent access without proper locking
 - Manual modification of catalog files
 
-### 6.5 Artifacts Outside Project Root
-
-**Symptom:** Can’t find version snapshots for artifacts outside the
-project directory.
-
-**Explanation:** These are stored in `versions/external/` with a special
-naming convention.
-
-``` r
-# Artifact outside project root
-external_path <- fs::path_temp("external_data.csv")
-st_save(data.frame(a = 1:3), external_path)
-
-# Snapshot is under external/
-aid <- stamp:::.st_artifact_id(external_path)
-substr(aid, 1, 8)  # First 8 chars used in directory name
-
-external_dir <- fs::path(stamp_dir, "versions", "external")
-fs::dir_ls(external_dir)
-```
-
-### 6.6 Lock File Issues
+### 6.5 Lock File Issues
 
 **Symptom:** `catalog.lock` file persists after crash.
 
@@ -912,14 +938,20 @@ if (fs::file_exists(lock_file)) {
     .stamp/catalog.lock
 
 **Consider including:** - `.stamp/catalog.qs2` - Enables version history
-tracking across team - `.stamp/versions/` - Useful for small datasets,
-prohibitive for large files
+tracking across team - `*/versions/` - Version snapshots for all
+artifacts (useful for small datasets)
 
 **For large projects:**
 
     # .gitignore
-    .stamp/versions/  # Too large for git
     .stamp/catalog.qs2  # Local catalog only
+    */versions/         # Exclude all version history (too large for git)
+    */*.qs2             # Optionally exclude large binary artifacts
+    */*.rds
+
+**Note:** With the new distributed structure, version directories are
+scattered throughout your project (e.g., `data/model.rds/versions/`,
+`results/output.qs2/versions/`). Use wildcard patterns to exclude them.
 
 ### 7.2 Backup Strategy
 
@@ -928,49 +960,65 @@ prohibitive for large files
 backup_dir <- fs::path(demo_dir, "_backups")
 fs::dir_create(backup_dir)
 
-catalog_src <- fs::path(stamp_dir, "catalog.qs2")
+# Backup the catalog (small, fast)
+catalog_src <- fs::path(demo_dir, ".stamp", "catalog.qs2")
 catalog_dst <- fs::path(backup_dir, sprintf("catalog_%s.qs2", Sys.Date()))
 fs::file_copy(catalog_src, catalog_dst, overwrite = TRUE)
 
-# For critical projects, also backup versions/
-versions_src <- fs::path(stamp_dir, "versions")
-versions_dst <- fs::path(backup_dir, sprintf("versions_%s", Sys.Date()))
-fs::dir_copy(versions_src, versions_dst, overwrite = TRUE)
+# For critical projects, backup specific artifacts with version history
+# Version directories are now distributed: <artifact-dir>/versions/
+artifact_dir <- fs::path(demo_dir, "results", "model.rds")
+if (fs::dir_exists(artifact_dir)) {
+  artifact_backup <- fs::path(backup_dir, sprintf("model_artifact_%s", Sys.Date()))
+  fs::dir_copy(artifact_dir, artifact_backup, overwrite = TRUE)
+}
+
+# Or backup the entire project directory (includes all artifacts + versions)
+project_backup <- fs::path(backup_dir, sprintf("project_%s", Sys.Date()))
+fs::dir_copy(demo_dir, project_backup, overwrite = TRUE)
 ```
 
 ------------------------------------------------------------------------
 
 ## 8. Summary
 
-The `.stamp/` directory is a **robust, append-only version store** that:
+The `stamp` package uses a **simplified, distributed storage
+architecture**:
 
-✅ **Persists across sessions** - Re-running
-[`st_init()`](https://randrescastaneda.github.io/stamp/reference/st_init.md)
-is safe  
-✅ **Tracks complete version history** - Every save creates an immutable
-snapshot  
-✅ **Enables lineage tracking** - Parent relationships preserved in
+✅ **Transparent storage** - Artifacts live at
+`<path>/<filename>/<filename>`, matching your mental model  
+✅ **Distributed versioning** - Each artifact has its own `versions/`
+directory, not centralized  
+✅ **State separation** - `.stamp/` contains only catalog, locks, and
+temp files  
+✅ **Complete version history** - Every save creates an immutable
+snapshot next to the artifact  
+✅ **Lineage tracking** - Parent relationships preserved in
 `parents.json`  
-✅ **Supports concurrent access** - File-based locking prevents
-corruption  
-✅ **Scales with retention policies** - Auto-prune old versions to
+✅ **Concurrent access** - File-based locking prevents corruption  
+✅ **Retention policies** - Auto-prune old versions per-artifact to
 manage disk space
 
 **Key takeaways for users:**
 
-- `.stamp/` is created once and grows with each version
-- Safe to re-initialize without losing history
+- Artifacts are stored as `<root>/<path>/<filename>/<filename>`
+  (direct-path model)
+- Version history lives in `<artifact-dir>/versions/`, not
+  `.stamp/versions/`
+- `.stamp/` contains only state (catalog, temp, logs) - no artifact data
 - Use
   [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md),
   [`st_info()`](https://randrescastaneda.github.io/stamp/reference/st_info.md),
   and `st_load(version=...)` to explore history
-- Configure retention policies to manage disk usage
+- Safe to re-initialize without losing history
 
 **Key takeaways for developers:**
 
 - Catalog is the source of truth (two tables: artifacts, versions)
-- Version snapshots are immutable and organized by relative path
+- Version snapshots are per-artifact and immutable
 - All writes use atomic operations + locking for safety
+- [`.st_versions_root()`](https://randrescastaneda.github.io/stamp/reference/dot-st_versions_root.md)
+  is deprecated (removed centralized version storage in v0.0.9)
 - Internal functions prefixed with `.st_` provide infrastructure
 
 ------------------------------------------------------------------------

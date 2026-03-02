@@ -82,131 +82,63 @@
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://randrescastaneda.github.io/stamp/">stamp</a></span><span class="op">)</span></span>
-<span><span class="va">root</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">root</span> <span class="op">&lt;-</span> <span class="st">"demo_stamp"</span></span>
 <span><span class="fu"><a href="reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">root</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ stamp initialized</span></span>
-<span><span class="co">#&gt;   root: C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS</span></span>
-<span><span class="co">#&gt;   state: C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/.stamp</span></span>
+<span><span class="co">#&gt;   alias: default</span></span>
+<span><span class="co">#&gt;   root: E:/PovcalNet/01.personal/wb535623/PIP/stamp/demo_stamp</span></span>
+<span><span class="co">#&gt;   state: E:/PovcalNet/01.personal/wb535623/PIP/stamp/demo_stamp/.stamp</span></span>
 <span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"demo.qs"</span><span class="op">)</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="st">"demo.qs2"</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, val <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span>, pk <span class="op">=</span> <span class="st">"id"</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ✔ Saved [qs] → 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs' @</span></span>
-<span><span class="co">#&gt;   version 9f17a32f99df9990</span></span>
+<span><span class="co"># Save with primary key (code parameter tracks provenance - see vignettes)</span></span>
+<span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span>, pk <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ✔ Saved [qs2] →</span></span>
+<span><span class="co">#&gt;   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version</span></span>
+<span><span class="co">#&gt;   e1575878e6d298ea</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ✔ Loaded [qs] ← 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs'</span></span>
+<span><span class="co">#&gt; ✔ Loaded [qs2] ←</span></span>
+<span><span class="co">#&gt;   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2'</span></span>
 <span><span class="va">vrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">vrs</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          version_id      artifact_id     content_hash        code_hash</span></span>
-<span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1: 9f17a32f99df9990 526fcbc6552f1098 cdbe771e53841cf7 488e8fa49c740261</span></span>
-<span><span class="co">#&gt;    size_bytes                  created_at sidecar_format</span></span>
-<span><span class="co">#&gt;         &lt;num&gt;                      &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1:        170 2025-12-22T10:40:28.932216Z           json</span></span>
+<span><span class="co">#&gt;          version_id      artifact_id     content_hash code_hash size_bytes</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;    &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      &lt;NA&gt;        296</span></span>
+<span><span class="co">#&gt;                     created_at sidecar_format</span></span>
+<span><span class="co">#&gt;                         &lt;char&gt;         &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1: 2026-03-02T20:26:58.905735Z           json</span></span>
 <span></span>
 <span><span class="co"># Retention</span></span>
 <span><span class="fu"><a href="reference/st_opts.html">st_opts</a></span><span class="op">(</span>retain_versions <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ stamp options updated</span></span>
 <span><span class="co">#&gt;   retain_versions = "2"</span></span>
-<span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">x</span>, val <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="va">val</span><span class="op">)</span><span class="op">)</span>, <span class="va">p</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ✔ Retention policy matched zero versions; nothing to prune.</span></span>
-<span><span class="co">#&gt; ✔ Saved [qs] → 'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/demo.qs' @</span></span>
-<span><span class="co">#&gt;   version 68b91238470c74fc</span></span>
-<span><span class="va">vrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">vrs</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          version_id      artifact_id     content_hash        code_hash</span></span>
-<span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1: 68b91238470c74fc 526fcbc6552f1098 d2b54b7e265bb11f 488e8fa49c740261</span></span>
-<span><span class="co">#&gt; 2: 9f17a32f99df9990 526fcbc6552f1098 cdbe771e53841cf7 488e8fa49c740261</span></span>
-<span><span class="co">#&gt;    size_bytes                  created_at sidecar_format</span></span>
-<span><span class="co">#&gt;         &lt;num&gt;                      &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1:        149 2025-12-22T10:40:29.104312Z           json</span></span>
-<span><span class="co">#&gt; 2:        170 2025-12-22T10:40:28.932216Z           json</span></span>
-<span></span>
-<span><span class="co"># Partitions</span></span>
-<span><span class="va">base</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">root</span>, <span class="st">"inputs/country_year"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/st_save_part.html">st_save_part</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"PER"</span>, year <span class="op">=</span> <span class="fl">2023</span>, pop <span class="op">=</span> <span class="fl">34.5</span><span class="op">)</span>,</span>
-<span>  <span class="va">base</span>,</span>
-<span>  key <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>country <span class="op">=</span> <span class="st">"PER"</span>, year <span class="op">=</span> <span class="fl">2023</span><span class="op">)</span>,</span>
-<span>  pk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">x</span>, val <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="va">val</span><span class="op">)</span><span class="op">)</span>, <span class="va">p</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ Retention policy matched zero versions; nothing to prune.</span></span>
 <span><span class="co">#&gt; ✔ Saved [qs2] →</span></span>
-<span><span class="co">#&gt;   'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2'</span></span>
-<span><span class="co">#&gt;   @ version 2201f3bf291ca2f2</span></span>
-<span><span class="fu"><a href="reference/st_list_parts.html">st_list_parts</a></span><span class="op">(</span><span class="va">base</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                                                                                                   path</span></span>
-<span><span class="co">#&gt; 1 C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2</span></span>
-<span><span class="co">#&gt;   country year</span></span>
-<span><span class="co">#&gt; 1     PER 2023</span></span>
-<span><span class="fu"><a href="reference/st_load_parts.html">st_load_parts</a></span><span class="op">(</span><span class="va">base</span>, as <span class="op">=</span> <span class="st">"rbind"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ✔ Loaded [qs2] ←</span></span>
-<span><span class="co">#&gt;   'C:/Users/wb535623/AppData/Local/Temp/5/Rtmps9BVCS/inputs/country_year/country=PER/year=2023/part.qs2'</span></span>
-<span><span class="co">#&gt;   country year  pop</span></span>
-<span><span class="co">#&gt; 1     PER 2023 34.5</span></span></code></pre></div>
+<span><span class="co">#&gt;   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version</span></span>
+<span><span class="co">#&gt;   3021cb6f8ea6cb18</span></span>
+<span><span class="va">vrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">vrs</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          version_id      artifact_id     content_hash code_hash size_bytes</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;    &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: 3021cb6f8ea6cb18 c124606df64bb597 d2b54b7e265bb11f      &lt;NA&gt;        263</span></span>
+<span><span class="co">#&gt; 2: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      &lt;NA&gt;        296</span></span>
+<span><span class="co">#&gt;                     created_at sidecar_format</span></span>
+<span><span class="co">#&gt;                         &lt;char&gt;         &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1: 2026-03-02T20:26:59.062988Z           json</span></span>
+<span><span class="co">#&gt; 2: 2026-03-02T20:26:58.905735Z           json</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="folder-structure">Folder Structure<a class="anchor" aria-label="anchor" href="#folder-structure"></a>
+<h2 id="managing-multiple-stamp-folders-with-aliases">Managing Multiple Stamp Folders with Aliases<a class="anchor" aria-label="anchor" href="#managing-multiple-stamp-folders-with-aliases"></a>
 </h2>
-<p><code>stamp</code> creates two directories when you call <code><a href="reference/st_init.html">st_init()</a></code>:</p>
+<p>See the vignette “Using Aliases with stamp” for a comprehensive guide:</p>
 <ul>
-<li>
-<strong><code>.stamp/</code></strong> - Internal state directory containing:
-<ul>
-<li>
-<code>catalog.json</code> - Index of all artifacts and their versions</li>
-<li>
-<code>versions/</code> - Version snapshots organized by artifact and version ID</li>
-<li>
-<code>temp/</code> and <code>logs/</code> - Working directories</li>
-</ul>
+<li>Online: <a href="https://randrescastaneda.github.io/stamp/articles/using-alias.html" class="uri">https://randrescastaneda.github.io/stamp/articles/using-alias.html</a>
 </li>
-<li>
-<strong><code>.st_data/</code></strong> - Data folder where your actual files are stored:
-<ul>
-<li>Artifacts are organized as <code>.st_data/&lt;filename&gt;/&lt;filename&gt;</code>
-</li>
-<li>Subdirectories work too: <code>.st_data/&lt;subdir&gt;/&lt;filename&gt;/&lt;filename&gt;</code>
+<li>Source: <code>vignettes/using-alias.Rmd</code>
 </li>
 </ul>
-</li>
-</ul>
-<div class="section level3">
-<h3 id="path-handling">Path Handling<a class="anchor" aria-label="anchor" href="#path-handling"></a>
-</h3>
-<p>You can reference artifacts using:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Bare filenames</strong> - <code>"data.qs2"</code> → stored in <code>.st_data/data.qs2/data.qs2</code>
-</li>
-<li>
-<strong>Relative paths with subdirectories</strong> - <code>"results/model.rds"</code> → stored in <code>.st_data/results/model.rds/model.rds</code>
-</li>
-<li>
-<strong>Absolute paths under project root</strong> - These are converted to relative paths for versioning</li>
-</ol>
-<p>The data folder name is configurable via <code>st_opts(data_folder = ".my_data")</code>.</p>
-</div>
-<div class="section level3">
-<h3 id="example-structure">Example Structure<a class="anchor" aria-label="anchor" href="#example-structure"></a>
-</h3>
-<pre class="text"><code>my_project/
-├── .stamp/              # State directory (managed by stamp)
-│   ├── catalog.json
-│   └── versions/
-│       └── &lt;artifact_id&gt;/
-│           └── &lt;version_id&gt;/
-│               ├── artifact
-│               └── sidecar.json
-└── .st_data/            # Data directory (your files)
-    ├── data.qs2/
-    │   └── data.qs2     # Current version
-    └── results/
-        └── model.rds/
-            └── model.rds</code></pre>
-</div>
 </div>
 <div class="section level2">
 <h2 id="file-formats">File Formats<a class="anchor" aria-label="anchor" href="#file-formats"></a>
@@ -235,8 +167,8 @@
 <tr class="even">
 <td><code>.qs</code></td>
 <td>qs</td>
-<td><a href="https://github.com/qsbase/qs" class="external-link">qs</a></td>
-<td>Legacy qs binary format</td>
+<td><code>{qs}</code></td>
+<td>Legacy qs binary format (deprecated; use <code>.qs2</code> instead)</td>
 </tr>
 <tr class="odd">
 <td><code>.rds</code></td>
@@ -265,15 +197,15 @@
 </tbody>
 </table>
 <p><strong>Important</strong>: <code>.qs</code> and <code>.qs2</code> are <strong>different formats</strong> and require their respective packages. There is no automatic fallback between them. If you attempt to save/load a <code>.qs2</code> file without <a href="https://github.com/qsbase/qs2" class="external-link">qs2</a> installed, <code>stamp</code> will abort with a clear error message.</p>
+<blockquote>
+<p><strong>Migration Note</strong>: Existing <code>.qs</code> files can still be loaded if <code>{qs}</code> is installed. To migrate to <code>.qs2</code>, load with <code><a href="reference/st_load.html">st_load()</a></code> and re-save with <code>format = "qs2"</code>. The <code>.qs2</code> format offers better performance and is actively maintained.</p>
+</blockquote>
 <div class="section level3">
 <h3 id="installing-format-packages">Installing Format Packages<a class="anchor" aria-label="anchor" href="#installing-format-packages"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># For qs2 format support</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"qs2"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># For legacy qs format support</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"qs"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># For fst format support</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"fst"</span><span class="op">)</span></span></code></pre></div>
@@ -282,23 +214,188 @@
 <h3 id="format-selection">Format Selection<a class="anchor" aria-label="anchor" href="#format-selection"></a>
 </h3>
 <p><code>stamp</code> infers format from file extension by default:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Uses qs2 format (requires {qs2})</span></span>
 <span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output.qs2"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Uses qs format (requires {qs})</span></span>
-<span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output.qs"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Uses RDS (base R, always available)</span></span>
 <span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output.rds"</span><span class="op">)</span></span></code></pre></div>
 <p>You can also specify format explicitly:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"output"</span>, format <span class="op">=</span> <span class="st">"qs2"</span><span class="op">)</span></span></code></pre></div>
-<p>Why stamp? Sidecars: hashes, provenance, PKs.</p>
-<p>Retention: keep latest N and/or recent days.</p>
-<p>Partitions: Hive-style directories, easy bind &amp; filter.</p>
-<p>See vignettes for retention + partition details.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="core-functions">Core Functions<a class="anchor" aria-label="anchor" href="#core-functions"></a>
+</h2>
+<p>The functions below are organized by workflow. <strong>New users</strong> should start with <em>Initialization</em>, <em>Save &amp; Load</em>, and <em>Versioning</em> sections. Advanced features like partitions, lineage tracking, and aliases are covered in the <a href="#learn-more">vignettes</a>.</p>
+<div class="section level3">
+<h3 id="initialization--configuration">Initialization &amp; Configuration<a class="anchor" aria-label="anchor" href="#initialization--configuration"></a>
+</h3>
+<ul>
+<li>
+<strong><code>st_init(root)</code></strong> - Initialize stamp in a directory, creating the <code>.stamp/</code> state folder</li>
+<li>
+<strong><code><a href="reference/st_opts.html">st_opts()</a></code></strong> - Get or set package options (versioning mode, retention policies, metadata format)</li>
+<li>
+<strong><code><a href="reference/st_opts_reset.html">st_opts_reset()</a></code></strong> - Reset all options to defaults</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="save--load">Save &amp; Load<a class="anchor" aria-label="anchor" href="#save--load"></a>
+</h3>
+<ul>
+<li>
+<strong><code>st_save(x, path, ...)</code></strong> - Save an artifact with automatic versioning, metadata, and lineage tracking
+<ul>
+<li>Optional: <code>pk</code> (primary key), <code>parents</code> (lineage), <code>code</code> (provenance), <code>domain</code> (category), <code>alias</code> (target directory)</li>
+</ul>
+</li>
+<li>
+<strong><code>st_load(path, ...)</code></strong> - Load the latest version of an artifact
+<ul>
+<li>Optional: <code>verify = TRUE</code> (check content hash), <code>alias</code> (source directory)</li>
+</ul>
+</li>
+<li>
+<strong><code>st_load_version(path, version_id)</code></strong> - Load a specific historical version by ID</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="versioning--history">Versioning &amp; History<a class="anchor" aria-label="anchor" href="#versioning--history"></a>
+</h3>
+<ul>
+<li>
+<strong><code>st_versions(path)</code></strong> - List all versions of an artifact with metadata (timestamp, size, hashes)</li>
+<li>
+<strong><code>st_latest(path)</code></strong> - Get the version ID of the most recent version</li>
+<li>
+<strong><code>st_changed(x, path)</code></strong> - Check if an object differs from the saved version</li>
+<li>
+<strong><code>st_changed_reason(x, path)</code></strong> - Explain why content/code changed</li>
+<li>
+<strong><code>st_should_save(x, path)</code></strong> - Determine whether saving would create a new version</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="lineage--dependencies">Lineage &amp; Dependencies<a class="anchor" aria-label="anchor" href="#lineage--dependencies"></a>
+</h3>
+<ul>
+<li>
+<strong><code>st_lineage(path, depth = 1)</code></strong> - Show parent artifacts (inputs) for a given artifact</li>
+<li>
+<strong><code>st_children(path, depth = 1)</code></strong> - Show child artifacts (outputs) that depend on this artifact</li>
+<li>
+<strong><code>st_is_stale(path)</code></strong> - Check if an artifact needs rebuilding because parents changed</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="metadata--inspection">Metadata &amp; Inspection<a class="anchor" aria-label="anchor" href="#metadata--inspection"></a>
+</h3>
+<ul>
+<li>
+<strong><code>st_info(path)</code></strong> - Get comprehensive artifact information (sidecar, catalog, snapshot location, parents)</li>
+<li>
+<strong><code>st_read_sidecar(path)</code></strong> - Read sidecar metadata (hashes, timestamps, primary keys, domain, parents)</li>
+<li>
+<strong><code>st_hash_obj(x)</code></strong> - Compute stable hash for any R object</li>
+<li>
+<strong><code>st_hash_code(code)</code></strong> - Compute hash of code/function</li>
+<li>
+<strong><code>st_hash_file(path)</code></strong> - Compute SHA-256 hash of file on disk</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="primary-keys">Primary Keys<a class="anchor" aria-label="anchor" href="#primary-keys"></a>
+</h3>
+<ul>
+<li>
+<strong><code>st_add_pk(path, keys)</code></strong> - Add or update primary key definition for an artifact</li>
+<li>
+<strong><code>st_get_pk(x_or_meta)</code></strong> - Retrieve primary key columns from metadata</li>
+<li>
+<strong><code>st_inspect_pk(path)</code></strong> - Validate primary key uniqueness and coverage</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="partitioned-and-pruning-data-under-development">Partitioned and Pruning Data (under development)<a class="anchor" aria-label="anchor" href="#partitioned-and-pruning-data-under-development"></a>
+</h3>
+<ul>
+<li>
+<strong><code>st_save_part(x, base, key, ...)</code></strong> - Save a single partition with Hive-style directories</li>
+<li>
+<strong><code>st_auto_partition(x, base, partition_cols, ...)</code></strong> - Automatically split and save dataset by partition columns</li>
+<li>
+<strong><code>st_load_parts(base, filter = NULL, as = "rbind")</code></strong> - Load and combine partitions matching a filter</li>
+<li>
+<strong><code>st_list_parts(base, filter = NULL)</code></strong> - List available partitions without loading</li>
+<li>
+<strong><code>st_part_path(base, key)</code></strong> - Construct path for a partition given its key</li>
+<li>
+<strong><code>st_prune_versions(path, policy)</code></strong> - Remove old versions based on retention policy</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="aliases-multi-directory-support">Aliases (Multi-Directory Support)<a class="anchor" aria-label="anchor" href="#aliases-multi-directory-support"></a>
+</h3>
+<ul>
+<li>
+<strong><code><a href="reference/st_alias_list.html">st_alias_list()</a></code></strong> - List all registered aliases</li>
+<li>
+<strong><code>st_alias_get(name = NULL)</code></strong> - Get configuration for an alias</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="builders--rebuilds-️-experimental">Builders &amp; Rebuilds ⚠️ <em>Experimental</em>
+<a class="anchor" aria-label="anchor" href="#builders--rebuilds-%EF%B8%8F-experimental"></a>
+</h3>
+<blockquote>
+<p><strong>Note</strong>: The builder system is under active development. Safe for prototyping, but consider pinning your stamp version in production code until the API stabilizes (expected in v1.0).</p>
+</blockquote>
+<ul>
+<li>
+<strong><code>st_register_builder(path, builder_fn)</code></strong> - Register a function to rebuild an artifact from its parents</li>
+<li>
+<strong><code>st_clear_builders(paths = NULL)</code></strong> - Clear registered builders</li>
+<li>
+<strong><code>st_plan_rebuild(targets, ...)</code></strong> - Compute rebuild plan (which targets are stale and why)</li>
+<li>
+<strong><code>st_rebuild(plan)</code></strong> - Execute a rebuild plan, calling builders and saving results</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="filtering-helpers-️-experimental">Filtering Helpers ⚠️ <em>Experimental</em>
+<a class="anchor" aria-label="anchor" href="#filtering-helpers-%EF%B8%8F-experimental"></a>
+</h3>
+<blockquote>
+<p><strong>Note</strong>: Advanced filtering utilities are under development.</p>
+</blockquote>
+<ul>
+<li>
+<strong><code>st_filter(df, filters = list(), strict = TRUE)</code></strong> - Apply named list filters to data frames (used internally for partition queries)</li>
+</ul>
+</div>
+</div>
+<div class="section level2">
+<h2 id="learn-more">Learn More<a class="anchor" aria-label="anchor" href="#learn-more"></a>
+</h2>
+<p>For detailed guides and workflows, see the package vignettes:</p>
+<ul>
+<li>
+<strong><a href="https://randrescastaneda.github.io/stamp/articles/setup-and-basics.html">Setup and Basics</a></strong> - Getting started with stamp</li>
+<li>
+<strong><a href="https://randrescastaneda.github.io/stamp/articles/hashing-and-versions.html">Hashing and Versions</a></strong> - Understanding content hashing and version control</li>
+<li>
+<strong><a href="https://randrescastaneda.github.io/stamp/articles/using-alias.html">Using Aliases</a></strong> - Managing multiple stamp directories</li>
+<li>
+<strong><a href="https://randrescastaneda.github.io/stamp/articles/partitions.html">Partitions</a></strong> - Working with partitioned datasets</li>
+<li>
+<strong><a href="https://randrescastaneda.github.io/stamp/articles/lineage-rebuilds.html">Lineage and Rebuilds</a></strong> - Dependency tracking and automated rebuilds</li>
+<li>
+<strong><a href="https://randrescastaneda.github.io/stamp/articles/version_retention_prune.html">Version Retention</a></strong> - Managing version history with retention policies</li>
+<li>
+<strong><a href="https://randrescastaneda.github.io/stamp/articles/stamp-directory.html">Stamp Directory</a></strong> - Understanding the <code>.stamp/</code> internal structure</li>
+</ul>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
