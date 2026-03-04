@@ -232,9 +232,9 @@ st_save <- function(
 
   # Decide if we should create a new version (hashes, code hash, etc.)
   # Use sanitized object so decision aligns with stored content
-  # Use storage_path for the check (where file will actually live)
+  # Use rel_path for the check so st_should_save can correctly locate the sidecar
   dec <- st_should_save(
-    storage_path,
+    rel_path,
     x = x_sanitized,
     code = code,
     alias = versioning_alias
@@ -914,10 +914,9 @@ st_changed_reason <- function(
   alias = NULL
 ) {
   mode <- match.arg(mode)
-  # Resolve file path using alias (handles bare names and directory validation)
-  resolved <- .st_resolve_file_path(path, alias = alias, verbose = FALSE)
+  # Delegate directly to st_changed(), which normalizes the path internally
   res <- st_changed(
-    resolved$path,
+    path,
     x = x,
     code = code,
     mode = mode,
