@@ -47,12 +47,12 @@ fs::dir_create(demo_dir)
 st_init(demo_dir)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: /tmp/RtmpuJfufb/stamp-demo
-#>   state: /tmp/RtmpuJfufb/stamp-demo/.stamp
+#>   root: /tmp/RtmpdAe4jD/stamp-demo
+#>   state: /tmp/RtmpdAe4jD/stamp-demo/.stamp
 
 # Inspect what was created
 fs::dir_tree(fs::path(demo_dir, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpuJfufb/stamp-demo/.stamp
+#> /tmp/RtmpdAe4jD/stamp-demo/.stamp
 #> ├── logs
 #> └── temp
 ```
@@ -82,8 +82,8 @@ version history.
 test_data <- data.frame(x = 1:5, y = letters[1:5])
 test_path <- fs::path(demo_dir, "data", "test.qs2")
 st_save(test_data, test_path)
-#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
-#>   bd506b3f4ca082e0
+#> ✔ Saved [qs2] → /tmp/RtmpdAe4jD/stamp-demo/data/test.qs2 @ version
+#>   19b403e9e4b75444
 
 # Check versions exist
 versions_before <- st_versions(test_path)
@@ -94,8 +94,8 @@ nrow(versions_before)
 st_init(demo_dir)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: /tmp/RtmpuJfufb/stamp-demo
-#>   state: /tmp/RtmpuJfufb/stamp-demo/.stamp
+#>   root: /tmp/RtmpdAe4jD/stamp-demo
+#>   state: /tmp/RtmpdAe4jD/stamp-demo/.stamp
 
 # Version history is preserved
 versions_after <- st_versions(test_path)
@@ -192,19 +192,19 @@ catalog <- list(
 versions <- st_versions(test_path)
 str(versions)
 #> Classes 'data.table' and 'data.frame':   1 obs. of  7 variables:
-#>  $ version_id    : chr "bd506b3f4ca082e0"
-#>  $ artifact_id   : chr "b91300b77e4cce46"
+#>  $ version_id    : chr "19b403e9e4b75444"
+#>  $ artifact_id   : chr "ab29f8e09c362001"
 #>  $ content_hash  : chr "2d26c6e5d9121bfd"
 #>  $ code_hash     : chr NA
 #>  $ size_bytes    : num 262
-#>  $ created_at    : chr "2026-03-02T21:47:42.492914Z"
+#>  $ created_at    : chr "2026-03-04T21:30:15.688979Z"
 #>  $ sidecar_format: chr "json"
 #>  - attr(*, ".internal.selfref")=<externalptr>
 
 # Get latest version ID
 latest_id <- st_latest(test_path)
 latest_id
-#> [1] "bd506b3f4ca082e0"
+#> [1] "19b403e9e4b75444"
 
 # Get comprehensive info (catalog + sidecar + snapshot location)
 info <- st_info(test_path)
@@ -212,7 +212,7 @@ str(info, max.level = 1)
 #> List of 4
 #>  $ sidecar     :List of 10
 #>  $ catalog     :List of 2
-#>  $ snapshot_dir: 'fs_path' chr "/tmp/RtmpuJfufb/stamp-demo/data/test.qs2/versions/bd506b3f4ca082e0"
+#>  $ snapshot_dir: 'fs_path' chr "/tmp/RtmpdAe4jD/stamp-demo/data/test.qs2/versions/19b403e9e4b75444"
 #>  $ parents     : list()
 ```
 
@@ -229,20 +229,20 @@ st_opts(versioning = "timestamp")  # ensure snapshots are created
 #>   versioning = "timestamp"
 v1 <- data.frame(x = 1:3)
 st_save(v1, test_path, code_label = "initial")
-#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
-#>   3fa545d7ffeba734
+#> ✔ Saved [qs2] → /tmp/RtmpdAe4jD/stamp-demo/data/test.qs2 @ version
+#>   a61c4b267562a44e
 Sys.sleep(1.1)
 
 v2 <- data.frame(x = 1:5)
 st_save(v2, test_path, code_label = "added rows")
-#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
-#>   7f2ac5466857e066
+#> ✔ Saved [qs2] → /tmp/RtmpdAe4jD/stamp-demo/data/test.qs2 @ version
+#>   eed74be794b07791
 Sys.sleep(1.1)
 
 v3 <- data.frame(x = 1:5, y = 10:14)
 st_save(v3, test_path, code_label = "added column")
-#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
-#>   7b77962591247e68
+#> ✔ Saved [qs2] → /tmp/RtmpdAe4jD/stamp-demo/data/test.qs2 @ version
+#>   03da91223c251e31
 
 # Version history is stored NEXT TO the artifact, not in .stamp/
 # Extract the artifact directory from sidecar info  
@@ -301,12 +301,12 @@ if (!is.na(latest_vdir) && fs::dir_exists(latest_vdir)) {
 } else {
   cat("No snapshot directory recorded for test_path; ensure versioning created snapshots.\n")
 }
-#> Latest snapshot directory: /tmp/RtmpuJfufb/stamp-demo/data/test.qs2/versions/7b77962591247e68 
+#> Latest snapshot directory: /tmp/RtmpdAe4jD/stamp-demo/data/test.qs2/versions/03da91223c251e31 
 #> 
 #> List of 5
-#>  $ path      : chr "/tmp/RtmpuJfufb/stamp-demo/data/test.qs2"
+#>  $ path      : chr "/tmp/RtmpdAe4jD/stamp-demo/data/test.qs2"
 #>  $ format    : chr "qs2"
-#>  $ created_at: chr "2026-03-02T21:47:45.314266Z"
+#>  $ created_at: chr "2026-03-04T21:30:18.532118Z"
 #>  $ size_bytes: int 265
 #>  $ code_label: chr "added column"
 ```
@@ -326,8 +326,8 @@ st_opts(versioning = "timestamp")
 upstream_path <- fs::path(demo_dir, "data", "upstream.qs2")
 upstream_data <- data.frame(id = 1:10, value = rnorm(10))
 st_save(upstream_data, upstream_path, code_label = "upstream data")
-#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/upstream.qs2 @ version
-#>   f235bf452db32f60
+#> ✔ Saved [qs2] → /tmp/RtmpdAe4jD/stamp-demo/data/upstream.qs2 @ version
+#>   8d43671bdf7ce4a6
 upstream_version <- st_latest(upstream_path)
 
 # Now create a derived artifact with parent reference
@@ -339,8 +339,8 @@ st_save(
   parents = list(list(path = upstream_path, version_id = upstream_version)),
   code_label = "derived from upstream"
 )
-#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/derived.qs2 @ version
-#>   d401e0212abe39b5
+#> ✔ Saved [qs2] → /tmp/RtmpdAe4jD/stamp-demo/data/derived.qs2 @ version
+#>   5ac5f5b4b9219fe3
 
 # Now check the derived artifact's snapshot - parents.json will be present
 derived_info <- st_info(derived_path)
@@ -361,8 +361,8 @@ if (!is.na(derived_vdir) && fs::dir_exists(derived_vdir)) {
 }
 #> List of 1
 #>  $ :List of 2
-#>   ..$ path      : chr "/tmp/RtmpuJfufb/stamp-demo/data/upstream.qs2"
-#>   ..$ version_id: chr "f235bf452db32f60"
+#>   ..$ path      : chr "/tmp/RtmpdAe4jD/stamp-demo/data/upstream.qs2"
+#>   ..$ version_id: chr "8d43671bdf7ce4a6"
 
 # Reset to default versioning for the remainder
 st_opts(versioning = "content")
@@ -550,20 +550,20 @@ st_opts(versioning = "timestamp")
 #>   versioning = "timestamp"
 v_same <- data.frame(x = 1:3)
 st_save(v_same, test_path, code_label = "first")
-#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
-#>   49fe2f0ad08e8186
+#> ✔ Saved [qs2] → /tmp/RtmpdAe4jD/stamp-demo/data/test.qs2 @ version
+#>   e949e412e857f680
 Sys.sleep(0.2)
 st_save(v_same, test_path, code_label = "second identical")  # Still creates version!
-#> ✔ Saved [qs2] → /tmp/RtmpuJfufb/stamp-demo/data/test.qs2 @ version
-#>   d286d6c1bc08fba4
+#> ✔ Saved [qs2] → /tmp/RtmpdAe4jD/stamp-demo/data/test.qs2 @ version
+#>   c8d78458ca1f0afb
 
 # Check: two versions with identical content
 recent_versions <- st_versions(test_path)
 tail(recent_versions[, .(version_id, created_at, content_hash)], 2)
 #>          version_id                  created_at     content_hash
 #>              <char>                      <char>           <char>
-#> 1: 3fa545d7ffeba734 2026-03-02T21:47:42.956123Z 41c16cfe6598913b
-#> 2: bd506b3f4ca082e0 2026-03-02T21:47:42.492914Z 2d26c6e5d9121bfd
+#> 1: a61c4b267562a44e 2026-03-04T21:30:16.162689Z 41c16cfe6598913b
+#> 2: 19b403e9e4b75444 2026-03-04T21:30:15.688979Z 2d26c6e5d9121bfd
 
 # Reset to default
 st_opts(versioning = "content")
@@ -711,23 +711,23 @@ if (nrow(versions) < 2) {
 versions[, .(version_id, created_at, size_bytes)]
 #>          version_id                  created_at size_bytes
 #>              <char>                      <char>      <num>
-#> 1: d286d6c1bc08fba4 2026-03-02T21:47:46.131465Z        245
-#> 2: 49fe2f0ad08e8186 2026-03-02T21:47:45.895910Z        245
-#> 3: 7b77962591247e68 2026-03-02T21:47:45.314266Z        265
-#> 4: 7f2ac5466857e066 2026-03-02T21:47:44.173034Z        246
-#> 5: 3fa545d7ffeba734 2026-03-02T21:47:42.956123Z        245
-#> 6: bd506b3f4ca082e0 2026-03-02T21:47:42.492914Z        262
+#> 1: c8d78458ca1f0afb 2026-03-04T21:30:19.348221Z        245
+#> 2: e949e412e857f680 2026-03-04T21:30:19.106981Z        245
+#> 3: 03da91223c251e31 2026-03-04T21:30:18.532118Z        265
+#> 4: eed74be794b07791 2026-03-04T21:30:17.390402Z        246
+#> 5: a61c4b267562a44e 2026-03-04T21:30:16.162689Z        245
+#> 6: 19b403e9e4b75444 2026-03-04T21:30:15.688979Z        262
 
 # Get comprehensive info
 info <- st_info(test_path)
 info$catalog      # Latest version and count
 #> $latest_version_id
-#> [1] "d286d6c1bc08fba4"
+#> [1] "c8d78458ca1f0afb"
 #> 
 #> $n_versions
 #> [1] 6
 info$snapshot_dir # Path to latest snapshot
-#> /tmp/RtmpuJfufb/stamp-demo/data/test.qs2/versions/d286d6c1bc08fba4
+#> /tmp/RtmpdAe4jD/stamp-demo/data/test.qs2/versions/c8d78458ca1f0afb
 
 # Load a specific historical version (previous), safely
 if (nrow(versions) > 1) {
@@ -738,7 +738,7 @@ if (nrow(versions) > 1) {
     cat("Previous version not available; skipping load.\n")
   }
 }
-#> ✔ Loaded ← data/test.qs2 @ 49fe2f0ad08e8186
+#> ✔ Loaded ← data/test.qs2 @ e949e412e857f680
 #> [qs2]
 #> 'data.frame':    3 obs. of  1 variable:
 #>  $ x: int  1 2 3

@@ -81,8 +81,8 @@ st_init(root)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpFH84w3
-    ##   state: /tmp/RtmpFH84w3/.stamp
+    ##   root: /tmp/Rtmpbcollr
+    ##   state: /tmp/Rtmpbcollr/.stamp
 
 ``` r
 # A
@@ -91,8 +91,8 @@ xA <- data.frame(a = 1:3)
 st_save(xA, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpFH84w3/A.qs @ version
-    ## 14dddf583a9b0581
+    ## ✔ Saved [qs2] → /tmp/Rtmpbcollr/A.qs @ version
+    ## 828d0e396e6f1b11
 
 ``` r
 # B depends on A
@@ -107,8 +107,8 @@ st_save(
 )
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpFH84w3/B.qs @ version
-    ## 7f0c28920348b40d
+    ## ✔ Saved [qs2] → /tmp/Rtmpbcollr/B.qs @ version
+    ## 37fac9d3ff54c43d
 
 ``` r
 # C depends on B
@@ -123,8 +123,8 @@ st_save(
 )
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpFH84w3/C.qs @ version
-    ## 27e91c523291711c
+    ## ✔ Saved [qs2] → /tmp/Rtmpbcollr/C.qs @ version
+    ## 39f68ea1c87c833e
 
 Note: after these saves each artifact has a sidecar (in `stmeta/` next
 to the artifact) and snapshots in its own `versions/` directory
@@ -138,9 +138,9 @@ st_children(pA, depth = 1, alias = NULL)
 ```
 
     ##             child_path    child_version
-    ## 1 /tmp/RtmpFH84w3/B.qs 7f0c28920348b40d
+    ## 1 /tmp/Rtmpbcollr/B.qs 37fac9d3ff54c43d
     ##                                    parent_path   parent_version level
-    ## 1 /home/runner/work/stamp/stamp/vignettes/A.qs 14dddf583a9b0581     1
+    ## 1 /home/runner/work/stamp/stamp/vignettes/A.qs 828d0e396e6f1b11     1
 
 ``` r
 # Full lineage (parents of an artifact)
@@ -158,8 +158,8 @@ xA2 <- transform(xA, a = a + 10L)
 st_save(xA2, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpFH84w3/A.qs @ version
-    ## bbc0d98563d1eb86
+    ## ✔ Saved [qs2] → /tmp/Rtmpbcollr/A.qs @ version
+    ## 735e79e4e016b08e
 
 ``` r
 # Strict staleness
@@ -190,7 +190,7 @@ plan_strict
 ```
 
     ##   level                 path         reason latest_version_before
-    ## 1     1 /tmp/RtmpFH84w3/B.qs parent_changed      7f0c28920348b40d
+    ## 1     1 /tmp/Rtmpbcollr/B.qs parent_changed      37fac9d3ff54c43d
 
 ``` r
 # Propagate: includes B (level 1) and C (level 2)
@@ -199,7 +199,7 @@ plan
 ```
 
     ##   level                 path           reason latest_version_before
-    ## 1     1 /tmp/RtmpFH84w3/B.qs upstream_changed      7f0c28920348b40d
+    ## 1     1 /tmp/Rtmpbcollr/B.qs upstream_changed      37fac9d3ff54c43d
 
 ## Register builders and rebuild in level order
 
@@ -249,7 +249,7 @@ st_rebuild(plan, dry_run = TRUE)
 ```
 
     ## ✔ Rebuild level 1: 1 artifact
-    ##   • /tmp/RtmpFH84w3/B.qs (upstream_changed)
+    ##   • /tmp/Rtmpbcollr/B.qs (upstream_changed)
     ##   DRY RUN
     ## ✔ Rebuild summary
     ##   dry_run 1
@@ -260,9 +260,9 @@ res <- st_rebuild(plan, dry_run = FALSE)
 ```
 
     ## ✔ Rebuild level 1: 1 artifact
-    ##   • /tmp/RtmpFH84w3/B.qs (upstream_changed)
+    ##   • /tmp/Rtmpbcollr/B.qs (upstream_changed)
 
-    ## Warning: FAILED: No builder registered for path: /tmp/RtmpFH84w3/B.qs and no rebuild_fun
+    ## Warning: FAILED: No builder registered for path: /tmp/Rtmpbcollr/B.qs and no rebuild_fun
     ## provided.
 
     ## ✔ Rebuild summary
@@ -273,9 +273,9 @@ res
 ```
 
     ##   level                 path           reason status version_id
-    ## 1     1 /tmp/RtmpFH84w3/B.qs upstream_changed failed       <NA>
+    ## 1     1 /tmp/Rtmpbcollr/B.qs upstream_changed failed       <NA>
     ##                                                                                 msg
-    ## 1 No builder registered for path: /tmp/RtmpFH84w3/B.qs and no rebuild_fun provided.
+    ## 1 No builder registered for path: /tmp/Rtmpbcollr/B.qs and no rebuild_fun provided.
 
 After rebuilding B, **C** becomes strictly stale if **B** changes again
 later. You can re-plan from B to keep propagating:
@@ -297,7 +297,7 @@ st_plan_rebuild(pB, depth = Inf, mode = "propagate")
 ```
 
     ##   level                 path           reason latest_version_before
-    ## 1     1 /tmp/RtmpFH84w3/C.qs upstream_changed      27e91c523291711c
+    ## 1     1 /tmp/Rtmpbcollr/C.qs upstream_changed      39f68ea1c87c833e
 
 ## Inspect snapshots on disk
 
@@ -319,13 +319,13 @@ st_info(pC, alias = NULL)
 
     ## $sidecar
     ## $sidecar$path
-    ## [1] "/tmp/RtmpFH84w3/C.qs"
+    ## [1] "/tmp/Rtmpbcollr/C.qs"
     ## 
     ## $sidecar$format
     ## [1] "qs2"
     ## 
     ## $sidecar$created_at
-    ## [1] "2026-03-02T21:47:14.965438Z"
+    ## [1] "2026-03-04T21:29:49.589277Z"
     ## 
     ## $sidecar$size_bytes
     ## [1] 266
@@ -344,7 +344,7 @@ st_info(pC, alias = NULL)
     ## 
     ## $sidecar$parents
     ##   path       version_id
-    ## 1 B.qs 7f0c28920348b40d
+    ## 1 B.qs 37fac9d3ff54c43d
     ## 
     ## $sidecar$attrs
     ## list()
@@ -352,14 +352,14 @@ st_info(pC, alias = NULL)
     ## 
     ## $catalog
     ## $catalog$latest_version_id
-    ## [1] "27e91c523291711c"
+    ## [1] "39f68ea1c87c833e"
     ## 
     ## $catalog$n_versions
     ## [1] 1
     ## 
     ## 
     ## $snapshot_dir
-    ## /tmp/RtmpFH84w3/C.qs/versions/27e91c523291711c
+    ## /tmp/Rtmpbcollr/C.qs/versions/39f68ea1c87c833e
     ## 
     ## $parents
     ## $parents[[1]]
@@ -367,7 +367,7 @@ st_info(pC, alias = NULL)
     ## [1] "B.qs"
     ## 
     ## $parents[[1]]$version_id
-    ## [1] "7f0c28920348b40d"
+    ## [1] "37fac9d3ff54c43d"
 
 ### Takeaways
 

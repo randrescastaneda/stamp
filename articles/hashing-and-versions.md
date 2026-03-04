@@ -68,8 +68,8 @@ st_init(root)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpHVkJOw
-    ##   state: /tmp/RtmpHVkJOw/.stamp
+    ##   root: /tmp/Rtmp6furgm
+    ##   state: /tmp/Rtmp6furgm/.stamp
 
 ``` r
 p <- "demo.qs"
@@ -79,22 +79,22 @@ x <- data.frame(a = 1:3)
 st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpHVkJOw/demo.qs @
-    ## version 2715e267fbfabb37
+    ## ✔ Saved [qs2] → /tmp/Rtmp6furgm/demo.qs @
+    ## version 8f658c005c2476f2
 
 ``` r
 # Second write, same content & same code: skipped (no new version)
 st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpHVkJOw/demo.qs @
-    ## version c38931c66faa3bde
+    ## ✔ Skip save (reason: no_change_policy) for
+    ## /tmp/Rtmp6furgm/demo.qs
 
 ``` r
 nrow(st_versions(p, alias = NULL)) # should be 1
 ```
 
-    ## [1] 2
+    ## [1] 1
 
 In the snippet above stamp serializes `x` in a deterministic way and
 computes a content hash. If both the content hash and (when provided)
@@ -115,20 +115,20 @@ x2 <- transform(x, a = a + 1L)
 st_save(x2, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpHVkJOw/demo.qs @
-    ## version 5915261145fdd4f8
+    ## ✔ Saved [qs2] → /tmp/Rtmp6furgm/demo.qs @
+    ## version 34638a65dd4b0825
 
 ``` r
 nrow(st_versions(p, alias = NULL)) # now 2
 ```
 
-    ## [1] 3
+    ## [1] 2
 
 ``` r
 st_latest(p, alias = NULL) # latest version id (string)
 ```
 
-    ## [1] "5915261145fdd4f8"
+    ## [1] "34638a65dd4b0825"
 
 > **Policy:** By design, changing the `code=` you pass to
 > [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md)
@@ -165,7 +165,7 @@ meta[c(
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2026-03-02T21:47:12.153852Z"
+    ## [1] "2026-03-04T21:29:46.843713Z"
     ## 
     ## $size_bytes
     ## [1] 195
@@ -305,21 +305,19 @@ head(vids)
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: 5915261145fdd4f8 6d986efd1fa50585 7e25cdd35cd37239 488e8fa49c740261
-    ## 2: c38931c66faa3bde 6d986efd1fa50585 1811ba4b2bd2a26a 488e8fa49c740261
-    ## 3: 2715e267fbfabb37 6d986efd1fa50585 1811ba4b2bd2a26a 488e8fa49c740261
+    ## 1: 34638a65dd4b0825 df5c65a983fcaeb9 7e25cdd35cd37239 488e8fa49c740261
+    ## 2: 8f658c005c2476f2 df5c65a983fcaeb9 1811ba4b2bd2a26a 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        195 2026-03-02T21:47:12.153852Z           both
-    ## 2:        244 2026-03-02T21:47:12.031792Z           both
-    ## 3:        244 2026-03-02T21:47:11.972090Z           both
+    ## 1:        195 2026-03-04T21:29:46.843713Z           both
+    ## 2:        244 2026-03-04T21:29:46.690864Z           both
 
 ``` r
 vid_latest <- st_latest(p, alias = NULL)
 obj_latest <- st_load_version(p, vid_latest, alias = NULL)
 ```
 
-    ## ✔ Loaded ← demo.qs @ 5915261145fdd4f8
+    ## ✔ Loaded ← demo.qs @ 34638a65dd4b0825
     ## [qs2]
 
 ``` r
@@ -330,7 +328,7 @@ if (nrow(vids) > 1L) {
 }
 ```
 
-    ## ✔ Loaded ← demo.qs @ 2715e267fbfabb37
+    ## ✔ Loaded ← demo.qs @ 8f658c005c2476f2
     ## [qs2]
 
 [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md)
@@ -355,8 +353,8 @@ x <- data.frame(a = 1:5)
 st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpHVkJOw/demo.qs @
-    ## version 69038866a252915f
+    ## ✔ Saved [qs2] → /tmp/Rtmp6furgm/demo.qs @
+    ## version da6895f19510c132
 
 ``` r
 # Version history is stored next to the artifact
@@ -400,10 +398,10 @@ file changed outside **stamp**).
 invisible(st_load(p, alias = NULL)) # triggers optional verify; warns on mismatch
 ```
 
-    ## Warning: No primary key recorded for /tmp/RtmpHVkJOw/demo.qs.
+    ## Warning: No primary key recorded for /tmp/Rtmp6furgm/demo.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/RtmpHVkJOw/demo.qs
+    ## ✔ Loaded [qs2] ← /tmp/Rtmp6furgm/demo.qs
 
 If `verify_on_load = TRUE`,
 [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)

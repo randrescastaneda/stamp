@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -104,13 +104,13 @@ in your project structure</strong>, not inside <code>.stamp/</code>.</p>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">tdir</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
 <span><span class="co">##   alias: default</span></span>
-<span><span class="co">##   root: /tmp/RtmpiRnnNO/stamp-vignette</span></span>
-<span><span class="co">##   state: /tmp/RtmpiRnnNO/stamp-vignette/.stamp</span></span></code></pre>
+<span><span class="co">##   root: /tmp/Rtmpn3WfvR/stamp-vignette</span></span>
+<span><span class="co">##   state: /tmp/Rtmpn3WfvR/stamp-vignette/.stamp</span></span></code></pre>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Inspect created structure - note .stamp/ contains only state</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">tdir</span>, <span class="st">".stamp"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span>recurse <span class="op">=</span> <span class="cn">TRUE</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpiRnnNO/stamp-vignette/.stamp</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/Rtmpn3WfvR/stamp-vignette/.stamp</span></span></span>
 <span><span class="co">## ├── <span style="color: #0000BB; font-weight: bold;">logs</span></span></span>
 <span><span class="co">## └── <span style="color: #0000BB; font-weight: bold;">temp</span></span></span></code></pre>
 <p>Notes - Default state dir: <code>.stamp/</code> (you can override via
@@ -234,16 +234,16 @@ versioning enabled)</p>
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, b <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"stamp-output/example.qs2"</span>, metadata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>description <span class="op">=</span> <span class="st">"toy"</span><span class="op">)</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2</span> @</span></span>
-<span><span class="co">##   version <span style="color: #00BB00;">a09ade72e1a65066</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/stamp-output/example.qs2</span> @</span></span>
+<span><span class="co">##   version <span style="color: #00BB00;">2444694c0da441eb</span></span></span></code></pre>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span><span class="op">$</span><span class="va">path</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "/tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2"</span></span></code></pre>
+<pre><code><span><span class="co">## [1] "/tmp/Rtmpn3WfvR/stamp-vignette/stamp-output/example.qs2"</span></span></code></pre>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Inspect the created structure</span></span>
 <span><span class="va">artifact_dir</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_file.html" class="external-link">path_dir</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">artifact_dir</span>, recurse <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpiRnnNO/stamp-vignette/stamp-output</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #0000BB; font-weight: bold;">/tmp/Rtmpn3WfvR/stamp-vignette/stamp-output</span></span></span>
 <span><span class="co">## └── <span style="color: #0000BB; font-weight: bold;">example.qs2</span></span></span>
 <span><span class="co">##     ├── example.qs2</span></span>
 <span><span class="co">##     ├── example.qs2.lock</span></span>
@@ -253,10 +253,10 @@ versioning enabled)</p>
 <code class="sourceCode R"><span><span class="co"># load back (format auto-detected)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="st">"stamp-output/example.qs2"</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning: No primary key recorded for</span></span>
-<span><span class="co">## <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2</span>.</span></span>
+<span><span class="co">## <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/stamp-output/example.qs2</span>.</span></span>
 <span><span class="co">## <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span></span></code></pre>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">## <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/stamp-output/example.qs2</span></span></span></code></pre>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] TRUE</span></span></code></pre>
@@ -291,24 +291,24 @@ comparing changes over time or recovering from mistakes.</p>
 <span><span class="co"># Version 1</span></span>
 <span><span class="va">v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">v1</span>, <span class="va">v_path</span>, code_label <span class="op">=</span> <span class="st">"initial"</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">c14e98e3ea238067</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/versioned.qs2</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">a33175bdf8ca954f</span></span></span></code></pre>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.sleep.html" class="external-link">Sys.sleep</a></span><span class="op">(</span><span class="fl">1.1</span><span class="op">)</span>  <span class="co"># ensure distinct timestamps on all platforms</span></span>
 <span></span>
 <span><span class="co"># Version 2</span></span>
 <span><span class="va">v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"d"</span>, <span class="st">"e"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">v2</span>, <span class="va">v_path</span>, code_label <span class="op">=</span> <span class="st">"added rows"</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">4ba00d27ed1486f3</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/versioned.qs2</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">e4fd92d86748757d</span></span></span></code></pre>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.sleep.html" class="external-link">Sys.sleep</a></span><span class="op">(</span><span class="fl">1.1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Version 3</span></span>
 <span><span class="va">v3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"d"</span>, <span class="st">"e"</span><span class="op">)</span>, z <span class="op">=</span> <span class="fl">10</span><span class="op">:</span><span class="fl">14</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">v3</span>, <span class="va">v_path</span>, code_label <span class="op">=</span> <span class="st">"added column z"</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">8ebfbb36c4137b81</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/versioned.qs2</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">da66a29955b62313</span></span></span></code></pre>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check available versions (explicit alias auto-detect)</span></span>
 <span><span class="va">versions</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">v_path</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
@@ -337,15 +337,15 @@ comparing changes over time or recovering from mistakes.</p>
 <span><span class="op">}</span></span></code></pre></div>
 <pre><code><span><span class="co">##          version_id                  created_at size_bytes</span></span>
 <span><span class="co">##              &lt;char&gt;                      &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">## 1: 8ebfbb36c4137b81 2026-03-02T21:47:38.770332Z        287</span></span>
-<span><span class="co">## 2: 4ba00d27ed1486f3 2026-03-02T21:47:37.623929Z        262</span></span>
-<span><span class="co">## 3: c14e98e3ea238067 2026-03-02T21:47:36.409983Z        261</span></span></code></pre>
-<pre><code><span><span class="co">## Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2</span>.</span></span>
+<span><span class="co">## 1: da66a29955b62313 2026-03-04T21:30:12.121403Z        287</span></span>
+<span><span class="co">## 2: e4fd92d86748757d 2026-03-04T21:30:10.951049Z        262</span></span>
+<span><span class="co">## 3: a33175bdf8ca954f 2026-03-04T21:30:09.733354Z        261</span></span></code></pre>
+<pre><code><span><span class="co">## Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/versioned.qs2</span>.</span></span>
 <span><span class="co">## <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span></span></code></pre>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">## <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/versioned.qs2</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/versioned.qs2</span></span></span></code></pre>
 <pre><code><span><span class="co">## Current: 5 rows, 3 columns</span></span></code></pre>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">versioned.qs2</span> @ <span style="color: #00BB00;">4ba00d27ed1486f3</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">versioned.qs2</span> @ <span style="color: #00BB00;">e4fd92d86748757d</span></span></span>
 <span><span class="co">## [<span style="color: #00BB00;">qs2</span>]</span></span></code></pre>
 <pre><code><span><span class="co">## Previous (v-1): 5 rows, 2 columns</span></span></code></pre>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
@@ -366,7 +366,7 @@ comparing changes over time or recovering from mistakes.</p>
 <span>    <span class="va">older_ok</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span></span>
 <span>    <span class="va">older</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
 <span>  <span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">versioned.qs2</span> @ <span style="color: #00BB00;">c14e98e3ea238067</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">versioned.qs2</span> @ <span style="color: #00BB00;">a33175bdf8ca954f</span></span></span>
 <span><span class="co">## [<span style="color: #00BB00;">qs2</span>]</span></span></code></pre>
 <div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">older_ok</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -383,7 +383,7 @@ comparing changes over time or recovering from mistakes.</p>
 <span>    <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">v_path</span>, version <span class="op">=</span> <span class="va">vid</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>,</span>
 <span>    error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span> <span class="va">spec_ok</span> <span class="op">&lt;&lt;-</span> <span class="cn">FALSE</span>; <span class="cn">NULL</span> <span class="op">}</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">versioned.qs2</span> @ <span style="color: #00BB00;">c14e98e3ea238067</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded ← <span style="color: #00BB00;">versioned.qs2</span> @ <span style="color: #00BB00;">a33175bdf8ca954f</span></span></span>
 <span><span class="co">## [<span style="color: #00BB00;">qs2</span>]</span></span></code></pre>
 <div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">spec_ok</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">older_ok</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -443,9 +443,9 @@ such as <code>path</code>, <code>format</code>, <code>created_at</code>
 <code class="sourceCode R"><span><span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_read_sidecar.html">st_read_sidecar</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">sc</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## List of 11</span></span>
-<span><span class="co">##  $ path        : chr "/tmp/RtmpiRnnNO/stamp-vignette/stamp-output/example.qs2"</span></span>
+<span><span class="co">##  $ path        : chr "/tmp/Rtmpn3WfvR/stamp-vignette/stamp-output/example.qs2"</span></span>
 <span><span class="co">##  $ format      : chr "qs2"</span></span>
-<span><span class="co">##  $ created_at  : chr "2026-03-02T21:47:36.069790Z"</span></span>
+<span><span class="co">##  $ created_at  : chr "2026-03-04T21:30:09.450032Z"</span></span>
 <span><span class="co">##  $ size_bytes  : int 256</span></span>
 <span><span class="co">##  $ content_hash: chr "99235ac79dea7ab0"</span></span>
 <span><span class="co">##  $ code_hash   : NULL</span></span>
@@ -491,8 +491,8 @@ parents.</li>
 <code class="sourceCode R"><span><span class="co"># upstream artifact</span></span>
 <span><span class="va">in_path</span> <span class="op">&lt;-</span> <span class="st">"upstream.qs"</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>, <span class="va">in_path</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/upstream.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">b18eda93d9551d27</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/upstream.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">665a10aaa226d20b</span></span></span></code></pre>
 <div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">in_vid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_latest.html">st_latest</a></span><span class="op">(</span><span class="va">in_path</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
@@ -500,18 +500,18 @@ parents.</li>
 <span><span class="va">out_path</span> <span class="op">&lt;-</span> <span class="st">"derived.qs"</span></span>
 <span><span class="va">parents</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">in_path</span>, version_id <span class="op">=</span> <span class="va">in_vid</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id<span class="op">=</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, v<span class="op">=</span><span class="fl">10</span><span class="op">)</span>, <span class="va">out_path</span>, parents <span class="op">=</span> <span class="va">parents</span>, code_label <span class="op">=</span> <span class="st">"multiply"</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/derived.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">273f3281084693cd</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/derived.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">cde75267fb3d1663</span></span></span></code></pre>
 <div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_info.html">st_info</a></span><span class="op">(</span><span class="va">out_path</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">$</span><span class="va">sidecar</span></span></code></pre></div>
 <pre><code><span><span class="co">## $path</span></span>
-<span><span class="co">## [1] "/tmp/RtmpiRnnNO/stamp-vignette/derived.qs"</span></span>
+<span><span class="co">## [1] "/tmp/Rtmpn3WfvR/stamp-vignette/derived.qs"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $format</span></span>
 <span><span class="co">## [1] "qs2"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $created_at</span></span>
-<span><span class="co">## [1] "2026-03-02T21:47:39.284862Z"</span></span>
+<span><span class="co">## [1] "2026-03-04T21:30:12.601478Z"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $size_bytes</span></span>
 <span><span class="co">## [1] 256</span></span>
@@ -530,7 +530,7 @@ parents.</li>
 <span><span class="co">## </span></span>
 <span><span class="co">## $parents</span></span>
 <span><span class="co">##          path       version_id</span></span>
-<span><span class="co">## 1 upstream.qs b18eda93d9551d27</span></span>
+<span><span class="co">## 1 upstream.qs 665a10aaa226d20b</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## $attrs</span></span>
 <span><span class="co">## list()</span></span></code></pre>
@@ -570,9 +570,9 @@ in-memory helpers.</li>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_add_pk.html">st_add_pk</a></span><span class="op">(</span><span class="va">out_path</span>, keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> stamp options updated</span></span>
 <span><span class="co">##   require_pk_on_load = <span style="color: #0000BB;">"FALSE"</span></span></span></code></pre>
-<pre><code><span><span class="co">## Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/derived.qs</span>.</span></span>
+<pre><code><span><span class="co">## Warning: No primary key recorded for <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/derived.qs</span>.</span></span>
 <span><span class="co">## <span style="color: #00BBBB;">ℹ</span> You can add one with `st_add_pk()`.</span></span></code></pre>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/derived.qs</span></span></span>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/derived.qs</span></span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> Recorded primary key for <span style="color: #0000BB;">derived.qs</span> --&gt; id</span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> stamp options updated</span></span>
 <span><span class="co">##   require_pk_on_load = <span style="color: #0000BB;">"FALSE"</span></span></span></code></pre>
@@ -583,7 +583,7 @@ in-memory helpers.</li>
 <code class="sourceCode R"><span><span class="co"># load and filter by pk using st_filter</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">out_path</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">## <span style="color: #0000BB;">/tmp/RtmpiRnnNO/stamp-vignette/derived.qs</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #0000BB;">/tmp/Rtmpn3WfvR/stamp-vignette/derived.qs</span></span></span></code></pre>
 <div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_filter.html">st_filter</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   id  v</span></span>

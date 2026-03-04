@@ -1,5 +1,25 @@
 # Changelog
 
+## stamp 0.0.10
+
+### Bug Fixes
+
+- **FIXED**: Content-based versioning now correctly skips saving when
+  content is identical
+  - Fixed path handling bug in
+    [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md)
+    that caused duplicate versions with identical `content_hash`
+  - [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md)
+    now correctly passes `rel_path` to
+    [`st_should_save()`](https://randrescastaneda.github.io/stamp/reference/st_should_save.md)
+    instead of `storage_path`
+  - Prevents double-nesting of paths during normalization
+- **IMPROVED**: Simplified
+  [`st_changed_reason()`](https://randrescastaneda.github.io/stamp/reference/st_changed_reason.md)
+  to remove redundant path pre-resolution
+- **CLEANUP**: Removed dead code (`.st_resolve_file_path()`,
+  `.st_resolve_and_normalize()`)
+
 ## stamp 0.0.9
 
 ### Major Changes

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,25 @@
       <small>Source: <a href="https://github.com/randrescastaneda/stamp/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.10" id="stamp-0010">stamp 0.0.10<a class="anchor" aria-label="anchor" href="#stamp-0010"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-0-0-10">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-0-10"></a></h3>
+<ul><li>
+<strong>FIXED</strong>: Content-based versioning now correctly skips saving when content is identical
+<ul><li>Fixed path handling bug in <code><a href="../reference/st_save.html">st_save()</a></code> that caused duplicate versions with identical <code>content_hash</code>
+</li>
+<li>
+<code><a href="../reference/st_save.html">st_save()</a></code> now correctly passes <code>rel_path</code> to <code><a href="../reference/st_should_save.html">st_should_save()</a></code> instead of <code>storage_path</code>
+</li>
+<li>Prevents double-nesting of paths during normalization</li>
+</ul></li>
+<li>
+<strong>IMPROVED</strong>: Simplified <code><a href="../reference/st_changed_reason.html">st_changed_reason()</a></code> to remove redundant path pre-resolution</li>
+<li>
+<strong>CLEANUP</strong>: Removed dead code (<code>.st_resolve_file_path()</code>, <code>.st_resolve_and_normalize()</code>)</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.9" id="stamp-009">stamp 0.0.9<a class="anchor" aria-label="anchor" href="#stamp-009"></a></h2>
 <div class="section level3">

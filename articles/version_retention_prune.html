@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -153,8 +153,8 @@ explicitly.</p>
 <span><span class="fu"><a href="../reference/st_init.html">st_init</a></span><span class="op">(</span><span class="va">root</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> stamp initialized</span></span>
 <span><span class="co">##   alias: default</span></span>
-<span><span class="co">##   root: /tmp/Rtmp21tHNc/stamp-retention-example</span></span>
-<span><span class="co">##   state: /tmp/Rtmp21tHNc/stamp-retention-example/.stamp</span></span></code></pre>
+<span><span class="co">##   root: /tmp/Rtmpo1843G/stamp-retention-example</span></span>
+<span><span class="co">##   state: /tmp/Rtmpo1843G/stamp-retention-example/.stamp</span></span></code></pre>
 <p>We’ll create a few artifacts and multiple versions to demonstrate
 pruning:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -177,28 +177,28 @@ pruning:</p>
 <span><span class="co">##   retain_versions = <span style="color: #0000BB;">"Inf"</span></span></span></code></pre>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA1</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/A.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">9e9386fd87f918b1</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/A.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">6b5340a9d666a5a1</span></span></span></code></pre>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA2</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/A.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">8b3dd1175d9e878e</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/A.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">8fb801ccbb8b6779</span></span></span></code></pre>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA3</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/A.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">b164f325761f1e11</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/A.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">6833a70c736505c1</span></span></span></code></pre>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xB1</span>, <span class="va">pB</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/B.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">1f01aa3093d2b38f</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/B.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">e548dbaf57b74ef2</span></span></span></code></pre>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xB2</span>, <span class="va">pB</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/B.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">26d8e4f98c253cf7</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/B.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">22f541c56d2e65ba</span></span></span></code></pre>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xC1</span>, <span class="va">pC</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/C.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">210084a58d5a9e7f</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/C.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">fa11b424c79d3814</span></span></span></code></pre>
 <p>Inspect store &amp; catalog:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Show version directories for each artifact (now stored per-artifact)</span></span>
@@ -215,32 +215,32 @@ pruning:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pA</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##          version_id      artifact_id     content_hash        code_hash</span></span>
 <span><span class="co">##              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">## 1: b164f325761f1e11 f491628435c9ae7c 7b0f2ab9d3348e25 488e8fa49c740261</span></span>
-<span><span class="co">## 2: 8b3dd1175d9e878e f491628435c9ae7c 951537cb6096baa5 488e8fa49c740261</span></span>
-<span><span class="co">## 3: 9e9386fd87f918b1 f491628435c9ae7c 1811ba4b2bd2a26a 488e8fa49c740261</span></span>
+<span><span class="co">## 1: 6833a70c736505c1 0f9607abfcb9cf66 7b0f2ab9d3348e25 488e8fa49c740261</span></span>
+<span><span class="co">## 2: 8fb801ccbb8b6779 0f9607abfcb9cf66 951537cb6096baa5 488e8fa49c740261</span></span>
+<span><span class="co">## 3: 6b5340a9d666a5a1 0f9607abfcb9cf66 1811ba4b2bd2a26a 488e8fa49c740261</span></span>
 <span><span class="co">##    size_bytes                  created_at sidecar_format</span></span>
 <span><span class="co">##         &lt;num&gt;                      &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">## 1:        243 2026-03-02T21:48:01.600231Z           json</span></span>
-<span><span class="co">## 2:        243 2026-03-02T21:48:01.555656Z           json</span></span>
-<span><span class="co">## 3:        244 2026-03-02T21:48:01.501872Z           json</span></span></code></pre>
+<span><span class="co">## 1:        243 2026-03-04T21:30:34.894496Z           json</span></span>
+<span><span class="co">## 2:        243 2026-03-04T21:30:34.848214Z           json</span></span>
+<span><span class="co">## 3:        244 2026-03-04T21:30:34.791485Z           json</span></span></code></pre>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pB</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##          version_id      artifact_id     content_hash        code_hash</span></span>
 <span><span class="co">##              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">## 1: 26d8e4f98c253cf7 0cfe04d352cdbc76 4af42ea578facae1 488e8fa49c740261</span></span>
-<span><span class="co">## 2: 1f01aa3093d2b38f 0cfe04d352cdbc76 2b865564c70753d7 488e8fa49c740261</span></span>
+<span><span class="co">## 1: 22f541c56d2e65ba 1826d4f1012db2e0 4af42ea578facae1 488e8fa49c740261</span></span>
+<span><span class="co">## 2: e548dbaf57b74ef2 1826d4f1012db2e0 2b865564c70753d7 488e8fa49c740261</span></span>
 <span><span class="co">##    size_bytes                  created_at sidecar_format</span></span>
 <span><span class="co">##         &lt;num&gt;                      &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">## 1:        200 2026-03-02T21:48:01.671493Z           json</span></span>
-<span><span class="co">## 2:        201 2026-03-02T21:48:01.634546Z           json</span></span></code></pre>
+<span><span class="co">## 1:        200 2026-03-04T21:30:34.964365Z           json</span></span>
+<span><span class="co">## 2:        201 2026-03-04T21:30:34.927468Z           json</span></span></code></pre>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pC</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##          version_id      artifact_id     content_hash        code_hash</span></span>
 <span><span class="co">##              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">## 1: 210084a58d5a9e7f 0333173df6ef6e92 8733221e1227246f 488e8fa49c740261</span></span>
+<span><span class="co">## 1: fa11b424c79d3814 badc29fac325312a 8733221e1227246f 488e8fa49c740261</span></span>
 <span><span class="co">##    size_bytes                  created_at sidecar_format</span></span>
 <span><span class="co">##         &lt;num&gt;                      &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">## 1:        245 2026-03-02T21:48:01.705279Z           json</span></span></code></pre>
+<span><span class="co">## 1:        245 2026-03-04T21:30:34.997715Z           json</span></span></code></pre>
 <hr>
 </div>
 <div class="section level2">
@@ -263,10 +263,10 @@ auto-retention into <code><a href="../reference/st_save.html">st_save()</a></cod
 <span><span class="va">repA</span></span></code></pre></div>
 <pre><code><span><span class="co">##         artifact_id                                artifact_path</span></span>
 <span><span class="co">##              &lt;char&gt;                                       &lt;char&gt;</span></span>
-<span><span class="co">## 1: f491628435c9ae7c /tmp/Rtmp21tHNc/stamp-retention-example/A.qs</span></span>
+<span><span class="co">## 1: 0f9607abfcb9cf66 /tmp/Rtmpo1843G/stamp-retention-example/A.qs</span></span>
 <span><span class="co">##          version_id                  created_at size_bytes</span></span>
 <span><span class="co">##              &lt;char&gt;                      &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">## 1: 9e9386fd87f918b1 2026-03-02T21:48:01.501872Z        244</span></span></code></pre>
+<span><span class="co">## 1: 6b5340a9d666a5a1 2026-03-04T21:30:34.791485Z        244</span></span></code></pre>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pA</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span> <span class="co"># &lt;= 2; latest always protected</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 2</span></span></code></pre>
@@ -294,10 +294,10 @@ catalog<a class="anchor" aria-label="anchor" href="#keep-by-recency-window-acros
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">repAll</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         artifact_id                                artifact_path</span></span>
 <span><span class="co">##              &lt;char&gt;                                       &lt;char&gt;</span></span>
-<span><span class="co">## 1: f491628435c9ae7c /tmp/Rtmp21tHNc/stamp-retention-example/A.qs</span></span>
+<span><span class="co">## 1: 0f9607abfcb9cf66 /tmp/Rtmpo1843G/stamp-retention-example/A.qs</span></span>
 <span><span class="co">##          version_id                  created_at size_bytes</span></span>
 <span><span class="co">##              &lt;char&gt;                      &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">## 1: 8b3dd1175d9e878e 2026-03-02T21:48:01.555656Z        243</span></span></code></pre>
+<span><span class="co">## 1: 8fb801ccbb8b6779 2026-03-04T21:30:34.848214Z        243</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="combine-count-recency-union-semantics">Combine <strong>count + recency</strong> (union semantics)<a class="anchor" aria-label="anchor" href="#combine-count-recency-union-semantics"></a>
@@ -340,8 +340,8 @@ thinking about it:</p>
 <code class="sourceCode R"><span><span class="co"># New save writes + immediate prune</span></span>
 <span><span class="va">xA4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">xA4</span>, <span class="va">pA</span>, code <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span> <span class="va">z</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/A.qs</span> @ version</span></span>
-<span><span class="co">##   <span style="color: #00BB00;">f2bd9bfe8df1c958</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/A.qs</span> @ version</span></span>
+<span><span class="co">##   <span style="color: #00BB00;">6470b939f1d8e70d</span></span></span></code></pre>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="../reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">pA</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span><span class="op">)</span> <span class="co"># &lt;= 2</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 2</span></span></code></pre>
@@ -389,8 +389,8 @@ reproducibility, and downstream tooling (e.g., merge validation).</p>
 <span><span class="co"># Note: `st_save(..., pk = ...)` validates the keys against the provided data</span></span>
 <span><span class="co"># and persists the `pk` element into the artifact's sidecar (stmeta/).</span></span>
 <span><span class="fu"><a href="../reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">p_pop</span>, pk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span>, <span class="st">"reporting_level"</span><span class="op">)</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/inputs/population.qs</span> @</span></span>
-<span><span class="co">##   version <span style="color: #00BB00;">1438791b2f093861</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] → <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/inputs/population.qs</span> @</span></span>
+<span><span class="co">##   version <span style="color: #00BB00;">6d82fdd44be6bde2</span></span></span></code></pre>
 <p><strong>Effects</strong></p>
 <ul>
 <li>Validates that PK columns exist and are unique (unless you disable
@@ -412,7 +412,7 @@ uniqueness).</li>
 <span><span class="fu"><a href="../reference/st_add_pk.html">st_add_pk</a></span><span class="op">(</span><span class="va">p_pop</span>, keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"country"</span>, <span class="st">"year"</span>, <span class="st">"reporting_level"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> stamp options updated</span></span>
 <span><span class="co">##   require_pk_on_load = <span style="color: #0000BB;">"FALSE"</span></span></span>
-<span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/inputs/population.qs</span></span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ← <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/inputs/population.qs</span></span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> Recorded primary key for <span style="color: #0000BB;">inputs/population.qs</span> --&gt; country, year,</span></span>
 <span><span class="co">##   reporting_level</span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> stamp options updated</span></span>
@@ -424,7 +424,7 @@ uniqueness).</li>
 <div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">p_pop</span>, alias <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Loaded [<span style="color: #00BB00;">qs2</span>] ←</span></span>
-<span><span class="co">## <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/inputs/population.qs</span></span></span></code></pre>
+<span><span class="co">## <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/inputs/population.qs</span></span></span></code></pre>
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">obj</span>, <span class="st">"stamp_pk"</span><span class="op">)</span> <span class="co"># keys attached on load</span></span></code></pre></div>
 <pre><code><span><span class="co">## $keys</span></span>
@@ -574,8 +574,8 @@ country/year), use the partition helpers. Layout:</p>
 <span>  alias <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span></span>
-<span><span class="co">##   @ version <span style="color: #00BB00;">52c8101648be97f9</span></span></span></code></pre>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2</span></span></span>
+<span><span class="co">##   @ version <span style="color: #00BB00;">e8c43dba8e0bf8bb</span></span></span></code></pre>
 <div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/st_save_part.html">st_save_part</a></span><span class="op">(</span></span>
 <span>  <span class="va">mex_tbl</span>,</span>
@@ -585,8 +585,8 @@ country/year), use the partition helpers. Layout:</p>
 <span>  alias <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> Saved [<span style="color: #00BB00;">qs2</span>] →</span></span>
-<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmp21tHNc/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span></span>
-<span><span class="co">##   @ version <span style="color: #00BB00;">16ab9dfac96e1526</span></span></span></code></pre>
+<span><span class="co">##   <span style="color: #0000BB;">/tmp/Rtmpo1843G/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2</span></span></span>
+<span><span class="co">##   @ version <span style="color: #00BB00;">4fae2d5e6b06555d</span></span></span></code></pre>
 <blockquote>
 <p><code><a href="../reference/st_save_part.html">st_save_part()</a></code> uses <code><a href="../reference/st_save.html">st_save()</a></code> under the
 hood and writes sidecars in a local <code>stmeta/</code> directory
