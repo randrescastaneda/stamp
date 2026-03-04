@@ -1,3 +1,13 @@
+# stamp 0.0.10
+
+## Bug Fixes
+* **FIXED**: Content-based versioning now correctly skips saving when content is identical
+  - Fixed path handling bug in `st_save()` that caused duplicate versions with identical `content_hash`
+  - `st_save()` now correctly passes `rel_path` to `st_should_save()` instead of `storage_path`
+  - Prevents double-nesting of paths during normalization
+* **IMPROVED**: Simplified `st_changed_reason()` to remove redundant path pre-resolution
+* **CLEANUP**: Removed dead code (`.st_resolve_file_path()`, `.st_resolve_and_normalize()`)
+
 # stamp 0.0.9
 
 ## Major Changes
