@@ -1,3 +1,38 @@
+test_that("st_init respects verbose flag", {
+  td1 <- withr::local_tempdir()
+  td2 <- withr::local_tempdir()
+
+  # verbose = TRUE (default) emits the "stamp initialized" message
+  expect_message(st_init(td1, verbose = TRUE), "stamp initialized")
+
+  # verbose = FALSE is fully silent — no messages, no warnings
+  expect_silent(st_init(td2, verbose = FALSE))
+
+  # alias-rebase scenario: reinitialising the "default" alias to a new folder
+  # emits a rebasing inform when verbose = TRUE
+  td3 <- withr::local_tempdir()
+  expect_message(st_init(td3, verbose = TRUE), "Rebasing default alias")
+
+  # same rebase scenario is silent when verbose = FALSE
+  td4 <- withr::local_tempdir()
+  expect_silent(st_init(td4, verbose = FALSE))
+
+  # duplicate-alias scenario: two aliases pointing to same folder warns verbose=TRUE
+  td5 <- withr::local_tempdir()
+  # Clean up named aliases after the test so they don't persist across runs
+  withr::defer(rlang::env_unbind(stamp:::.stamp_aliases, c("dup_a", "dup_b", "dup_c")))
+  st_init(td5, alias = "dup_a", verbose = FALSE)
+  expect_warning(st_init(td5, alias = "dup_b", verbose = TRUE), "same folder")
+
+  # same scenario is silent when verbose = FALSE
+  expect_silent(st_init(td5, alias = "dup_c", verbose = FALSE))
+
+  # invalid verbose values must error (validation is tested)
+  td6 <- withr::local_tempdir()
+  expect_error(st_init(td6, verbose = NA))
+  expect_error(st_init(td6, verbose = "yes"))
+})
+
 test_that("st_save and st_load respect verbose flag", {
   td <- withr::local_tempdir()
   st_init(td)
@@ -33,7 +68,6 @@ test_that("st_save and st_load respect verbose flag", {
     st_load(tmp, verbose = FALSE)
   })
 })
-st_opts(warn_missing_pk_on_load = FALSE)
 test_that("st_save and st_load create artifact, sidecar and versions", {
   skip_on_cran()
   skip_if_not_installed("qs2")
@@ -54,6 +88,7 @@ test_that("st_save and st_load create artifact, sidecar and versions", {
   expect_true(is.list(sc))
   expect_true(nzchar(out$version_id))
 
+  st_opts(warn_missing_pk_on_load = FALSE)
   # load and verify content hash matches
   y <- st_load(p_qs)
   expect_equal(y, x)
@@ -130,7 +165,4 @@ test_that("sidecar absent, versions empty, and st_load_version errors when missi
   # internal helper returns an stmeta path containing the stmeta dir
   sc <- stamp:::.st_sidecar_path(p, ext = "json")
   expect_true(grepl("stmeta", sc))
-})
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
 })
