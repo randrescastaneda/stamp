@@ -73,8 +73,8 @@ st_init(root)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/Rtmpo1843G/stamp-retention-example
-    ##   state: /tmp/Rtmpo1843G/stamp-retention-example/.stamp
+    ##   root: /tmp/RtmpDwJ9ZC/stamp-retention-example
+    ##   state: /tmp/RtmpDwJ9ZC/stamp-retention-example/.stamp
 
 We’ll create a few artifacts and multiple versions to demonstrate
 pruning:
@@ -104,43 +104,43 @@ st_opts(retain_versions = Inf)
 st_save(xA1, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpo1843G/stamp-retention-example/A.qs @ version
-    ##   6b5340a9d666a5a1
+    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs @ version
+    ##   f2338094b290c556
 
 ``` r
 st_save(xA2, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpo1843G/stamp-retention-example/A.qs @ version
-    ##   8fb801ccbb8b6779
+    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs @ version
+    ##   75f706b0ba079862
 
 ``` r
 st_save(xA3, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpo1843G/stamp-retention-example/A.qs @ version
-    ##   6833a70c736505c1
+    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs @ version
+    ##   42fa63da04b9ffdd
 
 ``` r
 st_save(xB1, pB, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpo1843G/stamp-retention-example/B.qs @ version
-    ##   e548dbaf57b74ef2
+    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/B.qs @ version
+    ##   17dfe2ab739b6b5f
 
 ``` r
 st_save(xB2, pB, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpo1843G/stamp-retention-example/B.qs @ version
-    ##   22f541c56d2e65ba
+    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/B.qs @ version
+    ##   b0b7e9949df14cb8
 
 ``` r
 st_save(xC1, pC, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpo1843G/stamp-retention-example/C.qs @ version
-    ##   fa11b424c79d3814
+    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/C.qs @ version
+    ##   108f6e0294c39e42
 
 Inspect store & catalog:
 
@@ -161,14 +161,14 @@ print(st_versions(pA, alias = NULL))
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: 6833a70c736505c1 0f9607abfcb9cf66 7b0f2ab9d3348e25 488e8fa49c740261
-    ## 2: 8fb801ccbb8b6779 0f9607abfcb9cf66 951537cb6096baa5 488e8fa49c740261
-    ## 3: 6b5340a9d666a5a1 0f9607abfcb9cf66 1811ba4b2bd2a26a 488e8fa49c740261
+    ## 1: 42fa63da04b9ffdd bd0b02ace755848c 3ce405bf1f23cefb 488e8fa49c740261
+    ## 2: 75f706b0ba079862 bd0b02ace755848c 875724fc5cb911c8 488e8fa49c740261
+    ## 3: f2338094b290c556 bd0b02ace755848c 7229a33b7831a015 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        243 2026-03-04T21:30:34.894496Z           json
-    ## 2:        243 2026-03-04T21:30:34.848214Z           json
-    ## 3:        244 2026-03-04T21:30:34.791485Z           json
+    ## 1:        243 2026-03-26T15:11:59.539449Z           json
+    ## 2:        243 2026-03-26T15:11:59.493942Z           json
+    ## 3:        243 2026-03-26T15:11:59.438707Z           json
 
 ``` r
 print(st_versions(pB, alias = NULL))
@@ -176,12 +176,12 @@ print(st_versions(pB, alias = NULL))
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: 22f541c56d2e65ba 1826d4f1012db2e0 4af42ea578facae1 488e8fa49c740261
-    ## 2: e548dbaf57b74ef2 1826d4f1012db2e0 2b865564c70753d7 488e8fa49c740261
+    ## 1: b0b7e9949df14cb8 0d3457a2d8b721b7 105c0530ccb60328 488e8fa49c740261
+    ## 2: 17dfe2ab739b6b5f 0d3457a2d8b721b7 de00ee09f95b2201 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        200 2026-03-04T21:30:34.964365Z           json
-    ## 2:        201 2026-03-04T21:30:34.927468Z           json
+    ## 1:        201 2026-03-26T15:11:59.608962Z           json
+    ## 2:        200 2026-03-26T15:11:59.572312Z           json
 
 ``` r
 print(st_versions(pC, alias = NULL))
@@ -189,10 +189,10 @@ print(st_versions(pC, alias = NULL))
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: fa11b424c79d3814 badc29fac325312a 8733221e1227246f 488e8fa49c740261
+    ## 1: 108f6e0294c39e42 fb2291981bd777cc 6fb46c89c5ce61c9 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        245 2026-03-04T21:30:34.997715Z           json
+    ## 1:        243 2026-03-26T15:11:59.641848Z           json
 
 ------------------------------------------------------------------------
 
@@ -210,7 +210,7 @@ st_prune_versions(path = pA, policy = 2, dry_run = TRUE, alias = NULL)
 ```
 
     ## ✔ DRY RUN: 1 version would be pruned across 1 artifact.
-    ##   Estimated space reclaimed: ~244 bytes
+    ##   Estimated space reclaimed: ~243 bytes
 
 ``` r
 # Apply pruning
@@ -220,10 +220,10 @@ repA
 
     ##         artifact_id                                artifact_path
     ##              <char>                                       <char>
-    ## 1: 0f9607abfcb9cf66 /tmp/Rtmpo1843G/stamp-retention-example/A.qs
+    ## 1: bd0b02ace755848c /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: 6b5340a9d666a5a1 2026-03-04T21:30:34.791485Z        244
+    ## 1: f2338094b290c556 2026-03-26T15:11:59.438707Z        243
 
 ``` r
 nrow(st_versions(pA, alias = NULL)) # <= 2; latest always protected
@@ -260,10 +260,10 @@ head(repAll)
 
     ##         artifact_id                                artifact_path
     ##              <char>                                       <char>
-    ## 1: 0f9607abfcb9cf66 /tmp/Rtmpo1843G/stamp-retention-example/A.qs
+    ## 1: bd0b02ace755848c /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: 8fb801ccbb8b6779 2026-03-04T21:30:34.848214Z        243
+    ## 1: 75f706b0ba079862 2026-03-26T15:11:59.493942Z        243
 
 ### Combine **count + recency** (union semantics)
 
@@ -311,8 +311,8 @@ xA4 <- data.frame(a = 4:6)
 st_save(xA4, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpo1843G/stamp-retention-example/A.qs @ version
-    ##   6470b939f1d8e70d
+    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs @ version
+    ##   f3f936445a6212ea
 
 ``` r
 nrow(st_versions(pA, alias = NULL)) # <= 2
@@ -370,8 +370,8 @@ p_pop <- "inputs/population.qs"
 st_save(pop, p_pop, pk = c("country", "year", "reporting_level"), alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmpo1843G/stamp-retention-example/inputs/population.qs @
-    ##   version 6d82fdd44be6bde2
+    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/population.qs @
+    ##   version 13c736b701a7dd56
 
 **Effects**
 
@@ -396,7 +396,7 @@ st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
 
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
-    ## ✔ Loaded [qs2] ← /tmp/Rtmpo1843G/stamp-retention-example/inputs/population.qs
+    ## ✔ Loaded [qs2] ← /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/population.qs
     ## ✔ Recorded primary key for inputs/population.qs --> country, year,
     ##   reporting_level
     ## ✔ stamp options updated
@@ -409,7 +409,7 @@ obj <- st_load(p_pop, alias = NULL)
 ```
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/Rtmpo1843G/stamp-retention-example/inputs/population.qs
+    ## /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/population.qs
 
 ``` r
 attr(obj, "stamp_pk") # keys attached on load
@@ -569,8 +569,8 @@ st_save_part(
 ```
 
     ## ✔ Saved [qs2] →
-    ##   /tmp/Rtmpo1843G/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
-    ##   @ version e8c43dba8e0bf8bb
+    ##   /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
+    ##   @ version ce44c84cf8eac402
 
 ``` r
 st_save_part(
@@ -583,8 +583,8 @@ st_save_part(
 ```
 
     ## ✔ Saved [qs2] →
-    ##   /tmp/Rtmpo1843G/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
-    ##   @ version 4fae2d5e6b06555d
+    ##   /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
+    ##   @ version 62788b4c147b2398
 
 > [`st_save_part()`](https://randrescastaneda.github.io/stamp/reference/st_save_part.md)
 > uses

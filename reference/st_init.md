@@ -8,7 +8,7 @@ path structures.
 ## Usage
 
 ``` r
-st_init(root = ".", state_dir = ".stamp", alias = NULL)
+st_init(root = ".", state_dir = ".stamp", alias = NULL, verbose = TRUE)
 ```
 
 ## Arguments
@@ -25,6 +25,11 @@ st_init(root = ".", state_dir = ".stamp", alias = NULL)
 
   Optional character alias to identify this stamp folder. If `NULL`,
   uses "default" for backwards compatibility.
+
+- verbose:
+
+  logical; if `FALSE`, suppress informational messages and warnings
+  (default `TRUE`). Errors are never suppressed.
 
 ## Value
 
