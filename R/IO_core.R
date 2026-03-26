@@ -7,11 +7,20 @@
 #' register it under an `alias`. Aliases allow multiple independent stamp
 #' folders to be managed in a single R session without changing any
 #' on-disk path structures.
-#' @return (invisibly) the absolute state dir
 #' @param alias Optional character alias to identify this stamp folder.
 #'   If `NULL`, uses "default" for backwards compatibility.
+#' @param verbose logical; if `FALSE`, suppress informational messages and
+#'   warnings (default `TRUE`). Errors are never suppressed.
+#' @return (invisibly) the absolute state dir
 #' @export
-st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
+st_init <- function(
+  root = ".",
+  state_dir = ".stamp",
+  alias = NULL,
+  verbose = TRUE
+) {
+  # Input validation for verbose
+  stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
   root_abs <- fs::path_abs(root)
   alias0 <- alias %||% "default" # Backwards-compatible default alias
   if (!is.character(alias0) || length(alias0) != 1L) {
@@ -19,9 +28,11 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
   }
   alias_trim <- trimws(alias0)
   if (!identical(alias_trim, alias0)) {
-    cli::cli_warn(c(
-      "!" = "Alias had leading/trailing whitespace; using {.val {alias_trim}}."
-    ))
+    if (isTRUE(verbose)) {
+      cli::cli_warn(c(
+        "!" = "Alias had leading/trailing whitespace; using {.val {alias_trim}}."
+      ))
+    }
   }
   alias <- alias_trim
   if (!nzchar(alias)) {
@@ -38,11 +49,13 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
     if (identical(alias, "default")) {
       # For backward compatibility, allow re-basing the default alias
       # to a new folder rather than erroring.
-      cli::cli_inform(c(
-        "i" = "Rebasing default alias to new folder.",
-        " " = paste0("Existing: ", existing$stamp_path),
-        " " = paste0("Requested: ", sd_abs)
-      ))
+      if (isTRUE(verbose)) {
+        cli::cli_inform(c(
+          "i" = "Rebasing default alias to new folder.",
+          " " = paste0("Existing: ", existing$stamp_path),
+          " " = paste0("Requested: ", sd_abs)
+        ))
+      }
     } else {
       cli::cli_abort(c(
         "x" = "Alias {.val {alias}} is already registered for a different folder.",
@@ -64,10 +77,12 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
     }
     cfg <- rlang::env_get(.stamp_aliases, nm, default = NULL)
     if (!is.null(cfg) && identical(cfg$stamp_path, sd_abs)) {
-      cli::cli_warn(c(
-        "!" = "Alias {.val {alias}} points to the same folder as existing alias {.val {nm}}.",
-        "i" = "They will share the same catalog and versions."
-      ))
+      if (isTRUE(verbose)) {
+        cli::cli_warn(c(
+          "!" = "Alias {.val {alias}} points to the same folder as existing alias {.val {nm}}.",
+          "i" = "They will share the same catalog and versions."
+        ))
+      }
     }
   }
 
@@ -89,12 +104,14 @@ st_init <- function(root = ".", state_dir = ".stamp", alias = NULL) {
     stamp_path = sd_abs
   )
 
-  cli::cli_inform(c(
-    "v" = "stamp initialized",
-    " " = paste0("alias: ", alias),
-    " " = paste0("root: ", root_abs),
-    " " = paste0("state: ", sd_abs)
-  ))
+  if (isTRUE(verbose)) {
+    cli::cli_inform(c(
+      "v" = "stamp initialized",
+      " " = paste0("alias: ", alias),
+      " " = paste0("root: ", root_abs),
+      " " = paste0("state: ", sd_abs)
+    ))
+  }
   invisible(sd_abs)
 }
 

@@ -16,3 +16,4 @@
 ^test_.*\.R$
 ^build_vignettes\.R$
 ^\.current_task$
+^\.cg-docs$

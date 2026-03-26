@@ -19,3 +19,16 @@ test_vignettes_detailed.R
 test_vignettes_individual.R
 /doc/
 /Meta/
+
+# Compound GPID managed items (junctions + copied file - do not commit)
+.github/prompts/
+.github/skills/
+.github/agents/
+.github/instructions/
+.github/copilot-instructions.md
+
+# Compound GPID local config (user-specific, never commit)
+compound-gpid.local.md
+# Compound GPID knowledge base (local thinking artifacts, typically not committed)
+.cg-docs/
+

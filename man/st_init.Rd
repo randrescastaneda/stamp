@@ -4,7 +4,7 @@
 \alias{st_init}
 \title{Initialize stamp project structure}
 \usage{
-st_init(root = ".", state_dir = ".stamp", alias = NULL)
+st_init(root = ".", state_dir = ".stamp", alias = NULL, verbose = TRUE)
 }
 \arguments{
 \item{root}{project root (default ".")}
@@ -13,6 +13,9 @@ st_init(root = ".", state_dir = ".stamp", alias = NULL)
 
 \item{alias}{Optional character alias to identify this stamp folder.
 If \code{NULL}, uses "default" for backwards compatibility.}
+
+\item{verbose}{logical; if \code{FALSE}, suppress informational messages and
+warnings (default \code{TRUE}). Errors are never suppressed.}
 }
 \value{
 (invisibly) the absolute state dir
