@@ -1284,15 +1284,13 @@ st_catalog_query <- function(alias = NULL) {
   # For each artifact, look up its latest version row.
   # data.table X[Y, on=...] iterates over Y — so versions[artifacts] finds
   # the one version row matching each artifact's latest_version_id.
-  # Returns exactly nrow(cat$artifacts) rows (nomatch = 0L excludes
-  # artifacts whose latest_version_id is absent from cat$versions, which
-  # should not occur in a consistent catalog but is guarded defensively).
-  cat$versions[
+  # Returns exactly nrow(cat$artifacts) rows in a healthy catalog.
+  result <- cat$versions[
     cat$artifacts,
-    on      = .(version_id = latest_version_id),
+    on = .(version_id = latest_version_id),
     nomatch = 0L,
     .(
-      path         = i.path,
+      path = i.path,
       version_id,
       content_hash,
       code_hash,
@@ -1300,4 +1298,17 @@ st_catalog_query <- function(alias = NULL) {
       created_at
     )
   ]
+
+  # Integrity check: every artifact must resolve to a version row.
+  # A mismatch indicates catalog corruption (dangling latest_version_id).
+  if (nrow(result) != nrow(cat$artifacts)) {
+    missing_n <- nrow(cat$artifacts) - nrow(result)
+    cli::cli_abort(c(
+      "Catalog integrity check failed in {.fn st_catalog_query}.",
+      "x" = "{missing_n} artifact{?s} reference{?s} a missing latest version.",
+      "i" = "Rebuild or repair the catalog with {.fn st_rebuild} before querying."
+    ))
+  }
+
+  result
 }
