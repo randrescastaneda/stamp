@@ -705,10 +705,13 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       fill = TRUE
     )
   } else {
+    # Capture argument in a local variable to avoid data.table NSE shadowing
+    # the function argument with the same-named column on the RHS of :=.
+    new_vid <- as.character(latest_version_id)
     a[
       idx,
       `:=`(
-        latest_version_id = as.character(latest_version_id),
+        latest_version_id = new_vid,
         n_versions = as.integer(n_versions) + 1L
       )
     ]
@@ -1212,4 +1215,89 @@ st_is_stale <- function(path, alias = NULL) {
     }
   }
   FALSE
+}
+
+
+# ---- Catalog query (public API) ----------------------------------------------
+
+#' Query latest version metadata for all artifacts in an alias
+#'
+#' Return a `data.table` with one row per artifact in the catalog,
+#' containing the metadata for that artifact's most recent version only.
+#' This provides a snapshot of the current state of all tracked artifacts
+#' without having to iterate over individual artifact paths.
+#'
+#' Unlike [st_versions()], which returns all historical versions for a
+#' single artifact, `st_catalog_query()` returns exactly one row per
+#' artifact — the latest version — across the entire alias catalog.
+#'
+#' @param alias Character scalar. Stamp alias to query. `NULL` (default)
+#'   uses the default alias.
+#' @return A `data.table` with one row per artifact and columns:
+#'   \item{path}{Absolute path to the artifact file.}
+#'   \item{version_id}{Latest version identifier for this artifact.}
+#'   \item{content_hash}{Content hash of the latest version (may be `NA`).}
+#'   \item{code_hash}{Code hash of the latest version (may be `NA`).}
+#'   \item{size_bytes}{Size in bytes of the latest version artifact.}
+#'   \item{created_at}{ISO8601 timestamp when the latest version was recorded.}
+#'   An empty `data.table` with the same schema is returned when the catalog
+#'   has no artifacts.
+#' @seealso [st_versions()] to query all versions for a single artifact.
+#' @family version-store
+#' @examples
+#' \dontrun{
+#' # Query all latest versions in a named alias
+#' latest <- st_catalog_query(alias = "my_project")
+#' nrow(latest)  # one row per artifact
+#'
+#' # Use default alias
+#' latest <- st_catalog_query()
+#' }
+#' @export
+st_catalog_query <- function(alias = NULL) {
+  # Validate that the named alias is initialised before attempting to read.
+  if (!is.null(alias)) {
+    cfg <- .st_alias_get(alias)
+    if (is.null(cfg)) {
+      cli::cli_abort(
+        c(
+          "Alias {.val {alias}} is not initialised.",
+          i = "Run {.code st_init(..., alias = {.val {alias}})} first."
+        )
+      )
+    }
+  }
+  cat <- .st_catalog_read(alias = alias)
+
+  # Empty schema returned when no artifacts exist
+  if (nrow(cat$artifacts) == 0L) {
+    return(data.table(
+      path         = character(),
+      version_id   = character(),
+      content_hash = character(),
+      code_hash    = character(),
+      size_bytes   = numeric(),
+      created_at   = character()
+    ))
+  }
+
+  # For each artifact, look up its latest version row.
+  # data.table X[Y, on=...] iterates over Y — so versions[artifacts] finds
+  # the one version row matching each artifact's latest_version_id.
+  # Returns exactly nrow(cat$artifacts) rows (nomatch = 0L excludes
+  # artifacts whose latest_version_id is absent from cat$versions, which
+  # should not occur in a consistent catalog but is guarded defensively).
+  cat$versions[
+    cat$artifacts,
+    on      = .(version_id = latest_version_id),
+    nomatch = 0L,
+    .(
+      path         = i.path,
+      version_id,
+      content_hash,
+      code_hash,
+      size_bytes,
+      created_at
+    )
+  ]
 }
