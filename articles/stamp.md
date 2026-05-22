@@ -8,6 +8,7 @@ to read, process, and save derived artifacts while capturing.
 Let’s simulate the data and folder structure:
 
 ``` r
+
 if (requireNamespace("pkgload", quietly = TRUE)) {
   pkgload::load_all(".")
 } else {
@@ -15,6 +16,12 @@ if (requireNamespace("pkgload", quietly = TRUE)) {
 }
 #> ℹ Loading stamp
 library(data.table)
+#> 
+#> Attaching package: 'data.table'
+#> 
+#> The following object is masked from 'package:base':
+#> 
+#>     %notin%
 set.seed(123)
 
 # Create an isolated temporary root so all writes occur outside the package tree.
@@ -28,8 +35,8 @@ on.exit(setwd(old_wd), add = TRUE)
 st_init(root = root_dir)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: /tmp/Rtmpkp7VL8/s
-#>   state: /tmp/Rtmpkp7VL8/s/.stamp
+#>   root: /tmp/RtmpJwz2g5/s
+#>   state: /tmp/RtmpJwz2g5/s/.stamp
 
 # Helper: list only data files with known extensions to avoid locks/sidecars
 # Returns relative paths from alias root (suitable for st_load)
@@ -96,6 +103,7 @@ We’ll create small synthetic micro datasets with columns: `country`,
 `year`, `reporting_level`, `hh_id`, `welfare`, `weight`.
 
 ``` r
+
 welfare_specs <- data.frame(
   country = c("COL", "COL", "MEX", "MEX", "PRY", "PRY"),
   year = c(2010, 2012, 2010, 2015, 2011, 2014),
@@ -141,18 +149,18 @@ for (i in seq_len(nrow(welfare_specs))) {
   )
   welfare_paths[[length(welfare_paths) + 1]] <- fn
 }
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/data/welfare/COL_2010.qs2 @ version
-#>   3a5c815fece85cfa
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/data/welfare/COL_2012.qs2 @ version
-#>   c74ff9bdc55174fe
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2010.qs2 @ version
-#>   d63c7aa66d45b7cd
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2015.qs2 @ version
-#>   759a29cff253cb79
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2011.qs2 @ version
-#>   6cccab854c9e34d5
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2014.qs2 @ version
-#>   c5c34b0820dc53b8
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/data/welfare/COL_2010.qs2 @ version
+#>   777dfbdd78f1e167
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/data/welfare/COL_2012.qs2 @ version
+#>   9b094931140d3412
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/data/welfare/MEX_2010.qs2 @ version
+#>   51ec1aab270117cc
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/data/welfare/MEX_2015.qs2 @ version
+#>   8b3b63b6edc5acf0
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/data/welfare/PRY_2011.qs2 @ version
+#>   47c4b58cfe9e2c45
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/data/welfare/PRY_2014.qs2 @ version
+#>   305f453e5b5d82b6
 unlist(welfare_paths)
 #> [1] "data/welfare/COL_2010.qs2" "data/welfare/COL_2012.qs2"
 #> [3] "data/welfare/MEX_2010.qs2" "data/welfare/MEX_2015.qs2"
@@ -167,22 +175,23 @@ including PK.
 Inspect one artifact:
 
 ``` r
+
 st_info("data/welfare/COL_2010.qs2", alias = NULL)
 #> $sidecar
 #> $sidecar$path
-#> [1] "/tmp/Rtmpkp7VL8/s/data/welfare/COL_2010.qs2"
+#> [1] "/tmp/RtmpJwz2g5/s/data/welfare/COL_2010.qs2"
 #> 
 #> $sidecar$format
 #> [1] "qs2"
 #> 
 #> $sidecar$created_at
-#> [1] "2026-03-26T15:11:49.426274Z"
+#> [1] "2026-05-22T14:25:52.702775Z"
 #> 
 #> $sidecar$size_bytes
-#> [1] 4805
+#> [1] 4794
 #> 
 #> $sidecar$content_hash
-#> [1] "dc66df4e797307e9"
+#> [1] "e8966e684eefb396"
 #> 
 #> $sidecar$code_hash
 #> NULL
@@ -210,14 +219,14 @@ st_info("data/welfare/COL_2010.qs2", alias = NULL)
 #> 
 #> $catalog
 #> $catalog$latest_version_id
-#> [1] "3a5c815fece85cfa"
+#> [1] "777dfbdd78f1e167"
 #> 
 #> $catalog$n_versions
 #> [1] 1
 #> 
 #> 
 #> $snapshot_dir
-#> /tmp/Rtmpkp7VL8/s/data/welfare/COL_2010.qs2/versions/3a5c815fece85cfa
+#> /tmp/RtmpJwz2g5/s/data/welfare/COL_2010.qs2/versions/777dfbdd78f1e167
 #> 
 #> $parents
 #> list()
@@ -228,6 +237,7 @@ st_info("data/welfare/COL_2010.qs2", alias = NULL)
 CPI & population are reporting-level granular; GDP is country-year only.
 
 ``` r
+
 years <- 2010:2015
 countries_macro <- c("COL", "MEX", "PRY", "BRA", "ARG")
 levels_all <- c("national", "urban", "rural")
@@ -270,7 +280,7 @@ st_save(
   alias = NULL
 )
 #> ✔ Saved [qs2] →
-#> /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2 @ version 84c1b84d4f34e99e
+#> /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2 @ version 82161d5a8e059054
 st_save(
   pop,
   "data/macro/population.qs2",
@@ -278,8 +288,8 @@ st_save(
   domain = "macro",
   alias = NULL
 )
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/data/macro/population.qs2 @ version
-#>   939469190133b9e0
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/data/macro/population.qs2 @ version
+#>   9101c1ecc1115371
 st_save(
   gdp,
   "data/macro/gdp.qs2",
@@ -288,19 +298,20 @@ st_save(
   alias = NULL
 )
 #> ✔ Saved [qs2] →
-#> /tmp/Rtmpkp7VL8/s/data/macro/gdp.qs2 @ version c9f7302f1f748a41
+#> /tmp/RtmpJwz2g5/s/data/macro/gdp.qs2 @ version d2e7fef42c3ccb04
 ```
 
 Version listing for CPI:
 
 ``` r
+
 print(st_versions("data/macro/cpi.qs2", alias = NULL))
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: 84c1b84d4f34e99e 1c398bd1fd68ed6e ab10c8111afe8e89      <NA>        879
+#> 1: 82161d5a8e059054 f7a1ee0a46346dc7 97a90050b6e325de      <NA>        879
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-26T15:11:50.017555Z           json
+#> 1: 2026-05-22T14:25:53.361669Z           json
 ```
 
 ### 3. Aggregation Function `foo()` and Output Table
@@ -310,6 +321,7 @@ merge with CPI, GDP, population. We demonstrate loading inputs inside
 the function for self-containment.
 
 ``` r
+
 foo <- function() {
   # Load all welfare micro artifacts (only recognized data files)
   welfare_files <- data_files("data/welfare")
@@ -367,15 +379,15 @@ foo <- function() {
 
 # Call foo() to compute summary (empty if no data found)
 summary_table <- foo()
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/population.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/population.qs2
 if (nrow(summary_table) > 0) {
   head(summary_table)
 } else {
@@ -405,6 +417,7 @@ Save the summary with lineage: parents include all welfare micro
 datasets plus CPI/GDP/population.
 
 ``` r
+
 # Only save summary if it has data (i.e., welfare data was available)
 if (nrow(summary_table) > 0) {
   parent_paths <- c(
@@ -429,8 +442,8 @@ if (nrow(summary_table) > 0) {
 } else {
   cat("Summary table is empty; skipping save and lineage demo.\n")
 }
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/outputs/welfare_summary.qs2 @ version
-#>   9dc5ed593d9759e0
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/outputs/welfare_summary.qs2 @ version
+#>   e53a99f7932df7d1
 #> [1] level          child_path     child_version  parent_path    parent_version
 #> <0 rows> (or 0-length row.names)
 ```
@@ -443,6 +456,7 @@ loads its own data, while `bar()` accepts pre-loaded objects and is
 saved with `code = bar`.
 
 ``` r
+
 # Variant that accepts loaded objects (preferred for testability and clarity)
 bar <- function(welfare_list, cpi_tbl, gdp_tbl, pop_tbl) {
   if (length(welfare_list) == 0) {
@@ -526,17 +540,17 @@ if (length(welfare_files) > 0) {
 } else {
   cat("No welfare data to process in bar-and-save example.\n")
 }
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/population.qs2
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/outputs/welfare_summary.qs2 @ version
-#>   0132754c6891a49f
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/population.qs2
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/outputs/welfare_summary.qs2 @ version
+#>   fbfbac0161495ae5
 #> [1] level          child_path     child_version  parent_path    parent_version
 #> <0 rows> (or 0-length row.names)
 ```
@@ -558,6 +572,7 @@ can detect changes in any contributor.
 Example pattern:
 
 ``` r
+
 # Provide multiple functions to st_save so code_hash changes if any of them change
 # st_save(x, path, code = list(foo = foo, helper1 = f1, helper2 = f2))
 ```
@@ -568,23 +583,24 @@ We change CPI for COL 2012 (all reporting levels) to illustrate a new
 version and stale downstream artifact.
 
 ``` r
+
 cpi2 <- st_load("data/macro/cpi.qs2", alias = NULL)
 #> ✔ Loaded [qs2] ←
-#> /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2
+#> /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2
 cpi2[country == "COL" & year == 2012, cpi := cpi * 1.05] # 5% adjustment
 st_save(cpi2, "data/macro/cpi.qs2", alias = NULL) # new version recorded
 #> ✔ Saved [qs2] →
-#> /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2 @ version a20600bff3e1ed27
+#> /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2 @ version 2c3ee783f2935153
 st_versions("data/macro/cpi.qs2", alias = NULL)[1:3]
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: a20600bff3e1ed27 1c398bd1fd68ed6e 27881beeed95e0ae      <NA>        895
-#> 2: 84c1b84d4f34e99e 1c398bd1fd68ed6e ab10c8111afe8e89      <NA>        879
+#> 1: 2c3ee783f2935153 f7a1ee0a46346dc7 ab235b2f3954e3cc      <NA>        898
+#> 2: 82161d5a8e059054 f7a1ee0a46346dc7 97a90050b6e325de      <NA>        879
 #> 3:             <NA>             <NA>             <NA>      <NA>         NA
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-26T15:11:51.206730Z           json
-#> 2: 2026-03-26T15:11:50.017555Z           json
+#> 1: 2026-05-22T14:25:54.405400Z           json
+#> 2: 2026-05-22T14:25:53.361669Z           json
 #> 3:                        <NA>           <NA>
 st_is_stale("outputs/welfare_summary.qs2") # should be TRUE
 #> [1] TRUE
@@ -660,6 +676,7 @@ Example builder that loads parents explicitly and returns multiple
 functions in `code`:
 
 ``` r
+
 # Example: register a builder that uses the provided `parents` list and avoids global loads
 st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
   # parents is a list of lists: each element has $path and $version_id
@@ -694,6 +711,7 @@ st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
 Inspect the plan before running it:
 
 ``` r
+
 plan <- st_plan_rebuild(
   targets = "outputs/welfare_summary.qs2",
   include_targets = TRUE,
@@ -701,18 +719,19 @@ plan <- st_plan_rebuild(
 )
 print(plan)
 #>   level                        path         reason latest_version_before
-#> 1     0 outputs/welfare_summary.qs2 parent_changed      0132754c6891a49f
+#> 1     0 outputs/welfare_summary.qs2 parent_changed      fbfbac0161495ae5
 ```
 
 Run the plan to execute the builders and record new versions:
 
 ``` r
+
 st_rebuild(plan)
 #> ✔ Rebuild level 0: 1 artifact
 #>   • outputs/welfare_summary.qs2 (parent_changed)
 #> Warning: FAILED: ✖ Absolute path
 #> /home/runner/work/stamp/stamp/vignettes/data/welfare/COL_2010.qs2 is not under
-#> alias root. ℹ Alias "default" root: /tmp/Rtmpkp7VL8/s ℹ Provide a relative path
+#> alias root. ℹ Alias "default" root: /tmp/RtmpJwz2g5/s ℹ Provide a relative path
 #> or an absolute path under the alias root.
 #> ✔ Rebuild summary
 #>   failed 1
@@ -727,6 +746,7 @@ changes for future incremental rebuilds.
 Plan & rebuild using a registered builder for the summary artifact.
 
 ``` r
+
 st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
   list(x = foo(), code = foo, code_label = "aggregate_welfare")
 })
@@ -740,22 +760,22 @@ plan <- st_plan_rebuild(
 )
 plan
 #>   level                        path         reason latest_version_before
-#> 1     0 outputs/welfare_summary.qs2 parent_changed      0132754c6891a49f
+#> 1     0 outputs/welfare_summary.qs2 parent_changed      fbfbac0161495ae5
 st_rebuild(plan)
 #> ✔ Rebuild level 0: 1 artifact
 #>   • outputs/welfare_summary.qs2 (parent_changed)
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/population.qs2
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/outputs/welfare_summary.qs2 @ version
-#>   5018efee88c4529e
-#> OK @ version 5018efee88c4529e
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/population.qs2
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/outputs/welfare_summary.qs2 @ version
+#>   17ecc6a962d930f5
+#> OK @ version 17ecc6a962d930f5
 #> ✔ Rebuild summary
 #>   built 1
 st_lineage("outputs/welfare_summary.qs2", depth = 1, alias = NULL)
@@ -769,6 +789,7 @@ We introduce a new welfare dataset (ARG 2015) which appears in macro
 tables already. Only the summary rows for ARG 2015 will be newly added.
 
 ``` r
+
 dt_arg_2015 <- simulate_welfare("ARG", 2015)
 st_save(
   dt_arg_2015,
@@ -777,8 +798,8 @@ st_save(
   domain = "welfare",
   alias = NULL
 )
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/data/welfare/ARG_2015.qs2 @ version
-#>   52e4d0becacac8c0
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/data/welfare/ARG_2015.qs2 @ version
+#>   66fb8869c6171826
 
 # Only recompute and save summary if we have welfare data
 if (length(data_files("data/welfare")) > 0 && nrow(summary_table) > 0) {
@@ -808,19 +829,19 @@ if (length(data_files("data/welfare")) > 0 && nrow(summary_table) > 0) {
 } else {
   cat("Insufficient data to recompute summary.\n")
 }
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/ARG_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/COL_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/COL_2012.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2010.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/MEX_2015.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2011.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/welfare/PRY_2014.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/gdp.qs2
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/data/macro/population.qs2
-#> ✔ Saved [qs2] → /tmp/Rtmpkp7VL8/s/outputs/welfare_summary.qs2 @ version
-#>   edc79c77d4aeb4a3
-#> ✔ Loaded [qs2] ← /tmp/Rtmpkp7VL8/s/outputs/welfare_summary.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/ARG_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/COL_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/COL_2012.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/MEX_2010.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/MEX_2015.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/PRY_2011.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/welfare/PRY_2014.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/gdp.qs2
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/data/macro/population.qs2
+#> ✔ Saved [qs2] → /tmp/RtmpJwz2g5/s/outputs/welfare_summary.qs2 @ version
+#>   5f008a15f5fa27ab
+#> ✔ Loaded [qs2] ← /tmp/RtmpJwz2g5/s/outputs/welfare_summary.qs2
 #>    country  year reporting_level welfare_mean welfare_median welfare_sd
 #>     <char> <int>          <char>        <num>          <num>      <num>
 #> 1:     ARG  2015        national     3.100148          2.510   1.700340
@@ -847,6 +868,7 @@ store partitions per `(country, year, reporting_level)` using
 and then recompute only the affected partitions when an input changes.
 
 ``` r
+
 # Write partitioned welfare (one partition per country/year/reporting_level)
 for (i in seq_len(nrow(welfare_specs))) {
   row <- welfare_specs[i, ]
@@ -865,35 +887,35 @@ for (i in seq_len(nrow(welfare_specs))) {
   }
 }
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
-#>   @ version a6f8aabb42a562c5
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=COL/reporting_level=urban/year=2010/part.qs2
+#>   @ version 28db8355a50291a5
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
-#>   @ version 1fee18866b9f4267
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=COL/reporting_level=rural/year=2010/part.qs2
+#>   @ version cb1e7f44e6c175b6
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
-#>   @ version d900ae84c8d19e4e
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=COL/reporting_level=urban/year=2012/part.qs2
+#>   @ version 31840ce54c6965eb
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
-#>   @ version faaaefe095601f20
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=COL/reporting_level=rural/year=2012/part.qs2
+#>   @ version 0a8a985399b73187
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2010/part.qs2
-#>   @ version 105fca303de8dfe7
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2010/part.qs2
+#>   @ version 177815651e05b5ab
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
-#>   @ version d972ba6cecffc38a
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2010/part.qs2
+#>   @ version 82e76d64bb8f3e6b
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2015/part.qs2
-#>   @ version 130b4fe91f058872
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=MEX/reporting_level=urban/year=2015/part.qs2
+#>   @ version f74fa0aa16007bb2
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
-#>   @ version 1f9829ca055bc4ef
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=MEX/reporting_level=rural/year=2015/part.qs2
+#>   @ version 39bf51dfe62fe85a
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=PRY/reporting_level=national/year=2011/part.qs2
-#>   @ version 9fcfc1e54893e9cd
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=PRY/reporting_level=national/year=2011/part.qs2
+#>   @ version caafcf8ff2f96a09
 #> ✔ Saved [qs2] →
-#>   /tmp/Rtmpkp7VL8/s/data/welfare_parts/country=PRY/reporting_level=national/year=2014/part.qs2
-#>   @ version e5902323deb8120c
+#>   /tmp/RtmpJwz2g5/s/data/welfare_parts/country=PRY/reporting_level=national/year=2014/part.qs2
+#>   @ version ea411c605fd6a591
 st_list_parts("data/welfare_parts")[1:6, ]
 #> [1] NA NA NA NA NA NA
 ```
@@ -904,6 +926,7 @@ depends on: the corresponding welfare partition + CPI + GDP + population
 (all three macro artifacts are shared parents).
 
 ``` r
+
 partition_keys <- st_list_parts("data/welfare_parts")
 
 build_partition_summary <- function(path, parents) {
@@ -981,6 +1004,7 @@ build_partition_summary <- function(path, parents) {
 ```
 
 ``` r
+
 # Populate outputs/summary_parts by running the builder for each welfare partition key
 summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
 for (i in seq_len(nrow(partition_keys))) {
@@ -1020,6 +1044,7 @@ for (i in seq_len(nrow(partition_keys))) {
 ```
 
 ``` r
+
 # List a few partitioned summary partitions
 st_list_parts("outputs/summary_parts")[1:6, ]
 #> [1] NA NA NA NA NA NA
@@ -1031,14 +1056,15 @@ If CPI changes only for COL 2012, we want to rebuild only partitions for
 COL 2012 across reporting levels.
 
 ``` r
+
 # Modify CPI again (COL 2012) to trigger staleness
 cpi3 <- st_load("data/macro/cpi.qs2", alias = NULL)
 #> ✔ Loaded [qs2] ←
-#> /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2
+#> /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2
 cpi3[country == "COL" & year == 2012, cpi := cpi * 1.02]
 st_save(cpi3, "data/macro/cpi.qs2", alias = NULL)
 #> ✔ Saved [qs2] →
-#> /tmp/Rtmpkp7VL8/s/data/macro/cpi.qs2 @ version 292f217fade8bb5f
+#> /tmp/RtmpJwz2g5/s/data/macro/cpi.qs2 @ version bdd0107ef4867a05
 
 # Detect which partition outputs are stale (simple check: those whose parent CPI version differs)
 summary_parts <- st_list_parts("outputs/summary_parts")
@@ -1050,6 +1076,7 @@ summary_parts[stale_idx, ]
 Rebuild only stale partitions (manually filtered):
 
 ``` r
+
 stale_paths <- summary_parts$path[stale_idx]
 summary_parts_dir <- fs::path(root_dir, "outputs", "summary_parts")
 for (p in stale_paths) {
@@ -1106,6 +1133,7 @@ We demonstrated:
 Explore lineage further:
 
 ``` r
+
 st_lineage("outputs/welfare_summary.qs2", depth = 2, alias = NULL)[1:10, ]
 #>      level child_path child_version parent_path parent_version
 #> NA      NA       <NA>          <NA>        <NA>           <NA>
@@ -1124,6 +1152,7 @@ st_lineage("outputs/welfare_summary.qs2", depth = 2, alias = NULL)[1:10, ]
 root directory and all its contents.**
 
 ``` r
+
 # Remove the temporary root used for vignette examples. Only run in a local
 # interactive session when you are sure you no longer need the temporary files.
 if (exists("root_dir") && fs::dir_exists(root_dir)) {

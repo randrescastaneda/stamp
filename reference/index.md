@@ -44,6 +44,8 @@
   : List versions for an artifact path
 - [`st_latest()`](https://randrescastaneda.github.io/stamp/reference/st_latest.md)
   : Get the latest version_id for an artifact path
+- [`st_catalog_query()`](https://randrescastaneda.github.io/stamp/reference/st_catalog_query.md)
+  : Query latest version metadata for all artifacts in an alias
 - [`st_prune_versions()`](https://randrescastaneda.github.io/stamp/reference/st_prune_versions.md)
   : Prune stored versions according to a retention policy
 - [`st_rebuild()`](https://randrescastaneda.github.io/stamp/reference/st_rebuild.md)

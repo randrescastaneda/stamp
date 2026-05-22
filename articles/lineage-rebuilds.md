@@ -1,6 +1,7 @@
 # Lineage and Rebuilds
 
 ``` r
+
 # Use development build when interactive *and* explicitly enabled via env var.
 dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 
@@ -60,6 +61,7 @@ preserving reproducible history once snapshots are written.
 ## Setup a tiny graph A → B(A) → C(B)
 
 ``` r
+
 st_opts_reset()
 st_opts(
   versioning = "content",
@@ -75,26 +77,29 @@ st_opts(
     ##   verify_on_load = "TRUE", meta_format = "both"
 
 ``` r
+
 root <- tempdir()
 st_init(root)
 ```
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpiHDvtL
-    ##   state: /tmp/RtmpiHDvtL/.stamp
+    ##   root: /tmp/Rtmp7NJjlm
+    ##   state: /tmp/Rtmp7NJjlm/.stamp
 
 ``` r
+
 # A
 pA <- "A.qs"
 xA <- data.frame(a = 1:3)
 st_save(xA, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpiHDvtL/A.qs @ version
-    ## 151db60671243730
+    ## ✔ Saved [qs2] → /tmp/Rtmp7NJjlm/A.qs @ version
+    ## 8536762347c62dd8
 
 ``` r
+
 # B depends on A
 pB <- "B.qs"
 xB <- transform(xA, b = a * 2)
@@ -107,10 +112,11 @@ st_save(
 )
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpiHDvtL/B.qs @ version
-    ## a55a155189b8331b
+    ## ✔ Saved [qs2] → /tmp/Rtmp7NJjlm/B.qs @ version
+    ## 3a36d2673c421c9b
 
 ``` r
+
 # C depends on B
 pC <- "C.qs"
 xC <- transform(xB, c = b + 1L)
@@ -123,8 +129,8 @@ st_save(
 )
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpiHDvtL/C.qs @ version
-    ## e23a9dfd1a1df30b
+    ## ✔ Saved [qs2] → /tmp/Rtmp7NJjlm/C.qs @ version
+    ## 2b0f1716a0455996
 
 Note: after these saves each artifact has a sidecar (in `stmeta/` next
 to the artifact) and snapshots in its own `versions/` directory
@@ -133,16 +139,18 @@ to the artifact) and snapshots in its own `versions/` directory
 ## Inspect lineage
 
 ``` r
+
 # Immediate children of A (depth 1)
 st_children(pA, depth = 1, alias = NULL)
 ```
 
     ##             child_path    child_version
-    ## 1 /tmp/RtmpiHDvtL/B.qs a55a155189b8331b
+    ## 1 /tmp/Rtmp7NJjlm/B.qs 3a36d2673c421c9b
     ##                                    parent_path   parent_version level
-    ## 1 /home/runner/work/stamp/stamp/vignettes/A.qs 151db60671243730     1
+    ## 1 /home/runner/work/stamp/stamp/vignettes/A.qs 8536762347c62dd8     1
 
 ``` r
+
 # Full lineage (parents of an artifact)
 st_lineage(pC, depth = Inf, alias = NULL)
 ```
@@ -153,15 +161,17 @@ st_lineage(pC, depth = Inf, alias = NULL)
 ## Make a change upstream & detect staleness
 
 ``` r
+
 # Change A → new version
 xA2 <- transform(xA, a = a + 10L)
 st_save(xA2, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpiHDvtL/A.qs @ version
-    ## e64db55f26396ca0
+    ## ✔ Saved [qs2] → /tmp/Rtmp7NJjlm/A.qs @ version
+    ## be967909e9f671f5
 
 ``` r
+
 # Strict staleness
 st_is_stale(pB) # TRUE (B's recorded A version is now old)
 ```
@@ -169,6 +179,7 @@ st_is_stale(pB) # TRUE (B's recorded A version is now old)
     ## [1] TRUE
 
 ``` r
+
 st_is_stale(pC) # FALSE (C points to B, which hasn't changed yet)
 ```
 
@@ -184,22 +195,24 @@ Two strategies:
   layers.
 
 ``` r
+
 # Strict: only B right now
 plan_strict <- st_plan_rebuild(pA, depth = Inf, mode = "strict")
 plan_strict
 ```
 
     ##   level                 path         reason latest_version_before
-    ## 1     1 /tmp/RtmpiHDvtL/B.qs parent_changed      a55a155189b8331b
+    ## 1     1 /tmp/Rtmp7NJjlm/B.qs parent_changed      3a36d2673c421c9b
 
 ``` r
+
 # Propagate: includes B (level 1) and C (level 2)
 plan <- st_plan_rebuild(pA, depth = Inf, mode = "propagate")
 plan
 ```
 
     ##   level                 path           reason latest_version_before
-    ## 1     1 /tmp/RtmpiHDvtL/B.qs upstream_changed      a55a155189b8331b
+    ## 1     1 /tmp/Rtmp7NJjlm/B.qs upstream_changed      3a36d2673c421c9b
 
 ## Register builders and rebuild in level order
 
@@ -208,6 +221,7 @@ parents. They receive `(path, parents)` and return a list with at least
 `x = <object>`.
 
 ``` r
+
 # Clear any previous registry
 st_clear_builders()
 ```
@@ -215,6 +229,7 @@ st_clear_builders()
     ## ✔ Cleared all registered builders
 
 ``` r
+
 # Register a builder for B: rebuild from A's committed version
 st_register_builder(pB, function(path, parents) {
   # parents is list(list(path=..., version_id=...))
@@ -230,6 +245,7 @@ st_register_builder(pB, function(path, parents) {
     ## ✔ Registered builder for B.qs (default)
 
 ``` r
+
 # Register a builder for C: rebuild from B's committed version
 st_register_builder(pC, function(path, parents) {
   B <- st_load_version(parents[[1]]$path, parents[[1]]$version_id, alias = NULL)
@@ -244,64 +260,71 @@ st_register_builder(pC, function(path, parents) {
     ## ✔ Registered builder for C.qs (default)
 
 ``` r
+
 # Dry run first (uses registered builders found by st_rebuild when rebuild_fun is NULL)
 st_rebuild(plan, dry_run = TRUE)
 ```
 
     ## ✔ Rebuild level 1: 1 artifact
-    ##   • /tmp/RtmpiHDvtL/B.qs (upstream_changed)
+    ##   • /tmp/Rtmp7NJjlm/B.qs (upstream_changed)
     ##   DRY RUN
     ## ✔ Rebuild summary
     ##   dry_run 1
 
 ``` r
+
 # Now actually rebuild (will use registered builders)
 res <- st_rebuild(plan, dry_run = FALSE)
 ```
 
     ## ✔ Rebuild level 1: 1 artifact
-    ##   • /tmp/RtmpiHDvtL/B.qs (upstream_changed)
+    ##   • /tmp/Rtmp7NJjlm/B.qs (upstream_changed)
 
-    ## Warning: FAILED: No builder registered for path: /tmp/RtmpiHDvtL/B.qs and no rebuild_fun
+    ## Warning: FAILED: No builder registered for path: /tmp/Rtmp7NJjlm/B.qs and no rebuild_fun
     ## provided.
 
     ## ✔ Rebuild summary
     ##   failed 1
 
 ``` r
+
 res
 ```
 
     ##   level                 path           reason status version_id
-    ## 1     1 /tmp/RtmpiHDvtL/B.qs upstream_changed failed       <NA>
+    ## 1     1 /tmp/Rtmp7NJjlm/B.qs upstream_changed failed       <NA>
     ##                                                                                 msg
-    ## 1 No builder registered for path: /tmp/RtmpiHDvtL/B.qs and no rebuild_fun provided.
+    ## 1 No builder registered for path: /tmp/Rtmp7NJjlm/B.qs and no rebuild_fun provided.
 
 After rebuilding B, **C** becomes strictly stale if **B** changes again
 later. You can re-plan from B to keep propagating:
 
 ``` r
+
 st_is_stale(pB)
 ```
 
     ## [1] TRUE
 
 ``` r
+
 st_is_stale(pC)
 ```
 
     ## [1] FALSE
 
 ``` r
+
 st_plan_rebuild(pB, depth = Inf, mode = "propagate")
 ```
 
     ##   level                 path           reason latest_version_before
-    ## 1     1 /tmp/RtmpiHDvtL/C.qs upstream_changed      e23a9dfd1a1df30b
+    ## 1     1 /tmp/Rtmp7NJjlm/C.qs upstream_changed      2b0f1716a0455996
 
 ## Inspect snapshots on disk
 
 ``` r
+
 vroot <- fs::path_dir(st_info(pA, alias = NULL)$sidecar$path)
 vroot <- fs::path(vroot, "versions")
 if (fs::dir_exists(vroot)) {
@@ -314,37 +337,38 @@ latest snapshot dir, plus parsed `parents.json` from the committed
 snapshot (if present).
 
 ``` r
+
 st_info(pC, alias = NULL)
 ```
 
     ## $sidecar
     ## $sidecar$path
-    ## [1] "/tmp/RtmpiHDvtL/C.qs"
+    ## [1] "/tmp/Rtmp7NJjlm/C.qs"
     ## 
     ## $sidecar$format
     ## [1] "qs2"
     ## 
     ## $sidecar$created_at
-    ## [1] "2026-03-26T15:11:15.101972Z"
+    ## [1] "2026-05-22T14:25:16.618548Z"
     ## 
     ## $sidecar$size_bytes
     ## [1] 270
     ## 
     ## $sidecar$content_hash
-    ## [1] "01d347cda2a82069"
+    ## [1] "21064f19f20ad042"
     ## 
     ## $sidecar$code_hash
     ## [1] "488e8fa49c740261"
     ## 
     ## $sidecar$file_hash
-    ## [1] "03d2de417ad967e5"
+    ## [1] "44efc1820f4e6b5f"
     ## 
     ## $sidecar$code_label
     ## NULL
     ## 
     ## $sidecar$parents
     ##   path       version_id
-    ## 1 B.qs a55a155189b8331b
+    ## 1 B.qs 3a36d2673c421c9b
     ## 
     ## $sidecar$attrs
     ## list()
@@ -352,14 +376,14 @@ st_info(pC, alias = NULL)
     ## 
     ## $catalog
     ## $catalog$latest_version_id
-    ## [1] "e23a9dfd1a1df30b"
+    ## [1] "2b0f1716a0455996"
     ## 
     ## $catalog$n_versions
     ## [1] 1
     ## 
     ## 
     ## $snapshot_dir
-    ## /tmp/RtmpiHDvtL/C.qs/versions/e23a9dfd1a1df30b
+    ## /tmp/Rtmp7NJjlm/C.qs/versions/2b0f1716a0455996
     ## 
     ## $parents
     ## $parents[[1]]
@@ -367,7 +391,7 @@ st_info(pC, alias = NULL)
     ## [1] "B.qs"
     ## 
     ## $parents[[1]]$version_id
-    ## [1] "a55a155189b8331b"
+    ## [1] "3a36d2673c421c9b"
 
 ### Takeaways
 

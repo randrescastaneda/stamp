@@ -1,6 +1,7 @@
 # Hashing, Change Detection and Versions
 
 ``` r
+
 # Use development build when interactive *and* explicitly enabled via env var.
 dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 
@@ -45,6 +46,7 @@ allows cheap “skip-on-equal” behavior for expensive workflows.
 ## Recommended options
 
 ``` r
+
 st_opts_reset()
 st_opts(
   versioning = "content", # skip write when content unchanged
@@ -62,16 +64,18 @@ st_opts(
 ## Save with hashes (and skip if content identical)
 
 ``` r
+
 root <- tempdir()
 st_init(root)
 ```
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/Rtmp1XZHDw
-    ##   state: /tmp/Rtmp1XZHDw/.stamp
+    ##   root: /tmp/RtmpYRC3Jf
+    ##   state: /tmp/RtmpYRC3Jf/.stamp
 
 ``` r
+
 p <- "demo.qs"
 x <- data.frame(a = 1:3)
 
@@ -79,18 +83,20 @@ x <- data.frame(a = 1:3)
 st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmp1XZHDw/demo.qs @
-    ## version c38511c2c7c36c23
+    ## ✔ Saved [qs2] → /tmp/RtmpYRC3Jf/demo.qs @
+    ## version 3d6fd5b4a9d925d2
 
 ``` r
+
 # Second write, same content & same code: skipped (no new version)
 st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
     ## ✔ Skip save (reason: no_change_policy) for
-    ## /tmp/Rtmp1XZHDw/demo.qs
+    ## /tmp/RtmpYRC3Jf/demo.qs
 
 ``` r
+
 nrow(st_versions(p, alias = NULL)) # should be 1
 ```
 
@@ -111,24 +117,27 @@ If you **change content** (or **change the code**), a new version is
 recorded:
 
 ``` r
+
 x2 <- transform(x, a = a + 1L)
 st_save(x2, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmp1XZHDw/demo.qs @
-    ## version e476f0b7e16506d6
+    ## ✔ Saved [qs2] → /tmp/RtmpYRC3Jf/demo.qs @
+    ## version e614673884333c64
 
 ``` r
+
 nrow(st_versions(p, alias = NULL)) # now 2
 ```
 
     ## [1] 2
 
 ``` r
+
 st_latest(p, alias = NULL) # latest version id (string)
 ```
 
-    ## [1] "e476f0b7e16506d6"
+    ## [1] "e614673884333c64"
 
 > **Policy:** By design, changing the `code=` you pass to
 > [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md)
@@ -150,6 +159,7 @@ A short practical pattern:
 ## Inspect sidecars & metadata
 
 ``` r
+
 meta <- st_read_sidecar(p, alias = NULL)
 meta[c(
   "format",
@@ -165,19 +175,19 @@ meta[c(
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2026-03-26T15:11:12.331954Z"
+    ## [1] "2026-05-22T14:25:13.903381Z"
     ## 
     ## $size_bytes
-    ## [1] 195
+    ## [1] 196
     ## 
     ## $content_hash
-    ## [1] "694bf98aa64b08e8"
+    ## [1] "e8a6f72f01ffa70e"
     ## 
     ## $code_hash
     ## [1] "488e8fa49c740261"
     ## 
     ## $file_hash
-    ## [1] "ec3079d483fd8561"
+    ## [1] "f65210107c092587"
 
 Explanation:
 
@@ -205,6 +215,7 @@ Use these **before** doing expensive work, to decide whether to
 recompute.
 
 ``` r
+
 x_same <- x2
 x_new <- transform(x2, a = a + 10L)
 
@@ -228,12 +239,14 @@ st_changed(p, x = x_same, code = function(z) z, alias = NULL)
     ## [1] FALSE
 
 ``` r
+
 st_changed_reason(p, x = x_same, code = function(z) z, alias = NULL) # "no_change"
 ```
 
     ## [1] "no_change"
 
 ``` r
+
 st_changed(p, x = x_new, code = function(z) z, alias = NULL)
 ```
 
@@ -254,12 +267,14 @@ st_changed(p, x = x_new, code = function(z) z, alias = NULL)
     ## [1] FALSE
 
 ``` r
+
 st_changed_reason(p, x = x_new, code = function(z) z, alias = NULL) # "content"
 ```
 
     ## [1] "content"
 
 ``` r
+
 st_should_save(p, x = x_same, code = function(z) z, alias = NULL) # recommends skip
 ```
 
@@ -270,6 +285,7 @@ st_should_save(p, x = x_same, code = function(z) z, alias = NULL) # recommends s
     ## [1] "no_change_policy"
 
 ``` r
+
 st_should_save(p, x = x_new, code = function(z) z, alias = NULL) # recommends save
 ```
 
@@ -289,6 +305,7 @@ inside functions that compute expensive results only when necessary:
 Example pattern inside your pipeline function:
 
 ``` r
+
 if (st_should_save(p, x = out, code = my_transform)$save) {
   st_save(out, p, code = my_transform)
 } else {
@@ -299,28 +316,31 @@ if (st_should_save(p, x = out, code = my_transform)$save) {
 ## Loading specific versions
 
 ``` r
+
 vids <- st_versions(p, alias = NULL)
 head(vids)
 ```
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: e476f0b7e16506d6 5f5e4d84cb120c6c 694bf98aa64b08e8 488e8fa49c740261
-    ## 2: c38511c2c7c36c23 5f5e4d84cb120c6c 7229a33b7831a015 488e8fa49c740261
+    ## 1: e614673884333c64 22be35af8266144b e8a6f72f01ffa70e 488e8fa49c740261
+    ## 2: 3d6fd5b4a9d925d2 22be35af8266144b 913f5bf52f2c0263 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        195 2026-03-26T15:11:12.331954Z           both
-    ## 2:        243 2026-03-26T15:11:12.181288Z           both
+    ## 1:        196 2026-05-22T14:25:13.903381Z           both
+    ## 2:        243 2026-05-22T14:25:13.754396Z           both
 
 ``` r
+
 vid_latest <- st_latest(p, alias = NULL)
 obj_latest <- st_load_version(p, vid_latest, alias = NULL)
 ```
 
-    ## ✔ Loaded ← demo.qs @ e476f0b7e16506d6
+    ## ✔ Loaded ← demo.qs @ e614673884333c64
     ## [qs2]
 
 ``` r
+
 # Load an older version by id
 if (nrow(vids) > 1L) {
   vid_old <- vids$version_id[[nrow(vids)]]
@@ -328,7 +348,7 @@ if (nrow(vids) > 1L) {
 }
 ```
 
-    ## ✔ Loaded ← demo.qs @ c38511c2c7c36c23
+    ## ✔ Loaded ← demo.qs @ 3d6fd5b4a9d925d2
     ## [qs2]
 
 [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md)
@@ -346,6 +366,7 @@ centralized in `.stamp/`. Each artifact manages its own version history.
 **Storage pattern:** `<root>/<path>/<filename>/versions/<version_id>/`
 
 ``` r
+
 p <- "demo.qs"
 x <- data.frame(a = 1:5)
 
@@ -353,10 +374,11 @@ x <- data.frame(a = 1:5)
 st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/Rtmp1XZHDw/demo.qs @
-    ## version 29a20babcccf8cef
+    ## ✔ Saved [qs2] → /tmp/RtmpYRC3Jf/demo.qs @
+    ## version c091732332bea382
 
 ``` r
+
 # Version history is stored next to the artifact
 info <- st_info(p, alias = NULL)
 artifact_dir <- fs::path_dir(info$sidecar$path)  # e.g., root/demo.qs/
@@ -395,13 +417,14 @@ recomputes the object’s hash and warns if it differs (indicating the
 file changed outside **stamp**).
 
 ``` r
+
 invisible(st_load(p, alias = NULL)) # triggers optional verify; warns on mismatch
 ```
 
-    ## Warning: No primary key recorded for /tmp/Rtmp1XZHDw/demo.qs.
+    ## Warning: No primary key recorded for /tmp/RtmpYRC3Jf/demo.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/Rtmp1XZHDw/demo.qs
+    ## ✔ Loaded [qs2] ← /tmp/RtmpYRC3Jf/demo.qs
 
 If `verify_on_load = TRUE`,
 [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)

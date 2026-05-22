@@ -4,6 +4,7 @@ A "builder" knows how to (re)create an artifact. It will be called by
 [`st_rebuild()`](https://randrescastaneda.github.io/stamp/reference/st_rebuild.md)
 as `fun(path, parents)` and must return a list:
 
+
       list(
         x = <object to save>,           # required
         format = NULL,                  # optional ("qs2", "rds", ...)

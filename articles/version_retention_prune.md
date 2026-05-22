@@ -1,6 +1,7 @@
 # Version Retention, Pruning, and Table Metadata
 
 ``` r
+
 # Use development build when interactive *and* explicitly enabled via env var.
 dev_mode <- (Sys.getenv("DEV_VIGNETTES", "false") == "true")
 
@@ -64,6 +65,7 @@ Key APIs:
 ## Minimal project scaffold (temp)
 
 ``` r
+
 root <- fs::path(tempdir(), "stamp-retention-example")
 if (fs::dir_exists(root)) {
   fs::dir_delete(root)
@@ -73,13 +75,14 @@ st_init(root)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpDwJ9ZC/stamp-retention-example
-    ##   state: /tmp/RtmpDwJ9ZC/stamp-retention-example/.stamp
+    ##   root: /tmp/Rtmp3nPsIC/stamp-retention-example
+    ##   state: /tmp/Rtmp3nPsIC/stamp-retention-example/.stamp
 
 We’ll create a few artifacts and multiple versions to demonstrate
 pruning:
 
 ``` r
+
 pA <- "A.qs"
 pB <- "B.qs"
 pC <- "C.qs"
@@ -101,50 +104,57 @@ st_opts(retain_versions = Inf)
     ##   retain_versions = "Inf"
 
 ``` r
+
 st_save(xA1, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs @ version
-    ##   f2338094b290c556
+    ## ✔ Saved [qs2] → /tmp/Rtmp3nPsIC/stamp-retention-example/A.qs @ version
+    ##   45b8280be2ccc790
 
 ``` r
+
 st_save(xA2, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs @ version
-    ##   75f706b0ba079862
+    ## ✔ Saved [qs2] → /tmp/Rtmp3nPsIC/stamp-retention-example/A.qs @ version
+    ##   c50cc77244e5f241
 
 ``` r
+
 st_save(xA3, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs @ version
-    ##   42fa63da04b9ffdd
+    ## ✔ Saved [qs2] → /tmp/Rtmp3nPsIC/stamp-retention-example/A.qs @ version
+    ##   d880595449068187
 
 ``` r
+
 st_save(xB1, pB, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/B.qs @ version
-    ##   17dfe2ab739b6b5f
+    ## ✔ Saved [qs2] → /tmp/Rtmp3nPsIC/stamp-retention-example/B.qs @ version
+    ##   6a33c1506fae6895
 
 ``` r
+
 st_save(xB2, pB, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/B.qs @ version
-    ##   b0b7e9949df14cb8
+    ## ✔ Saved [qs2] → /tmp/Rtmp3nPsIC/stamp-retention-example/B.qs @ version
+    ##   4ebfb3fb06177a93
 
 ``` r
+
 st_save(xC1, pC, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/C.qs @ version
-    ##   108f6e0294c39e42
+    ## ✔ Saved [qs2] → /tmp/Rtmp3nPsIC/stamp-retention-example/C.qs @ version
+    ##   061d9197f737b7d1
 
 Inspect store & catalog:
 
 ``` r
+
 # Show version directories for each artifact (now stored per-artifact)
 # Versions are stored in <artifact_folder>/versions/<version_id>/
 info_a <- st_info(pA, alias = NULL)
@@ -161,38 +171,40 @@ print(st_versions(pA, alias = NULL))
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: 42fa63da04b9ffdd bd0b02ace755848c 3ce405bf1f23cefb 488e8fa49c740261
-    ## 2: 75f706b0ba079862 bd0b02ace755848c 875724fc5cb911c8 488e8fa49c740261
-    ## 3: f2338094b290c556 bd0b02ace755848c 7229a33b7831a015 488e8fa49c740261
+    ## 1: d880595449068187 a55218221e01eab2 b3c012fc5cb6cfd5 488e8fa49c740261
+    ## 2: c50cc77244e5f241 a55218221e01eab2 2fa93012845f84ac 488e8fa49c740261
+    ## 3: 45b8280be2ccc790 a55218221e01eab2 913f5bf52f2c0263 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        243 2026-03-26T15:11:59.539449Z           json
-    ## 2:        243 2026-03-26T15:11:59.493942Z           json
-    ## 3:        243 2026-03-26T15:11:59.438707Z           json
+    ## 1:        243 2026-05-22T14:26:03.014530Z           json
+    ## 2:        243 2026-05-22T14:26:02.968149Z           json
+    ## 3:        243 2026-05-22T14:26:02.910279Z           json
 
 ``` r
+
 print(st_versions(pB, alias = NULL))
 ```
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: b0b7e9949df14cb8 0d3457a2d8b721b7 105c0530ccb60328 488e8fa49c740261
-    ## 2: 17dfe2ab739b6b5f 0d3457a2d8b721b7 de00ee09f95b2201 488e8fa49c740261
+    ## 1: 4ebfb3fb06177a93 1282351508383425 eecea3a9080f6878 488e8fa49c740261
+    ## 2: 6a33c1506fae6895 1282351508383425 241f6ccd5b268648 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        201 2026-03-26T15:11:59.608962Z           json
-    ## 2:        200 2026-03-26T15:11:59.572312Z           json
+    ## 1:        199 2026-05-22T14:26:03.085866Z           json
+    ## 2:        202 2026-05-22T14:26:03.048031Z           json
 
 ``` r
+
 print(st_versions(pC, alias = NULL))
 ```
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: 108f6e0294c39e42 fb2291981bd777cc 6fb46c89c5ce61c9 488e8fa49c740261
+    ## 1: 061d9197f737b7d1 f3087ae60cdc7820 c3b7f066d3ee5e84 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        243 2026-03-26T15:11:59.641848Z           json
+    ## 1:        243 2026-05-22T14:26:03.119914Z           json
 
 ------------------------------------------------------------------------
 
@@ -205,6 +217,7 @@ occasional housekeeping, or when you don’t wire auto-retention into
 ### Keep the **n latest** for a specific artifact
 
 ``` r
+
 # Dry run (safe preview)
 st_prune_versions(path = pA, policy = 2, dry_run = TRUE, alias = NULL)
 ```
@@ -213,6 +226,7 @@ st_prune_versions(path = pA, policy = 2, dry_run = TRUE, alias = NULL)
     ##   Estimated space reclaimed: ~243 bytes
 
 ``` r
+
 # Apply pruning
 repA <- st_prune_versions(path = pA, policy = 2, dry_run = FALSE, alias = NULL)
 repA
@@ -220,12 +234,13 @@ repA
 
     ##         artifact_id                                artifact_path
     ##              <char>                                       <char>
-    ## 1: bd0b02ace755848c /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs
+    ## 1: a55218221e01eab2 /tmp/Rtmp3nPsIC/stamp-retention-example/A.qs
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: f2338094b290c556 2026-03-26T15:11:59.438707Z        243
+    ## 1: 45b8280be2ccc790 2026-05-22T14:26:02.910279Z        243
 
 ``` r
+
 nrow(st_versions(pA, alias = NULL)) # <= 2; latest always protected
 ```
 
@@ -239,6 +254,7 @@ plan in CI logs for audit.
 ### Keep by **recency window** across the entire catalog
 
 ``` r
+
 # Keep anything from the last 14 days; preview first
 st_prune_versions(policy = list(days = 14), dry_run = TRUE, alias = NULL)
 ```
@@ -247,6 +263,7 @@ st_prune_versions(policy = list(days = 14), dry_run = TRUE, alias = NULL)
     ##   Estimated space reclaimed: ~243 bytes
 
 ``` r
+
 # Apply
 repAll <- st_prune_versions(policy = list(days = 14), alias = NULL)
 ```
@@ -255,19 +272,21 @@ repAll <- st_prune_versions(policy = list(days = 14), alias = NULL)
     ##   Estimated space reclaimed: ~243 bytes
 
 ``` r
+
 head(repAll)
 ```
 
     ##         artifact_id                                artifact_path
     ##              <char>                                       <char>
-    ## 1: bd0b02ace755848c /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs
+    ## 1: a55218221e01eab2 /tmp/Rtmp3nPsIC/stamp-retention-example/A.qs
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: 75f706b0ba079862 2026-03-26T15:11:59.493942Z        243
+    ## 1: c50cc77244e5f241 2026-05-22T14:26:02.968149Z        243
 
 ### Combine **count + recency** (union semantics)
 
 ``` r
+
 # Keep last 2 versions OR any version created within 7 days
 st_prune_versions(policy = list(n = 2, days = 7), alias = NULL)
 ```
@@ -298,6 +317,7 @@ If you call an internal `.st_apply_retention()` at the end of
 you can choose a global policy and stop thinking about it:
 
 ``` r
+
 # Keep only the latest 2 versions per artifact going forward
 st_opts(retain_versions = 2)
 ```
@@ -306,15 +326,17 @@ st_opts(retain_versions = 2)
     ##   retain_versions = "2"
 
 ``` r
+
 # New save writes + immediate prune
 xA4 <- data.frame(a = 4:6)
 st_save(xA4, pA, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/A.qs @ version
-    ##   f3f936445a6212ea
+    ## ✔ Saved [qs2] → /tmp/Rtmp3nPsIC/stamp-retention-example/A.qs @ version
+    ##   a850eeb4bf4f7d32
 
 ``` r
+
 nrow(st_versions(pA, alias = NULL)) # <= 2
 ```
 
@@ -334,6 +356,7 @@ or have an approval step before destructive pruning.
 Disable auto-pruning:
 
 ``` r
+
 st_opts(retain_versions = Inf) # keep all versions
 ```
 
@@ -355,6 +378,7 @@ This improves join safety, reproducibility, and downstream tooling
 ### Record PK at save time (recommended)
 
 ``` r
+
 pop <- data.frame(
   country = c("PER", "PER", "COL"),
   year = c(2023, 2024, 2023),
@@ -370,8 +394,8 @@ p_pop <- "inputs/population.qs"
 st_save(pop, p_pop, pk = c("country", "year", "reporting_level"), alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/population.qs @
-    ##   version 13c736b701a7dd56
+    ## ✔ Saved [qs2] → /tmp/Rtmp3nPsIC/stamp-retention-example/inputs/population.qs @
+    ##   version deb6b6ea9cbc0bb6
 
 **Effects**
 
@@ -384,19 +408,21 @@ st_save(pop, p_pop, pk = c("country", "year", "reporting_level"), alias = NULL)
 ### Inspect / repair PK later
 
 ``` r
+
 st_inspect_pk(p_pop) # read PK from sidecar
 ```
 
     ## [1] "country"         "year"            "reporting_level"
 
 ``` r
+
 # If an older artifact lacks PK or you need to repair metadata, use:
 st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
 ```
 
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
-    ## ✔ Loaded [qs2] ← /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/population.qs
+    ## ✔ Loaded [qs2] ← /tmp/Rtmp3nPsIC/stamp-retention-example/inputs/population.qs
     ## ✔ Recorded primary key for inputs/population.qs --> country, year,
     ##   reporting_level
     ## ✔ stamp options updated
@@ -405,13 +431,15 @@ st_add_pk(p_pop, keys = c("country", "year", "reporting_level"))
 ### Load-time behavior & options
 
 ``` r
+
 obj <- st_load(p_pop, alias = NULL)
 ```
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/population.qs
+    ## /tmp/Rtmp3nPsIC/stamp-retention-example/inputs/population.qs
 
 ``` r
+
 attr(obj, "stamp_pk") # keys attached on load
 ```
 
@@ -421,18 +449,21 @@ attr(obj, "stamp_pk") # keys attached on load
 Missing PK policy:
 
 ``` r
+
 st_opts("require_pk_on_load", .get = TRUE) # default FALSE
 ```
 
     ## [1] FALSE
 
 ``` r
+
 st_opts("warn_missing_pk_on_load", .get = TRUE) # default TRUE
 ```
 
     ## [1] TRUE
 
 ``` r
+
 # CI: make PK presence a hard requirement
 st_opts(require_pk_on_load = TRUE, warn_missing_pk_on_load = FALSE)
 ```
@@ -443,6 +474,7 @@ st_opts(require_pk_on_load = TRUE, warn_missing_pk_on_load = FALSE)
 ### Why PKs matter (joins & merges)
 
 ``` r
+
 pop <- data.frame(
   country = c("PER", "MEX"),
   year = c(2023, 2022),
@@ -512,6 +544,7 @@ Every artifact has a JSON sidecar under sibling `stmeta/` with:
 Inspect:
 
 ``` r
+
 side <- st_read_sidecar(p_pop)
 names(side)
 ```
@@ -521,6 +554,7 @@ names(side)
     ## [11] "pk"
 
 ``` r
+
 side$pk
 ```
 
@@ -545,6 +579,7 @@ the partition helpers. Layout:
 ### Create partitions & save parts
 
 ``` r
+
 base <- "inputs/country_year"
 
 # Paths (order of keys doesn't matter; normalized internally)
@@ -569,10 +604,11 @@ st_save_part(
 ```
 
     ## ✔ Saved [qs2] →
-    ##   /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
-    ##   @ version ce44c84cf8eac402
+    ##   /tmp/Rtmp3nPsIC/stamp-retention-example/inputs/country_year/country=PER/year=2023/part.qs2
+    ##   @ version 1b81971d08157d56
 
 ``` r
+
 st_save_part(
   mex_tbl,
   base,
@@ -583,8 +619,8 @@ st_save_part(
 ```
 
     ## ✔ Saved [qs2] →
-    ##   /tmp/RtmpDwJ9ZC/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
-    ##   @ version 62788b4c147b2398
+    ##   /tmp/Rtmp3nPsIC/stamp-retention-example/inputs/country_year/country=MEX/year=2022/part.qs2
+    ##   @ version 22b76a569a2b66d3
 
 > [`st_save_part()`](https://randrescastaneda.github.io/stamp/reference/st_save_part.md)
 > uses
@@ -595,6 +631,7 @@ st_save_part(
 ### Discover & load
 
 ``` r
+
 # List artifacts (sidecars under stmeta/ are ignored)
 st_list_parts(base)
 ```
@@ -603,6 +640,7 @@ st_list_parts(base)
     ## <0 rows> (or 0-length row.names)
 
 ``` r
+
 st_list_parts(base, filter = list(country = "PER"))
 ```
 
@@ -610,6 +648,7 @@ st_list_parts(base, filter = list(country = "PER"))
     ## <0 rows> (or 0-length row.names)
 
 ``` r
+
 # Bind rows (adds key columns as ordinary columns)
 all_parts <- st_load_parts(base, as = "rbind")
 all_parts
@@ -618,6 +657,7 @@ all_parts
     ## data frame with 0 columns and 0 rows
 
 ``` r
+
 # data.table option (if installed)
 if (requireNamespace("data.table", quietly = TRUE)) {
   dt <- st_load_parts(base, as = "dt")

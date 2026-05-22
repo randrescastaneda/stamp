@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>stamp • stamp</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="stamp">
 <meta name="description" content="Simple, opinionated disk I/O for data processing hashing.">
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">stamp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.11</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -151,44 +151,44 @@
 <col width="25%">
 <col width="25%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Extension</th>
 <th>Format</th>
 <th>Package Required</th>
 <th>Notes</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>.qs2</code></td>
 <td>qs2</td>
 <td><a href="https://github.com/qsbase/qs2" class="external-link">qs2</a></td>
 <td>New qs2 binary format (recommended for new projects)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>.qs</code></td>
 <td>qs</td>
 <td><code>{qs}</code></td>
 <td>Legacy qs binary format (deprecated; use <code>.qs2</code> instead)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>.rds</code></td>
 <td>rds</td>
 <td>(base R)</td>
 <td>R serialized format</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>.csv</code></td>
 <td>csv</td>
 <td><a href="https://r-datatable.com" class="external-link">data.table</a></td>
 <td>Comma-separated values</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>.fst</code></td>
 <td>fst</td>
 <td><a href="http://www.fstpackage.org" class="external-link">fst</a></td>
 <td>Fast columnar format</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>.json</code></td>
 <td>json</td>
 <td><a href="https://jeroen.r-universe.dev/jsonlite" class="external-link">jsonlite</a></td>
@@ -346,8 +346,8 @@
 </ul>
 </div>
 <div class="section level3">
-<h3 id="builders--rebuilds-️-experimental">Builders &amp; Rebuilds ⚠️ <em>Experimental</em>
-<a class="anchor" aria-label="anchor" href="#builders--rebuilds-%EF%B8%8F-experimental"></a>
+<h3 id="builders--rebuilds-warning-experimental">Builders &amp; Rebuilds ⚠️ <em>Experimental</em>
+<a class="anchor" aria-label="anchor" href="#builders--rebuilds-warning-experimental"></a>
 </h3>
 <blockquote>
 <p><strong>Note</strong>: The builder system is under active development. Safe for prototyping, but consider pinning your stamp version in production code until the API stabilizes (expected in v1.0).</p>
@@ -364,8 +364,8 @@
 </ul>
 </div>
 <div class="section level3">
-<h3 id="filtering-helpers-️-experimental">Filtering Helpers ⚠️ <em>Experimental</em>
-<a class="anchor" aria-label="anchor" href="#filtering-helpers-%EF%B8%8F-experimental"></a>
+<h3 id="filtering-helpers-warning-experimental">Filtering Helpers ⚠️ <em>Experimental</em>
+<a class="anchor" aria-label="anchor" href="#filtering-helpers-warning-experimental"></a>
 </h3>
 <blockquote>
 <p><strong>Note</strong>: Advanced filtering utilities are under development.</p>

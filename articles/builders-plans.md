@@ -6,6 +6,7 @@ rebuilds. It complements `vignettes/stamp.Rmd` by isolating patterns and
 best practices you should follow when registering programmatic targets.
 
 ``` r
+
 if (requireNamespace("pkgload", quietly = TRUE)) {
   pkgload::load_all(".")
 } else {
@@ -40,6 +41,7 @@ set.seed(123)
 ## Minimal example (single-target)
 
 ``` r
+
 # Suppose we have a summary target path
 summary_path <- "outputs/welfare_summary.qs2"
 
@@ -88,6 +90,7 @@ If your target depends on multiple functions (e.g. `bar()` calls helpers
 computes a combined hash that changes if any helper changes:
 
 ``` r
+
 # Good: include all contributing functions
 st_save(
   x,
@@ -120,6 +123,7 @@ Example: register a partitioned builder for per-key summaries
 (illustrative):
 
 ``` r
+
 summary_parts_dir <- "outputs/summary_parts"
 
 st_register_builder(
@@ -201,6 +205,7 @@ info. Inspect the plan and filter or reorder actions before calling
 Example (pseudo-inspection):
 
 ``` r
+
 plan <- st_plan_rebuild(targets = summary_path, include_targets = TRUE)
 # Show targets that are stale
 Filter(function(x) x$reason != "uptodate", plan)

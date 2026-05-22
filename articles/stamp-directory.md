@@ -39,6 +39,7 @@ The `.stamp/` directory is created when you call
 [`st_init()`](https://randrescastaneda.github.io/stamp/reference/st_init.md):
 
 ``` r
+
 # Create a temporary project directory for demonstration
 demo_dir <- fs::path_temp("stamp-demo")
 fs::dir_create(demo_dir)
@@ -47,12 +48,12 @@ fs::dir_create(demo_dir)
 st_init(demo_dir)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: /tmp/RtmpnBfUBS/stamp-demo
-#>   state: /tmp/RtmpnBfUBS/stamp-demo/.stamp
+#>   root: /tmp/RtmpS9exVj/stamp-demo
+#>   state: /tmp/RtmpS9exVj/stamp-demo/.stamp
 
 # Inspect what was created
 fs::dir_tree(fs::path(demo_dir, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpnBfUBS/stamp-demo/.stamp
+#> /tmp/RtmpS9exVj/stamp-demo/.stamp
 #> ├── logs
 #> └── temp
 ```
@@ -78,12 +79,13 @@ multiple times is **safe** and will **NOT** delete or overwrite existing
 version history.
 
 ``` r
+
 # Save an artifact to create version history
 test_data <- data.frame(x = 1:5, y = letters[1:5])
 test_path <- fs::path(demo_dir, "data", "test.qs2")
 st_save(test_data, test_path)
-#> ✔ Saved [qs2] → /tmp/RtmpnBfUBS/stamp-demo/data/test.qs2 @ version
-#>   f8556834bdf8a921
+#> ✔ Saved [qs2] → /tmp/RtmpS9exVj/stamp-demo/data/test.qs2 @ version
+#>   cd3ee1e8af84df99
 
 # Check versions exist
 versions_before <- st_versions(test_path)
@@ -94,8 +96,8 @@ nrow(versions_before)
 st_init(demo_dir)
 #> ✔ stamp initialized
 #>   alias: default
-#>   root: /tmp/RtmpnBfUBS/stamp-demo
-#>   state: /tmp/RtmpnBfUBS/stamp-demo/.stamp
+#>   root: /tmp/RtmpS9exVj/stamp-demo
+#>   state: /tmp/RtmpS9exVj/stamp-demo/.stamp
 
 # Version history is preserved
 versions_after <- st_versions(test_path)
@@ -165,6 +167,7 @@ versions. It’s a QS2-serialized list containing two `data.table`
 objects:
 
 ``` r
+
 catalog <- list(
   artifacts = data.table(
     artifact_id,          # Stable hash of normalized path
@@ -188,23 +191,24 @@ catalog <- list(
 **Key functions that read the catalog:**
 
 ``` r
+
 # List all versions of an artifact
 versions <- st_versions(test_path)
 str(versions)
 #> Classes 'data.table' and 'data.frame':   1 obs. of  7 variables:
-#>  $ version_id    : chr "f8556834bdf8a921"
-#>  $ artifact_id   : chr "486917715d2e3f28"
-#>  $ content_hash  : chr "9040023cdb48cf72"
+#>  $ version_id    : chr "cd3ee1e8af84df99"
+#>  $ artifact_id   : chr "9bc5e69f980f514a"
+#>  $ content_hash  : chr "3e2b32fce9a6a989"
 #>  $ code_hash     : chr NA
-#>  $ size_bytes    : num 262
-#>  $ created_at    : chr "2026-03-26T15:11:40.797267Z"
+#>  $ size_bytes    : num 263
+#>  $ created_at    : chr "2026-05-22T14:25:43.620914Z"
 #>  $ sidecar_format: chr "json"
-#>  - attr(*, ".internal.selfref")=<externalptr>
+#>  - attr(*, ".internal.selfref")=<pointer: 0x555e049f5ee0>
 
 # Get latest version ID
 latest_id <- st_latest(test_path)
 latest_id
-#> [1] "f8556834bdf8a921"
+#> [1] "cd3ee1e8af84df99"
 
 # Get comprehensive info (catalog + sidecar + snapshot location)
 info <- st_info(test_path)
@@ -212,7 +216,7 @@ str(info, max.level = 1)
 #> List of 4
 #>  $ sidecar     :List of 10
 #>  $ catalog     :List of 2
-#>  $ snapshot_dir: 'fs_path' chr "/tmp/RtmpnBfUBS/stamp-demo/data/test.qs2/versions/f8556834bdf8a921"
+#>  $ snapshot_dir: 'fs_path' chr "/tmp/RtmpS9exVj/stamp-demo/data/test.qs2/versions/cd3ee1e8af84df99"
 #>  $ parents     : list()
 ```
 
@@ -223,26 +227,27 @@ Each time you save an artifact (and versioning is enabled), a new
 the artifact itself**:
 
 ``` r
+
 # Save the same artifact multiple times with changes
 st_opts(versioning = "timestamp")  # ensure snapshots are created
 #> ✔ stamp options updated
 #>   versioning = "timestamp"
 v1 <- data.frame(x = 1:3)
 st_save(v1, test_path, code_label = "initial")
-#> ✔ Saved [qs2] → /tmp/RtmpnBfUBS/stamp-demo/data/test.qs2 @ version
-#>   1e27a75a358be89b
+#> ✔ Saved [qs2] → /tmp/RtmpS9exVj/stamp-demo/data/test.qs2 @ version
+#>   9a7caa02fc690451
 Sys.sleep(1.1)
 
 v2 <- data.frame(x = 1:5)
 st_save(v2, test_path, code_label = "added rows")
-#> ✔ Saved [qs2] → /tmp/RtmpnBfUBS/stamp-demo/data/test.qs2 @ version
-#>   cad8185a5021c16c
+#> ✔ Saved [qs2] → /tmp/RtmpS9exVj/stamp-demo/data/test.qs2 @ version
+#>   b8f01996ef4c2ab8
 Sys.sleep(1.1)
 
 v3 <- data.frame(x = 1:5, y = 10:14)
 st_save(v3, test_path, code_label = "added column")
-#> ✔ Saved [qs2] → /tmp/RtmpnBfUBS/stamp-demo/data/test.qs2 @ version
-#>   0e77785e4cfafc1e
+#> ✔ Saved [qs2] → /tmp/RtmpS9exVj/stamp-demo/data/test.qs2 @ version
+#>   168c6e597036f251
 
 # Version history is stored NEXT TO the artifact, not in .stamp/
 # Extract the artifact directory from sidecar info  
@@ -282,6 +287,7 @@ Each version snapshot (e.g.,
     specified)
 
 ``` r
+
 # Get the latest version directory path
 latest_info <- st_info(test_path)
 latest_vdir <- latest_info$snapshot_dir
@@ -301,12 +307,12 @@ if (!is.na(latest_vdir) && fs::dir_exists(latest_vdir)) {
 } else {
   cat("No snapshot directory recorded for test_path; ensure versioning created snapshots.\n")
 }
-#> Latest snapshot directory: /tmp/RtmpnBfUBS/stamp-demo/data/test.qs2/versions/0e77785e4cfafc1e 
+#> Latest snapshot directory: /tmp/RtmpS9exVj/stamp-demo/data/test.qs2/versions/168c6e597036f251 
 #> 
 #> List of 5
-#>  $ path      : chr "/tmp/RtmpnBfUBS/stamp-demo/data/test.qs2"
+#>  $ path      : chr "/tmp/RtmpS9exVj/stamp-demo/data/test.qs2"
 #>  $ format    : chr "qs2"
-#>  $ created_at: chr "2026-03-26T15:11:43.653054Z"
+#>  $ created_at: chr "2026-05-22T14:25:46.476443Z"
 #>  $ size_bytes: int 264
 #>  $ code_label: chr "added column"
 ```
@@ -317,6 +323,7 @@ Notice that the `parents.json` file is not present in the example above.
 This is because it is only created when parents are specified.
 
 ``` r
+
 # Ensure snapshots are recorded for this demo
 st_opts(versioning = "timestamp")
 #> ✔ stamp options updated
@@ -326,8 +333,8 @@ st_opts(versioning = "timestamp")
 upstream_path <- fs::path(demo_dir, "data", "upstream.qs2")
 upstream_data <- data.frame(id = 1:10, value = rnorm(10))
 st_save(upstream_data, upstream_path, code_label = "upstream data")
-#> ✔ Saved [qs2] → /tmp/RtmpnBfUBS/stamp-demo/data/upstream.qs2 @ version
-#>   c1e71f8c68a3eba9
+#> ✔ Saved [qs2] → /tmp/RtmpS9exVj/stamp-demo/data/upstream.qs2 @ version
+#>   b536658a70d585b4
 upstream_version <- st_latest(upstream_path)
 
 # Now create a derived artifact with parent reference
@@ -339,8 +346,8 @@ st_save(
   parents = list(list(path = upstream_path, version_id = upstream_version)),
   code_label = "derived from upstream"
 )
-#> ✔ Saved [qs2] → /tmp/RtmpnBfUBS/stamp-demo/data/derived.qs2 @ version
-#>   82fdb7056a25891a
+#> ✔ Saved [qs2] → /tmp/RtmpS9exVj/stamp-demo/data/derived.qs2 @ version
+#>   dac16dd3b2e673d8
 
 # Now check the derived artifact's snapshot - parents.json will be present
 derived_info <- st_info(derived_path)
@@ -361,8 +368,8 @@ if (!is.na(derived_vdir) && fs::dir_exists(derived_vdir)) {
 }
 #> List of 1
 #>  $ :List of 2
-#>   ..$ path      : chr "/tmp/RtmpnBfUBS/stamp-demo/data/upstream.qs2"
-#>   ..$ version_id: chr "c1e71f8c68a3eba9"
+#>   ..$ path      : chr "/tmp/RtmpS9exVj/stamp-demo/data/upstream.qs2"
+#>   ..$ version_id: chr "b536658a70d585b4"
 
 # Reset to default versioning for the remainder
 st_opts(versioning = "content")
@@ -409,6 +416,7 @@ This creates a predictable structure:
 #### Real-World Example
 
 ``` r
+
 # Save to a subdirectory path
 project_file <- fs::path(demo_dir, "outputs", "results.qs2")
 st_save(data.frame(x = 1:5), project_file)
@@ -433,6 +441,7 @@ st_save(data.frame(y = 6:10), bare_file)
 When you load, just use the original path you saved with:
 
 ``` r
+
 # Load using the same path you saved with
 data <- st_load("outputs/results.qs2")  # stamp finds outputs/results.qs2/results.qs2
 data <- st_load("summary.qs2")          # stamp finds summary.qs2/summary.qs2
@@ -535,6 +544,7 @@ Control versioning behavior with
 [`st_opts()`](https://randrescastaneda.github.io/stamp/reference/st_opts.md):
 
 ``` r
+
 # Show current versioning mode
 st_opts("versioning", .get = TRUE)
 #> [1] "content"
@@ -550,20 +560,20 @@ st_opts(versioning = "timestamp")
 #>   versioning = "timestamp"
 v_same <- data.frame(x = 1:3)
 st_save(v_same, test_path, code_label = "first")
-#> ✔ Saved [qs2] → /tmp/RtmpnBfUBS/stamp-demo/data/test.qs2 @ version
-#>   0fc58598bd71e590
+#> ✔ Saved [qs2] → /tmp/RtmpS9exVj/stamp-demo/data/test.qs2 @ version
+#>   7b7fd053f692c00d
 Sys.sleep(0.2)
 st_save(v_same, test_path, code_label = "second identical")  # Still creates version!
-#> ✔ Saved [qs2] → /tmp/RtmpnBfUBS/stamp-demo/data/test.qs2 @ version
-#>   4aaa70d8ec98a7fe
+#> ✔ Saved [qs2] → /tmp/RtmpS9exVj/stamp-demo/data/test.qs2 @ version
+#>   f0436e2e75d6017d
 
 # Check: two versions with identical content
 recent_versions <- st_versions(test_path)
 tail(recent_versions[, .(version_id, created_at, content_hash)], 2)
 #>          version_id                  created_at     content_hash
 #>              <char>                      <char>           <char>
-#> 1: 1e27a75a358be89b 2026-03-26T15:11:41.279623Z ba4fd22954011f11
-#> 2: f8556834bdf8a921 2026-03-26T15:11:40.797267Z 9040023cdb48cf72
+#> 1: 9a7caa02fc690451 2026-05-22T14:25:44.101646Z 70c7ead78549e2a2
+#> 2: cd3ee1e8af84df99 2026-05-22T14:25:43.620914Z 3e2b32fce9a6a989
 
 # Reset to default
 st_opts(versioning = "content")
@@ -583,6 +593,7 @@ These functions power the `.stamp/` infrastructure (from
 **Path and ID Management:**
 
 ``` r
+
 .st_norm_path(path)           # Normalize path to absolute canonical form
 .st_artifact_id(path)         # Compute stable hash identifier from path
 .st_root_dir()                # Get project root from st_init()
@@ -592,6 +603,7 @@ These functions power the `.stamp/` infrastructure (from
 **Catalog Operations:**
 
 ``` r
+
 .st_catalog_path()            # Path to catalog.qs2
 .st_catalog_read()            # Read catalog (or create empty if missing)
 .st_catalog_write(cat)        # Atomic catalog write with locking
@@ -601,6 +613,7 @@ These functions power the `.stamp/` infrastructure (from
 **Version Management:**
 
 ``` r
+
 .st_version_dir(rel_path, vid, alias)    # Compute specific version snapshot path
 .st_version_commit_files()    # Copy artifact + sidecars to snapshot
 .st_version_read_parents()    # Read parents.json from snapshot
@@ -630,6 +643,7 @@ process modifies the catalog at a time:
 This is implemented via a lock file (`.stamp/catalog.lock`):
 
 ``` r
+
 # Internal locking mechanism (simplified)
 .st_with_lock(path, {
   cat <- .st_catalog_read()     # Read catalog safely
@@ -693,6 +707,7 @@ fails entirely, with no in-between state visible to other processes.
 ### 5.1 User-Level Inspection
 
 ``` r
+
 # Ensure at least two versions exist for demonstration
 # Use explicit alias = NULL to auto-detect current alias
 versions <- st_versions(test_path, alias = NULL)
@@ -711,23 +726,23 @@ if (nrow(versions) < 2) {
 versions[, .(version_id, created_at, size_bytes)]
 #>          version_id                  created_at size_bytes
 #>              <char>                      <char>      <num>
-#> 1: 4aaa70d8ec98a7fe 2026-03-26T15:11:44.464526Z        243
-#> 2: 0fc58598bd71e590 2026-03-26T15:11:44.227235Z        243
-#> 3: 0e77785e4cfafc1e 2026-03-26T15:11:43.653054Z        264
-#> 4: cad8185a5021c16c 2026-03-26T15:11:42.511326Z        244
-#> 5: 1e27a75a358be89b 2026-03-26T15:11:41.279623Z        243
-#> 6: f8556834bdf8a921 2026-03-26T15:11:40.797267Z        262
+#> 1: f0436e2e75d6017d 2026-05-22T14:25:47.282592Z        243
+#> 2: 7b7fd053f692c00d 2026-05-22T14:25:47.041238Z        243
+#> 3: 168c6e597036f251 2026-05-22T14:25:46.476443Z        264
+#> 4: b8f01996ef4c2ab8 2026-05-22T14:25:45.337154Z        244
+#> 5: 9a7caa02fc690451 2026-05-22T14:25:44.101646Z        243
+#> 6: cd3ee1e8af84df99 2026-05-22T14:25:43.620914Z        263
 
 # Get comprehensive info
 info <- st_info(test_path)
 info$catalog      # Latest version and count
 #> $latest_version_id
-#> [1] "4aaa70d8ec98a7fe"
+#> [1] "f0436e2e75d6017d"
 #> 
 #> $n_versions
 #> [1] 6
 info$snapshot_dir # Path to latest snapshot
-#> /tmp/RtmpnBfUBS/stamp-demo/data/test.qs2/versions/4aaa70d8ec98a7fe
+#> /tmp/RtmpS9exVj/stamp-demo/data/test.qs2/versions/f0436e2e75d6017d
 
 # Load a specific historical version (previous), safely
 if (nrow(versions) > 1) {
@@ -738,7 +753,7 @@ if (nrow(versions) > 1) {
     cat("Previous version not available; skipping load.\n")
   }
 }
-#> ✔ Loaded ← data/test.qs2 @ 0fc58598bd71e590
+#> ✔ Loaded ← data/test.qs2 @ 7b7fd053f692c00d
 #> [qs2]
 #> 'data.frame':    3 obs. of  1 variable:
 #>  $ x: int  1 2 3
@@ -747,6 +762,7 @@ if (nrow(versions) > 1) {
 ### 5.2 Direct Catalog Access (Advanced)
 
 ``` r
+
 # NOT recommended for users, but useful for debugging
 catalog_path <- fs::path(demo_dir, ".stamp", "catalog.qs2")
 if (fs::file_exists(catalog_path)) {
@@ -763,6 +779,7 @@ if (fs::file_exists(catalog_path)) {
 ### 5.3 Exploring Snapshots
 
 ``` r
+
 # Get all version directories for an artifact
 # Version history is now stored NEXT TO the artifact, not in .stamp/
 info <- st_info(test_path, alias = NULL)
@@ -808,6 +825,7 @@ return empty results or error.
 **Diagnosis:**
 
 ``` r
+
 # Check if .stamp exists
 stamp_dir <- fs::path(demo_dir, ".stamp")
 fs::dir_exists(stamp_dir)
@@ -820,6 +838,7 @@ fs::file_exists(catalog_path)
 **Solution:**
 
 ``` r
+
 # Re-initialize (safe, won't delete existing data)
 st_init(demo_dir)
 
@@ -837,6 +856,7 @@ corruption.
 **Solution:**
 
 ``` r
+
 # Back up existing catalog
 backup_path <- fs::path(stamp_dir, "catalog_backup.qs2")
 fs::file_copy(catalog_path, backup_path, overwrite = TRUE)
@@ -855,6 +875,7 @@ fs::file_delete(catalog_path)
 **Diagnosis:**
 
 ``` r
+
 # Check total .stamp/ state size
 stamp_dir <- fs::path(demo_dir, ".stamp")
 info <- fs::dir_info(stamp_dir, recurse = TRUE)
@@ -876,6 +897,7 @@ if (nrow(version_files) > 0) {
 **Solution:**
 
 ``` r
+
 # Configure retention policy to auto-prune old versions
 st_opts(retention_policy = list(n = 10, days = 90))
 
@@ -897,6 +919,7 @@ for (aid in unique(catalog$versions$artifact_id)) {
 **Diagnosis:**
 
 ``` r
+
 # Check for invalid timestamps
 vers <- st_versions(test_path)
 bad_timestamps <- vers[is.na(created_at) | created_at == ""]
@@ -918,6 +941,7 @@ reading. If this happens frequently, check for:
 **Solution:**
 
 ``` r
+
 # Safe to delete if no stamp operations are running
 lock_file <- fs::path(stamp_dir, "catalog.lock")
 if (fs::file_exists(lock_file)) {
@@ -956,6 +980,7 @@ scattered throughout your project (e.g., `data/model.rds/versions/`,
 ### 7.2 Backup Strategy
 
 ``` r
+
 # Periodic catalog backup
 backup_dir <- fs::path(demo_dir, "_backups")
 fs::dir_create(backup_dir)

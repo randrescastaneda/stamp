@@ -9,6 +9,7 @@ You can install the development version of stamp from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("randrescastaneda/stamp")
 ```
@@ -16,6 +17,7 @@ devtools::install_github("randrescastaneda/stamp")
 ## Quickstart
 
 ``` r
+
 library(stamp)
 root <- "demo_stamp"
 st_init(root)
@@ -78,14 +80,14 @@ See the vignette “Using Aliases with stamp” for a comprehensive guide:
 `stamp` supports multiple serialization formats. The two binary formats
 have distinct implementations:
 
-| Extension | Format | Package Required                                   | Notes                                                    |
-|-----------|--------|----------------------------------------------------|----------------------------------------------------------|
-| `.qs2`    | qs2    | [qs2](https://github.com/qsbase/qs2)               | New qs2 binary format (recommended for new projects)     |
-| `.qs`     | qs     | `{qs}`                                             | Legacy qs binary format (deprecated; use `.qs2` instead) |
-| `.rds`    | rds    | (base R)                                           | R serialized format                                      |
-| `.csv`    | csv    | [data.table](https://r-datatable.com)              | Comma-separated values                                   |
-| `.fst`    | fst    | [fst](http://www.fstpackage.org)                   | Fast columnar format                                     |
-| `.json`   | json   | [jsonlite](https://jeroen.r-universe.dev/jsonlite) | JSON format                                              |
+| Extension | Format | Package Required | Notes |
+|----|----|----|----|
+| `.qs2` | qs2 | [qs2](https://github.com/qsbase/qs2) | New qs2 binary format (recommended for new projects) |
+| `.qs` | qs | `{qs}` | Legacy qs binary format (deprecated; use `.qs2` instead) |
+| `.rds` | rds | (base R) | R serialized format |
+| `.csv` | csv | [data.table](https://r-datatable.com) | Comma-separated values |
+| `.fst` | fst | [fst](http://www.fstpackage.org) | Fast columnar format |
+| `.json` | json | [jsonlite](https://jeroen.r-universe.dev/jsonlite) | JSON format |
 
 **Important**: `.qs` and `.qs2` are **different formats** and require
 their respective packages. There is no automatic fallback between them.
@@ -102,6 +104,7 @@ a clear error message.
 ### Installing Format Packages
 
 ``` r
+
 # For qs2 format support
 install.packages("qs2")
 
@@ -114,6 +117,7 @@ install.packages("fst")
 `stamp` infers format from file extension by default:
 
 ``` r
+
 # Uses qs2 format (requires {qs2})
 st_save(data, "output.qs2")
 
@@ -124,6 +128,7 @@ st_save(data, "output.rds")
 You can also specify format explicitly:
 
 ``` r
+
 st_save(data, "output", format = "qs2")
 ```
 
@@ -308,6 +313,8 @@ For detailed guides and workflows, see the package vignettes:
   : List versions for an artifact path
 - [`st_latest()`](https://randrescastaneda.github.io/stamp/reference/st_latest.md)
   : Get the latest version_id for an artifact path
+- [`st_catalog_query()`](https://randrescastaneda.github.io/stamp/reference/st_catalog_query.md)
+  : Query latest version metadata for all artifacts in an alias
 - [`st_prune_versions()`](https://randrescastaneda.github.io/stamp/reference/st_prune_versions.md)
   : Prune stored versions according to a retention policy
 - [`st_rebuild()`](https://randrescastaneda.github.io/stamp/reference/st_rebuild.md)
