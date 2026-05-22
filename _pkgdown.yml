@@ -47,6 +47,7 @@ reference:
       - st_hash_obj
       - st_versions
       - st_latest
+      - st_catalog_query
       - st_prune_versions
       - st_rebuild
       - st_plan_rebuild
