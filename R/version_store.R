@@ -1289,14 +1289,11 @@ st_catalog_query <- function(alias = NULL) {
     cat$artifacts,
     on = .(version_id = latest_version_id),
     nomatch = 0L,
-    .(
-      path = i.path,
-      version_id,
-      content_hash,
-      code_hash,
-      size_bytes,
-      created_at
-    )
+    c(
+      list(path = i.path),
+      .SD
+    ),
+    .SDcols = c("version_id", "content_hash", "code_hash", "size_bytes", "created_at")
   ]
 
   # Integrity check: every artifact must resolve to a version row.
