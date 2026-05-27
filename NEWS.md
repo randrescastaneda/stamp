@@ -1,3 +1,13 @@
+# stamp 0.0.11
+
+## New Functions
+* **NEW**: `st_catalog_query()` — query latest version metadata for all artifacts in an alias
+  - Returns a `data.table` with one row per artifact (latest version only): `path`, `version_id`, `content_hash`, `code_hash`, `size_bytes`, `created_at`
+  - Replaces the need to iterate individually over artifact paths to build a catalog snapshot
+  - Returns an empty `data.table` with the correct schema when the catalog has no artifacts
+  - Validates that every artifact resolves to a version row; aborts with a repair hint on catalog corruption
+  - Uninitialised alias aborts immediately with a clear `st_init()` hint
+
 # stamp 0.0.10
 
 ## Bug Fixes

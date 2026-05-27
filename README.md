@@ -40,7 +40,7 @@ x <- data.frame(id = 1:3, val = letters[1:3])
 st_save(x, p, pk = "id")
 #> ✔ Saved [qs2] →
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
-#>   e1575878e6d298ea
+#>   fe96c5094580f3ee
 y <- st_load(p)
 #> ✔ Loaded [qs2] ←
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2'
@@ -48,10 +48,10 @@ vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      <NA>        296
+#> 1: fe96c5094580f3ee c124606df64bb597 cdbe771e53841cf7      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-02T20:26:58.905735Z           json
+#> 1: 2026-05-22T14:28:45.244959Z           json
 
 # Retention
 st_opts(retain_versions = 2)
@@ -61,17 +61,17 @@ st_save(transform(x, val = toupper(val)), p)
 #> ✔ Retention policy matched zero versions; nothing to prune.
 #> ✔ Saved [qs2] →
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
-#>   3021cb6f8ea6cb18
+#>   d6da4e4d812f536e
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: 3021cb6f8ea6cb18 c124606df64bb597 d2b54b7e265bb11f      <NA>        263
-#> 2: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      <NA>        296
+#> 1: d6da4e4d812f536e c124606df64bb597 d2b54b7e265bb11f      <NA>        263
+#> 2: fe96c5094580f3ee c124606df64bb597 cdbe771e53841cf7      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-03-02T20:26:59.062988Z           json
-#> 2: 2026-03-02T20:26:58.905735Z           json
+#> 1: 2026-05-22T14:28:45.408255Z           json
+#> 2: 2026-05-22T14:28:45.244959Z           json
 ```
 
 ## Managing Multiple Stamp Folders with Aliases
@@ -180,6 +180,15 @@ covered in the [vignettes](#learn-more).
   that depend on this artifact
 - **`st_is_stale(path)`** - Check if an artifact needs rebuilding
   because parents changed
+
+### Catalog Queries
+
+- **`st_catalog_query(alias = NULL)`** - Return a `data.table` with the
+  latest version metadata for every artifact in a catalog — one row per
+  artifact (`path`, `version_id`, `content_hash`, `code_hash`,
+  `size_bytes`, `created_at`). Useful for downstream consumers that need
+  a snapshot of all tracked artifacts without iterating over individual
+  paths.
 
 ### Metadata & Inspection
 

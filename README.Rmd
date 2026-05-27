@@ -155,6 +155,10 @@ The functions below are organized by workflow. **New users** should start with *
 - **`st_children(path, depth = 1)`** - Show child artifacts (outputs) that depend on this artifact
 - **`st_is_stale(path)`** - Check if an artifact needs rebuilding because parents changed
 
+### Catalog Queries
+
+- **`st_catalog_query(alias = NULL)`** - Return a `data.table` with the latest version metadata for every artifact in a catalog — one row per artifact (`path`, `version_id`, `content_hash`, `code_hash`, `size_bytes`, `created_at`). Useful for downstream consumers that need a snapshot of all tracked artifacts without iterating over individual paths.
+
 ### Metadata & Inspection
 
 - **`st_info(path)`** - Get comprehensive artifact information (sidecar, catalog, snapshot location, parents)
