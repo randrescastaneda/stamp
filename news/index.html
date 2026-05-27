@@ -48,6 +48,21 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.11" id="stamp-0011">stamp 0.0.11<a class="anchor" aria-label="anchor" href="#stamp-0011"></a></h2>
+<div class="section level3">
+<h3 id="new-functions-0-0-11">New Functions<a class="anchor" aria-label="anchor" href="#new-functions-0-0-11"></a></h3>
+<ul><li>
+<strong>NEW</strong>: <code><a href="../reference/st_catalog_query.html">st_catalog_query()</a></code> — query latest version metadata for all artifacts in an alias
+<ul><li>Returns a <code>data.table</code> with one row per artifact (latest version only): <code>path</code>, <code>version_id</code>, <code>content_hash</code>, <code>code_hash</code>, <code>size_bytes</code>, <code>created_at</code>
+</li>
+<li>Replaces the need to iterate individually over artifact paths to build a catalog snapshot</li>
+<li>Returns an empty <code>data.table</code> with the correct schema when the catalog has no artifacts</li>
+<li>Validates that every artifact resolves to a version row; aborts with a repair hint on catalog corruption</li>
+<li>Uninitialised alias aborts immediately with a clear <code><a href="../reference/st_init.html">st_init()</a></code> hint</li>
+</ul></li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.10" id="stamp-0010">stamp 0.0.10<a class="anchor" aria-label="anchor" href="#stamp-0010"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-0-0-10">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-0-10"></a></h3>

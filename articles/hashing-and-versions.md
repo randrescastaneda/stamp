@@ -71,8 +71,8 @@ st_init(root)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpYRC3Jf
-    ##   state: /tmp/RtmpYRC3Jf/.stamp
+    ##   root: /tmp/Rtmp5fImdI
+    ##   state: /tmp/Rtmp5fImdI/.stamp
 
 ``` r
 
@@ -83,8 +83,8 @@ x <- data.frame(a = 1:3)
 st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpYRC3Jf/demo.qs @
-    ## version 3d6fd5b4a9d925d2
+    ## ✔ Saved [qs2] → /tmp/Rtmp5fImdI/demo.qs @
+    ## version 6d4bf8b26ca4ba6e
 
 ``` r
 
@@ -93,7 +93,7 @@ st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
     ## ✔ Skip save (reason: no_change_policy) for
-    ## /tmp/RtmpYRC3Jf/demo.qs
+    ## /tmp/Rtmp5fImdI/demo.qs
 
 ``` r
 
@@ -122,8 +122,8 @@ x2 <- transform(x, a = a + 1L)
 st_save(x2, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpYRC3Jf/demo.qs @
-    ## version e614673884333c64
+    ## ✔ Saved [qs2] → /tmp/Rtmp5fImdI/demo.qs @
+    ## version 235ee9846e8e8d1e
 
 ``` r
 
@@ -137,7 +137,7 @@ nrow(st_versions(p, alias = NULL)) # now 2
 st_latest(p, alias = NULL) # latest version id (string)
 ```
 
-    ## [1] "e614673884333c64"
+    ## [1] "235ee9846e8e8d1e"
 
 > **Policy:** By design, changing the `code=` you pass to
 > [`st_save()`](https://randrescastaneda.github.io/stamp/reference/st_save.md)
@@ -175,7 +175,7 @@ meta[c(
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2026-05-22T14:25:13.903381Z"
+    ## [1] "2026-05-27T07:43:07.655461Z"
     ## 
     ## $size_bytes
     ## [1] 196
@@ -323,12 +323,12 @@ head(vids)
 
     ##          version_id      artifact_id     content_hash        code_hash
     ##              <char>           <char>           <char>           <char>
-    ## 1: e614673884333c64 22be35af8266144b e8a6f72f01ffa70e 488e8fa49c740261
-    ## 2: 3d6fd5b4a9d925d2 22be35af8266144b 913f5bf52f2c0263 488e8fa49c740261
+    ## 1: 235ee9846e8e8d1e b6b7f4eaf8d3b3de e8a6f72f01ffa70e 488e8fa49c740261
+    ## 2: 6d4bf8b26ca4ba6e b6b7f4eaf8d3b3de 913f5bf52f2c0263 488e8fa49c740261
     ##    size_bytes                  created_at sidecar_format
     ##         <num>                      <char>         <char>
-    ## 1:        196 2026-05-22T14:25:13.903381Z           both
-    ## 2:        243 2026-05-22T14:25:13.754396Z           both
+    ## 1:        196 2026-05-27T07:43:07.655461Z           both
+    ## 2:        243 2026-05-27T07:43:07.509155Z           both
 
 ``` r
 
@@ -336,7 +336,7 @@ vid_latest <- st_latest(p, alias = NULL)
 obj_latest <- st_load_version(p, vid_latest, alias = NULL)
 ```
 
-    ## ✔ Loaded ← demo.qs @ e614673884333c64
+    ## ✔ Loaded ← demo.qs @ 235ee9846e8e8d1e
     ## [qs2]
 
 ``` r
@@ -348,7 +348,7 @@ if (nrow(vids) > 1L) {
 }
 ```
 
-    ## ✔ Loaded ← demo.qs @ 3d6fd5b4a9d925d2
+    ## ✔ Loaded ← demo.qs @ 6d4bf8b26ca4ba6e
     ## [qs2]
 
 [`st_versions()`](https://randrescastaneda.github.io/stamp/reference/st_versions.md)
@@ -374,8 +374,8 @@ x <- data.frame(a = 1:5)
 st_save(x, p, code = function(z) z, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpYRC3Jf/demo.qs @
-    ## version c091732332bea382
+    ## ✔ Saved [qs2] → /tmp/Rtmp5fImdI/demo.qs @
+    ## version fb8dd45cccb3d88e
 
 ``` r
 
@@ -421,10 +421,10 @@ file changed outside **stamp**).
 invisible(st_load(p, alias = NULL)) # triggers optional verify; warns on mismatch
 ```
 
-    ## Warning: No primary key recorded for /tmp/RtmpYRC3Jf/demo.qs.
+    ## Warning: No primary key recorded for /tmp/Rtmp5fImdI/demo.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/RtmpYRC3Jf/demo.qs
+    ## ✔ Loaded [qs2] ← /tmp/Rtmp5fImdI/demo.qs
 
 If `verify_on_load = TRUE`,
 [`st_load()`](https://randrescastaneda.github.io/stamp/reference/st_load.md)

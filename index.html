@@ -96,7 +96,7 @@
 <span><span class="fu"><a href="reference/st_save.html">st_save</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">p</span>, pk <span class="op">=</span> <span class="st">"id"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ Saved [qs2] →</span></span>
 <span><span class="co">#&gt;   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version</span></span>
-<span><span class="co">#&gt;   e1575878e6d298ea</span></span>
+<span><span class="co">#&gt;   fe96c5094580f3ee</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_load.html">st_load</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔ Loaded [qs2] ←</span></span>
 <span><span class="co">#&gt;   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2'</span></span>
@@ -104,10 +104,10 @@
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">vrs</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          version_id      artifact_id     content_hash code_hash size_bytes</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;    &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      &lt;NA&gt;        296</span></span>
+<span><span class="co">#&gt; 1: fe96c5094580f3ee c124606df64bb597 cdbe771e53841cf7      &lt;NA&gt;        296</span></span>
 <span><span class="co">#&gt;                     created_at sidecar_format</span></span>
 <span><span class="co">#&gt;                         &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1: 2026-03-02T20:26:58.905735Z           json</span></span>
+<span><span class="co">#&gt; 1: 2026-05-22T14:28:45.244959Z           json</span></span>
 <span></span>
 <span><span class="co"># Retention</span></span>
 <span><span class="fu"><a href="reference/st_opts.html">st_opts</a></span><span class="op">(</span>retain_versions <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -117,17 +117,17 @@
 <span><span class="co">#&gt; ✔ Retention policy matched zero versions; nothing to prune.</span></span>
 <span><span class="co">#&gt; ✔ Saved [qs2] →</span></span>
 <span><span class="co">#&gt;   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version</span></span>
-<span><span class="co">#&gt;   3021cb6f8ea6cb18</span></span>
+<span><span class="co">#&gt;   d6da4e4d812f536e</span></span>
 <span><span class="va">vrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/st_versions.html">st_versions</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">vrs</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          version_id      artifact_id     content_hash code_hash size_bytes</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt;           &lt;char&gt;    &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: 3021cb6f8ea6cb18 c124606df64bb597 d2b54b7e265bb11f      &lt;NA&gt;        263</span></span>
-<span><span class="co">#&gt; 2: e1575878e6d298ea c124606df64bb597 cdbe771e53841cf7      &lt;NA&gt;        296</span></span>
+<span><span class="co">#&gt; 1: d6da4e4d812f536e c124606df64bb597 d2b54b7e265bb11f      &lt;NA&gt;        263</span></span>
+<span><span class="co">#&gt; 2: fe96c5094580f3ee c124606df64bb597 cdbe771e53841cf7      &lt;NA&gt;        296</span></span>
 <span><span class="co">#&gt;                     created_at sidecar_format</span></span>
 <span><span class="co">#&gt;                         &lt;char&gt;         &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1: 2026-03-02T20:26:59.062988Z           json</span></span>
-<span><span class="co">#&gt; 2: 2026-03-02T20:26:58.905735Z           json</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: 2026-05-22T14:28:45.408255Z           json</span></span>
+<span><span class="co">#&gt; 2: 2026-05-22T14:28:45.244959Z           json</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="managing-multiple-stamp-folders-with-aliases">Managing Multiple Stamp Folders with Aliases<a class="anchor" aria-label="anchor" href="#managing-multiple-stamp-folders-with-aliases"></a>
@@ -287,6 +287,14 @@
 <strong><code>st_children(path, depth = 1)</code></strong> - Show child artifacts (outputs) that depend on this artifact</li>
 <li>
 <strong><code>st_is_stale(path)</code></strong> - Check if an artifact needs rebuilding because parents changed</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="catalog-queries">Catalog Queries<a class="anchor" aria-label="anchor" href="#catalog-queries"></a>
+</h3>
+<ul>
+<li>
+<strong><code>st_catalog_query(alias = NULL)</code></strong> - Return a <code>data.table</code> with the latest version metadata for every artifact in a catalog — one row per artifact (<code>path</code>, <code>version_id</code>, <code>content_hash</code>, <code>code_hash</code>, <code>size_bytes</code>, <code>created_at</code>). Useful for downstream consumers that need a snapshot of all tracked artifacts without iterating over individual paths.</li>
 </ul>
 </div>
 <div class="section level3">

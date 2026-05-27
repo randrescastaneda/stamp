@@ -37,8 +37,8 @@ st_init(tdir)
 
     ## ✔ stamp initialized
     ##   alias: default
-    ##   root: /tmp/RtmpD62rrz/stamp-vignette
-    ##   state: /tmp/RtmpD62rrz/stamp-vignette/.stamp
+    ##   root: /tmp/RtmppjBFoq/stamp-vignette
+    ##   state: /tmp/RtmppjBFoq/stamp-vignette/.stamp
 
 ``` r
 
@@ -47,7 +47,7 @@ fs::path(tdir, ".stamp") |>
   fs::dir_tree(recurse = TRUE, all = TRUE)
 ```
 
-    ## /tmp/RtmpD62rrz/stamp-vignette/.stamp
+    ## /tmp/RtmppjBFoq/stamp-vignette/.stamp
     ## ├── logs
     ## └── temp
 
@@ -196,15 +196,15 @@ x <- data.frame(a = 1:3, b = letters[1:3])
 res <- st_save(x, "stamp-output/example.qs2", metadata = list(description = "toy"), alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpD62rrz/stamp-vignette/stamp-output/example.qs2 @
-    ##   version 3402f5087df9eb33
+    ## ✔ Saved [qs2] → /tmp/RtmppjBFoq/stamp-vignette/stamp-output/example.qs2 @
+    ##   version ab72e3ac76b9dc2a
 
 ``` r
 
 res$path
 ```
 
-    ## [1] "/tmp/RtmpD62rrz/stamp-vignette/stamp-output/example.qs2"
+    ## [1] "/tmp/RtmppjBFoq/stamp-vignette/stamp-output/example.qs2"
 
 ``` r
 
@@ -213,7 +213,7 @@ artifact_dir <- fs::path_dir(res$path)
 fs::dir_tree(artifact_dir, recurse = 1)
 ```
 
-    ## /tmp/RtmpD62rrz/stamp-vignette/stamp-output
+    ## /tmp/RtmppjBFoq/stamp-vignette/stamp-output
     ## └── example.qs2
     ##     ├── example.qs2
     ##     ├── example.qs2.lock
@@ -227,11 +227,11 @@ y <- st_load("stamp-output/example.qs2", alias = NULL)
 ```
 
     ## Warning: No primary key recorded for
-    ## /tmp/RtmpD62rrz/stamp-vignette/stamp-output/example.qs2.
+    ## /tmp/RtmppjBFoq/stamp-vignette/stamp-output/example.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpD62rrz/stamp-vignette/stamp-output/example.qs2
+    ## /tmp/RtmppjBFoq/stamp-vignette/stamp-output/example.qs2
 
 ``` r
 
@@ -275,8 +275,8 @@ v1 <- data.frame(x = 1:3, y = c("a", "b", "c"))
 st_save(v1, v_path, code_label = "initial", alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpD62rrz/stamp-vignette/versioned.qs2 @ version
-    ##   2b1ed6f4f5fd3429
+    ## ✔ Saved [qs2] → /tmp/RtmppjBFoq/stamp-vignette/versioned.qs2 @ version
+    ##   08d8025c62ee125f
 
 ``` r
 
@@ -287,8 +287,8 @@ v2 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"))
 st_save(v2, v_path, code_label = "added rows", alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpD62rrz/stamp-vignette/versioned.qs2 @ version
-    ##   0f7dd3caf01ef355
+    ## ✔ Saved [qs2] → /tmp/RtmppjBFoq/stamp-vignette/versioned.qs2 @ version
+    ##   026d21cf64855c85
 
 ``` r
 
@@ -299,8 +299,8 @@ v3 <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"), z = 10:14)
 st_save(v3, v_path, code_label = "added column z", alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpD62rrz/stamp-vignette/versioned.qs2 @ version
-    ##   3f01e155adcdd681
+    ## ✔ Saved [qs2] → /tmp/RtmppjBFoq/stamp-vignette/versioned.qs2 @ version
+    ##   b0ef994047ae5fde
 
 ``` r
 
@@ -333,19 +333,19 @@ if (nrow(versions) == 0) {
 
     ##          version_id                  created_at size_bytes
     ##              <char>                      <char>      <num>
-    ## 1: 3f01e155adcdd681 2026-05-22T14:25:39.903587Z        286
-    ## 2: 0f7dd3caf01ef355 2026-05-22T14:25:38.733881Z        263
-    ## 3: 2b1ed6f4f5fd3429 2026-05-22T14:25:37.508034Z        256
+    ## 1: b0ef994047ae5fde 2026-05-27T07:43:32.553933Z        286
+    ## 2: 026d21cf64855c85 2026-05-27T07:43:31.385078Z        263
+    ## 3: 08d8025c62ee125f 2026-05-27T07:43:30.161299Z        256
 
-    ## Warning: No primary key recorded for /tmp/RtmpD62rrz/stamp-vignette/versioned.qs2.
+    ## Warning: No primary key recorded for /tmp/RtmppjBFoq/stamp-vignette/versioned.qs2.
     ## ℹ You can add one with `st_add_pk()`.
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpD62rrz/stamp-vignette/versioned.qs2
+    ## /tmp/RtmppjBFoq/stamp-vignette/versioned.qs2
 
     ## Current: 5 rows, 3 columns
 
-    ## ✔ Loaded ← versioned.qs2 @ 0f7dd3caf01ef355
+    ## ✔ Loaded ← versioned.qs2 @ 026d21cf64855c85
     ## [qs2]
 
     ## Previous (v-1): 5 rows, 2 columns
@@ -371,7 +371,7 @@ if (nrow(versions) == 0) {
   }
 ```
 
-    ## ✔ Loaded ← versioned.qs2 @ 2b1ed6f4f5fd3429
+    ## ✔ Loaded ← versioned.qs2 @ 08d8025c62ee125f
     ## [qs2]
 
 ``` r
@@ -396,7 +396,7 @@ if (nrow(versions) == 0) {
   )
 ```
 
-    ## ✔ Loaded ← versioned.qs2 @ 2b1ed6f4f5fd3429
+    ## ✔ Loaded ← versioned.qs2 @ 08d8025c62ee125f
     ## [qs2]
 
 ``` r
@@ -463,9 +463,9 @@ str(sc)
 ```
 
     ## List of 11
-    ##  $ path        : chr "/tmp/RtmpD62rrz/stamp-vignette/stamp-output/example.qs2"
+    ##  $ path        : chr "/tmp/RtmppjBFoq/stamp-vignette/stamp-output/example.qs2"
     ##  $ format      : chr "qs2"
-    ##  $ created_at  : chr "2026-05-22T14:25:37.206612Z"
+    ##  $ created_at  : chr "2026-05-27T07:43:29.858556Z"
     ##  $ size_bytes  : int 256
     ##  $ content_hash: chr "b2b061205873d828"
     ##  $ code_hash   : NULL
@@ -510,8 +510,8 @@ in_path <- "upstream.qs"
 st_save(data.frame(id=1:3), in_path, alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpD62rrz/stamp-vignette/upstream.qs @ version
-    ##   b759e675cabfc23d
+    ## ✔ Saved [qs2] → /tmp/RtmppjBFoq/stamp-vignette/upstream.qs @ version
+    ##   888b1a969e6ade28
 
 ``` r
 
@@ -523,8 +523,8 @@ parents <- list(list(path = in_path, version_id = in_vid))
 st_save(data.frame(id=1:3, v=10), out_path, parents = parents, code_label = "multiply", alias = NULL)
 ```
 
-    ## ✔ Saved [qs2] → /tmp/RtmpD62rrz/stamp-vignette/derived.qs @ version
-    ##   ee791c88f8750273
+    ## ✔ Saved [qs2] → /tmp/RtmppjBFoq/stamp-vignette/derived.qs @ version
+    ##   97403ec26252f559
 
 ``` r
 
@@ -532,13 +532,13 @@ st_info(out_path, alias = NULL)$sidecar
 ```
 
     ## $path
-    ## [1] "/tmp/RtmpD62rrz/stamp-vignette/derived.qs"
+    ## [1] "/tmp/RtmppjBFoq/stamp-vignette/derived.qs"
     ## 
     ## $format
     ## [1] "qs2"
     ## 
     ## $created_at
-    ## [1] "2026-05-22T14:25:40.392548Z"
+    ## [1] "2026-05-27T07:43:33.033990Z"
     ## 
     ## $size_bytes
     ## [1] 254
@@ -557,7 +557,7 @@ st_info(out_path, alias = NULL)$sidecar
     ## 
     ## $parents
     ##          path       version_id
-    ## 1 upstream.qs b759e675cabfc23d
+    ## 1 upstream.qs 888b1a969e6ade28
     ## 
     ## $attrs
     ## list()
@@ -602,10 +602,10 @@ st_add_pk(out_path, keys = c("id"))
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
 
-    ## Warning: No primary key recorded for /tmp/RtmpD62rrz/stamp-vignette/derived.qs.
+    ## Warning: No primary key recorded for /tmp/RtmppjBFoq/stamp-vignette/derived.qs.
     ## ℹ You can add one with `st_add_pk()`.
 
-    ## ✔ Loaded [qs2] ← /tmp/RtmpD62rrz/stamp-vignette/derived.qs
+    ## ✔ Loaded [qs2] ← /tmp/RtmppjBFoq/stamp-vignette/derived.qs
     ## ✔ Recorded primary key for derived.qs --> id
     ## ✔ stamp options updated
     ##   require_pk_on_load = "FALSE"
@@ -624,7 +624,7 @@ df <- st_load(out_path, alias = NULL)
 ```
 
     ## ✔ Loaded [qs2] ←
-    ## /tmp/RtmpD62rrz/stamp-vignette/derived.qs
+    ## /tmp/RtmppjBFoq/stamp-vignette/derived.qs
 
 ``` r
 

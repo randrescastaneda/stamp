@@ -38,21 +38,21 @@ root_b <- fs::path(tempdir(), "projB")
 st_init(root_a, alias = "A")
 #> ✔ stamp initialized
 #>   alias: A
-#>   root: /tmp/RtmpUGdM1Y/projA
-#>   state: /tmp/RtmpUGdM1Y/projA/.stamp
+#>   root: /tmp/RtmpteeVjj/projA
+#>   state: /tmp/RtmpteeVjj/projA/.stamp
 st_init(root_b, alias = "B")
 #> ✔ stamp initialized
 #>   alias: B
-#>   root: /tmp/RtmpUGdM1Y/projB
-#>   state: /tmp/RtmpUGdM1Y/projB/.stamp
+#>   root: /tmp/RtmpteeVjj/projB
+#>   state: /tmp/RtmpteeVjj/projB/.stamp
 
 # Inspect what was created
 fs::dir_tree(fs::path(root_a, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpUGdM1Y/projA/.stamp
+#> /tmp/RtmpteeVjj/projA/.stamp
 #> ├── logs
 #> └── temp
 fs::dir_tree(fs::path(root_b, ".stamp"), recurse = TRUE, all = TRUE)
-#> /tmp/RtmpUGdM1Y/projB/.stamp
+#> /tmp/RtmpteeVjj/projB/.stamp
 #> ├── logs
 #> └── temp
 ```
@@ -63,18 +63,18 @@ You can inspect registered aliases:
 
 st_alias_list()
 #>   alias                  root state_dir                   stamp_path
-#> 1     A /tmp/RtmpUGdM1Y/projA    .stamp /tmp/RtmpUGdM1Y/projA/.stamp
-#> 2     B /tmp/RtmpUGdM1Y/projB    .stamp /tmp/RtmpUGdM1Y/projB/.stamp
+#> 1     A /tmp/RtmpteeVjj/projA    .stamp /tmp/RtmpteeVjj/projA/.stamp
+#> 2     B /tmp/RtmpteeVjj/projB    .stamp /tmp/RtmpteeVjj/projB/.stamp
 # Get alias details
 st_alias_get("A")
 #> $root
-#> /tmp/RtmpUGdM1Y/projA
+#> /tmp/RtmpteeVjj/projA
 #> 
 #> $state_dir
 #> [1] ".stamp"
 #> 
 #> $stamp_path
-#> /tmp/RtmpUGdM1Y/projA/.stamp
+#> /tmp/RtmpteeVjj/projA/.stamp
 ```
 
 ## Saving and Loading with Aliases
@@ -89,11 +89,11 @@ pB <- fs::path(root_b, "data.qs")
 
 # Save different data to A and B to ensure versions are created
 st_save(data.frame(id = 1:2), pA, alias = "A")
-#> ✔ Saved [qs2] → /tmp/RtmpUGdM1Y/projA/data.qs @
-#> version ad531b00314cdd28
+#> ✔ Saved [qs2] → /tmp/RtmpteeVjj/projA/data.qs @
+#> version 598805353f65c87c
 st_save(data.frame(id = 3:4), pB, alias = "B")
-#> ✔ Saved [qs2] → /tmp/RtmpUGdM1Y/projB/data.qs @
-#> version 6b1605d4f091ca5b
+#> ✔ Saved [qs2] → /tmp/RtmpteeVjj/projB/data.qs @
+#> version 58d1528714afc43a
 
 # Each alias has its own version history
 st_versions(pA, alias = "A")
@@ -101,13 +101,13 @@ st_versions(pB, alias = "B")
 
 # Loading respects the alias
 objA <- st_load(pA, alias = "A")
-#> Warning: No primary key recorded for /tmp/RtmpUGdM1Y/projA/data.qs.
+#> Warning: No primary key recorded for /tmp/RtmpteeVjj/projA/data.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/RtmpUGdM1Y/projA/data.qs
+#> ✔ Loaded [qs2] ← /tmp/RtmpteeVjj/projA/data.qs
 objB <- st_load(pB, alias = "B")
-#> Warning: No primary key recorded for /tmp/RtmpUGdM1Y/projB/data.qs.
+#> Warning: No primary key recorded for /tmp/RtmpteeVjj/projB/data.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/RtmpUGdM1Y/projB/data.qs
+#> ✔ Loaded [qs2] ← /tmp/RtmpteeVjj/projB/data.qs
 list(A = objA, B = objB)
 #> $A
 #>   id
@@ -126,27 +126,27 @@ cat("\nStructure in root_a:\n")
 #> 
 #> Structure in root_a:
 fs::dir_tree(root_a, recurse = 2)
-#> /tmp/RtmpUGdM1Y/projA
+#> /tmp/RtmpteeVjj/projA
 #> └── data.qs
 #>     ├── data.qs
 #>     ├── data.qs.lock
 #>     ├── stmeta
 #>     │   └── data.qs.stmeta.json
 #>     └── versions
-#>         └── ad531b00314cdd28
+#>         └── 598805353f65c87c
 
 cat("\nStructure in root_b:\n")
 #> 
 #> Structure in root_b:
 fs::dir_tree(root_b, recurse = 2)
-#> /tmp/RtmpUGdM1Y/projB
+#> /tmp/RtmpteeVjj/projB
 #> └── data.qs
 #>     ├── data.qs
 #>     ├── data.qs.lock
 #>     ├── stmeta
 #>     │   └── data.qs.stmeta.json
 #>     └── versions
-#>         └── 6b1605d4f091ca5b
+#>         └── 58d1528714afc43a
 ```
 
 Version resolution is non-interactive. `NULL` or `0` resolve to the
@@ -156,13 +156,13 @@ latest version:
 
 # Load latest (using default version = NULL for latest)
 latestA <- st_load(pA, alias = "A")
-#> Warning: No primary key recorded for /tmp/RtmpUGdM1Y/projA/data.qs.
+#> Warning: No primary key recorded for /tmp/RtmpteeVjj/projA/data.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/RtmpUGdM1Y/projA/data.qs
+#> ✔ Loaded [qs2] ← /tmp/RtmpteeVjj/projA/data.qs
 latestB <- st_load(pB, alias = "B")
-#> Warning: No primary key recorded for /tmp/RtmpUGdM1Y/projB/data.qs.
+#> Warning: No primary key recorded for /tmp/RtmpteeVjj/projB/data.qs.
 #> ℹ You can add one with `st_add_pk()`.
-#> ✔ Loaded [qs2] ← /tmp/RtmpUGdM1Y/projB/data.qs
+#> ✔ Loaded [qs2] ← /tmp/RtmpteeVjj/projB/data.qs
 
 list(latestA = latestA, latestB = latestB)
 #> $latestA
@@ -189,8 +189,8 @@ st_switch("A")
 
 # Now calls without alias use whatever folder default points to
 st_save(data.frame(id = 5), fs::path(root_a, "more.qs"))
-#> ✔ Saved [qs2] → /tmp/RtmpUGdM1Y/projA/more.qs @
-#> version 81cb472269ee09fe
+#> ✔ Saved [qs2] → /tmp/RtmpteeVjj/projA/more.qs @
+#> version f25ae592545201cb
 ```
 
 ## Constraints and Conflicts
