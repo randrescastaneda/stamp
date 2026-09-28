@@ -29,6 +29,5 @@ test_vignettes_individual.R
 
 # Compound GPID local config (user-specific, never commit)
 compound-gpid.local.md
-# Compound GPID knowledge base (local thinking artifacts, typically not committed)
-.cg-docs/
+
 
