@@ -18,6 +18,6 @@ Character scalar path to the version directory, or NA if version_id is NA/empty.
 }
 \description{
 Compute the version directory path for a file.
-New structure: <data_folder>/<rel_path>/versions/<version_id>
+New structure: \verb{<data_folder>/<rel_path>/versions/<version_id>}
 }
 \keyword{internal}

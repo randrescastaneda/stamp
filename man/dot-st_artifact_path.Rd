@@ -18,12 +18,12 @@ Character scalar absolute path to the artifact file
 Returns the path where the actual user file will be stored.
 }
 \details{
-Structure: \if{html}{\out{<root>}}/<rel_path>/\if{html}{\out{<filename>}}
+Structure: \verb{<root>/<rel_path>/<filename>}
 
 Examples:
 \itemize{
-\item rel_path: "data.qs2" → artifact: \if{html}{\out{<root>}}/data.qs2/data.qs2
-\item rel_path: "dirA/file.qs" → artifact: \if{html}{\out{<root>}}/dirA/file.qs/file.qs
+\item rel_path: "data.qs2" → artifact: \verb{<root>/data.qs2/data.qs2}
+\item rel_path: "dirA/file.qs" → artifact: \verb{<root>/dirA/file.qs/file.qs}
 }
 }
 \keyword{internal}

@@ -25,7 +25,7 @@ st_changed(
 If \code{NULL}, uses "default" for backwards compatibility.}
 }
 \value{
-A list: list(changed = \if{html}{\out{<lgl>}}, reason = \if{html}{\out{<chr>}}, detail = \if{html}{\out{<named list>}})
+A list: \verb{list(changed = <lgl>, reason = <chr>, detail = <named list>)}
 }
 \description{
 Compares the \emph{current} object/code/file to the latest saved metadata

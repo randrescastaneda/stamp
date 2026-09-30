@@ -168,7 +168,7 @@
 #'
 #' @param base Character base directory (e.g., "data/users")
 #' @param key  Named list of scalar values, e.g. list(country="US", year=2025)
-#' @param file Optional filename (default "part.<ext>")
+#' @param file Optional filename (default `"part.<ext>"`)
 #' @param format Optional format (qs2|rds|csv|fst|json); default = stamp option
 #' @return Character file path to the partition artifact
 #' @export

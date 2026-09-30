@@ -11,6 +11,6 @@ Character scalar path to the catalog file.
 }
 \description{
 Return the path to the on-disk catalog file under the package state
-directory: \if{html}{\out{<root>}}/<state_dir>/catalog.qs2
+directory: \verb{<root>/<state_dir>/catalog.qs2}
 }
 \keyword{internal}

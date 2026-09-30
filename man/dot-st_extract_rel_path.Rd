@@ -18,6 +18,6 @@ Character relative path from root, or NULL if path not under root
 Given an absolute path under alias root, extract the relative path component.
 }
 \details{
-Structure: \if{html}{\out{<root>}}/<rel_path>/\if{html}{\out{<filename>}} or \if{html}{\out{<root>}}/<rel_path>/stmeta/... or \if{html}{\out{<root>}}/<rel_path>/versions/...
+Structure: \verb{<root>/<rel_path>/<filename>} or \verb{<root>/<rel_path>/stmeta/...} or \verb{<root>/<rel_path>/versions/...}
 }
 \keyword{internal}

@@ -17,7 +17,7 @@ st_should_save(path, x = NULL, code = NULL, alias = NULL)
 \item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
-list(save = \if{html}{\out{<lgl>}}, reason = \if{html}{\out{<chr>}}, latest_version_id = \if{html}{\out{<chr or NA>}})
+\verb{list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)}
 }
 \description{
 Decide if a save should proceed given current st_opts()

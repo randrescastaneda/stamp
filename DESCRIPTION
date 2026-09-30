@@ -1,8 +1,9 @@
 Package: stamp
-Title: Reproducible Artifact Store with Sidecars, Versions, and Partitions
-Description: Stamp saves R objects with sidecar metadata (hashes, 
-    provenance, PKs), keeps version history, prunes old versions, and 
-    supports Hive-style partitions.
+Title: Reproducible Artifact Store with Sidecars and Version History
+Description: Saves R objects with sidecar metadata (hashes, provenance,
+    primary keys), keeps an immutable version history, and prunes old
+    versions, so that analytical outputs remain traceable and
+    reproducible across sessions.
 Version: 0.0.11
 Authors@R: c(
     person("R.Andres", "Castaneda",
@@ -41,5 +42,5 @@ Suggests:
     covr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0

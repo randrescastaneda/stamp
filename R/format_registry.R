@@ -232,7 +232,7 @@ st_formats <- function() {
 #' Sidecar metadata path helper (internal)
 #'
 #' Build the path to a sidecar metadata file for a given relative path.
-#' New structure: <data_folder>/<rel_path>/stmeta/<filename>.stmeta.<ext>
+#' New structure: `<data_folder>/<rel_path>/stmeta/<filename>.stmeta.<ext>`
 #'
 #' @param rel_path Character relative path from alias root (includes filename).
 #' @param ext Character scalar extension for the sidecar (e.g. "json" or "qs2").

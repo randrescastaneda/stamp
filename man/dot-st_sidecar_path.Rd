@@ -18,6 +18,6 @@ Character scalar with the computed sidecar path.
 }
 \description{
 Build the path to a sidecar metadata file for a given relative path.
-New structure: <data_folder>/<rel_path>/stmeta/\if{html}{\out{<filename>}}.stmeta.\if{html}{\out{<ext>}}
+New structure: \verb{<data_folder>/<rel_path>/stmeta/<filename>.stmeta.<ext>}
 }
 \keyword{internal}

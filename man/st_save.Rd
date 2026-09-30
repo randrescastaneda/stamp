@@ -38,7 +38,7 @@ a parent of the path, otherwise an error is raised.
 \item{code}{Optional function/expression/character whose hash is stored as \code{code_hash}.}
 
 \item{parents}{Optional list of parent descriptors:
-list(list(path = "\if{html}{\out{<path>}}", version_id = "\if{html}{\out{<id>}}"), ...).}
+\code{list(list(path = "<path>", version_id = "<id>"), ...)}.}
 
 \item{code_label}{Optional short label/description of the producing code (for humans).}
 

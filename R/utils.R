@@ -32,11 +32,11 @@
 #' Given a relative path from alias root, compute the storage directory
 #' where the file, versions, and metadata will be stored.
 #'
-#' Structure: <root>/<rel_path>/
+#' Structure: `<root>/<rel_path>/`
 #'
 #' Examples:
-#'   - rel_path: "data.qs2" → storage: <root>/data.qs2/
-#'   - rel_path: "dirA/file.qs" → storage: <root>/dirA/file.qs/
+#'   - rel_path: "data.qs2" → storage: `<root>/data.qs2/`
+#'   - rel_path: "dirA/file.qs" → storage: `<root>/dirA/file.qs/`
 #'
 #' @param rel_path Character relative path from alias root (includes filename)
 #' @param alias Optional alias
@@ -65,11 +65,11 @@
 #'
 #' Returns the path where the actual user file will be stored.
 #'
-#' Structure: <root>/<rel_path>/<filename>
+#' Structure: `<root>/<rel_path>/<filename>`
 #'
 #' Examples:
-#'   - rel_path: "data.qs2" → artifact: <root>/data.qs2/data.qs2
-#'   - rel_path: "dirA/file.qs" → artifact: <root>/dirA/file.qs/file.qs
+#'   - rel_path: "data.qs2" → artifact: `<root>/data.qs2/data.qs2`
+#'   - rel_path: "dirA/file.qs" → artifact: `<root>/dirA/file.qs/file.qs`
 #'
 #' @param rel_path Character relative path from alias root
 #' @param alias Optional alias
@@ -85,7 +85,7 @@
 #'
 #' Given an absolute path under alias root, extract the relative path component.
 #'
-#' Structure: <root>/<rel_path>/<filename> or <root>/<rel_path>/stmeta/... or <root>/<rel_path>/versions/...
+#' Structure: `<root>/<rel_path>/<filename>` or `<root>/<rel_path>/stmeta/...` or `<root>/<rel_path>/versions/...`
 #'
 #' @param abs_path Character absolute path
 #' @param alias Optional alias
@@ -164,7 +164,7 @@
 #'
 #' **Return Structure:**
 #' - `logical_path`: The user's path relative to root (for catalog, API)
-#' - `storage_path`: Physical location where file lives (<root>/<rel_path>/<filename>)
+#' - `storage_path`: Physical location where file lives (`<root>/<rel_path>/<filename>`)
 #' - `rel_path`: Relative path from root (same as logical but may differ in format)
 #' - `alias`: The alias used
 #' - `is_absolute`: Whether user provided absolute path

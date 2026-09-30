@@ -5,43 +5,43 @@
       "id": "cran-v0-1-0-submission",
       "title": "CRAN v0.1.0 submission",
       "objective": "Get stamp accepted on CRAN with a clean R CMD check --as-cran, expecting only the 1 NOTE for \"New submission\" (scope decided in .cg-docs/brainstorms/2026-09-28-cran-release-without-partitions.md).",
-      "status": "planned",
+      "status": "in-progress",
       "features": [
         {
           "id": "unexport-partition-api",
           "title": "Unexport partition API",
-          "status": "planned",
-          "plan": null
+          "status": "active",
+          "plan": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md"
         },
         {
           "id": "fix-rbuildignore-gaps",
           "title": "Fix .Rbuildignore gaps",
-          "status": "planned",
-          "plan": null
+          "status": "active",
+          "plan": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md"
         },
         {
           "id": "rewrite-description-description",
           "title": "Rewrite DESCRIPTION Description",
-          "status": "planned",
-          "plan": null
+          "status": "active",
+          "plan": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md"
         },
         {
           "id": "fix-malformed-roxygen-in-version-store",
           "title": "Fix malformed roxygen in version_store.R",
-          "status": "planned",
-          "plan": null
+          "status": "active",
+          "plan": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md"
         },
         {
           "id": "escape-angle-brackets-in-roxygen",
           "title": "Escape angle brackets in roxygen",
-          "status": "planned",
-          "plan": null
+          "status": "active",
+          "plan": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md"
         },
         {
           "id": "install-tinytex-for-local-pdf-manual-check",
           "title": "Install TinyTeX for local PDF manual check",
-          "status": "planned",
-          "plan": null
+          "status": "active",
+          "plan": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md"
         }
       ]
     },

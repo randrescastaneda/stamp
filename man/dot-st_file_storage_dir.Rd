@@ -19,12 +19,12 @@ Given a relative path from alias root, compute the storage directory
 where the file, versions, and metadata will be stored.
 }
 \details{
-Structure: \if{html}{\out{<root>}}/<rel_path>/
+Structure: \verb{<root>/<rel_path>/}
 
 Examples:
 \itemize{
-\item rel_path: "data.qs2" → storage: \if{html}{\out{<root>}}/data.qs2/
-\item rel_path: "dirA/file.qs" → storage: \if{html}{\out{<root>}}/dirA/file.qs/
+\item rel_path: "data.qs2" → storage: \verb{<root>/data.qs2/}
+\item rel_path: "dirA/file.qs" → storage: \verb{<root>/dirA/file.qs/}
 }
 }
 \keyword{internal}

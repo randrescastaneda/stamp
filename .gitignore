@@ -20,6 +20,10 @@ test_vignettes_individual.R
 /doc/
 /Meta/
 
+# R CMD build / check artifacts
+*.Rcheck/
+*.tar.gz
+
 # Compound GPID managed items (junctions + copied file - do not commit)
 .github/prompts/
 .github/skills/

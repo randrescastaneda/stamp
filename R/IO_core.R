@@ -176,7 +176,7 @@ print.st_path <- function(x, ...) {
 #' @param metadata named list of extra metadata (merged into sidecar)
 #' @param code Optional function/expression/character whose hash is stored as `code_hash`.
 #' @param parents Optional list of parent descriptors:
-#'   list(list(path = "<path>", version_id = "<id>"), ...).
+#'   `list(list(path = "<path>", version_id = "<id>"), ...)`.
 #' @param code_label Optional short label/description of the producing code (for humans).
 #' @param pk optional character vector of primary-key columns (for tables)
 #' @param domain optional character scalar or vector label(s) for the dataset
@@ -742,8 +742,8 @@ st_switch <- function(alias) {
 #'
 #' @param file Character path to the artifact to restore. Can be:
 #'   \itemize{
-#'     \item Bare filename (e.g., "data.qs2") - stored in <root>/data.qs2/
-#'     \item Relative path with subdirs (e.g., "results/model.rds") - stored in <root>/results/model.rds/
+#'     \item Bare filename (e.g., "data.qs2") - stored in `<root>/data.qs2/`
+#'     \item Relative path with subdirs (e.g., "results/model.rds") - stored in `<root>/results/model.rds/`
 #'     \item Absolute path under project root - converted to relative for versioning
 #'   }
 #' @param version Version identifier to restore to. Can be:
@@ -946,7 +946,7 @@ st_changed_reason <- function(
 #' Uses versioning policy and code-change rule.
 #' @inheritParams st_changed
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#' @return list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)
+#' @return `list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)`
 #' @export
 # Returns list(save, reason)
 st_should_save <- function(path, x = NULL, code = NULL, alias = NULL) {

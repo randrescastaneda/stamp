@@ -43,7 +43,7 @@
 #' Absolute state directory path (internal)
 #'
 #' Compute the absolute path to the package state directory. This is
-#' constructed as <root>/<state_dir> where `root` is from
+#' constructed as `<root>/<state_dir>` where `root` is from
 #' `st_init()` and `state_dir` is an option stored in the package state.
 #'
 #' @return Character scalar absolute path to the state directory.
@@ -78,7 +78,7 @@
 #' Version directory for an artifact (internal)
 #'
 #' Compute the version directory path for a file.
-#' New structure: <data_folder>/<rel_path>/versions/<version_id>
+#' New structure: `<data_folder>/<rel_path>/versions/<version_id>`
 #'
 #' @param rel_path Relative path from alias root (includes filename).
 #' @param version_id Version identifier (character).
@@ -102,7 +102,7 @@
 #' Catalog file path (internal)
 #'
 #' Return the path to the on-disk catalog file under the package state
-#' directory: <root>/<state_dir>/catalog.qs2
+#' directory: `<root>/<state_dir>/catalog.qs2`
 #'
 #' @return Character scalar path to the catalog file.
 #' @keywords internal
@@ -731,8 +731,6 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 }
 
 #' Record a new version in the catalog (internal)
-#' @keywords internal
-#' Record a new version in the catalog (internal)
 #'
 #' Adds a new version row to the catalog for the given artifact, updating the artifact's
 #' latest version id and incrementing its version count. Uses a catalog-level lock to
@@ -746,7 +744,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' @param created_at Character ISO8601 timestamp of creation.
 #' @param sidecar_format Character sidecar format present ("json", "qs2", "both", "none").
 #' @return Character version id (SipHash of artifact id, hashes, timestamp).
-#' @keywords internal
+#' @noRd
 .st_catalog_record_version <- function(
   artifact_path,
   format,

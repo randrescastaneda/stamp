@@ -11,7 +11,7 @@ Character scalar absolute path to the state directory.
 }
 \description{
 Compute the absolute path to the package state directory. This is
-constructed as \if{html}{\out{<root>}}/<state_dir> where \code{root} is from
+constructed as \verb{<root>/<state_dir>} where \code{root} is from
 \code{st_init()} and \code{state_dir} is an option stored in the package state.
 }
 \keyword{internal}

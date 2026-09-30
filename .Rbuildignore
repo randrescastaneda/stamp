@@ -17,3 +17,9 @@
 ^build_vignettes\.R$
 ^\.current_task$
 ^\.cg-docs$
+^\.kilo$
+^\.quarto$
+^\.Rhistory$
+^roadmap\.json$
+^compound-gpid.*\.md$
+^dev$

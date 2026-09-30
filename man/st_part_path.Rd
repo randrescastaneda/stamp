@@ -11,7 +11,7 @@ st_part_path(base, key, file = NULL, format = NULL)
 
 \item{key}{Named list of scalar values, e.g. list(country="US", year=2025)}
 
-\item{file}{Optional filename (default "part.\if{html}{\out{<ext>}}")}
+\item{file}{Optional filename (default \code{"part.<ext>"})}
 
 \item{format}{Optional format (qs2|rds|csv|fst|json); default = stamp option}
 }
