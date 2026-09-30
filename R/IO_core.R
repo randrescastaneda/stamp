@@ -118,20 +118,18 @@ st_init <- function(
 
 # ---- st_path (S3-ish lightweight) -------------------------------------------
 
-#' Declare a path (with optional format & partition hint)
+#' Declare a path (with optional format)
 #' @param path file or directory path
 #' @param format optional explicit format ("qs2","rds","csv","fst","json")
-#' @param partition_key optional partition key (not used in M2)
 #' @return list with class 'st_path'
 #' @export
-st_path <- function(path, format = NULL, partition_key = NULL) {
+st_path <- function(path, format = NULL) {
   stopifnot(is.character(path), length(path) == 1L)
 
   structure(
     list(
       path = path,
-      format = format %||% .st_guess_format(path),
-      partition_key = partition_key
+      format = format %||% .st_guess_format(path)
     ),
     class = "st_path"
   )

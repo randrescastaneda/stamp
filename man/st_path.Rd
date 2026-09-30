@@ -2,20 +2,18 @@
 % Please edit documentation in R/IO_core.R
 \name{st_path}
 \alias{st_path}
-\title{Declare a path (with optional format & partition hint)}
+\title{Declare a path (with optional format)}
 \usage{
-st_path(path, format = NULL, partition_key = NULL)
+st_path(path, format = NULL)
 }
 \arguments{
 \item{path}{file or directory path}
 
 \item{format}{optional explicit format ("qs2","rds","csv","fst","json")}
-
-\item{partition_key}{optional partition key (not used in M2)}
 }
 \value{
 list with class 'st_path'
 }
 \description{
-Declare a path (with optional format & partition hint)
+Declare a path (with optional format)
 }

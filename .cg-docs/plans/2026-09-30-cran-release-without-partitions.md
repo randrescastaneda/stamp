@@ -9,8 +9,8 @@ estimated-effort: "medium"
 deviation-policy: "ask"
 artifact-schema-version: 1
 phases: 3
-completed-phases: [1]
-current-phase: 2
+completed-phases: [1, 2]
+current-phase: 3
 execution-report: ".cg-docs/work-reports/2026-09-30-cran-release-without-partitions.md"
 tags: [cran, release, api-surface, partitions, packaging, roxygen]
 ---

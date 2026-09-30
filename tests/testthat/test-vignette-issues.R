@@ -25,14 +25,14 @@ testthat::test_that("st_list_parts ignores sidecar/stmeta and returns partition 
   fs::dir_create(base)
 
   # write one partition
-  st_save_part(
+  stamp:::st_save_part(
     data.frame(x = 1),
     base,
     key = list(country = "COL", year = 2010, reporting_level = "urban"),
     pk = "x"
   )
 
-  parts <- st_list_parts(base)
+  parts <- stamp:::st_list_parts(base)
   testthat::expect_true(nrow(parts) >= 1)
   # ensure returned paths do not point into stmeta
   testthat::expect_false(any(grepl("/stmeta/", parts$path, fixed = TRUE)))
@@ -49,8 +49,8 @@ testthat::test_that("st_part_path and st_list_parts round-trip partition keys", 
   fs::dir_create(base)
   key <- list(country = "COL", year = 2010, reporting_level = "rural")
 
-  st_save_part(data.frame(x = 1), base, key = key, pk = "x")
-  listing <- st_list_parts(base)
+  stamp:::st_save_part(data.frame(x = 1), base, key = key, pk = "x")
+  listing <- stamp:::st_list_parts(base)
 
   testthat::expect_true(nrow(listing) >= 1)
   testthat::expect_true("country" %in% names(listing))
@@ -62,6 +62,6 @@ testthat::test_that("st_part_path and st_list_parts round-trip partition keys", 
 
 
 testthat::test_that("st_part_path rejects invalid partition keys", {
-  testthat::expect_error(st_part_path("/tmp", list(a = "bad/value")))
-  testthat::expect_error(st_part_path("/tmp", list(a = "bad=value")))
+  testthat::expect_error(stamp:::st_part_path("/tmp", list(a = "bad/value")))
+  testthat::expect_error(stamp:::st_part_path("/tmp", list(a = "bad=value")))
 })

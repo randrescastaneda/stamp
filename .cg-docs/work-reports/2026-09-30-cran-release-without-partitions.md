@@ -7,7 +7,7 @@ language: "R"
 review-mode: "manual"
 deviation-policy: "ask"
 phases-total: 3
-phases-completed: [1]
+phases-completed: [1, 2]
 ---
 
 # Execution Report
@@ -84,6 +84,79 @@ before submission.
 | `test-vignette-issues.R` | 11 | 0 | 0 |
 | `test-write-parts.R` | 21 | 0 | 5 |
 | **Suite total** | **394** | **0** | **7** |
+
+## Phase 2 — Unexport the partition API (steps 6–14)
+
+### Step log
+
+**6. Unexport the five partition functions.** Replaced `#' @export` with
+`#' @noRd` at `R/partitions.R` lines 174, 190, 265, 452, 593 (`st_part_path`,
+`st_save_part`, `st_write_parts`, `st_list_parts`, `st_load_parts`). Function
+bodies and `@examples` blocks untouched. `roxygen2::roxygenise()` rewrote
+`NAMESPACE` and deleted the five Rd files. **`git diff --stat NAMESPACE` →
+`5 deletions(-)`, zero insertions** — no Blocked-Stop.
+
+**7. Dropped `partition_key` from `st_path()`.** Removed the formal, its
+`@param`, and the returned list element in `R/IO_core.R`; retitled the block to
+"Declare a path (with optional format)". Verified by grep that every surviving
+`partition_key` reference in `R/` lives inside `st_write_parts()`'s manifest
+construction (lines 231, 323, 386, 408, 417), confirming the plan's finding that
+`test-write-parts.R:31` asserts on the manifest, not on `st_path()`.
+
+**8. `vignettes/stamp.Rmd`.** Deleted Section 6 (lines 577–784) including the
+`partition-save`, `partition-builder`, `partition-summary-build`,
+`partition-summary-list`, `partition-update-cpi` and `partition-rebuild-stale`
+chunks; removed outline item 6; removed the Section 7 summary bullet and
+renumbered `## 7. Summary` → `## 6. Summary`. Retained the
+`code_label = "aggregate_welfare_partitioned"` string literals in the Builders
+section per plan. Post-edit grep confirms sections 1–6 contiguous and no orphaned
+variables (`partition_keys`, `summary_parts`, `build_partition_summary` all gone).
+
+**9. `vignettes/version_retention_prune.Rmd`.** Four edits as specified: removed
+the `## Partitioned datasets (Hive-style)` section, the key-API bullet, the intro
+bullet, and the "Do partition helpers change how retention works?" FAQ entry.
+This vignette is evaluated, so these removals were load-bearing.
+
+**10. `vignettes/builders-plans.Rmd`.** Removed
+`## Partitioned targets and partial rebuilds` (lines 112–169) including the
+`partitioned-builder` chunk.
+
+**11. Relocated `vignettes/partitions.Rmd` → `dev/partitions.Rmd`** via `git mv`,
+with a "Parked, not shipped" note at the top. Deleted the stale untracked
+`doc/partitions.{html,R,Rmd}` build artifacts.
+
+**12. `_pkgdown.yml`.** Removed the five partition entries from "Core I/O" and
+the `partitions` article from "Advanced Usage". `pkgdown::check_pkgdown()` →
+**"No problems found."**
+
+**13. Partition tests rewritten to `stamp:::`.** All call sites prefixed across
+`test-partitions.R`, `test-vignette-issues.R` and `test-write-parts.R`.
+`test_that()` description strings left untouched. A regex sweep for unqualified
+calls across `tests/**` returns zero hits.
+
+**14. `README.Rmd` scrubbed and re-knitted.** Removed the tagline clause, the
+full "Partitions (under development)" chunk (fences included), the "advanced
+features like partitions" clause, the partition vignette link, and the partition
+parenthetical on `st_filter`. Converted "Partitioned and Pruning Data (under
+development)" to "Pruning Data", retaining `st_prune_versions`. **Also fixed two
+nonexistent exports** documented alongside the partition defects:
+`st_hash_code(code)` and `st_hash_file(path)` — `NAMESPACE` exports only
+`st_hash_obj`. Re-knitted to `README.md`.
+
+### Phase 2 evidence gate
+
+| ID | Result | Evidence |
+|----|--------|----------|
+| V1 | **PASS** | `Select-String -Path NAMESPACE -Pattern 'part'` → 0 matches |
+| V2 | **PASS** | `Get-ChildItem man -Filter '*part*'` → 0 files; roxygen reported deleting all five Rd files |
+| V3 | **PASS** | 9 / 11 / 21 per file; suite 394 passed, 0 failed, 7 skipped — **identical to baseline** |
+| V5 | **PASS** | Scan of `DESCRIPTION`, `README.md`, `_pkgdown.yml`, `vignettes/*.Rmd`, `man/*.Rd` returns only the retained `code_label = "aggregate_welfare_partitioned"` literal and an adjacent comment, both explicitly permitted |
+| V9 | **PASS** | `R CMD INSTALL` then `R CMD build .` → `creating vignettes ... OK`. Vignettes built against `library(stamp)` with the API unexported, not via `pkgload` (constraint C6) |
+
+### Deviations — Phase 2
+
+None. All fourteen sub-edits landed as planned; the plan's line numbers and its
+`partition_key` consumer analysis both proved accurate.
 
 `get_errors` on all seven touched files: clean.
 

@@ -171,7 +171,7 @@
 #' @param file Optional filename (default `"part.<ext>"`)
 #' @param format Optional format (qs2|rds|csv|fst|json); default = stamp option
 #' @return Character file path to the partition artifact
-#' @export
+#' @noRd
 st_part_path <- function(base, key, file = NULL, format = NULL) {
   stopifnot(is.character(base), length(base) == 1L)
   segs <- .st_key_segments(key)
@@ -187,7 +187,7 @@ st_part_path <- function(base, key, file = NULL, format = NULL) {
 #' @param key  Named list of scalar values (e.g., list(country="US", year=2025))
 #' @param code,parents,code_label,format,... Passed to st_save()
 #' @return invisibly, list(path=..., version_id=...)
-#' @export
+#' @noRd
 st_save_part <- function(
   x,
   base,
@@ -262,7 +262,7 @@ st_save_part <- function(
 #' #   ... etc
 #' }
 #'
-#' @export
+#' @noRd
 st_write_parts <- function(
   x,
   base,
@@ -449,7 +449,7 @@ st_write_parts <- function(
 #' st_list_parts("data/parts", filter = ~ year > 2010)
 #' st_list_parts("data/parts", filter = ~ country == "COL" & year >= 2012)
 #' }
-#' @export
+#' @noRd
 st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   stopifnot(is.character(base), length(base) == 1L)
 
@@ -590,7 +590,7 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
 #' # Combine filter + column selection
 #' st_load_parts("data/parts", filter = ~ year > 2010, columns = c("value", "metric"))
 #' }
-#' @export
+#' @noRd
 st_load_parts <- function(
   base,
   filter = NULL,

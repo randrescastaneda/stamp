@@ -9,18 +9,18 @@ test_that("st_save_part and st_list_parts work and st_load_parts binds", {
   k1 <- list(country = "US", year = 2025)
   k2 <- list(country = "US", year = 2024)
 
-  st_save_part(data.frame(x = 1:2), base, k1, code = function(z) z)
-  st_save_part(data.frame(x = 3:4), base, k2, code = function(z) z)
+  stamp:::st_save_part(data.frame(x = 1:2), base, k1, code = function(z) z)
+  stamp:::st_save_part(data.frame(x = 3:4), base, k2, code = function(z) z)
 
-  lst <- st_list_parts(base)
+  lst <- stamp:::st_list_parts(base)
   expect_true(nrow(lst) >= 2)
 
   # Filter by key
-  one <- st_list_parts(base, filter = list(year = 2025))
+  one <- stamp:::st_list_parts(base, filter = list(year = 2025))
   expect_true(nrow(one) == 1)
 
   # Load and rbind
-  all <- st_load_parts(base, as = "rbind")
+  all <- stamp:::st_load_parts(base, as = "rbind")
   expect_true(nrow(all) >= 2)
 })
 
@@ -31,25 +31,25 @@ test_that("st_list_parts returns empty for missing base and st_load_parts dt mod
   st_init(td)
   st_opts(default_format = "rds")
   base <- fs::path(td, "noexist")
-  res <- st_list_parts(base)
+  res <- stamp:::st_list_parts(base)
   expect_true(is.data.frame(res) && nrow(res) == 0)
 
   # create some parts and test dt mode if data.table available
   base2 <- fs::path(td, "parts2")
-  st_save_part(data.frame(x = 1:2), base2, list(k = 1), code = function(z) z)
-  dt <- st_load_parts(base2, as = "dt")
+  stamp:::st_save_part(data.frame(x = 1:2), base2, list(k = 1), code = function(z) z)
+  dt <- stamp:::st_load_parts(base2, as = "dt")
   expect_s3_class(dt, "data.table")
 })
 
 test_that("st_part_path rejects invalid partition keys and sanitizes values", {
   skip_on_cran()
   # invalid characters in partition value
-  expect_error(st_part_path("/tmp", list(a = "bad/value")))
-  expect_error(st_part_path("/tmp", list(a = "bad=value")))
+  expect_error(stamp:::st_part_path("/tmp", list(a = "bad/value")))
+  expect_error(stamp:::st_part_path("/tmp", list(a = "bad=value")))
 
   # numeric keys coerced to strings and ordering stable
-  p1 <- st_part_path("/tmp", list(b = 2, a = 1), format = "rds")
-  p2 <- st_part_path("/tmp", list(a = 1, b = 2), format = "rds")
+  p1 <- stamp:::st_part_path("/tmp", list(b = 2, a = 1), format = "rds")
+  p2 <- stamp:::st_part_path("/tmp", list(a = 1, b = 2), format = "rds")
   expect_equal(p1, p2)
 })
 test_that("multiplication works", {

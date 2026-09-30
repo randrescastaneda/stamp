@@ -30,15 +30,10 @@ reference:
       - st_opts_get
       - st_opts_reset
       - st_path
-      - st_part_path
-      - st_list_parts
       - st_formats
       - st_register_format
       - st_save
-      - st_save_part
-      - st_write_parts
       - st_load
-      - st_load_parts
       - st_load_version
       - st_restore
 
@@ -98,5 +93,4 @@ articles:
     - builders-plans
     - using-alias
     - version_retention_prune
-    - partitions
 

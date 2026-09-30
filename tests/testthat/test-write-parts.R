@@ -18,7 +18,7 @@ test_that("st_write_parts auto-partitions and saves data", {
   parts_dir <- file.path(tdir, "welfare_parts")
 
   # Auto-partition and save
-  manifest <- st_write_parts(
+  manifest <- stamp:::st_write_parts(
     dt,
     base = parts_dir,
     partitioning = c("country", "year", "reporting_level"),
@@ -52,7 +52,7 @@ test_that("st_write_parts auto-partitions and saves data", {
   expect_true(grepl("reporting_level=", sample_path))
 
   # Load partitions back and verify content
-  loaded <- st_load_parts(parts_dir, as = "dt")
+  loaded <- stamp:::st_load_parts(parts_dir, as = "dt")
   expect_equal(nrow(loaded), nrow(dt))
 
   # Verify partition columns are added
@@ -69,7 +69,7 @@ test_that("st_write_parts handles missing partition columns", {
   parts_dir <- file.path(tdir, "parts")
 
   expect_error(
-    st_write_parts(dt, parts_dir, partitioning = c("country", "year")),
+    stamp:::st_write_parts(dt, parts_dir, partitioning = c("country", "year")),
     "not found in data"
   )
 })
@@ -88,7 +88,7 @@ test_that("st_write_parts works with base data.frame", {
 
   parts_dir <- file.path(tdir, "parts")
 
-  manifest <- st_write_parts(
+  manifest <- stamp:::st_write_parts(
     df,
     base = parts_dir,
     partitioning = c("region", "category"),
@@ -121,7 +121,7 @@ test_that("st_write_parts with filter allows selective loading", {
 
   parts_dir <- file.path(tdir, "parts")
 
-  st_write_parts(
+  stamp:::st_write_parts(
     dt,
     base = parts_dir,
     partitioning = c("country", "year"),
@@ -129,7 +129,7 @@ test_that("st_write_parts with filter allows selective loading", {
   )
 
   # Load only USA partitions
-  loaded_usa <- st_load_parts(
+  loaded_usa <- stamp:::st_load_parts(
     parts_dir,
     filter = list(country = "USA"),
     as = "dt"
@@ -138,7 +138,7 @@ test_that("st_write_parts with filter allows selective loading", {
   expect_true(all(loaded_usa$country == "USA"))
 
   # Load only 2021 data (with character)
-  loaded_2021 <- st_load_parts(
+  loaded_2021 <- stamp:::st_load_parts(
     parts_dir,
     filter = list(year = "2021"),
     as = "dt"
@@ -147,7 +147,7 @@ test_that("st_write_parts with filter allows selective loading", {
   expect_true(all(loaded_2021$year == "2021"))
 
   # Load only 2020 data (numeric)
-  loaded_2020 <- st_load_parts(
+  loaded_2020 <- stamp:::st_load_parts(
     parts_dir,
     filter = list(year = 2020),
     as = "dt"
@@ -179,7 +179,7 @@ test_that("st_load_parts supports column selection for parquet", {
   parts_dir <- file.path(tdir, "parts")
 
   # Save as parquet (default for partitions)
-  st_write_parts(
+  stamp:::st_write_parts(
     dt,
     base = parts_dir,
     partitioning = c("country"),
@@ -187,7 +187,7 @@ test_that("st_load_parts supports column selection for parquet", {
   )
 
   # Load only specific columns
-  loaded_subset <- st_load_parts(
+  loaded_subset <- stamp:::st_load_parts(
     parts_dir,
     columns = c("year", "value"),
     as = "dt"
@@ -219,7 +219,7 @@ test_that("st_load_parts warns for non-columnar formats", {
 
   skip_if_not_installed("qs2")
   # Save as qs2 (non-columnar)
-  st_write_parts(
+  stamp:::st_write_parts(
     dt,
     base = parts_dir,
     partitioning = "country",
@@ -229,7 +229,7 @@ test_that("st_load_parts warns for non-columnar formats", {
 
   # Should warn and load full object then subset
   expect_warning(
-    loaded <- st_load_parts(parts_dir, columns = c("year", "value"), as = "dt"),
+    loaded <- stamp:::st_load_parts(parts_dir, columns = c("year", "value"), as = "dt"),
     "Column selection not supported"
   )
 
@@ -256,7 +256,7 @@ test_that("st_load_parts supports expression-based filtering", {
 
   parts_dir <- file.path(tdir, "parts")
 
-  st_write_parts(
+  stamp:::st_write_parts(
     dt,
     base = parts_dir,
     partitioning = c("country", "year"),
@@ -264,7 +264,7 @@ test_that("st_load_parts supports expression-based filtering", {
   )
 
   # Test: year > 2010 (formula syntax)
-  loaded_gt <- st_load_parts(
+  loaded_gt <- stamp:::st_load_parts(
     parts_dir,
     filter = ~ year > 2010,
     as = "dt"
@@ -273,7 +273,7 @@ test_that("st_load_parts supports expression-based filtering", {
   expect_equal(nrow(loaded_gt), 9) # 3 countries × 3 years (2011, 2012, 2013)
 
   # Test: country == "USA" & year >= 2012
-  loaded_complex <- st_load_parts(
+  loaded_complex <- stamp:::st_load_parts(
     parts_dir,
     filter = ~ country == "USA" & year >= 2012,
     as = "dt"
@@ -283,7 +283,7 @@ test_that("st_load_parts supports expression-based filtering", {
   expect_true(all(loaded_complex$year >= 2012))
 
   # Test: OR conditions - (country == "CAN" & year == 2012) | (country == "MEX" & year == 2010)
-  loaded_or <- st_load_parts(
+  loaded_or <- stamp:::st_load_parts(
     parts_dir,
     filter = ~ (country == "CAN" & year == 2012) |
       (country == "MEX" & year == 2010),
@@ -295,7 +295,7 @@ test_that("st_load_parts supports expression-based filtering", {
   expect_true(all(can_2012 | mex_2010))
 
   # Test: %in% operator
-  loaded_in <- st_load_parts(
+  loaded_in <- stamp:::st_load_parts(
     parts_dir,
     filter = ~ country %in% c("USA", "CAN") & year != 2010,
     as = "dt"
@@ -323,7 +323,7 @@ test_that("st_load_parts backward compatible with list filter", {
 
   parts_dir <- file.path(tdir, "parts")
 
-  st_write_parts(
+  stamp:::st_write_parts(
     dt,
     base = parts_dir,
     partitioning = c("country", "year"),
@@ -331,7 +331,7 @@ test_that("st_load_parts backward compatible with list filter", {
   )
 
   # Old-style list filter should still work
-  loaded_list <- st_load_parts(
+  loaded_list <- stamp:::st_load_parts(
     parts_dir,
     filter = list(country = "USA", year = "2021"),
     as = "dt"
@@ -359,7 +359,7 @@ test_that("st_list_parts supports expression filtering", {
 
   parts_dir <- file.path(tdir, "parts")
 
-  st_write_parts(
+  stamp:::st_write_parts(
     dt,
     base = parts_dir,
     partitioning = c("region", "status"),
@@ -367,7 +367,7 @@ test_that("st_list_parts supports expression filtering", {
   )
 
   # List with expression filter (formula)
-  listing_expr <- st_list_parts(
+  listing_expr <- stamp:::st_list_parts(
     parts_dir,
     filter = ~ region == "North" | status == "active"
   )
@@ -382,7 +382,7 @@ test_that("st_list_parts supports expression filtering", {
   }
 
   # List with named list filter (backward compat)
-  listing_list <- st_list_parts(
+  listing_list <- stamp:::st_list_parts(
     parts_dir,
     filter = list(region = "South", status = "inactive")
   )
@@ -408,7 +408,7 @@ test_that("filter expressions handle numeric comparisons correctly", {
 
   parts_dir <- file.path(tdir, "parts")
 
-  st_write_parts(
+  stamp:::st_write_parts(
     dt,
     base = parts_dir,
     partitioning = "year",
@@ -416,7 +416,7 @@ test_that("filter expressions handle numeric comparisons correctly", {
   )
 
   # Numeric comparison (formula syntax)
-  loaded_numeric <- st_load_parts(
+  loaded_numeric <- stamp:::st_load_parts(
     parts_dir,
     filter = ~ year >= 2017,
     as = "dt"
