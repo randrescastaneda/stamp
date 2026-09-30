@@ -2,7 +2,7 @@
 project-name: "stamp"
 team: "DECDG / GPID -- World Bank"
 created: "2026-09-28"
-last-reviewed: "2026-09-28"
+last-reviewed: "2026-09-30"
 ---
 
 # stamp
@@ -10,9 +10,10 @@ last-reviewed: "2026-09-28"
 ## Objective
 
 An R package that saves R objects with sidecar metadata (hashes, provenance,
-primary keys), keeps version history, prunes old versions, and supports
-Hive-style partitions. It is for data scientists and analysts who need
-reproducible, traceable artifact storage in their workflows.
+primary keys), keeps an immutable version history, and prunes old versions, so
+that analytical outputs remain traceable and reproducible across sessions. It is
+for data scientists and analysts who need reproducible, traceable artifact
+storage in their workflows.
 
 ## Key Deliverables
 

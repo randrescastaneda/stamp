@@ -1,5 +1,17 @@
 # stamp 0.0.11
 
+## Breaking Changes
+* **BREAKING**: The Hive-style partition helpers are now internal. `st_part_path()`,
+  `st_save_part()`, `st_write_parts()`, `st_list_parts()` and `st_load_parts()` are no
+  longer exported
+  - The functions are unchanged and remain under test; only their visibility changed
+  - They have not yet been validated against real-world data, so they are withheld from
+    the public API until that validation is complete
+  - Code that depends on them can still reach them via `stamp:::`, with no stability
+    guarantee
+* **BREAKING**: `st_path()` no longer accepts the `partition_key` argument, which was
+  inert and never read
+
 ## New Functions
 * **NEW**: `st_catalog_query()` — query latest version metadata for all artifacts in an alias
   - Returns a `data.table` with one row per artifact (latest version only): `path`, `version_id`, `content_hash`, `code_hash`, `size_bytes`, `created_at`

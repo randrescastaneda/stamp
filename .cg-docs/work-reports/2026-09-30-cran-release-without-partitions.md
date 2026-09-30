@@ -7,7 +7,7 @@ language: "R"
 review-mode: "manual"
 deviation-policy: "ask"
 phases-total: 3
-phases-completed: [1, 2]
+phases-completed: [1, 2, 3]
 ---
 
 # Execution Report
@@ -157,6 +157,60 @@ nonexistent exports** documented alongside the partition defects:
 
 None. All fourteen sub-edits landed as planned; the plan's line numbers and its
 `partition_key` consumer analysis both proved accurate.
+
+## Phase 3 — Documentation and verification (steps 15–16)
+
+### Step log
+
+**15. `NEWS.md` and the project charter.** Added a `## Breaking Changes` block
+under `# stamp 0.0.11` recording that the five partition helpers are now
+internal (behaviour unchanged, still under test, reachable via `stamp:::` with
+no stability guarantee) and that `st_path()` no longer accepts `partition_key`.
+Rewrote the charter `## Objective` to match the step-2 `DESCRIPTION` wording
+verbatim and bumped `last-reviewed` to 2026-09-30. Confirmed by grep that no
+partition *feature claim* survives in `compound-gpid.md`, `NEWS.md` or
+`DESCRIPTION` — the surviving NEWS mentions are historical notes about the
+change itself, which is the intent.
+
+**16. Full verification run.** Re-baselined on R-4.5.1 against a freshly built
+tarball, with `stamp.Rcheck/` removed first so no state carried over.
+
+### Phase 3 / final evidence gate
+
+| ID | Result | Evidence |
+|----|--------|----------|
+| V4 | **PASS** | `R CMD check --as-cran stamp_0.0.11.tar.gz` → **`Status: 1 NOTE`**; the sole NOTE is `checking CRAN incoming feasibility` / "New submission" |
+| V6 | **PASS** | `pkgdown::build_site()` → "Finished building pkgdown site for package stamp"; 8 articles, partitions absent |
+| V7 | **PASS** | Tarball top level is exactly `build`, `DESCRIPTION`, `inst`, `LICENSE`, `man`, `NAMESPACE`, `NEWS.md`, `R`, `README.md`, `tests`, `vignettes`. No `dev/`, `roadmap.json`, `compound-gpid*.md`, `.kilo`, `.quarto`, `.Rhistory` |
+| V8 | **PASS** (optional) | `checking PDF version of manual ... OK` |
+| V9 | **PASS** | `R CMD build .` → `creating vignettes ... OK`; the 8 shipped vignettes rebuilt through `library(stamp)` |
+| V3 | **PASS** | Full suite re-run after step 15: **394 passed, 0 failed, 7 skipped** — unchanged from baseline |
+
+### Check status — final
+
+Baseline 2026-09-28: **1 ERROR, 1 WARNING, 6 NOTEs**.
+Phase 1 boundary: **0 ERROR, 0 WARNING, 3 NOTEs**.
+Final: **0 ERROR, 0 WARNING, 1 NOTE**.
+
+The two NOTEs recorded as accepted environment exceptions at the Phase 1
+boundary — `checking for future file timestamps` and `checking top-level files`
+("cannot be checked without 'pandoc'") — **both cleared on this run**. The
+timestamp API succeeded, and prepending the Quarto `tools` directory to `PATH`
+made pandoc visible to the checker. The accepted exception is therefore no
+longer needed: the package reaches the V4 target of a single "New submission"
+NOTE on this machine, unaided.
+
+### Observations
+
+Stale pkgdown pages for the removed topics remain under `docs/`
+(`docs/reference/st_*part*.html`, `docs/articles/partitions.*`). No action
+taken: `.gitignore:5` ignores `docs/` wholesale, so these are local build
+output and are never published from this repository. They will disappear on the
+next clean site deploy.
+
+### Deviations — Phase 3
+
+None.
 
 `get_errors` on all seven touched files: clean.
 

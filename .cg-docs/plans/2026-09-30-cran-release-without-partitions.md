@@ -1,7 +1,8 @@
 ---
 date: 2026-09-30
 title: "CRAN release: unexport partitions and clear check blockers"
-status: active
+status: completed
+completed-date: 2026-09-30
 scope: "Standard"
 brainstorm: ".cg-docs/brainstorms/2026-09-28-cran-release-without-partitions.md"
 language: "R"
@@ -9,8 +10,7 @@ estimated-effort: "medium"
 deviation-policy: "ask"
 artifact-schema-version: 1
 phases: 3
-completed-phases: [1, 2]
-current-phase: 3
+completed-phases: [1, 2, 3]
 execution-report: ".cg-docs/work-reports/2026-09-30-cran-release-without-partitions.md"
 tags: [cran, release, api-surface, partitions, packaging, roxygen]
 ---
