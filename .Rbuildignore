@@ -23,3 +23,5 @@
 ^roadmap\.json$
 ^compound-gpid.*\.md$
 ^dev$
+^.*\.Rcheck$
+^.*\.tar\.gz$

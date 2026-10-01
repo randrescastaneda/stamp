@@ -11,6 +11,8 @@
     guarantee
 * **BREAKING**: `st_path()` no longer accepts the `partition_key` argument, which was
   inert and never read
+* **DOCS**: The "Working with Partitioned Datasets" vignette is withdrawn from the package
+  and the pkgdown site while the partition API is internal
 
 ## New Functions
 * **NEW**: `st_catalog_query()` — query latest version metadata for all artifacts in an alias

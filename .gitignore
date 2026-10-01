@@ -2,7 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-docs
+/docs/
 inst/doc
 .vscode/*
 inst/pkgdown/BS5/assets/headroom.min.js
@@ -22,7 +22,7 @@ test_vignettes_individual.R
 
 # R CMD build / check artifacts
 *.Rcheck/
-*.tar.gz
+/*.tar.gz
 
 # Compound GPID managed items (junctions + copied file - do not commit)
 .github/prompts/

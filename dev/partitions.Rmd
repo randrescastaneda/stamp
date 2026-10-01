@@ -10,6 +10,10 @@ vignette: >
 > **Parked, not shipped.** The Hive-style partition API is internal (unexported)
 > pending validation against real-world data, so this document is kept in `dev/`
 > and excluded from the package build. See `.cg-docs/plans/2026-09-30-cran-release-without-partitions.md`.
+>
+> Because the API is internal, the chunks below only run under
+> `pkgload::load_all(".")`. Against an installed `stamp` they need `stamp:::`
+> prefixes, as used in `tests/testthat/test-partitions.R`.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(

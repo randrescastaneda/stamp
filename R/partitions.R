@@ -33,8 +33,8 @@
     },
     character(1)
   )
-  # stable ordering by name for determinism
-  v[order(names(v))]
+  # radix ordering is locale-independent, so the same key always yields the same path
+  v[order(names(v), method = "radix")]
 }
 
 .st_key_segments <- function(key) {
@@ -162,7 +162,7 @@
   TRUE
 }
 
-# ---- Public API --------------------------------------------------------------
+# ---- Internal API (unexported pending validation; see dev/partitions.Rmd) ----
 
 #' Build a concrete partition path under a base directory
 #'

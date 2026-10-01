@@ -44,7 +44,7 @@ x <- data.frame(id = 1:3, val = letters[1:3])
 st_save(x, p, pk = "id")
 #> ✔ Saved [qs2] →
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
-#>   0b3bebc10b5b4755
+#>   a7f82ddbe8362ad9
 y <- st_load(p)
 #> ✔ Loaded [qs2] ←
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2'
@@ -52,10 +52,10 @@ vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: 0b3bebc10b5b4755 c124606df64bb597 82872a9f48806630      <NA>        296
+#> 1: a7f82ddbe8362ad9 c124606df64bb597 82872a9f48806630      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-09-30T18:52:43.618855Z           json
+#> 1: 2026-09-30T19:47:07.143976Z           json
 
 # Retention
 st_opts(retain_versions = 2)
@@ -65,17 +65,17 @@ st_save(transform(x, val = toupper(val)), p)
 #> ✔ Retention policy matched zero versions; nothing to prune.
 #> ✔ Saved [qs2] →
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
-#>   194d198ab589502c
+#>   e9f9ed4d6e98d67a
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: 194d198ab589502c c124606df64bb597 714bd8da989ab3a8      <NA>        264
-#> 2: 0b3bebc10b5b4755 c124606df64bb597 82872a9f48806630      <NA>        296
+#> 1: e9f9ed4d6e98d67a c124606df64bb597 714bd8da989ab3a8      <NA>        264
+#> 2: a7f82ddbe8362ad9 c124606df64bb597 82872a9f48806630      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-09-30T18:52:43.754786Z           json
-#> 2: 2026-09-30T18:52:43.618855Z           json
+#> 1: 2026-09-30T19:47:07.295763Z           json
+#> 2: 2026-09-30T19:47:07.143976Z           json
 ```
 
 ## Managing Multiple Stamp Folders with Aliases
@@ -91,16 +91,16 @@ See the vignette "Using Aliases with stamp" for a comprehensive guide:
 
 | Extension | Format | Package Required | Notes |
 |-----------|--------|------------------|-------|
-| `.qs2` | qs2 | `{qs2}` | New qs2 binary format (recommended for new projects) |
-| `.qs` | qs | `{qs}` | Legacy qs binary format (deprecated; use `.qs2` instead) |
+| `.qs2` | qs2 | `{qs2}` | Binary format (recommended for new projects) |
 | `.rds` | rds | (base R) | R serialized format |
 | `.csv` | csv | `{data.table}` | Comma-separated values |
 | `.fst` | fst | `{fst}` | Fast columnar format |
 | `.json` | json | `{jsonlite}` | JSON format |
+| `.parquet` | parquet | `{nanoparquet}` | Columnar format |
 
-**Important**: `.qs` and `.qs2` are **different formats** and require their respective packages. There is no automatic fallback between them. If you attempt to save/load a `.qs2` file without `{qs2}` installed, `stamp` will abort with a clear error message.
+**Important**: `.qs2` requires `{qs2}`. If you attempt to save or load a `.qs2` file without `{qs2}` installed, `stamp` aborts with a clear error message.
 
-> **Migration Note**: Existing `.qs` files can still be loaded if `{qs}` is installed. To migrate to `.qs2`, load with `st_load()` and re-save with `format = "qs2"`. The `.qs2` format offers better performance and is actively maintained.
+> **Unrecognized extensions** fall back to the `default_format` option (`"qs2"`) rather than raising an error, so pass `format =` explicitly whenever the extension is not one of those listed above.
 
 ### Installing Format Packages
 

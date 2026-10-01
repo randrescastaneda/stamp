@@ -69,16 +69,16 @@ See the vignette "Using Aliases with stamp" for a comprehensive guide:
 
 | Extension | Format | Package Required | Notes |
 |-----------|--------|------------------|-------|
-| `.qs2` | qs2 | `{qs2}` | New qs2 binary format (recommended for new projects) |
-| `.qs` | qs | `{qs}` | Legacy qs binary format (deprecated; use `.qs2` instead) |
+| `.qs2` | qs2 | `{qs2}` | Binary format (recommended for new projects) |
 | `.rds` | rds | (base R) | R serialized format |
 | `.csv` | csv | `{data.table}` | Comma-separated values |
 | `.fst` | fst | `{fst}` | Fast columnar format |
 | `.json` | json | `{jsonlite}` | JSON format |
+| `.parquet` | parquet | `{nanoparquet}` | Columnar format |
 
-**Important**: `.qs` and `.qs2` are **different formats** and require their respective packages. There is no automatic fallback between them. If you attempt to save/load a `.qs2` file without `{qs2}` installed, `stamp` will abort with a clear error message.
+**Important**: `.qs2` requires `{qs2}`. If you attempt to save or load a `.qs2` file without `{qs2}` installed, `stamp` aborts with a clear error message.
 
-> **Migration Note**: Existing `.qs` files can still be loaded if `{qs}` is installed. To migrate to `.qs2`, load with `st_load()` and re-save with `format = "qs2"`. The `.qs2` format offers better performance and is actively maintained.
+> **Unrecognized extensions** fall back to the `default_format` option (`"qs2"`) rather than raising an error, so pass `format =` explicitly whenever the extension is not one of those listed above.
 
 ### Installing Format Packages
 

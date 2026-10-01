@@ -469,7 +469,7 @@ Example builder that loads parents explicitly and returns multiple functions in 
 # Example: register a builder that uses the provided `parents` list and avoids global loads
 st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
   # parents is a list of lists: each element has $path and $version_id
-  # Filter parent paths to identify welfare partitions vs macros, then load them
+  # Filter parent paths to identify welfare inputs vs macro inputs, then load them
   welfare_parent_paths <- vapply(
     parents,
     function(p) grepl("welfare", p$path),
@@ -490,7 +490,7 @@ st_register_builder("outputs/welfare_summary.qs2", function(path, parents) {
   list(
     x = out,
     code = list(bar = bar), # include helpers as needed
-    code_label = "aggregate_welfare_partitioned"
+    code_label = "aggregate_welfare"
   )
 })
 ```
