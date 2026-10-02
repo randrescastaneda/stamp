@@ -9,9 +9,12 @@ st_filter(df, filters = list(), strict = TRUE)
 \arguments{
 \item{df}{A data.frame to filter.}
 
-\item{filters}{Named list of filtering values, e.g. \code{list(country = "PER")}.}
+\item{filters}{Named list of filtering values, e.g. \code{list(country = "PER")}.
+Every element must be named; an unnamed element is an error, because it
+cannot be matched to a column.}
 
-\item{strict}{Logical; when \code{TRUE} unknown filter columns cause an error.}
+\item{strict}{Logical scalar; when \code{TRUE} unknown filter columns cause an
+error, otherwise a warning.}
 }
 \value{
 A subsetted data.frame (same columns as \code{df}).
@@ -19,5 +22,6 @@ A subsetted data.frame (same columns as \code{df}).
 \description{
 Convenience helper to subset a data.frame by a set of named values. The
 \code{filters} argument is a named list mapping column names to allowed values
-(vector). When \code{strict = TRUE}, unknown filter columns raise an error.
+(vector). When \code{strict = TRUE}, unknown filter columns raise an error;
+when \code{strict = FALSE} they are skipped with a warning.
 }

@@ -23,7 +23,7 @@ st_save(
 \arguments{
 \item{x}{object to save}
 
-\item{file}{destination path (character or st_path). Can be:
+\item{file}{destination path. Can be:
 \itemize{
 \item A bare filename (e.g., \code{"data.qs2"}) → saved to \verb{<alias_root>/data.qs2/data.qs2}
 \item A path with directory (e.g., \code{"results/model.rds"}) → saved to \verb{<alias_root>/results/model.rds/model.rds}

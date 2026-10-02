@@ -9,8 +9,12 @@
     the public API until that validation is complete
   - Code that depends on them can still reach them via `stamp:::`, with no stability
     guarantee
-* **BREAKING**: `st_path()` no longer accepts the `partition_key` argument, which was
-  inert and never read
+* **BREAKING**: `st_path()` is no longer exported. It was never consumed by `st_save()`
+  or `st_load()` despite being documented as an accepted input, so passing one raised an
+  error. It stays internal until it is wired through every path-taking function
+* **BREAKING**: `st_filter()` now fails loudly instead of silently returning unfiltered
+  data. Unnamed `filters` elements are an error, unknown columns warn when
+  `strict = FALSE`, and a non-logical `strict` is rejected rather than coerced
 * **DOCS**: The "Working with Partitioned Datasets" vignette is withdrawn from the package
   and the pkgdown site while the partition API is internal
 

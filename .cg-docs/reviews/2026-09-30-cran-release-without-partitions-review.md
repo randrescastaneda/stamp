@@ -6,10 +6,10 @@ plan: .cg-docs/plans/2026-09-30-cran-release-without-partitions.md
 findings:
   P1.1: fixed
   P1.2: fixed
-  P1.3: open
-  P1.4: open
-  P1.5: open
-  P1.6: open
+  P1.3: fixed
+  P1.4: fixed
+  P1.5: deferred
+  P1.6: deferred
   P2.1: fixed
   P2.2: fixed
   P2.3: fixed
@@ -187,3 +187,25 @@ introduced by this plan. They split into two groups:
 - **`@noRd` over `@keywords internal`**: the right call. It preserves the full roxygen block in source, so re-export is a five-token change; `@keywords internal` would have shipped help pages for functions CRAN users cannot call.
 - **Branch state**: fast-forward mergeable, 5 ahead / 0 behind, clean tree.
 - **DESCRIPTION / NEWS / charter**: consistent; Title and Description conform to CRAN policy.
+
+
+---
+
+## Disposition of the four P1 decisions (2026-10-02)
+
+| Finding | Decision | Where it lives now |
+| --- | --- | --- |
+| P1.3 `st_filter()` silent pass-through | **Fixed pre-CRAN** — all three holes (unnamed filters, silent skip under `strict = FALSE`, uncoerced `strict`) | `R/schema_pk.R`; new `tests/testthat/test-filter.R` (13 assertions — the function previously had **zero** coverage) |
+| P1.4 `st_path()` orphaned export | **Fixed pre-CRAN via Option B — unexported.** Chosen over wiring it in, because removing an export after CRAN acceptance costs a deprecation cycle while adding one later is free | `R/IO_core.R` (`@keywords internal`, `S3method(print, st_path)` retained); docs, `vignettes/setup-and-basics.Rmd` and `_pkgdown.yml` corrected |
+| P1.5 `warned_formats` globalenv leak | **Deferred.** Approach decided: function-local environment, not removal of the warn-once logic | roadmap `post-cran-partitions` / `fix-warned-formats-globalenv-leak` |
+| P1.6 Windows case-folding + mislabelled skips | **Deferred** in full, bug and tests together | roadmap `post-cran-partitions` / `fix-windows-case-folding-of-partition-keys` |
+
+Re-exporting `st_path` once it works uniformly is tracked as
+`post-cran-api-polish` / `wire-st-path-through-path-taking-functions`.
+
+`roadmap.json` stores only `id`, `title`, `status` and `plan` per feature, so the
+technical detail behind those three ids is the P1.4/P1.5/P1.6 sections of this
+document. Read them before starting any of that work.
+
+**Post-fix gate**: `R CMD check --as-cran` -> `Status: 1 NOTE` (New submission only);
+tests `[ FAIL 0 | WARN 7 | SKIP 7 | PASS 407 ]`, up from 394.

@@ -7,7 +7,7 @@
 st_load(file, format = NULL, version = NULL, verbose = TRUE, alias = NULL, ...)
 }
 \arguments{
-\item{file}{path or st_path. Can be:
+\item{file}{path. Can be:
 \itemize{
 \item A bare filename (e.g., \code{"data.qs2"}) → loaded from \verb{<alias_root>/data.qs2/data.qs2}
 \item A path with directory (e.g., \code{"results/model.rds"}) → loaded from \verb{<alias_root>/results/model.rds/model.rds}

@@ -119,10 +119,14 @@ st_init <- function(
 # ---- st_path (S3-ish lightweight) -------------------------------------------
 
 #' Declare a path (with optional format)
+#'
+#' Not currently consumed by [st_save()] or [st_load()]; kept internal until it
+#' is wired through every path-taking function.
+#'
 #' @param path file or directory path
 #' @param format optional explicit format ("qs2","rds","csv","fst","json")
 #' @return list with class 'st_path'
-#' @export
+#' @keywords internal
 st_path <- function(path, format = NULL) {
   stopifnot(is.character(path), length(path) == 1L)
 
@@ -165,7 +169,7 @@ print.st_path <- function(x, ...) {
 #' Save an R object to disk with metadata & versioning (atomic move)
 #'
 #' @param x object to save
-#' @param file destination path (character or st_path). Can be:
+#' @param file destination path. Can be:
 #'   - A bare filename (e.g., `"data.qs2"`) → saved to `<alias_root>/data.qs2/data.qs2`
 #'   - A path with directory (e.g., `"results/model.rds"`) → saved to `<alias_root>/results/model.rds/model.rds`
 #'   When using a path with directory and an explicit `alias`, the alias root must be
@@ -409,7 +413,7 @@ st_save <- function(
 
 
 #' Load an object from disk (format auto-detected; optional integrity checks)
-#' @param file path or st_path. Can be:
+#' @param file path. Can be:
 #'   - A bare filename (e.g., `"data.qs2"`) → loaded from `<alias_root>/data.qs2/data.qs2`
 #'   - A path with directory (e.g., `"results/model.rds"`) → loaded from `<alias_root>/results/model.rds/model.rds`
 #'   When using a path with directory and an explicit `alias`, the alias root must be

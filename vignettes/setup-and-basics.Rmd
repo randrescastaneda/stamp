@@ -72,14 +72,13 @@ Use `versioning` to control when a version snapshot is recorded. The default
 
 ## 3. Paths and format registry
 
-`st_path()` wraps a path string and optionally carries an explicit `format`
-hint. Format inference also maps known extensions (via an internal registry).
+Format inference maps known extensions through an internal registry, so a path
+ending in `.fst` is written with the `fst` handler. Pass `format =` to
+`st_save()` or `st_load()` whenever the extension does not imply the format you
+want.
 
 ```{r path-format}
-p1 <- st_path("data/iris.qs2")
-p2 <- st_path("data/mtcars.fst", format = "fst")
-p1
-st_formats()  # built-in handlers: qs2, rds, csv, fst, json
+st_formats()  # built-in handlers: csv, fst, json, parquet, qs2, rds
 ```
 
 You can extend the registry with `st_register_format()` to add a new
@@ -340,7 +339,8 @@ st_prune_versions(path = out_path, policy = list(n = 5, days = 30), dry_run = FA
 
 - Prefer `qs2` for artifact storage for speed/space, use JSON sidecars for
   readability during development.
-- Use `st_path()` when you want explicit format hints in code.
+- Pass `format =` to `st_save()`/`st_load()` when the file extension does not
+  imply the format you want.
 - Use `st_info()` and `st_lineage()` to inspect provenance; use `st_versions()`
   and `st_load_version()` to access historical snapshots.
 

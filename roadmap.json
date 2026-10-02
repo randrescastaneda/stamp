@@ -80,6 +80,32 @@
           "title": "Re-export partition API",
           "status": "idea",
           "plan": null
+        },
+        {
+          "id": "fix-warned-formats-globalenv-leak",
+          "title": "Fix warned_formats globalenv leak in st_load_parts",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "fix-windows-case-folding-of-partition-keys",
+          "title": "Fix Windows case-folding of partition key values and the mislabelled test skips",
+          "status": "idea",
+          "plan": null
+        }
+      ]
+    },
+    {
+      "id": "post-cran-api-polish",
+      "title": "Post-CRAN: public API polish",
+      "objective": "Close out deferred public-API gaps found during the CRAN v0.1.0 review (.cg-docs/reviews/2026-09-30-cran-release-without-partitions-review.md), starting with making st_path() work uniformly before it is re-exported.",
+      "status": "planned",
+      "features": [
+        {
+          "id": "wire-st-path-through-path-taking-functions",
+          "title": "Wire st_path() through all path-taking functions, then re-export",
+          "status": "idea",
+          "plan": null
         }
       ]
     }

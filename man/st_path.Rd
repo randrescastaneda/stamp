@@ -15,5 +15,7 @@ st_path(path, format = NULL)
 list with class 'st_path'
 }
 \description{
-Declare a path (with optional format)
+Not currently consumed by \code{\link[=st_save]{st_save()}} or \code{\link[=st_load]{st_load()}}; kept internal until it
+is wired through every path-taking function.
 }
+\keyword{internal}

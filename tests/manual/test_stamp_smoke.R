@@ -131,7 +131,7 @@ if (requireNamespace("data.table", quietly = TRUE)) {
 }
 
 ## === 4) st_path() print ======================================================
-sp <- st_path("some/where/file.qs")
+sp <- stamp:::st_path("some/where/file.qs2")
 ok(inherits(sp, "st_path"), "st_path did not return st_path class")
 invisible(capture.output(print(sp))) # should not error
 

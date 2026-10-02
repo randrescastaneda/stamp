@@ -183,33 +183,51 @@ st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
 #'
 #' Convenience helper to subset a data.frame by a set of named values. The
 #' `filters` argument is a named list mapping column names to allowed values
-#' (vector). When `strict = TRUE`, unknown filter columns raise an error.
+#' (vector). When `strict = TRUE`, unknown filter columns raise an error;
+#' when `strict = FALSE` they are skipped with a warning.
 #'
 #' @param df A data.frame to filter.
 #' @param filters Named list of filtering values, e.g. `list(country = "PER")`.
-#' @param strict Logical; when `TRUE` unknown filter columns cause an error.
+#'   Every element must be named; an unnamed element is an error, because it
+#'   cannot be matched to a column.
+#' @param strict Logical scalar; when `TRUE` unknown filter columns cause an
+#'   error, otherwise a warning.
 #' @return A subsetted data.frame (same columns as `df`).
 #' @export
 st_filter <- function(df, filters = list(), strict = TRUE) {
   stopifnot(is.data.frame(df))
+  if (!is.logical(strict) || length(strict) != 1L || is.na(strict)) {
+    cli::cli_abort(c(
+      "x" = "{.arg strict} must be a single {.code TRUE} or {.code FALSE}.",
+      "i" = "Got {.obj_type_friendly {strict}}."
+    ))
+  }
   if (!length(filters)) {
     return(df)
   }
+  if (!is.list(filters)) {
+    cli::cli_abort("{.arg filters} must be a named list.")
+  }
 
-  if (isTRUE(strict)) {
-    unknown <- setdiff(names(filters), names(df))
-    if (length(unknown)) {
+  nms <- names(filters)
+  if (is.null(nms) || !all(nzchar(nms))) {
+    cli::cli_abort(c(
+      "x" = "Every element of {.arg filters} must be named.",
+      "i" = "Use {.code list(country = \"PER\")}, not {.code list(\"PER\")}."
+    ))
+  }
+
+  unknown <- setdiff(nms, names(df))
+  if (length(unknown)) {
+    if (strict) {
       cli::cli_abort("Unknown filter columns: {paste(unknown, collapse=', ')}")
     }
+    cli::cli_warn("Ignoring unknown filter column{?s}: {unknown}.")
   }
 
   out <- df
-  for (nm in names(filters)) {
-    if (!nm %in% names(out)) {
-      next
-    }
-    val <- filters[[nm]]
-    out <- out[out[[nm]] %in% val, , drop = FALSE]
+  for (nm in intersect(nms, names(df))) {
+    out <- out[out[[nm]] %in% filters[[nm]], , drop = FALSE]
   }
   out
 }

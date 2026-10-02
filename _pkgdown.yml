@@ -29,7 +29,6 @@ reference:
       - st_opts
       - st_opts_get
       - st_opts_reset
-      - st_path
       - st_formats
       - st_register_format
       - st_save
