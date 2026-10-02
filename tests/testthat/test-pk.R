@@ -38,6 +38,3 @@ test_that("st_pk enforces presence of columns when validating", {
   df <- data.frame(a=1:3)
   expect_error(st_pk(df, keys = c("b"), validate = TRUE))
 })
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})

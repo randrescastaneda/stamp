@@ -71,6 +71,3 @@ test_that("st_prune_versions does not remove live artifact files (only snapshots
   # live artifact should still exist - verify by checking sidecar metadata
   expect_true(!is.null(st_read_sidecar(p)))
 })
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})

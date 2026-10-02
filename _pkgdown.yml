@@ -93,3 +93,8 @@ articles:
     - using-alias
     - version_retention_prune
 
+# The partitions article was withdrawn when the partition API became internal.
+# Its URL was linked from the README and is likely indexed.
+redirects:
+  - ["articles/partitions.html", "index.html"]
+

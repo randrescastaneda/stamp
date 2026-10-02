@@ -44,7 +44,7 @@ x <- data.frame(id = 1:3, val = letters[1:3])
 st_save(x, p, pk = "id")
 #> ✔ Saved [qs2] →
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
-#>   a7f82ddbe8362ad9
+#>   56b8bed4353089fc
 y <- st_load(p)
 #> ✔ Loaded [qs2] ←
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2'
@@ -52,10 +52,10 @@ vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: a7f82ddbe8362ad9 c124606df64bb597 82872a9f48806630      <NA>        296
+#> 1: 56b8bed4353089fc c124606df64bb597 82872a9f48806630      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-09-30T19:47:07.143976Z           json
+#> 1: 2026-10-02T18:07:02.098726Z           json
 
 # Retention
 st_opts(retain_versions = 2)
@@ -65,17 +65,17 @@ st_save(transform(x, val = toupper(val)), p)
 #> ✔ Retention policy matched zero versions; nothing to prune.
 #> ✔ Saved [qs2] →
 #>   'e:/povcalnet/01.personal/wb535623/pip/stamp/demo_stamp/demo.qs2' @ version
-#>   e9f9ed4d6e98d67a
+#>   36bbc93780811846
 vrs <- st_versions(p)
 head(vrs)
 #>          version_id      artifact_id     content_hash code_hash size_bytes
 #>              <char>           <char>           <char>    <char>      <num>
-#> 1: e9f9ed4d6e98d67a c124606df64bb597 714bd8da989ab3a8      <NA>        264
-#> 2: a7f82ddbe8362ad9 c124606df64bb597 82872a9f48806630      <NA>        296
+#> 1: 36bbc93780811846 c124606df64bb597 714bd8da989ab3a8      <NA>        264
+#> 2: 56b8bed4353089fc c124606df64bb597 82872a9f48806630      <NA>        296
 #>                     created_at sidecar_format
 #>                         <char>         <char>
-#> 1: 2026-09-30T19:47:07.295763Z           json
-#> 2: 2026-09-30T19:47:07.143976Z           json
+#> 1: 2026-10-02T18:07:02.249957Z           json
+#> 2: 2026-10-02T18:07:02.098726Z           json
 ```
 
 ## Managing Multiple Stamp Folders with Aliases
@@ -138,6 +138,7 @@ The functions below are organized by workflow. **New users** should start with *
 
 - **`st_init(root)`** - Initialize stamp in a directory, creating the `.stamp/` state folder
 - **`st_opts()`** - Get or set package options (versioning mode, retention policies, metadata format)
+- **`st_opts_get(key = NULL)`** - Read a single option, or all of them when `key` is `NULL`
 - **`st_opts_reset()`** - Reset all options to defaults
 
 ### Save & Load
@@ -148,6 +149,11 @@ The functions below are organized by workflow. **New users** should start with *
   - Optional: `verify = TRUE` (check content hash), `alias` (source directory)
 - **`st_load_version(path, version_id)`** - Load a specific historical version by ID
 
+### Formats
+
+- **`st_formats()`** - List the registered format handlers (`csv`, `fst`, `json`, `parquet`, `qs2`, `rds`)
+- **`st_register_format(name, read, write, extensions = NULL)`** - Register or override a format handler, optionally mapping file extensions to it
+
 ### Versioning & History
 
 - **`st_versions(path)`** - List all versions of an artifact with metadata (timestamp, size, hashes)
@@ -155,6 +161,7 @@ The functions below are organized by workflow. **New users** should start with *
 - **`st_changed(x, path)`** - Check if an object differs from the saved version
 - **`st_changed_reason(x, path)`** - Explain why content/code changed
 - **`st_should_save(x, path)`** - Determine whether saving would create a new version
+- **`st_restore(file, version = "oldest", ...)`** - Restore an artifact to a previous version, writing it back as the current one
 
 ### Lineage & Dependencies
 
@@ -177,6 +184,8 @@ The functions below are organized by workflow. **New users** should start with *
 - **`st_add_pk(path, keys)`** - Add or update primary key definition for an artifact
 - **`st_get_pk(x_or_meta)`** - Retrieve primary key columns from metadata
 - **`st_inspect_pk(path)`** - Validate primary key uniqueness and coverage
+- **`st_pk(x = NULL, keys, ...)`** - Normalize a primary-key specification, optionally validating it against `x`
+- **`st_with_pk(x, keys)`** - Attach primary-key metadata to a data.frame in memory, without saving
 
 ### Pruning Data
 
@@ -186,6 +195,7 @@ The functions below are organized by workflow. **New users** should start with *
 
 - **`st_alias_list()`** - List all registered aliases
 - **`st_alias_get(name = NULL)`** - Get configuration for an alias
+- **`st_switch(alias)`** - Switch the session's default alias
 
 ### Builders & Rebuilds ⚠️ *Experimental*
 
@@ -193,6 +203,7 @@ The functions below are organized by workflow. **New users** should start with *
 
 - **`st_register_builder(path, builder_fn)`** - Register a function to rebuild an artifact from its parents
 - **`st_clear_builders(paths = NULL)`** - Clear registered builders
+- **`st_builders()`** - List the currently registered builders
 - **`st_plan_rebuild(targets, ...)`** - Compute rebuild plan (which targets are stale and why)
 - **`st_rebuild(plan)`** - Execute a rebuild plan, calling builders and saving results
 

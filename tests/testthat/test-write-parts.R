@@ -3,8 +3,7 @@ test_that("st_write_parts auto-partitions and saves data", {
   library(data.table)
 
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   # Create sample data with multiple partition dimensions
@@ -61,8 +60,7 @@ test_that("st_write_parts auto-partitions and saves data", {
 
 test_that("st_write_parts handles missing partition columns", {
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   dt <- data.frame(a = 1:3, b = 4:6)
@@ -76,8 +74,7 @@ test_that("st_write_parts handles missing partition columns", {
 
 test_that("st_write_parts works with base data.frame", {
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   df <- data.frame(
@@ -109,8 +106,7 @@ test_that("st_write_parts with filter allows selective loading", {
   library(data.table)
 
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   dt <- data.table(
@@ -165,8 +161,7 @@ test_that("st_load_parts supports column selection for parquet", {
   library(data.table)
 
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   dt <- data.table(
@@ -204,8 +199,7 @@ test_that("st_load_parts warns for non-columnar formats", {
   library(data.table)
 
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   dt <- data.table(
@@ -244,8 +238,7 @@ test_that("st_load_parts supports expression-based filtering", {
   library(data.table)
 
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   dt <- data.table(
@@ -311,8 +304,7 @@ test_that("st_load_parts backward compatible with list filter", {
   library(data.table)
 
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   dt <- data.table(
@@ -347,8 +339,7 @@ test_that("st_list_parts supports expression filtering", {
   library(data.table)
 
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   dt <- data.table(
@@ -396,8 +387,7 @@ test_that("filter expressions handle numeric comparisons correctly", {
   library(data.table)
 
   tdir <- withr::local_tempdir()
-  old_opts <- options()
-  on.exit(options(old_opts), add = TRUE)
+  local_st_opts()
   st_init(tdir)
 
   dt <- data.table(

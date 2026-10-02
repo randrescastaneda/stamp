@@ -13,24 +13,24 @@ findings:
   P2.1: fixed
   P2.2: fixed
   P2.3: fixed
-  P2.4: open
-  P2.5: open
-  P2.6: open
-  P2.7: open
-  P2.8: open
-  P2.9: open
-  P2.10: open
-  P2.11: open
-  P2.12: open
-  P2.13: open
-  P2.14: open
+  P2.4: deferred
+  P2.5: deferred
+  P2.6: deferred
+  P2.7: deferred
+  P2.8: deferred
+  P2.9: deferred
+  P2.10: deferred
+  P2.11: fixed
+  P2.12: fixed
+  P2.13: skipped
+  P2.14: fixed
   P3.1: fixed
-  P3.2: open
-  P3.3: open
-  P3.4: open
+  P3.2: fixed
+  P3.3: deferred
+  P3.4: deferred
   P3.5: fixed
   P3.6: fixed
-  P3.7: open
+  P3.7: fixed
 ---
 
 ## Review Report

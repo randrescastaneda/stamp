@@ -116,6 +116,7 @@ The functions below are organized by workflow. **New users** should start with *
 
 - **`st_init(root)`** - Initialize stamp in a directory, creating the `.stamp/` state folder
 - **`st_opts()`** - Get or set package options (versioning mode, retention policies, metadata format)
+- **`st_opts_get(key = NULL)`** - Read a single option, or all of them when `key` is `NULL`
 - **`st_opts_reset()`** - Reset all options to defaults
 
 ### Save & Load
@@ -126,6 +127,11 @@ The functions below are organized by workflow. **New users** should start with *
   - Optional: `verify = TRUE` (check content hash), `alias` (source directory)
 - **`st_load_version(path, version_id)`** - Load a specific historical version by ID
 
+### Formats
+
+- **`st_formats()`** - List the registered format handlers (`csv`, `fst`, `json`, `parquet`, `qs2`, `rds`)
+- **`st_register_format(name, read, write, extensions = NULL)`** - Register or override a format handler, optionally mapping file extensions to it
+
 ### Versioning & History
 
 - **`st_versions(path)`** - List all versions of an artifact with metadata (timestamp, size, hashes)
@@ -133,6 +139,7 @@ The functions below are organized by workflow. **New users** should start with *
 - **`st_changed(x, path)`** - Check if an object differs from the saved version
 - **`st_changed_reason(x, path)`** - Explain why content/code changed
 - **`st_should_save(x, path)`** - Determine whether saving would create a new version
+- **`st_restore(file, version = "oldest", ...)`** - Restore an artifact to a previous version, writing it back as the current one
 
 ### Lineage & Dependencies
 
@@ -155,6 +162,8 @@ The functions below are organized by workflow. **New users** should start with *
 - **`st_add_pk(path, keys)`** - Add or update primary key definition for an artifact
 - **`st_get_pk(x_or_meta)`** - Retrieve primary key columns from metadata
 - **`st_inspect_pk(path)`** - Validate primary key uniqueness and coverage
+- **`st_pk(x = NULL, keys, ...)`** - Normalize a primary-key specification, optionally validating it against `x`
+- **`st_with_pk(x, keys)`** - Attach primary-key metadata to a data.frame in memory, without saving
 
 ### Pruning Data
 
@@ -164,6 +173,7 @@ The functions below are organized by workflow. **New users** should start with *
 
 - **`st_alias_list()`** - List all registered aliases
 - **`st_alias_get(name = NULL)`** - Get configuration for an alias
+- **`st_switch(alias)`** - Switch the session's default alias
 
 ### Builders & Rebuilds ⚠️ *Experimental*
 
@@ -171,6 +181,7 @@ The functions below are organized by workflow. **New users** should start with *
 
 - **`st_register_builder(path, builder_fn)`** - Register a function to rebuild an artifact from its parents
 - **`st_clear_builders(paths = NULL)`** - Clear registered builders
+- **`st_builders()`** - List the currently registered builders
 - **`st_plan_rebuild(targets, ...)`** - Compute rebuild plan (which targets are stale and why)
 - **`st_rebuild(plan)`** - Execute a rebuild plan, calling builders and saving results
 

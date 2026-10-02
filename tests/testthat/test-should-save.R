@@ -114,6 +114,3 @@ test_that("st_save correctly skips saving identical content (regression test)", 
   expect_equal(nrow(versions2), 2)
 })
 
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})

@@ -60,6 +60,3 @@ test_that("sidecar parents shaped as data.frame are normalized and used for firs
   # should find a parent (using sidecar fallback)
   expect_true(nrow(lin) >= 1)
 })
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})

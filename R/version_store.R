@@ -576,7 +576,6 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 # ---- Catalog update & version commit helpers ---------------------------------
 
 #' Construct a compact version id (internal)
-#' @keywords internal
 #' @noRd
 .st_version_id <- function(
   created_at,
@@ -598,7 +597,6 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 }
 
 #' Which sidecar formats exist for a path (internal)
-#' @keywords internal
 #' @noRd
 .st_sidecar_present <- function(rel_path, alias = NULL) {
   scj <- .st_sidecar_path(rel_path, "json", alias = alias)
@@ -677,7 +675,6 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 
 
 #' Upsert artifact row in catalog (internal)
-#' @keywords internal
 #' @noRd
 .st_catalog_upsert_artifact <- function(
   cat,
@@ -721,7 +718,6 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 }
 
 #' Append a version row to the catalog (internal)
-#' @keywords internal
 #' @noRd
 .st_catalog_append_version <- function(cat, row) {
   v <- cat$versions

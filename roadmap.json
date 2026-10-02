@@ -92,6 +92,60 @@
           "title": "Fix Windows case-folding of partition key values and the mislabelled test skips",
           "status": "idea",
           "plan": null
+        },
+        {
+          "id": "use-drop-true-in-partition-split-and-interaction",
+          "title": "Use drop=TRUE in partition split() and interaction() to avoid NA partitions",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "validate-partition-folder-key-against-contents",
+          "title": "Validate partition folder key against file contents instead of overwriting the column on load",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "abort-on-unreadable-partitions-in-st-load-parts",
+          "title": "Abort instead of silently discarding unreadable partitions in st_load_parts",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "propagate-save-failures-in-st-write-parts",
+          "title": "Propagate save failures in st_write_parts instead of downgrading them to warnings",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "scope-partition-expression-filters-to-baseenv",
+          "title": "Scope partition expression filters to baseenv and pre-validate filter variable names",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "replace-quadratic-reduce-rbind-in-partition-combine",
+          "title": "Replace quadratic Reduce(rbind) with rbindlist in partition combine",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "single-tree-walk-in-st-list-parts",
+          "title": "Replace six recursive tree walks with a single walk in st_list_parts",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "harden-partition-key-value-sanitation",
+          "title": "Harden partition key value sanitation for backslash, reserved names, NA and empty string",
+          "status": "idea",
+          "plan": null
+        },
+        {
+          "id": "preserve-partition-key-column-types-on-load",
+          "title": "Preserve partition key column types on load instead of flattening to character",
+          "status": "idea",
+          "plan": null
         }
       ]
     },
