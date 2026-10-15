@@ -72,6 +72,23 @@ package's private option state.
 ## Workspace Notes
 <!-- Related folders, dependencies on other projects in the VS Code workspace -->
 
+### Managed wiki and post-push files
+
+The developer wiki uses `wiki/_wiki.yml` with schema
+`compound-gpid-wiki-v1`. All four initialized pages, including API Reference,
+have auto ownership. Wiki updates belong inside the manifest's managed sections;
+manual pages and prose outside markers remain protected. Derive API facts from
+`NAMESPACE` and generated help, not historical prose or default-branch assumptions.
+
+Commit/push followed by wiki initialization and Compound leaves newly generated
+documentation local until a separate authorized Git action publishes it. Verify
+the remote SHA rather than assuming later files belong to an earlier push.
+The initial wiki/Compound commands reported missing build exclusion without
+editing outside their permissions. Explicit follow-up maintenance on 2026-10-15
+added `^wiki$` to `.Rbuildignore`; developer wiki files are not package contents.
+Full release certification remains separate from bounded package checks.
+See `.cg-docs/solutions/git-workflows/2026-10-15-publish-before-wiki-compound.md`.
+
 ## Wiki Configuration
 <!-- folder: wiki -->
 <!-- audience: developers | researchers | end-users -->

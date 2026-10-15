@@ -1,6 +1,6 @@
 # 🧠 Project Brain — Chronological Log
 
-_Generated 2026-10-15 · 11 artifacts (newest first) + 23 roadmap features_
+_Generated 2026-10-15 · 12 artifacts (newest first) + 23 roadmap features_
 
 ## 2026-10-15
 
@@ -8,6 +8,8 @@ _Generated 2026-10-15 · 11 artifacts (newest first) + 23 roadmap features_
   > Review mode: standard. Auto route: documentation-only changes, raised from light by more than 50 non-test lines. Eigh…
 - **[2026-10-14-m2-stamp-generic-gaps-verify-review](.cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-verify-review.md)** · `review` · _—_ · `2026-10-15`
   > Executed `/cg-review mode:verify` after all five Plan phases. Confirmed the parent exists and is the newest standard …
+- **[Initialize a managed wiki without confusing post-push files with published work](.cg-docs/solutions/git-workflows/2026-10-15-publish-before-wiki-compound.md)** · `solution` · _—_ · `2026-10-15`
+  > An earlier Compound capture correctly skipped wiki enrichment because `wiki/_wiki.yml` did not exist. The user then r…
 - **[M2 Stamp Generic Gaps: Contracts, Safe Gates, and Conditional Implementation](.cg-docs/plans/2026-10-14-m2-stamp-generic-gaps.md)** · `plan` · _completed_ · `2026-10-15`
   > Prepare the stamp-local work for task `m2-stamp-local-plan-2026-10-14`, milestone `m2-walking-skeleton`, feature `clo…
 - **[Verify durable request convergence with installed R subprocesses](.cg-docs/solutions/testing-patterns/2026-10-15-installed-r-checks-for-durable-request-convergence.md)** · `solution` · _—_ · `2026-10-15`

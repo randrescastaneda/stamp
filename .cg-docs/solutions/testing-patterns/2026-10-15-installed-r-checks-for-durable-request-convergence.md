@@ -6,7 +6,7 @@ language: "R"
 tags: [request-proofs, immutable-history, r-cmd-check, subprocess, windows]
 root-cause: "Artifact versions, execution attempts and requested input pins answer different questions; result equality or in-memory tests alone cannot establish durable execution proof."
 severity: "P1"
-related: [".cg-docs/solutions/testing-patterns/2026-10-02-in-process-testthat-segfault.md", ".cg-docs/solutions/bugs/2026-10-02-docs-describe-nonexistent-api.md", ".cg-docs/solutions/bugs/2026-10-02-st-opts-test-state-leak.md"]
+related: [".cg-docs/solutions/testing-patterns/2026-10-02-in-process-testthat-segfault.md", ".cg-docs/solutions/bugs/2026-10-02-docs-describe-nonexistent-api.md", ".cg-docs/solutions/bugs/2026-10-02-st-opts-test-state-leak.md", ".cg-docs/solutions/git-workflows/2026-10-15-publish-before-wiki-compound.md"]
 plan: ".cg-docs/plans/2026-10-14-m2-stamp-generic-gaps.md"
 reviewed-in: ".cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-review.md"
 ---
@@ -189,6 +189,8 @@ containment and SMB/multiwriter guarantees were not established.
 
 ## Related
 
+- [Managed wiki initialization and post-push files](../git-workflows/2026-10-15-publish-before-wiki-compound.md):
+  publishes the implementation separately from subsequently generated wiki assets.
 - [Earlier in-process Windows crash](2026-10-02-in-process-testthat-segfault.md):
   historical diagnosis; this entry extends its verification pattern rather than
   claiming a new crash reproduction or superseding release checks.

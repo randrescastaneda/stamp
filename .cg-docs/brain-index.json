@@ -241,7 +241,7 @@
         "vignettes",
         "st_path()",
         "reference:",
-        "drift"
+        "api"
       ]
     },
     {
@@ -270,6 +270,34 @@
         "state",
         "exit",
         "restore"
+      ]
+    },
+    {
+      "date": "2026-10-15",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/git-workflows/2026-10-15-publish-before-wiki-compound.md",
+      "slug": "2026-10-15-publish-before-wiki-compound",
+      "status": "",
+      "summary": "An earlier Compound capture correctly skipped wiki enrichment because `wiki/_wiki.yml` did not exist. The user then requested a precise sequence: commit/push the completed feature, initialize the wiki, and run Compound again. Two different states must remain explicit: the implementation already published to Git, and the wiki/knowledge files generated afterward. A successful first push cannot certify that later files were committed or published. A project `wiki/` folder is also not an automatically published GitHub Wiki site.",
+      "tags": [
+        "git",
+        "wiki",
+        "compound",
+        "ownership",
+        "documentation"
+      ],
+      "title": "Initialize a managed wiki without confusing post-push files with published work",
+      "top_keywords": [
+        "wiki/",
+        ".rbuildignore",
+        "initialize",
+        "cg-wiki",
+        "work",
+        "wiki",
+        "managed",
+        "published",
+        "ownership",
+        "post-push"
       ]
     },
     {
@@ -326,7 +354,7 @@
         "2026-10-02-in-process-testthat-segfault.md",
         "2026-10-02-docs-describe-nonexistent-api.md",
         "2026-10-02-st-opts-test-state-leak.md",
-        "2026-10-14-m2-stamp-generic-gaps.md"
+        "2026-10-15-publish-before-wiki-compound.md"
       ]
     },
     {
@@ -836,7 +864,7 @@
       ]
     }
   ],
-  "entity_count": 34,
+  "entity_count": 35,
   "generated": "2026-10-15",
   "schema_version": "0.2.0",
   "topic_count": 2,
