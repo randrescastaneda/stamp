@@ -225,6 +225,136 @@ st_formats <- function() {
 
 # ---- sidecar metadata --------------------------------------------------------
 
+.st_metadata_names <- function(x) {
+  reserved <- c(
+    "path", "format", "created_at", "size_bytes", "content_hash",
+    "code_hash", "file_hash", "code_label", "parents", "attrs", "pk",
+    "domain", "version_id", "receipt_id", "outcome_id", "request_id",
+    "request", "semantic_schema", "semantic", "execution"
+  )
+  if (!is.list(x) || is.object(x) ||
+      (length(x) && (is.null(names(x)) || anyNA(names(x)) ||
+                    any(!nzchar(names(x))) || anyDuplicated(names(x))))) {
+    cli::cli_abort("Modern metadata must be a uniquely named list.")
+  }
+  if (any(names(x) %in% reserved)) {
+    cli::cli_abort("Metadata names must not collide with stamp-owned keys.")
+  }
+  invisible(NULL)
+}
+
+# Canonical schema and selected values retain presence, type and vector shape.
+.st_semantic_validate <- function(schema, metadata) {
+  .st_metadata_names(metadata)
+  if (is.null(schema)) {
+    return(list(schema = NULL, values = list()))
+  }
+  .st_metadata_names(schema)
+  canonical <- list()
+  values <- list()
+  fields <- c("type", "shape", "required", "nullable", "allow_na")
+  for (name in sort(names(schema), method = "radix")) {
+    descriptor <- schema[[name]]
+    if (!is.list(descriptor) || is.object(descriptor) ||
+        length(descriptor) != length(fields) ||
+        anyDuplicated(names(descriptor)) ||
+        !setequal(names(descriptor), fields)) {
+      cli::cli_abort("Invalid semantic descriptor for {.val {name}}.")
+    }
+    descriptor <- descriptor[fields]
+    for (flag in c("required", "nullable", "allow_na")) {
+      value <- descriptor[[flag]]
+      if (!is.logical(value) || length(value) != 1L || is.na(value)) {
+        cli::cli_abort("Semantic {.val {flag}} must be TRUE or FALSE.")
+      }
+    }
+    if (!is.character(descriptor$type) || length(descriptor$type) != 1L ||
+        is.na(descriptor$type) ||
+        !descriptor$type %in% c("logical", "integer", "double", "character") ||
+        !is.character(descriptor$shape) || length(descriptor$shape) != 1L ||
+        is.na(descriptor$shape) ||
+        !descriptor$shape %in% c("scalar", "vector")) {
+      cli::cli_abort("Invalid semantic type or shape for {.val {name}}.")
+    }
+    canonical[name] <- list(descriptor)
+    if (!name %in% names(metadata)) {
+      if (descriptor$required) {
+        cli::cli_abort("Required semantic field {.val {name}} is absent.")
+      }
+      next
+    }
+    value <- metadata[[name]]
+    if (is.null(value)) {
+      if (!descriptor$nullable) {
+        cli::cli_abort("Semantic field {.val {name}} is not nullable.")
+      }
+    } else if (is.object(value) || !is.null(dim(value)) ||
+               typeof(value) != descriptor$type ||
+               (descriptor$shape == "scalar" && length(value) != 1L) ||
+               (!descriptor$allow_na && anyNA(value)) ||
+               (is.double(value) && (any(is.nan(value)) ||
+                                      any(is.infinite(value))))) {
+      cli::cli_abort("Semantic value {.val {name}} violates its descriptor.")
+    }
+    values[name] <- list(value)
+  }
+  return(list(schema = canonical, values = values))
+}
+
+.st_sidecar_is_modern <- function(meta) {
+  is.list(meta) && is.list(meta$attrs) && is.list(meta$attrs$stamp) &&
+    identical(meta$attrs$stamp$protocol, "stamp-sidecar-v1")
+}
+
+.st_sidecar_decode <- function(meta) {
+  if (!is.list(meta)) {
+    cli::cli_abort("Invalid sidecar metadata.")
+  }
+  if (!.st_sidecar_is_modern(meta)) return(meta)
+  marker <- meta$attrs$stamp
+  if (!identical(sort(names(marker)),
+                 c("execution", "protocol", "semantic", "sidecars")) ||
+      !is.logical(marker$semantic) || length(marker$semantic) != 1L ||
+      is.na(marker$semantic) || !is.logical(marker$execution) ||
+      length(marker$execution) != 1L || is.na(marker$execution) ||
+      !is.character(marker$sidecars) || length(marker$sidecars) != 1L ||
+      is.na(marker$sidecars) ||
+      !marker$sidecars %in% c("json", "qs2", "both") ||
+      (!marker$semantic && "semantic" %in% names(meta)) ||
+      (!marker$execution && "execution" %in% names(meta))) {
+    cli::cli_abort("Invalid modern sidecar protocol marker.")
+  }
+  if (anyDuplicated(names(meta))) {
+    cli::cli_abort("Duplicated modern sidecar metadata names.")
+  }
+  if (marker$semantic) {
+    envelope <- meta$semantic
+    if (!is.list(envelope) ||
+        !identical(sort(names(envelope)), c("definition", "schema", "values")) ||
+        !identical(envelope$schema, 1L)) {
+      cli::cli_abort("Invalid typed semantic envelope.")
+    }
+    schema <- .st_proof_decode(envelope$definition)
+    values <- .st_proof_decode(envelope$values)
+    selected <- .st_semantic_validate(schema, values)
+    if (is.null(schema) || !identical(selected$schema, schema) ||
+        !identical(selected$values, values)) {
+      cli::cli_abort("Inconsistent typed semantic envelope.")
+    }
+    meta[names(values)] <- values
+  }
+  if (marker$execution) {
+    envelope <- meta$execution
+    if (!is.list(envelope) ||
+        !identical(sort(names(envelope)), c("request", "schema")) ||
+        !identical(envelope$schema, 1L) ||
+        !is.list(.st_proof_decode(envelope$request))) {
+      cli::cli_abort("Invalid execution metadata envelope.")
+    }
+  }
+  return(meta)
+}
+
 # Sidecar path helpers (both variants supported).
 # e.g., "file.qs2" -> "data/stmeta/file.qs2.stmeta.json" or ".qs2"
 # (Honors meta_format = "json" | "qs2" | "both")
@@ -300,23 +430,39 @@ st_formats <- function() {
     }
     fs::file_move(tmp, scq)
   }
+  if (fmt != "both") {
+    other <- .st_sidecar_path(
+      rel_path, if (fmt == "json") "qs2" else "json", alias = alias
+    )
+    if (fs::file_exists(other)) fs::file_delete(other)
+  }
   invisible(NULL)
 }
 
 
-#' Read sidecar metadata (internal)
+#' Read current or exact historical sidecar metadata
 #'
 #' Read the sidecar metadata for a file if it exists, returning `NULL`
 #' when no sidecar file is present. Preference order is JSON first,
 #' then QS2.
+#' Modern metadata restores declared semantic fields to their original R types
+#' and validates both sidecars when both were required. Legacy JSON-first reads
+#' do not reinterpret arbitrary descriptive lists as semantic/execution proof.
 #'
 #' @param rel_path Character relative path from alias root, or an absolute path.
 #'   If an absolute path is provided, it will be normalized to a relative path.
 #' @param alias Optional alias. If `NULL` and an absolute path is provided,
 #'   the alias will be auto-detected from the path.
-#' @return A list (parsed JSON / qs object) or `NULL` if not found.
+#' @param version_id Optional exact version identifier. Reads only that retained
+#'   snapshot and errors if its artifact or required sidecars are unavailable.
+#'   There is no fallback to current metadata. NULL keeps the current reader.
+#'   No artifact format reader is called; metadata parsing is data-free.
+#' @return A metadata list, with typed declared semantic fields for modern
+#'   sidecars. Legacy metadata remains in its original reader representation.
+#'   A current read with no sidecar returns NULL; explicit unavailable versions
+#'   or inconsistent modern envelopes error.
 #' @export
-st_read_sidecar <- function(rel_path, alias = NULL) {
+st_read_sidecar <- function(rel_path, alias = NULL, version_id = NULL) {
   rel_path <- as.character(rel_path)
 
   # If the path appears to be absolute, normalize it to relative path + alias
@@ -336,13 +482,54 @@ st_read_sidecar <- function(rel_path, alias = NULL) {
     }
   }
 
-  scj <- .st_sidecar_path(rel_path, ext = "json", alias = alias)
-  if (fs::file_exists(scj)) {
-    return(jsonlite::read_json(scj, simplifyVector = TRUE))
+  if (!is.null(version_id)) {
+    if (!is.character(version_id) || length(version_id) != 1L ||
+        is.na(version_id) || !nzchar(version_id)) {
+      cli::cli_abort("An exact nonempty version ID is required.")
+    }
+    versions <- st_versions(rel_path, alias = alias)
+    requested_id <- version_id
+    row <- versions[which(versions$version_id == requested_id), ]
+    if (nrow(row) != 1L) {
+      cli::cli_abort("Unknown exact version {.val {version_id}}.")
+    }
+    directory <- .st_version_dir(rel_path, version_id, alias = alias)
+    if (!fs::file_exists(fs::path(directory, "artifact"))) {
+      cli::cli_abort("Retained snapshot is unavailable.")
+    }
+    scj <- fs::path(directory, "sidecar.json")
+    scq <- fs::path(directory, "sidecar.qs2")
+    required <- row$sidecar_format[[1L]]
+    if (!required %in% c("json", "qs2", "both") ||
+        (required %in% c("json", "both") && !fs::file_exists(scj)) ||
+        (required %in% c("qs2", "both") && !fs::file_exists(scq))) {
+      cli::cli_abort("Required historical sidecar is unavailable.")
+    }
+  } else {
+    scj <- .st_sidecar_path(rel_path, ext = "json", alias = alias)
+    scq <- .st_sidecar_path(rel_path, ext = "qs2", alias = alias)
   }
-  scq <- .st_sidecar_path(rel_path, ext = "qs2", alias = alias)
-  if (fs::file_exists(scq)) {
-    return(.st_read_qs2(scq))
+  json <- if (fs::file_exists(scj)) {
+    .st_sidecar_decode(jsonlite::read_json(scj, simplifyVector = TRUE))
+  } else NULL
+  # Legacy JSON is authoritative; an unused QS2 file need not be readable.
+  if (!is.null(json) && !.st_sidecar_is_modern(json)) return(json)
+  qs <- if (fs::file_exists(scq)) .st_sidecar_decode(.st_read_qs2(scq)) else NULL
+  modern <- if (.st_sidecar_is_modern(json)) json else qs
+  if (.st_sidecar_is_modern(modern)) {
+    mode <- modern$attrs$stamp$sidecars
+    if ((mode %in% c("json", "both") && is.null(json)) ||
+        (mode %in% c("qs2", "both") && is.null(qs))) {
+      cli::cli_abort("Required modern sidecar is unavailable.")
+    }
   }
-  invisible(NULL)
+  if (!is.null(json) && !is.null(qs) &&
+      (.st_sidecar_is_modern(json) || .st_sidecar_is_modern(qs))) {
+    if (!identical(json$attrs$stamp, qs$attrs$stamp) ||
+        !identical(json$semantic, qs$semantic) ||
+        !identical(json$execution, qs$execution)) {
+      cli::cli_abort("JSON and QS2 typed sidecars disagree.")
+    }
+  }
+  return(json %||% qs)
 }

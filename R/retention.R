@@ -2,7 +2,7 @@
 
 #' Prune stored versions according to a retention policy
 #'
-#' @param path Optional character vector of artifact paths to restrict pruning.
+#' @param path Optional artifact logical path to restrict pruning.
 #'   If NULL (default), applies the policy to all artifacts in the catalog.
 #' @param policy One of:
 #'   - `Inf` (keep everything)
@@ -12,7 +12,10 @@
 #' @param dry_run logical; if TRUE, only report what would be pruned.
 #' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return Invisibly, a data.frame of pruned (or would-prune) versions with
-#'   columns: artifact_path, version_id, created_at, size_bytes.
+#'   columns artifact_id, artifact_path, version_id, created_at, size_bytes,
+#'   protected and reason. Protected candidates have reason
+#'   `"execution_reference"`; other candidates have `"policy"`. Some no-op
+#'   cases return an empty data.frame without columns.
 #' @details
 #' **Retention policy semantics**
 #'
@@ -33,7 +36,7 @@
 #' **Dry runs vs destructive mode.** With `dry_run = TRUE`, the function only
 #' reports what *would* be pruned (and estimates reclaimed space). With
 #' `dry_run = FALSE`, it deletes the snapshot directories under
-#' `<state_dir>/versions/...` and updates the catalog accordingly:
+#' each artifact's `versions/` folder and updates the catalog accordingly:
 #'   - removes rows from the `versions` table,
 #'   - adjusts each artifact’s `n_versions` and `latest_version_id`
 #'     (to the newest remaining version), or drops the artifact row if none remain.
@@ -48,6 +51,12 @@
 #' * Pruning never touches the **live artifact files** (`A.qs`, etc.) — only the
 #'   stored version snapshots and catalog entries.
 #' * Use `dry_run = TRUE` first to verify what would be removed.
+#' * Committed records protect output/parent pins and retained original ancestry.
+#'   Before applying a path-filtered deletion, the relevant alias-wide proof is
+#'   validated. Invalid proof or a protected selection causes refusal before any
+#'   deletion. Automatic save-time retention uses the same protection.
+#' * Committed execution records themselves are retained; receipt garbage
+#'   collection is not provided.
 #' @examples
 #' \donttest{
 #' # Minimal setup: temp project with three artifacts and multiple versions
@@ -133,12 +142,16 @@ st_prune_versions <- function(
     }
   }
 
+  # Validate the whole alias before a path filter can hide a dependent receipt.
+  protected_pins <- .st_execution_protected(alias)
+
   # Load catalog
   catalog_path <- .st_catalog_path(alias)
   lock_path <- fs::path(fs::path_dir(catalog_path), "catalog.lock")
 
   result <- .st_with_lock(lock_path, {
     cat <- .st_catalog_read(alias) # already data.table invariant
+    catalog_all <- cat
 
     # Schema guards
     req_art <- c(
@@ -240,6 +253,10 @@ st_prune_versions <- function(
       prune_mask,
       .(artifact_id, artifact_path = path, version_id, created_at, size_bytes)
     ]
+    candidates$protected <- paste(candidates$artifact_path,
+      candidates$version_id, sep = "\n") %in% protected_pins
+    candidates$reason <- ifelse(candidates$protected,
+      "execution_reference", "policy")
     setorder(candidates, artifact_path, created_at)
 
     if (!nrow(candidates)) {
@@ -260,6 +277,12 @@ st_prune_versions <- function(
       ))
       return(candidates)
     }
+
+    if (any(candidates$protected)) {
+      cli::cli_abort("Retention would remove a protected execution reference.")
+    }
+    # Path filtering selects deletion candidates, not the catalog to persist.
+    cat <- catalog_all
 
     # ---- destructive path (delete snapshots + update catalog) -------------------
     # Delete version snapshot dirs, tracking successes and failures

@@ -469,7 +469,18 @@ st_load_version <- function(
     )
   }
 
-  fmt <- .st_guess_format(path) %||% st_opts("default_format", .get = TRUE)
+  meta <- st_read_sidecar(rel_path, alias = versioning_alias,
+                          version_id = version_id)
+  fmt <- meta$format
+  if (is.null(fmt)) {
+    if (.st_sidecar_is_modern(meta)) {
+      cli::cli_abort("Modern snapshot is missing its physical format.")
+    }
+    fmt <- .st_guess_format(path) %||% st_opts("default_format", .get = TRUE)
+  }
+  if (!is.character(fmt) || length(fmt) != 1L || is.na(fmt) || !nzchar(fmt)) {
+    cli::cli_abort("Invalid saved physical format for version load.")
+  }
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
     cli::cli_abort("Unknown format {.field {fmt}} for version load.")
@@ -634,6 +645,9 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 ) {
   # Compute version directory using rel_path
   vdir <- .st_version_dir(rel_path, version_id, alias = alias)
+  if (fs::dir_exists(vdir)) {
+    cli::cli_abort("Refusing to overwrite an immutable version snapshot.")
+  }
   .st_dir_create(fs::path_dir(vdir))
   .st_dir_create(vdir)
 
@@ -705,9 +719,11 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     # Capture argument in a local variable to avoid data.table NSE shadowing
     # the function argument with the same-named column on the RHS of :=.
     new_vid <- as.character(latest_version_id)
+    new_format <- as.character(format)
     a[
       idx,
       `:=`(
+        format = new_format,
         latest_version_id = new_vid,
         n_versions = as.integer(n_versions) + 1L
       )
@@ -768,6 +784,18 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 
   .st_with_lock(lock_path, {
     cat <- .st_catalog_read(alias = alias)
+
+    # Equal-content semantic versions may share the clock's timestamp.
+    base_vid <- vid
+    suffix <- 1L
+    rel_path <- as.character(fs::path_rel(
+      artifact_path, start = .st_normalize_path(.st_root_dir(alias = alias))
+    ))
+    while (vid %in% cat$versions$version_id ||
+           fs::dir_exists(.st_version_dir(rel_path, vid, alias = alias))) {
+      suffix <- suffix + 1L
+      vid <- paste0(base_vid, sprintf("-%010d", suffix))
+    }
 
     # Upsert artifact row using helper
     cat <- .st_catalog_upsert_artifact(
@@ -1158,16 +1186,37 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
 # Is a child stale because one (or more) of its parents advanced?
 # Looks only at committed parents.json of the child's latest snapshot.
 # If no parents are recorded, returns FALSE (nothing to compare).
-#' Is a child artifact stale because its parents advanced?
+#' Inspect parent staleness or requested artifact currentness
 #'
-#' Inspect the committed parents.json for the latest snapshot of `path` and
-#' determine whether any parent now has a different latest version id.
+#' With no request, inspect committed parents.json for the latest snapshot and
+#' determine whether any parent advanced. With a complete request, validate
+#' durable proof, prerequisites and failure precedence without executing work.
 #'
 #' @param path Character path to the artifact to inspect.
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#' @return Logical scalar. `TRUE` if any parent advanced, otherwise `FALSE`.
+#' @param request Optional complete calculation request. NULL preserves legacy
+#'   parent-only inspection. A verified matching success returns FALSE; eligible
+#'   work returns TRUE; blocked proof raises `stamp_blocked_request` with
+#'   `decision = "blocked"` and a precise `reason`. See [st_plan_rebuild()] for
+#'   the request schema. This function neither invokes builders nor writes state.
+#' @return Logical scalar. With no request, `TRUE` if any parent advanced,
+#'   otherwise `FALSE`. Request-aware calls never report blocked work as current.
 #' @export
-st_is_stale <- function(path, alias = NULL) {
+st_is_stale <- function(path, alias = NULL, request = NULL) {
+  if (!is.null(request)) {
+    norm <- .st_normalize_user_path(path, alias = alias,
+      must_exist = FALSE, verbose = FALSE)
+    requested <- .st_request_normalize(request, norm$alias)
+    if (!identical(requested$path,
+        .st_execution_path(path, norm$alias)$logical_path)) {
+      .st_request_abort("invalid_request", "Request path differs from artifact.")
+    }
+    decision <- .st_execution_decide(requested, norm$alias)
+    if (decision$decision == "blocked") {
+      .st_request_abort(decision$reason, decision$msg %||% decision$reason)
+    }
+    return(decision$decision == "run")
+  }
   # Don't normalize yet - let st_latest do it
   # We just need to find the version directory for this artifact
 

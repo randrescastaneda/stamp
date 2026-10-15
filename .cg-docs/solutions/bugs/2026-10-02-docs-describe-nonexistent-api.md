@@ -6,6 +6,7 @@ language: "R"
 tags: [documentation, readme, vignettes, pkgdown, roxygen, api-drift, cran]
 root-cause: "Hand-written prose in README.Rmd/vignettes is not checked against NAMESPACE or man/*.Rd by any tool, so it silently drifts as exports are renamed, removed, or added"
 severity: "P2"
+related: [".cg-docs/solutions/testing-patterns/2026-10-15-installed-r-checks-for-durable-request-convergence.md"]
 ---
 
 # README and vignettes drift out of sync with the actual exported API
@@ -81,6 +82,9 @@ reference sections, and manual test scripts under `tests/manual/` (which
 
 ## Related
 
+- [Durable request convergence in installed R checks](../testing-patterns/2026-10-15-installed-r-checks-for-durable-request-convergence.md)
+  adds an exact installed-export audit, scratch-only documentation generation and
+  explicit smoke checks without widening the approved documentation write set.
 - `.cg-docs/reviews/2026-09-30-cran-release-without-partitions-review.md` —
   findings P2.11 (README gaps) and P2.12 (dangling pkgdown article redirect)
   from this same drift class.

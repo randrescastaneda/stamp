@@ -6,6 +6,7 @@ language: "R"
 tags: [testthat, st_opts, test-isolation, state-leakage, withr]
 root-cause: "st_opts() stores state in a package-level environment (.stamp_opts via rlang::env_bind), which is entirely separate from base R's options(); snapshotting/restoring base options() never touches it"
 severity: "P2"
+related: [".cg-docs/solutions/testing-patterns/2026-10-15-installed-r-checks-for-durable-request-convergence.md"]
 ---
 
 # options()/on.exit() does not restore st_opts() state — it's a no-op
@@ -93,5 +94,8 @@ files, now firing where it always should have.
 
 ## Related
 
+- [Durable request convergence in installed R checks](../testing-patterns/2026-10-15-installed-r-checks-for-durable-request-convergence.md)
+  distinguishes fresh-process isolation from within-suite option/registry
+  cleanup and verifies persistence using actual installed-package fixtures.
 - `.cg-docs/reviews/2026-09-30-cran-release-without-partitions-review.md` —
   finding P2.14 (assertion quality and state leakage in `tests/testthat/`).

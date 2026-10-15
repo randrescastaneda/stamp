@@ -17,7 +17,9 @@ st_save(
   unique = TRUE,
   verbose = TRUE,
   alias = NULL,
-  ...
+  ...,
+  request = NULL,
+  semantic_schema = NULL
 )
 }
 \arguments{
@@ -31,9 +33,13 @@ When using a path with directory and an explicit \code{alias}, the alias root mu
 a parent of the path, otherwise an error is raised.
 }}
 
-\item{format}{optional format override ("qs2" | "rds" | "csv" | "fst" | "json")}
+\item{format}{Optional registered format identifier. With a request, NULL
+uses its exact, case-sensitive identifier; a different explicit format
+errors. Without a request, legacy extension/default precedence applies.}
 
-\item{metadata}{named list of extra metadata (merged into sidecar)}
+\item{metadata}{Named list of extra metadata. Modern saves require unique,
+nonempty names and reject stamp-owned keys. Declared semantic fields must
+match the request exactly; other descriptive fields do not affect equality.}
 
 \item{code}{Optional function/expression/character whose hash is stored as \code{code_hash}.}
 
@@ -57,9 +63,30 @@ If \code{NULL} (default), uses the default alias. If the default alias does not
 exist, an error is raised. Use aliases to operate across multiple stamp folders.}
 
 \item{...}{forwarded to format writer}
+
+\item{request}{Optional complete execution request. Exact-name-only after
+\code{...}; its registered physical format and semantic proof must match the
+save. See \code{\link[=st_plan_rebuild]{st_plan_rebuild()}} for the record schema. Exact parent pins must
+have persisted valid byte checksums. A raw save never publishes a receipt.}
+
+\item{semantic_schema}{Optional named semantic field descriptors. Changes to
+declared types, shapes or values create a new immutable version even when
+data are equal. Descriptive-only edits on unchanged saves are ignored.
+Each descriptor has exactly \code{type} (\code{logical}, \code{integer}, \code{double} or
+\code{character}), \code{shape} (\code{scalar} or \code{vector}), and nonmissing logical scalar
+flags \code{required}, \code{nullable}, \code{allow_na}. Scalars have length one; vectors
+may be empty. No type coercion, classed/nested values, NaN or infinities are
+accepted. Optional absence, explicit NULL, typed NA and empty vectors are
+distinct. NULL preserves legacy/descriptive behavior unless a request
+supplies the schema. This argument is also exact-name-only after \code{...}.}
 }
 \value{
-invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
+Invisibly, a new-save list with \code{path}, \code{metadata} and \code{version_id}.
+An unchanged save returns \code{path}, \code{skipped = TRUE}, \code{reason} and a validated
+retained \code{version_id}, with no receipt or descriptive metadata rewrite.
+Request-aware and
+semantic-schema-enabled save failures propagate; the legacy write-error
+route may return NULL metadata/version_id rather than a successful save.
 }
 \description{
 Save an R object to disk with metadata & versioning (atomic move)

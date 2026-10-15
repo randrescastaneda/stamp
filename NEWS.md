@@ -19,12 +19,38 @@
   and the pkgdown site while the partition API is internal
 
 ## New Functions
+* **NEW**: `st_execution_info()` inspects committed execution/outcome proof
+  without artifact-data deserialization. Exact IDs never fall back to latest.
+* **NEW**: `st_record_outcome()` records externally classified failed/blocked
+  facts only; successful execution proof is published by request-aware rebuilds.
 * **NEW**: `st_catalog_query()` — query latest version metadata for all artifacts in an alias
   - Returns a `data.table` with one row per artifact (latest version only): `path`, `version_id`, `content_hash`, `code_hash`, `size_bytes`, `created_at`
   - Replaces the need to iterate individually over artifact paths to build a catalog snapshot
   - Returns an empty `data.table` with the correct schema when the catalog has no artifacts
   - Validates that every artifact resolves to a version row; aborts with a repair hint on catalog corruption
   - Uninitialised alias aborts immediately with a clear `st_init()` hint
+
+## Requested Execution And Metadata
+* Explicit requests add declared calculation/helper/constant coverage, exact
+  parent pins, typed semantic metadata and registered physical format proof to
+  planning/currentness. Existing calls without requests retain the legacy route.
+* Request-aware rebuilds revalidate every selected candidate after actual parent
+  results. Equal B output can retain B1 after execution against A2 while a new
+  receipt records A2; B1 provenance is unchanged and C can skip on the same B1.
+* Durable failure classes govern recovery: deterministic failures require a
+  reviewed failure ID plus input/component change; external failures permit one
+  analyst-started attempt; unknown failures block. Missing builders are
+  recoverable configuration blocks, not actual unknown execution failures.
+* Semantic schema/value changes create versions even for equal data. Typed
+  historical sidecar reads preserve NULL/NA/empty and integer/double distinctions
+  across JSON/QS2/both modes; exact unavailable metadata errors, without fallback.
+* Unchanged saves return validated retained version IDs but never execution
+  receipts. Descriptive-only no-op edits do not rewrite sidecars. Historical
+  data loading uses the pinned saved physical format rather than its extension.
+* Retention protects committed execution references and retained original
+  ancestry; protected or invalid deletion selections refuse before deletion.
+  These are serial isolated guarantees, not Force/automatic retry support,
+  cryptographic authenticity, SMB atomicity or multiwriter certification.
 
 # stamp 0.0.10
 

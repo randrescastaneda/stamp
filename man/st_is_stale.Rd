@@ -2,19 +2,27 @@
 % Please edit documentation in R/version_store.R
 \name{st_is_stale}
 \alias{st_is_stale}
-\title{Is a child artifact stale because its parents advanced?}
+\title{Inspect parent staleness or requested artifact currentness}
 \usage{
-st_is_stale(path, alias = NULL)
+st_is_stale(path, alias = NULL, request = NULL)
 }
 \arguments{
 \item{path}{Character path to the artifact to inspect.}
 
 \item{alias}{Optional stamp alias to target a specific stamp folder.}
+
+\item{request}{Optional complete calculation request. NULL preserves legacy
+parent-only inspection. A verified matching success returns FALSE; eligible
+work returns TRUE; blocked proof raises \code{stamp_blocked_request} with
+\code{decision = "blocked"} and a precise \code{reason}. See \code{\link[=st_plan_rebuild]{st_plan_rebuild()}} for
+the request schema. This function neither invokes builders nor writes state.}
 }
 \value{
-Logical scalar. \code{TRUE} if any parent advanced, otherwise \code{FALSE}.
+Logical scalar. With no request, \code{TRUE} if any parent advanced,
+otherwise \code{FALSE}. Request-aware calls never report blocked work as current.
 }
 \description{
-Inspect the committed parents.json for the latest snapshot of \code{path} and
-determine whether any parent now has a different latest version id.
+With no request, inspect committed parents.json for the latest snapshot and
+determine whether any parent advanced. With a complete request, validate
+durable proof, prerequisites and failure precedence without executing work.
 }

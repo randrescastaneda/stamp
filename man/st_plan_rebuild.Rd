@@ -8,7 +8,8 @@ st_plan_rebuild(
   targets,
   depth = Inf,
   include_targets = FALSE,
-  mode = c("propagate", "strict")
+  mode = c("propagate", "strict"),
+  requests = NULL
 )
 }
 \arguments{
@@ -16,17 +17,27 @@ st_plan_rebuild(
 
 \item{depth}{Integer depth >= 1, or Inf.}
 
-\item{include_targets}{Logical; if TRUE and a target is stale, include it at level 0.}
+\item{include_targets}{Logical; on the legacy route, include a target at level
+0 when stale (or assumed to change in propagate mode). With requests, include
+every target at level 0 and require an explicit normalized recipe for each.}
 
-\item{mode}{"propagate" (default) or "strict".}
+\item{mode}{"propagate" (default) or "strict". Controls only legacy planning
+when requests is NULL; explicit requests determine their own currentness.}
+
+\item{requests}{Optional unnamed list of explicit calculation requests.
+NULL preserves legacy planning. Requests define current graph edges and
+include recipes for missing outputs. Selected deferred parents are resolved
+to validated output pins before execution. Planning never writes state.}
 }
 \value{
 data.frame with columns:
 level, path, reason, latest_version_before
+With requests, adds request (list-column), decision (run, skip, blocked),
+request_id and receipt_id; includes current skips and blocked candidates.
 }
 \description{
-Returns the set of \emph{stale descendants} of \code{targets}.
-Two modes:
+With \code{requests = NULL}, returns the set of \emph{stale descendants} of
+\code{targets}. Two legacy modes:
 \itemize{
 \item \code{"propagate"} (default): treat each \code{target} as "will change",
 then breadth-first schedule children whose parents intersect the set of nodes
@@ -35,4 +46,36 @@ so their children are considered at the next level.
 \item \code{"strict"}: only include nodes already stale against their parents'
 \emph{current} latest versions (no propagation).
 }
+With explicit requests, uses their current dependency graph and retains every
+selected run, skip and blocked candidate. The mode does not change this
+selection. Rebuild re-evaluates every selected candidate after actual upstream
+outcomes, including candidates that were current in the preview.
+}
+\details{
+Each request is a named list with exactly these required fields:
+\itemize{
+\item \code{schema}: integer \code{1L}; \code{path}: artifact logical path within its alias.
+\item \code{root}: logical scalar; \code{parents}: unnamed list of records containing
+\code{path} and exact \code{version_id}. Empty parents require root TRUE. In a
+preview only, NULL pins may name explicit selected recipes that will run.
+\item \code{required_components}: unique character IDs including \code{calculation};
+\code{components}: named list with exactly those IDs. Each descriptor contains
+nonempty \code{hash}, \code{algorithm} and caller canonicalization \code{schema} strings.
+Algorithms are \code{siphash13} (16 lowercase hex characters) or \code{sha256} (64).
+\item \code{semantic_schema} and \code{semantic}: descriptors as in \code{\link[=st_save]{st_save()}} and a
+uniquely named list of their typed values, with no undeclared fields.
+With no semantic fields, use NULL schema and \code{list()} values.
+\item \code{format}: exact case-sensitive registered \code{\link[=st_formats]{st_formats()}} identifier.
+}
+Optional \code{audit} is a named list of scalar source-identity strings. Optional
+\code{review} is \verb{list(outcome_id = <governing failure ID>)}. Neither enters request
+equality. Unknown/duplicated fields are invalid. Paths and parent/component
+ordering are canonicalized; semantic types and declared shapes are retained.
+
+Callers must cover all known result-affecting helpers, constants and rules,
+not just a source label. Stamp validates declared proof; it does not discover
+hidden closure dependencies. Valid complete requests can recover absent
+legacy proof, but legacy parent-only inspection is not complete currentness.
+Contradictory committed modern proof blocks rather than silently recovering.
+Serial isolated publication is supported, not SMB or multiwriter guarantees.
 }
