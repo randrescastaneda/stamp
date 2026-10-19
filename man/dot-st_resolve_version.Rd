@@ -9,7 +9,8 @@
 \arguments{
 \item{path}{artifact path}
 
-\item{version}{NULL (latest), integer (relative), character (specific version ID),
+\item{version}{NULL (latest), 0 (latest), negative integer (versions back),
+character (specific version ID),
 or "select"/"pick"/"choose" to show interactive menu}
 }
 \value{

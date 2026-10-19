@@ -1,417 +1,74 @@
-test_that("st_write_parts auto-partitions and saves data", {
-  skip_if_not_installed("data.table")
-  library(data.table)
-
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  # Create sample data with multiple partition dimensions
-  dt <- data.table(
-    country = rep(c("USA", "CAN"), each = 6),
-    year = rep(rep(2020:2021, each = 3), 2),
-    reporting_level = rep(c("national", "urban", "rural"), 4),
-    value = 1:12
-  )
-
-  parts_dir <- file.path(tdir, "welfare_parts")
-
-  # Auto-partition and save
-  manifest <- stamp:::st_write_parts(
-    dt,
-    base = parts_dir,
-    partitioning = c("country", "year", "reporting_level"),
-    code_label = "test_partition",
-    .progress = FALSE
-  )
-
-  # Verify manifest structure
-  expect_s3_class(manifest, "data.frame")
-  expect_true("partition_key" %in% names(manifest))
-  expect_true("path" %in% names(manifest))
-  expect_true("version_id" %in% names(manifest))
-  expect_true("n_rows" %in% names(manifest))
-
-  # Should have 2 countries × 2 years × 3 levels = 12 partitions (one per row)
-  expect_equal(nrow(manifest), 12)
-  expect_equal(sum(manifest$n_rows), nrow(dt))
-
-  # Verify files exist on disk in new storage location
-  # Partitions are stored with full path: <rel_path>/<filename>
-  # manifest$path contains absolute paths, so we need to convert to relative
-  # by calculating from the root directory (tdir)
-  rel_paths <- fs::path_rel(manifest$path, start = tdir)
-  storage_paths <- fs::path(tdir, rel_paths, basename(rel_paths))
-  expect_true(all(fs::file_exists(storage_paths)))
-
-  # Verify partition structure (Hive-style paths)
-  sample_path <- manifest$path[1]
-  expect_true(grepl("country=", sample_path))
-  expect_true(grepl("year=", sample_path))
-  expect_true(grepl("reporting_level=", sample_path))
-
-  # Load partitions back and verify content
-  loaded <- stamp:::st_load_parts(parts_dir, as = "dt")
-  expect_equal(nrow(loaded), nrow(dt))
-
-  # Verify partition columns are added
-  expect_true(all(c("country", "year", "reporting_level") %in% names(loaded)))
-})
-
-test_that("st_write_parts handles missing partition columns", {
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  dt <- data.frame(a = 1:3, b = 4:6)
-  parts_dir <- file.path(tdir, "parts")
-
-  expect_error(
-    stamp:::st_write_parts(dt, parts_dir, partitioning = c("country", "year")),
-    "not found in data"
-  )
-})
-
-test_that("st_write_parts works with base data.frame", {
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  df <- data.frame(
-    region = rep(c("North", "South"), each = 2),
-    category = rep(c("A", "B"), 2),
-    value = 1:4
-  )
-
-  parts_dir <- file.path(tdir, "parts")
-
-  manifest <- stamp:::st_write_parts(
-    df,
-    base = parts_dir,
-    partitioning = c("region", "category"),
-    .progress = FALSE
-  )
-
-  expect_equal(nrow(manifest), 4)
-  # Verify files exist in new storage location with full nested paths
-  # Convert absolute paths to relative for storage path calculation
-  rel_paths <- fs::path_rel(manifest$path, start = tdir)
-  storage_paths <- fs::path(tdir, rel_paths, basename(rel_paths))
-  expect_true(all(fs::file_exists(storage_paths)))
-})
-
-test_that("st_write_parts with filter allows selective loading", {
-  skip("Partition filtering not fully functional in current codebase")
-  skip_if_not_installed("data.table")
-  library(data.table)
-
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  dt <- data.table(
-    country = rep(c("USA", "CAN"), each = 3),
-    year = rep(2020:2022, 2),
-    value = 1:6
-  )
-
-  parts_dir <- file.path(tdir, "parts")
-
-  stamp:::st_write_parts(
-    dt,
-    base = parts_dir,
-    partitioning = c("country", "year"),
-    .progress = FALSE
-  )
-
-  # Load only USA partitions
-  loaded_usa <- stamp:::st_load_parts(
-    parts_dir,
-    filter = list(country = "USA"),
-    as = "dt"
-  )
-  expect_equal(nrow(loaded_usa), 3)
-  expect_true(all(loaded_usa$country == "USA"))
-
-  # Load only 2021 data (with character)
-  loaded_2021 <- stamp:::st_load_parts(
-    parts_dir,
-    filter = list(year = "2021"),
-    as = "dt"
-  )
-  expect_equal(nrow(loaded_2021), 2)
-  expect_true(all(loaded_2021$year == "2021"))
-
-  # Load only 2020 data (numeric)
-  loaded_2020 <- stamp:::st_load_parts(
-    parts_dir,
-    filter = list(year = 2020),
-    as = "dt"
-  )
-  expect_equal(nrow(loaded_2020), 2)
-  expect_true(all(loaded_2020$year == "2020"))
-})
-
-test_that("st_load_parts supports column selection for parquet", {
-  skip(
-    "Column selection for partitions not fully functional in current codebase"
-  )
-  skip_if_not_installed("data.table")
-  skip_if_not_installed("nanoparquet")
-  library(data.table)
-
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  dt <- data.table(
-    country = rep(c("USA", "CAN"), each = 3),
-    year = rep(2020:2022, 2),
-    value = 1:6,
-    extra_col = letters[1:6]
-  )
-
-  parts_dir <- file.path(tdir, "parts")
-
-  # Save as parquet (default for partitions)
-  stamp:::st_write_parts(
-    dt,
-    base = parts_dir,
-    partitioning = c("country"),
-    .progress = FALSE
-  )
-
-  # Load only specific columns
-  loaded_subset <- stamp:::st_load_parts(
-    parts_dir,
-    columns = c("year", "value"),
-    as = "dt"
-  )
-
-  expect_equal(ncol(loaded_subset), 3) # year, value, + country (partition key)
-  expect_true(all(c("year", "value", "country") %in% names(loaded_subset)))
-  expect_false("extra_col" %in% names(loaded_subset))
-  expect_equal(nrow(loaded_subset), 6)
-})
-
-test_that("st_load_parts warns for non-columnar formats", {
-  skip_if_not_installed("data.table")
-  library(data.table)
-
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  dt <- data.table(
-    country = "USA",
-    year = 2020,
-    value = 100,
-    extra = 200
-  )
-
-  parts_dir <- file.path(tdir, "parts")
-
-  skip_if_not_installed("qs2")
-  # Save as qs2 (non-columnar)
-  stamp:::st_write_parts(
-    dt,
-    base = parts_dir,
-    partitioning = "country",
-    format = "qs2",
-    .progress = FALSE
-  )
-
-  # Should warn and load full object then subset
-  expect_warning(
-    loaded <- stamp:::st_load_parts(parts_dir, columns = c("year", "value"), as = "dt"),
-    "Column selection not supported"
-  )
-
-  # Should still subset correctly
-  expect_true(all(c("year", "value", "country") %in% names(loaded)))
-  expect_false("extra" %in% names(loaded))
-})
-
-test_that("st_load_parts supports expression-based filtering", {
-  skip("Expression-based filtering not fully functional in current codebase")
-  skip_if_not_installed("data.table")
-  library(data.table)
-
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  dt <- data.table(
-    country = rep(c("USA", "CAN", "MEX"), each = 4),
-    year = rep(2010:2013, 3),
-    value = 1:12
-  )
-
-  parts_dir <- file.path(tdir, "parts")
-
-  stamp:::st_write_parts(
-    dt,
-    base = parts_dir,
-    partitioning = c("country", "year"),
-    .progress = FALSE
-  )
-
-  # Test: year > 2010 (formula syntax)
-  loaded_gt <- stamp:::st_load_parts(
-    parts_dir,
-    filter = ~ year > 2010,
-    as = "dt"
-  )
-  expect_true(all(loaded_gt$year > 2010))
-  expect_equal(nrow(loaded_gt), 9) # 3 countries × 3 years (2011, 2012, 2013)
-
-  # Test: country == "USA" & year >= 2012
-  loaded_complex <- stamp:::st_load_parts(
-    parts_dir,
-    filter = ~ country == "USA" & year >= 2012,
-    as = "dt"
-  )
-  expect_equal(nrow(loaded_complex), 2)
-  expect_true(all(loaded_complex$country == "USA"))
-  expect_true(all(loaded_complex$year >= 2012))
-
-  # Test: OR conditions - (country == "CAN" & year == 2012) | (country == "MEX" & year == 2010)
-  loaded_or <- stamp:::st_load_parts(
-    parts_dir,
-    filter = ~ (country == "CAN" & year == 2012) |
-      (country == "MEX" & year == 2010),
-    as = "dt"
-  )
-  expect_equal(nrow(loaded_or), 2)
-  can_2012 <- loaded_or$country == "CAN" & loaded_or$year == 2012
-  mex_2010 <- loaded_or$country == "MEX" & loaded_or$year == 2010
-  expect_true(all(can_2012 | mex_2010))
-
-  # Test: %in% operator
-  loaded_in <- stamp:::st_load_parts(
-    parts_dir,
-    filter = ~ country %in% c("USA", "CAN") & year != 2010,
-    as = "dt"
-  )
-  expect_true(all(loaded_in$country %in% c("USA", "CAN")))
-  expect_true(all(loaded_in$year != 2010))
-  expect_equal(nrow(loaded_in), 6)
-})
-
-test_that("st_load_parts backward compatible with list filter", {
-  skip("List filtering not fully functional in current codebase")
-  skip_if_not_installed("data.table")
-  library(data.table)
-
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  dt <- data.table(
-    country = rep(c("USA", "CAN"), each = 3),
-    year = rep(2020:2022, 2),
-    value = 1:6
-  )
-
-  parts_dir <- file.path(tdir, "parts")
-
-  stamp:::st_write_parts(
-    dt,
-    base = parts_dir,
-    partitioning = c("country", "year"),
-    .progress = FALSE
-  )
-
-  # Old-style list filter should still work
-  loaded_list <- stamp:::st_load_parts(
-    parts_dir,
-    filter = list(country = "USA", year = "2021"),
-    as = "dt"
-  )
-  expect_equal(nrow(loaded_list), 1)
-  expect_equal(loaded_list$country, "USA")
-  expect_equal(loaded_list$year, "2021")
-})
-
-test_that("st_list_parts supports expression filtering", {
-  skip("List parts filtering not fully functional in current codebase")
-  skip_if_not_installed("data.table")
-  library(data.table)
-
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  dt <- data.table(
-    region = rep(c("North", "South", "East"), each = 2),
-    status = rep(c("active", "inactive"), 3),
-    value = 1:6
-  )
-
-  parts_dir <- file.path(tdir, "parts")
-
-  stamp:::st_write_parts(
-    dt,
-    base = parts_dir,
-    partitioning = c("region", "status"),
-    .progress = FALSE
-  )
-
-  # List with expression filter (formula)
-  listing_expr <- stamp:::st_list_parts(
-    parts_dir,
-    filter = ~ region == "North" | status == "active"
-  )
-
-  expect_equal(nrow(listing_expr), 4) # North (2) + South/active (1) + East/active (1)
-
-  # Verify all results match filter
-  for (i in seq_len(nrow(listing_expr))) {
-    expect_true(
-      listing_expr$region[i] == "North" | listing_expr$status[i] == "active"
-    )
+test_that("sparse data.frame and data.table partitions save only observed rows", {
+  local_stamp_state()
+  local_st_opts(warn_missing_pk_on_load = FALSE, verify_on_load = FALSE)
+  td <- withr::local_tempdir()
+  st_init(td)
+  x <- data.frame(country = c("USA", "CAN", "USA"),
+                  year = c(2020L, 2021L, 2020L), value = c(11L, 22L, 33L))
+  for (kind in c("df", "dt")) {
+    input <- if (kind == "df") x else data.table::as.data.table(x)
+    before <- data.table::copy(input)
+    base <- fs::path(td, kind)
+    expect_no_warning(manifest <- suppressMessages(stamp:::st_write_parts(
+      input, base, c("country", "year"), .progress = FALSE, verbose = FALSE
+    )))
+    expect_identical(input, before)
+    expect_equal(nrow(manifest), 2L)
+    expect_equal(sort(manifest$n_rows), c(1L, 2L))
+    expect_equal(sort(vapply(manifest$partition_key, function(k) k$country,
+                              character(1))), c("CAN", "USA"))
+    expect_true(all(nzchar(manifest$version_id)))
+    payloads <- fs::path(manifest$path, fs::path_file(manifest$path))
+    expect_true(all(fs::file_exists(payloads)))
+    stored <- lapply(payloads, nanoparquet::read_parquet)
+    expect_equal(sort(unlist(lapply(stored, function(z) z$value))), c(11L, 22L, 33L))
+    all <- stamp:::st_load_parts(base, as = "dt")
+    expect_identical(sort(all$value), c(11L, 22L, 33L))
+    projected <- stamp:::st_load_parts(base, columns = "value", as = "dt")
+    expect_identical(sort(projected$value), c(11L, 22L, 33L))
+    expect_setequal(names(projected), c("value", "country", "year"))
+    expect_identical(projected, all[, c("value", "country", "year"), with = FALSE])
   }
-
-  # List with named list filter (backward compat)
-  listing_list <- stamp:::st_list_parts(
-    parts_dir,
-    filter = list(region = "South", status = "inactive")
-  )
-  expect_equal(nrow(listing_list), 1)
-  expect_equal(listing_list$region, "South")
-  expect_equal(listing_list$status, "inactive")
 })
 
-test_that("filter expressions handle numeric comparisons correctly", {
-  skip_if_not_installed("data.table")
-  library(data.table)
+test_that("partition filters select independently specified exact rows", {
+  local_stamp_state()
+  local_st_opts(warn_missing_pk_on_load = FALSE, verify_on_load = FALSE)
+  td <- withr::local_tempdir()
+  st_init(td)
+  x <- data.frame(country = c("usa", "can", "usa", "mex"),
+                  year = c(2020L, 2021L, 2022L, 2022L), value = 1:4)
+  base <- fs::path(td, "parts")
+  stamp:::st_write_parts(x, base, c("country", "year"),
+                        .progress = FALSE, verbose = FALSE)
+  filters <- list(list(country = "usa"), list(year = 2022),
+                  list(year = "2022"), ~ year > 2020,
+                  ~ country == "usa" & year >= 2022,
+                  ~ country == "can" | year == 2020,
+                  ~ country %in% c("usa", "mex") & year != 2020,
+                  ignored ~ year == 2021)
+  expected <- list(c(1L, 3L), c(3L, 4L), c(3L, 4L), 2:4,
+                   3L, 1:2, 3:4, 2L)
+  for (i in seq_along(filters)) {
+    listing <- stamp:::st_list_parts(base, filters[[i]])
+    expect_equal(nrow(listing), length(expected[[i]]))
+    loaded <- stamp:::st_load_parts(base, filters[[i]], as = "dt")
+    expect_identical(sort(loaded$value), expected[[i]])
+  }
+  expect_error(stamp:::st_list_parts(base, filter = 2020), "Invalid filter")
+  expect_equal(nrow(stamp:::st_list_parts(base, ~ absent > 2)), 0L)
+})
 
-  tdir <- withr::local_tempdir()
-  local_st_opts()
-  st_init(tdir)
-
-  dt <- data.table(
-    id = 1:10,
-    year = rep(2015:2019, 2),
-    value = rnorm(10)
-  )
-
-  parts_dir <- file.path(tdir, "parts")
-
-  stamp:::st_write_parts(
-    dt,
-    base = parts_dir,
-    partitioning = "year",
-    .progress = FALSE
-  )
-
-  # Numeric comparison (formula syntax)
-  loaded_numeric <- stamp:::st_load_parts(
-    parts_dir,
-    filter = ~ year >= 2017,
-    as = "dt"
-  )
-
-  expect_true(all(loaded_numeric$year >= 2017))
-  expect_equal(nrow(loaded_numeric), 6) # 2017, 2018, 2019 × 2 each
+test_that("empty and invalid partition datasets have visible outcomes", {
+  local_stamp_state()
+  td <- withr::local_tempdir()
+  st_init(td)
+  expect_error(stamp:::st_write_parts(data.frame(a = 1), td, "missing"),
+               "not found in data")
+  expect_warning(empty <- stamp:::st_write_parts(
+    data.frame(a = character(), value = integer()),
+    fs::path(td, "empty"), "a", .progress = FALSE
+  ), "No partitions created")
+  expect_equal(nrow(empty), 0L)
+  expect_length(empty$path, 0L)
 })

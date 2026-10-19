@@ -37,13 +37,19 @@ the loaded object
 Load an object from disk (format auto-detected; optional integrity checks)
 }
 \details{
+Native RDS/QS2 loads restore only an original data.table key recorded in the
+selected sidecar. The descriptor must have valid columns and agree with the
+existing row order; invalid metadata aborts rather than sorting the result.
+An absent legacy descriptor does not imply or create a key. This does not
+promise key fidelity for projected/combined partitions or arbitrary classes.
+
 The \code{version} argument allows you to load specific versions:
 \itemize{
-\item \code{NULL} (default): loads the most recent version available.
-\item Negative integer (e.g., \code{-1}) or zero (\code{0}): loads that number of versions
-before the most recent version. So, if \code{0}, it loads the current
-version, which is equivalent to \code{NULL}. If \code{-1}, it will load the version
-right before the current one, \code{-2} loads two versions before, and so on.
+\item \code{NULL} (default): loads the current live artifact.
+\item Zero (\code{0}): loads the latest committed snapshot, which can differ from an
+edited or uncommitted live file.
+\item Negative integer: loads that many retained snapshots before the latest;
+\code{-1} is previous, \code{-2} is two retained versions back, and so on.
 \item Positive numbers: Error.
 \item Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
 \item Interactive selection (e.g., \code{"select"}, \code{"pick"}, \code{"choose"}) is supported

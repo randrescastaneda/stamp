@@ -1,4 +1,5 @@
 test_that("st_init respects verbose flag", {
+  local_stamp_state()
   td1 <- withr::local_tempdir()
   td2 <- withr::local_tempdir()
 
@@ -34,6 +35,8 @@ test_that("st_init respects verbose flag", {
 })
 
 test_that("st_save and st_load respect verbose flag", {
+  local_stamp_state()
+  local_st_opts(warn_missing_pk_on_load = FALSE)
   td <- withr::local_tempdir()
   st_init(td)
   tmp <- fs::path(td, "test.rds")
@@ -69,8 +72,8 @@ test_that("st_save and st_load respect verbose flag", {
   })
 })
 test_that("st_save and st_load create artifact, sidecar and versions", {
-  skip_on_cran()
-  skip_if_not_installed("qs2")
+  local_stamp_state()
+  local_st_opts()
   td <- withr::local_tempdir()
   root <- td
   st_init(root)
@@ -113,7 +116,8 @@ test_that("st_save and st_load create artifact, sidecar and versions", {
 })
 
 test_that("atomic write creates temp then moves into place", {
-  skip_on_cran()
+  local_stamp_state()
+  local_st_opts()
   td <- withr::local_tempdir()
   root <- td
   st_init(root)
@@ -136,7 +140,7 @@ test_that("atomic write creates temp then moves into place", {
 })
 
 test_that("st_register_format registers and st_formats lists it", {
-  skip_on_cran()
+  local_stamp_state()
   # register a trivial text format and ensure it appears
   st_register_format(
     "txt_test",
@@ -149,7 +153,8 @@ test_that("st_register_format registers and st_formats lists it", {
 })
 
 test_that("sidecar absent, versions empty, and st_load_version errors when missing", {
-  skip_on_cran()
+  local_stamp_state()
+  local_st_opts()
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")

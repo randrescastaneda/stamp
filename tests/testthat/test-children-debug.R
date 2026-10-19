@@ -1,40 +1,25 @@
-test_that("debug: st_children test", {
+test_that("children identities agree with the committed parents index", {
+  local_stamp_state()
+  local_st_opts(default_format = "rds", meta_format = "json",
+                versioning = "content", retain_versions = Inf)
   root <- withr::local_tempdir()
-  st_opts_reset()
   st_init(root = root, state_dir = ".s", alias = "L")
-
   pA <- fs::path(root, "A.qs")
   pB <- fs::path(root, "B.qs")
-  fs::dir_create(fs::path_dir(pA), recurse = TRUE)
-  fs::dir_create(fs::path_dir(pB), recurse = TRUE)
-
-  st_save(data.frame(a = 1), pA, alias = "L", code = function(z) z)
+  st_save(data.frame(a = 1), pA, alias = "L")
   vA <- st_latest(pA, alias = "L")
-
-  st_save(
-    data.frame(b = 2),
-    pB,
-    alias = "L",
-    code = function(z) z,
-    parents = list(list(path = pA, version_id = vA))
-  )
-
-  cat_data <- stamp:::.st_catalog_read(alias = "L")
+  st_save(data.frame(b = 2), pB, alias = "L",
+          parents = list(list(path = pA, version_id = vA)))
+  vB <- st_latest(pB, alias = "L")
+  cat <- stamp:::.st_catalog_read(alias = "L")
   kids <- st_children(pA, depth = 1L, alias = "L")
-
-  # Write debug info to temporary file
-  debug_file <- withr::local_tempfile(fileext = ".txt")
-  debug_output <- sprintf(
-    "pA: %s\npB: %s\nvA: %s\n\nArtifacts:\n%s\n\nParents Index:\n%s\n\nKids result:\n%s\n\nMatch: %s\n",
-    pA,
-    pB,
-    vA,
-    paste(capture.output(print(cat_data$artifacts[, .(artifact_id, path)])), collapse = "\n"),
-    paste(capture.output(print(cat_data$parents_index)), collapse = "\n"),
-    paste(capture.output(print(kids)), collapse = "\n"),
-    if (nrow(kids) > 0) kids$child_path[1] == pB else "N/A"
-  )
-  writeLines(debug_output, debug_file)
-
-  expect_true(TRUE)
+  expect_equal(nrow(kids), 1L)
+  expect_equal(kids$child_path, stamp:::.st_normalize_path(pB))
+  expect_equal(stamp:::.st_normalize_path(kids$parent_path),
+               stamp:::.st_normalize_path(pA))
+  expect_equal(kids$child_version, vB)
+  expect_equal(kids$parent_version, vA)
+  expect_equal(cat$parents_index$child_version_id, vB)
+  expect_equal(cat$parents_index$parent_version_id, vA)
+  expect_identical(st_load(pB, alias = "L", verbose = FALSE), data.frame(b = 2))
 })

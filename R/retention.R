@@ -106,7 +106,7 @@ st_prune_versions <- function(
   dry_run = TRUE,
   alias = NULL
 ) {
-  stopifnot(is.logical(dry_run), length(dry_run) == 1L)
+  stopifnot(is.logical(dry_run), length(dry_run) == 1L, !is.na(dry_run))
 
   # Normalize the policy using the internal helper (single source of truth)
   pol <- .st_normalize_policy(policy)
@@ -120,16 +120,13 @@ st_prune_versions <- function(
   # Normalize the path to get logical_path that matches what's in the catalog
   want_logical_path <- NULL
   if (!is.null(path)) {
-    norm <- .st_normalize_user_path(
-      path,
-      alias = alias,
-      must_exist = FALSE,
-      auto_switch = FALSE
-    )
-    want_logical_path <- norm$logical_path
+    norm <- lapply(path, function(p) .st_normalize_user_path(
+      p, alias = alias, must_exist = FALSE, auto_switch = FALSE
+    ))
+    want_logical_path <- vapply(norm, `[[`, character(1), "logical_path")
     # Use the detected alias if no explicit alias was provided
     if (is.null(alias)) {
-      alias <- norm$alias
+      alias <- norm[[1L]]$alias
     }
   }
 
@@ -174,16 +171,15 @@ st_prune_versions <- function(
 
     # Optional path filter → restrict to those artifacts
     if (!is.null(want_logical_path)) {
-      a_keep <- cat$artifacts$path == want_logical_path
-      cat$artifacts <- cat$artifacts[a_keep]
-      if (!nrow(cat$artifacts)) {
+      a_keep <- cat$artifacts$path %in% want_logical_path
+      if (!any(a_keep)) {
         cli::cli_inform(c(
           "v" = "No catalog artifacts matched the provided path filter; nothing to prune."
         ))
         return(data.frame())
       }
-      cat$versions <- cat$versions[artifact_id %in% cat$artifacts$artifact_id]
-      if (!nrow(cat$versions)) {
+      if (!any(cat$versions$artifact_id %in%
+               cat$artifacts$artifact_id[a_keep])) {
         cli::cli_inform(c(
           "v" = "No versions exist for the provided path filter; nothing to prune."
         ))
@@ -200,6 +196,9 @@ st_prune_versions <- function(
       all.x = TRUE,
       sort = FALSE
     )
+    if (!is.null(want_logical_path)) {
+      vers <- vers[path %in% want_logical_path]
+    }
 
     # For safety, ensure creation ordering newest -> oldest with deterministic tie-breaker.
     # Use version_id as secondary key (descending) to avoid flakiness when multiple versions
@@ -382,6 +381,9 @@ st_prune_versions <- function(
     # Remove only successfully deleted version rows from catalog
     keep_mask <- !(cat$versions$version_id %in% successfully_deleted)
     cat$versions <- cat$versions[keep_mask]
+    cat$parents_index <- cat$parents_index[
+      !(child_version_id %in% successfully_deleted)
+    ]
 
     # Recompute artifacts table (n_versions & latest_version_id)
     # Use vectorized data.table operations instead of row-by-row updates
@@ -401,7 +403,7 @@ st_prune_versions <- function(
           )
         } else {
           # Find newest version (already ordered by created_at desc from merge)
-          ord <- order(created_at, decreasing = TRUE)
+          ord <- order(created_at, version_id, decreasing = TRUE)
           list(
             artifact_id = artifact_id[1L],
             n_versions = .N,
@@ -449,14 +451,18 @@ st_prune_versions <- function(
 .st_normalize_policy <- function(policy) {
   if (is.character(policy)) {
     nums <- suppressWarnings(as.numeric(strsplit(
-      paste(policy, collapse = " "),
+      trimws(paste(policy, collapse = " ")),
       "\\s+"
     )[[1]]))
-    nums <- nums[!is.na(nums)]
+    if (!length(nums) || anyNA(nums) || length(nums) > 2L) {
+      cli::cli_abort(
+        "Retention character policy must contain one or two numbers."
+      )
+    }
     if (length(nums) == 1L) {
-      policy <- as.integer(nums[1L])
+      policy <- nums[1L]
     } else if (length(nums) >= 2L) {
-      policy <- list(n = as.integer(nums[1L]), days = as.numeric(nums[2L]))
+      policy <- list(n = nums[1L], days = as.numeric(nums[2L]))
     }
   }
 
@@ -465,10 +471,11 @@ st_prune_versions <- function(
   }
 
   if (is.numeric(policy) && length(policy) == 1L) {
-    n <- as.integer(policy)
-    if (is.na(n) || n < 0L) {
+    if (is.na(policy) || !is.finite(policy) || policy < 0 ||
+        policy != floor(policy) || policy > .Machine$integer.max) {
       cli::cli_abort("Retention 'n' must be a non-negative integer.")
     }
+    n <- as.integer(policy)
     return(list(kind = "n", n = n))
   }
 
@@ -476,14 +483,16 @@ st_prune_versions <- function(
     n <- policy$n %||% NULL
     days <- policy$days %||% NULL
     if (!is.null(n)) {
-      n <- as.integer(n)
-      if (is.na(n) || n < 0L) {
+      n <- suppressWarnings(as.numeric(n))
+      if (length(n) != 1L || is.na(n) || !is.finite(n) || n < 0 ||
+          n != floor(n) || n > .Machine$integer.max) {
         cli::cli_abort("Retention 'n' must be a non-negative integer.")
       }
+      n <- as.integer(n)
     }
     if (!is.null(days)) {
-      days <- as.numeric(days)
-      if (is.na(days) || days < 0) {
+      days <- suppressWarnings(as.numeric(days))
+      if (length(days) != 1L || is.na(days) || days < 0) {
         cli::cli_abort("Retention 'days' must be a non-negative number.")
       }
     }
@@ -553,7 +562,7 @@ st_prune_versions <- function(
 .st_parse_utc_times <- function(chr) {
   suppressWarnings(as.POSIXct(
     chr,
-    format = "%Y-%m-%dT%H:%M:%SZ",
+    format = "%Y-%m-%dT%H:%M:%OSZ",
     tz = "UTC"
   ))
 }

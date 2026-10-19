@@ -10,7 +10,7 @@ test_that("st_hash_obj produces consistent hashes despite attribute order differ
   raw <- data.table::data.table(
     a = 1:5,
     b = letters[1:5],
-    c = rnorm(5)
+    c = c(0.25, 0.5, 1, 2, 4)
   )
 
   pip_inv <- data.table::copy(raw)

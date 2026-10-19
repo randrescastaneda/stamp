@@ -31,6 +31,16 @@ restoring historical versions of artifacts.
 The function will abort if the requested version snapshot does not
 exist or if there is no registered format handler for the artifact's
 format.
+
+When available, snapshot sidecar metadata selects the reader independently of
+the current default format. With \code{st_opts(verify_on_load = TRUE)}, recorded
+file and content hashes are checked and mismatches warn when \code{verbose = TRUE}.
+This does not apply the live loader's mutable PK/schema/domain annotations.
+
+Native RDS/QS2 snapshots use only their own recorded original data.table key
+descriptor. No key is inferred from live metadata, PKs or sorted rows. Invalid
+or row-order-inconsistent descriptors abort without reordering the returned
+data; legacy snapshots without descriptors retain their previous behavior.
 }
 \examples{
 \dontrun{

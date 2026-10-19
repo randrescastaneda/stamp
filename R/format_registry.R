@@ -66,6 +66,9 @@ NULL
   data.table::fread(path, ...)
 }
 .st_csv_write <- function(x, path, ...) {
+  if (is.null(x)) {
+    cli::cli_abort("CSV cannot store NULL as an R object; use RDS or QS2.")
+  }
   data.table::fwrite(x, path, ...)
 }
 
@@ -79,6 +82,9 @@ NULL
   if (!requireNamespace("fst", quietly = TRUE)) {
     cli::cli_abort("{.pkg fst} is required for FST write.")
   }
+  if (is.null(x)) {
+    cli::cli_abort("FST cannot store NULL as an R object; use RDS or QS2.")
+  }
   fst::write_fst(x, path, ...)
 }
 
@@ -91,6 +97,9 @@ NULL
 .st_parquet_write <- function(x, path, ...) {
   if (!requireNamespace("nanoparquet", quietly = TRUE)) {
     cli::cli_abort("{.pkg nanoparquet} is required for Parquet write.")
+  }
+  if (is.null(x)) {
+    cli::cli_abort("Parquet cannot store NULL as an R object; use RDS or QS2.")
   }
   nanoparquet::write_parquet(x, file = path, ...)
 }
@@ -269,36 +278,24 @@ st_formats <- function() {
 
   if (fmt %in% c("json", "both")) {
     scj <- .st_sidecar_path(rel_path, ext = "json", alias = alias)
-    fs::dir_create(fs::path_dir(scj), recurse = TRUE)
-    tmp <- fs::file_temp(
-      tmp_dir = fs::path_dir(scj),
-      pattern = "stmeta-" # Fixed prefix only
+    .st_write_atomic(
+      meta, scj, overwrite = TRUE,
+      writer = function(x, path) {
+        jsonlite::write_json(x, path, auto_unbox = TRUE, pretty = TRUE, digits = NA)
+      }
     )
-    jsonlite::write_json(
-      meta,
-      tmp,
-      auto_unbox = TRUE,
-      pretty = TRUE,
-      digits = NA
-    )
-    if (fs::file_exists(scj)) {
-      fs::file_delete(scj)
-    }
-    fs::file_move(tmp, scj)
   }
 
   if (fmt %in% c("qs2", "both")) {
     scq <- .st_sidecar_path(rel_path, ext = "qs2", alias = alias)
-    fs::dir_create(fs::path_dir(scq), recurse = TRUE)
-    tmp <- fs::file_temp(
-      tmp_dir = fs::path_dir(scq),
-      pattern = "stmeta-" # CHANGED: fixed prefix like JSON
+    .st_write_atomic(meta, scq, writer = .st_write_qs2, overwrite = TRUE)
+  }
+  # Remove the superseded representation only after the new write succeeds.
+  if (fmt %in% c("json", "qs2")) {
+    stale <- .st_sidecar_path(
+      rel_path, ext = if (fmt == "json") "qs2" else "json", alias = alias
     )
-    .st_write_qs2(meta, tmp)
-    if (fs::file_exists(scq)) {
-      fs::file_delete(scq)
-    }
-    fs::file_move(tmp, scq)
+    if (fs::file_exists(stale)) fs::file_delete(stale)
   }
   invisible(NULL)
 }
@@ -337,10 +334,29 @@ st_read_sidecar <- function(rel_path, alias = NULL) {
   }
 
   scj <- .st_sidecar_path(rel_path, ext = "json", alias = alias)
-  if (fs::file_exists(scj)) {
-    return(jsonlite::read_json(scj, simplifyVector = TRUE))
-  }
   scq <- .st_sidecar_path(rel_path, ext = "qs2", alias = alias)
+  if (fs::file_exists(scj)) {
+    meta <- jsonlite::read_json(scj, simplifyVector = TRUE)
+    if (fs::file_exists(scq)) {
+      other <- tryCatch(.st_read_qs2(scq), error = function(e) e)
+      if (inherits(other, "error")) {
+        cli::cli_warn(
+          "QS2 sidecar metadata is unreadable for {.file {rel_path}}; using JSON."
+        )
+      } else {
+        # Compare the shared JSON representation, not R-only classes/attributes.
+        other <- jsonlite::fromJSON(jsonlite::toJSON(
+          other, auto_unbox = TRUE, digits = NA
+        ), simplifyVector = TRUE)
+        if (!isTRUE(all.equal(meta, other))) {
+          cli::cli_warn(
+            "Sidecar metadata differs between JSON and QS2 for {.file {rel_path}}; using JSON."
+          )
+        }
+      }
+    }
+    return(meta)
+  }
   if (fs::file_exists(scq)) {
     return(.st_read_qs2(scq))
   }

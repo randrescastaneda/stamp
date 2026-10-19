@@ -1,4 +1,5 @@
 test_that("st_init trims alias whitespace, validates, and registers", {
+  local_stamp_state()
   td <- withr::local_tempdir()
   root <- td
   alias_raw <- "  myalias  "
@@ -16,12 +17,14 @@ test_that("st_init trims alias whitespace, validates, and registers", {
 })
 
 test_that("st_init errors on empty or non-character alias", {
+  local_stamp_state()
   td <- withr::local_tempdir()
   expect_error(st_init(root = td, alias = ""), regexp = "non-empty")
   expect_error(st_init(root = td, alias = 123), regexp = "non-empty|character")
 })
 
 test_that("alias conflict rules: same alias different folders errors", {
+  local_stamp_state()
   t1 <- withr::local_tempdir()
   t2 <- withr::local_tempdir()
   st_init(root = t1, state_dir = ".s1", alias = "dup")
@@ -32,6 +35,7 @@ test_that("alias conflict rules: same alias different folders errors", {
 })
 
 test_that("alias conflict rules: different aliases same folder warns", {
+  local_stamp_state()
   td <- withr::local_tempdir()
   st_init(root = td, state_dir = ".sX", alias = "a1")
   expect_warning(
@@ -41,6 +45,7 @@ test_that("alias conflict rules: different aliases same folder warns", {
 })
 
 test_that("st_alias_list returns registered aliases with configs", {
+  local_stamp_state()
   tA <- withr::local_tempdir()
   tB <- withr::local_tempdir()
   st_init(root = tA, state_dir = ".sa", alias = "A")
@@ -55,9 +60,11 @@ test_that("st_alias_list returns registered aliases with configs", {
 })
 
 test_that("st_switch re-bases default alias and affects calls without alias", {
+  local_stamp_state()
   rA <- withr::local_tempdir()
   rB <- withr::local_tempdir()
   st_opts_reset()
+  local_st_opts(default_format = "rds", warn_missing_pk_on_load = FALSE)
   aliasA <- paste0("A_", basename(rA))
   aliasB <- paste0("B_", basename(rB))
   st_init(root = rA, state_dir = ".sa", alias = aliasA)

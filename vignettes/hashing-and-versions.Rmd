@@ -31,7 +31,7 @@ This article explains how stamp detects changes and records versions. We'll cove
 - Change-detection helpers (`st_changed()`, `st_changed_reason()`, `st_should_save()`), and
 - The lightweight versions catalog (`st_versions()`, `st_latest()`, `st_load_version()`).
 
-The core idea: stamp computes stable, reproducible hashes for objects and (optionally) the user-supplied code. When you call `st_save()`, stamp compares the new hashes with stored metadata (sidecars or committed snapshots) and decides whether to write a new version. This allows cheap "skip-on-equal" behavior for expensive workflows.
+The core idea: stamp compares object/code hashes and applicable restoration metadata with the saved state. For native RDS/QS2 data.tables, original keys are recorded separately from the content hash. Equal hashes alone do not imply a skipped save if the original key descriptor changed.
 
 ## Recommended options
 
@@ -63,7 +63,7 @@ st_save(x, p, code = function(z) z, alias = NULL)
 nrow(st_versions(p, alias = NULL)) # should be 1
 ```
 
-In the snippet above stamp serializes `x` in a deterministic way and computes a content hash. If both the content hash and (when provided) the code hash match the stored metadata, no new version is created when `versioning = "content"`.
+In the snippet above the data.frame content, code and applicable restoration state are unchanged, so content policy skips the second save. For a data.table, a key-only change can instead create a metadata version without changing its content hash; unkeyed inputs never receive an inferred key.
 
 Note: the first write will always create the artifact and its sidecar(s). If you see the first write skipped, check that the path you passed to `st_save()` exactly matches subsequent calls.
 

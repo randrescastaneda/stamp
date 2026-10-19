@@ -9,9 +9,10 @@
 \arguments{
 \item{version}{Version to restore. Can be specified as:
 \itemize{
-\item Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)
+\item Non-positive integer offset (0 = latest, -1 = previous, etc.)
+\item Deprecated positive position (1 = latest, 2 = previous, etc.)
 \item Character string "latest" for the most recent version
-\item Character string "oldest" for the first saved version
+\item Character string "oldest" for the oldest retained version
 \item Version ID string from the version history
 }}
 
@@ -27,8 +28,9 @@ Helper function for st_restore() that handles multiple version specification for
 Centralizes identifier resolution logic for clarity and testability.
 }
 \note{
-When using integer offsets, version = 1 restores the current/latest version,
-which is equivalent to specifying version = "latest". This allows for consistent
-offset-based indexing where higher numbers represent older versions.
+Offsets count through retained snapshots, newest first. Positive
+positions retain their old meaning with a deprecation warning; replace
+position \code{p} with offset \code{1 - p}. The public restore default is
+unchanged. No stored version IDs or snapshots are modified by resolution.
 }
 \keyword{internal}

@@ -10,7 +10,9 @@ st_should_save(path, x = NULL, code = NULL, alias = NULL)
 \arguments{
 \item{path}{Artifact path on disk.}
 
-\item{x}{Current in-memory object (for content comparison).}
+\item{x}{Current in-memory object for content comparison. Omit this argument
+to leave content unchecked. Explicitly supplying \code{x = NULL} compares the
+stored content with the R value \code{NULL}; it does not omit the comparison.}
 
 \item{code}{Optional function/expression/character (for code comparison).}
 

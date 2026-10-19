@@ -1,7 +1,8 @@
 test_that("same alias to different folders errors", {
+  local_stamp_state()
   st_opts_reset()
-  r1 <- fs::path(tempdir(), "alias-conflict-1")
-  r2 <- fs::path(tempdir(), "alias-conflict-2")
+  r1 <- withr::local_tempdir()
+  r2 <- withr::local_tempdir()
   fs::dir_create(r1, recurse = TRUE)
   fs::dir_create(r2, recurse = TRUE)
 
@@ -13,8 +14,9 @@ test_that("same alias to different folders errors", {
 })
 
 test_that("different aliases to same folder warn", {
+  local_stamp_state()
   st_opts_reset()
-  r <- fs::path(tempdir(), "alias-same-folder")
+  r <- withr::local_tempdir()
   fs::dir_create(r, recurse = TRUE)
 
   st_init(r, alias = "A2")

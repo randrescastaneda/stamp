@@ -1,5 +1,81 @@
 # stamp 0.0.11
 
+## Opt-In Reference Save Pilot
+* Add `reference_copy_on_save = FALSE`. The default and direct hashing/comparison
+  behavior remain unchanged. Enable explicitly only for the documented limited
+  root ordinary-environment graph in native RDS `st_save()` calls.
+* Copy once before the original save sequence; do not add per-stage copies that
+  change normalization/write ordering. Preserve existing value-input behavior,
+  hash algorithms, IDs and ordinary save policy.
+* Validate unsupported environment/resource/binding boundaries without forcing
+  lazy or active bindings. Enabled pilot errors are deliberate scope checks,
+  not a new default rejection policy or successful R6 serialization support.
+* Identify special environments without reading input bindings, and reject
+  counterfeit namespace/package markers before serialization can resolve them
+  to actual system environments.
+
+## Original data.table Keys
+* Preserve only original data.table keys in native RDS/QS2 sidecars and committed
+  snapshots. Keyed inputs retain their recorded key; unkeyed inputs stay unkeyed.
+  No key is inferred from PK annotations, column names or sorted values.
+* Validate recorded columns and existing row order before restoring metadata.
+  Do not sort the returned object or call a non-empty sorting key setter to
+  manufacture a key. Invalid descriptors fail clearly; legacy missing descriptors
+  retain old behavior and cannot recover unrecorded keys.
+* Keep sanitized payloads and content-hash rules unchanged. Key-only changes are
+  reported as `metadata` with `metadata_changed` detail and can create a new
+  version under content policy. `mode = "content"` remains hash-only.
+* Reserve `metadata$attrs$stamp_data_table` for the original descriptor while
+  preserving unrelated user attrs. No catalog schema or existing-ID migration.
+
+## NULL Values and Comparisons
+* **API behavior change**: explicit `x = NULL` now requests comparison with a
+  NULL object in `st_changed()`, `st_changed_reason()` and `st_should_save()`.
+  To skip object comparison, omit `x` instead. Calls already omitting `x`
+  preserve their existing file/code-only behavior.
+* Allow content-policy replacement with NULL in native RDS/QS2 artifacts, and
+  restoration of a retained NULL snapshot over a non-NULL current value.
+  Repeated unchanged NULL saves follow the existing no-change policy.
+* NULL is a stored value, not deletion, NA or an empty table. Built-in CSV, FST
+  and Parquet writers reject NULL without replacing the previous artifact.
+  The existing save warning/fallback policy, IDs and hash algorithms are unchanged.
+
+## Version Selector Transition
+* Align numeric `st_restore()` selectors with `st_load()`: `0` selects the
+  latest committed snapshot, `-1` the previous retained snapshot, and `-n`
+  goes back `n` retained snapshots.
+* Deprecate positive restore positions without silently changing their meaning:
+  `1` still selects latest, `2` previous, with a warning. Replace position `p`
+  with offset `1 - p`. Positive support will be removed in a future release.
+* Keep the `version = "oldest"` restore default, keywords, exact IDs and save
+  policy unchanged. Reject malformed/nonfinite offsets before changing files.
+
+## Audit Hardening
+* Preserve unrelated artifacts, snapshots, and surviving lineage edges during
+  path-scoped retention, and reject invalid fractional/count policies.
+* Complete version snapshots before publishing catalog entries, preserve prior
+  files when replacement fails, and stop before entering a timed-out lock.
+  These changes do not provide a multi-file rollback or crash-durability guarantee.
+* Load historical artifacts with their recorded format, detect historical hash
+  mismatches when verification is enabled, and report failed restores as errors.
+  Do not report a file-hash mismatch when no file hash was recorded in QS2 metadata.
+* Preserve existing snapshot directories rather than overwriting version history.
+* Correct recursive rebuild propagation and dependency ordering without changing
+  persisted artifact IDs. The separately approved selector transition is above.
+* Read the current sidecar after JSON/QS2 format transitions and make conflicting
+  dual sidecars visible while retaining JSON priority.
+* Correct physical paths for projected partition reads and report partition read
+  failures. Partition helpers and `st_path()` remain internal and deferred.
+* Support hashing `NULL`, avoid modifying caller-owned data.tables during
+  restoration, reject missing PK/filter names, and restore load/unload state.
+  Existing successful hash equivalence rules are unchanged.
+* Add isolated regression, fault-injection, competing-writer and lifecycle tests,
+  developer audit/benchmark tools, and Windows/Linux R CMD check workflows.
+  The function audit records unresolved contracts and unverified environments;
+  passing scenarios do not establish complete verification.
+* Correct README argument order, option-based verification, builder signatures,
+  and primary-key inspection descriptions.
+
 ## Breaking Changes
 * **BREAKING**: The Hive-style partition helpers are now internal. `st_part_path()`,
   `st_save_part()`, `st_write_parts()`, `st_list_parts()` and `st_load_parts()` are no

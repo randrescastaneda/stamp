@@ -208,6 +208,9 @@ st_save_part <- function(
     code_label = code_label,
     ...
   )
+  if (is.null(out$metadata) && !isTRUE(out$skipped)) {
+    cli::cli_abort("Failed to save partition {.file {path}}.")
+  }
   invisible(list(path = path, version_id = out$version_id))
 }
 
@@ -313,7 +316,7 @@ st_write_parts <- function(
       sep = "|",
       lex.order = TRUE
     )
-    split_list <- split(x, part_factor)
+    split_list <- split(x, part_factor, drop = TRUE)
   }
 
   n_parts <- length(split_list)
@@ -506,9 +509,15 @@ st_list_parts <- function(base, filter = NULL, recursive = TRUE) {
   inside_versions <- grepl(paste0(sep, "versions", sep), files, fixed = TRUE)
   is_stmeta_file <- grepl("\\.stmeta\\.(json|qs2)$", files)
   is_sidecar <- grepl("sidecar\\.(json|qs2)$", files)
+  # Retain sidecar-backed artifacts even if their current payload is missing.
+  # Otherwise a deleted partition would silently disappear from a full load.
+  storage_dirs <- unique(fs::path_dir(fs::path_dir(
+    files[inside_stmeta & is_stmeta_file & !inside_versions]
+  )))
   files <- files[
     !(inside_stmeta | inside_versions | is_stmeta_file | is_sidecar)
   ]
+  files <- unique(c(files, fs::path(storage_dirs, fs::path_file(storage_dirs))))
 
   if (!length(files)) {
     return(data.frame(path = character(), stringsAsFactors = FALSE))
@@ -631,7 +640,8 @@ st_load_parts <- function(
             # Native column selection for parquet
             if (requireNamespace("nanoparquet", quietly = TRUE)) {
               # nanoparquet uses col_select argument directly
-              nanoparquet::read_parquet(p, col_select = columns)
+              norm <- .st_normalize_user_path(p, must_exist = FALSE)
+              nanoparquet::read_parquet(norm$storage_path, col_select = columns)
             } else {
               cli::cli_warn(
                 "nanoparquet not available; loading all columns from {.file {basename(p)}}"
@@ -641,7 +651,8 @@ st_load_parts <- function(
           } else if (fmt == "fst") {
             # Native column selection for fst
             if (requireNamespace("fst", quietly = TRUE)) {
-              fst::read_fst(p, columns = columns)
+              norm <- .st_normalize_user_path(p, must_exist = FALSE)
+              fst::read_fst(norm$storage_path, columns = columns)
             } else {
               cli::cli_warn(
                 "fst not available; loading all columns from {.file {basename(p)}}"
@@ -656,7 +667,7 @@ st_load_parts <- function(
                 "i" = "Loading full object then subsetting (less efficient)",
                 "i" = "Consider using parquet or fst format for columnar loading"
               ))
-              warned_formats <<- c(warned_formats, fmt)
+              warned_formats <- c(warned_formats, fmt)
             }
             # Load full object then subset
             full_obj <- st_load(p)
@@ -681,7 +692,12 @@ st_load_parts <- function(
           st_load(p)
         }
       },
-      error = function(e) NULL
+      error = function(e) {
+        cli::cli_abort(
+          "Failed to load partition {.file {p}}: {conditionMessage(e)}",
+          parent = e
+        )
+      }
     )
 
     if (is.null(obj)) {

@@ -15,7 +15,9 @@ st_changed_reason(
 \arguments{
 \item{path}{Artifact path on disk.}
 
-\item{x}{Current in-memory object (for content comparison).}
+\item{x}{Current in-memory object for content comparison. Omit this argument
+to leave content unchecked. Explicitly supplying \code{x = NULL} compares the
+stored content with the R value \code{NULL}; it does not omit the comparison.}
 
 \item{code}{Optional function/expression/character (for code comparison).}
 
@@ -24,7 +26,8 @@ st_changed_reason(
 \item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
-Character scalar: "no_change", "missing_artifact", "missing_meta", or e.g. "content+code"
+Character scalar: "no_change", "missing_artifact", "missing_meta",
+"metadata" for an original data.table key change, or a combined reason.
 }
 \description{
 Explain why an artifact would change

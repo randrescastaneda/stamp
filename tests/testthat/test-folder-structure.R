@@ -1,389 +1,229 @@
 test_that("st_init creates .stamp directory", {
-  skip_on_cran()
-
-  # Create temp directory
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
-  # Initialize stamp
-  st_init()
-
-  # Check .stamp directory exists
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  initialized <- st_init()
+  expect_identical(as.character(initialized), as.character(fs::path(tdir, ".stamp")))
   expect_true(dir.exists(".stamp"))
 })
 
 test_that("st_save with bare filename creates correct structure", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2", versioning = "content")
   st_init()
-
-  # Save test data
   test_data <- data.frame(x = 1:5, y = letters[1:5])
-  st_save(test_data, "test.qs2", verbose = FALSE)
-
-  # Check structure - now directly under root
-  expect_true(dir.exists("test.qs2"))
+  saved <- st_save(test_data, "test.qs2", verbose = FALSE)
   expect_true(dir.exists("test.qs2/stmeta"))
-  expect_true(dir.exists("test.qs2/versions"))
-
-  # Check actual file exists
   expect_true(file.exists("test.qs2/test.qs2"))
+  payload <- qs2::qs_read("test.qs2/test.qs2")
+  expect_identical(payload$x, 1:5)
+  expect_identical(payload$y, letters[1:5])
+  expect_setequal(
+    basename(list.dirs("test.qs2/versions", recursive = FALSE)),
+    saved$version_id
+  )
+  expect_true(file.exists(file.path("test.qs2/versions", saved$version_id, "artifact")))
 })
 
 test_that("st_load with bare filename works correctly", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
   st_init()
-
-  # Save and load
   test_data <- data.frame(x = 1:5, y = letters[1:5])
   st_save(test_data, "test.qs2", verbose = FALSE)
-  loaded_data <- st_load("test.qs2", verbose = FALSE)
-
-  expect_identical(test_data, loaded_data)
+  expect_identical(st_load("test.qs2", verbose = FALSE), test_data)
 })
 
 test_that("st_save with subdirectories preserves structure", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
   st_init()
-
-  # Save with nested path
   test_data <- data.frame(a = 6:10, b = letters[6:10])
   st_save(test_data, "subdir/nested/data.qs2", verbose = FALSE)
-
-  # Check structure is preserved - now directly under root
-  expect_true(dir.exists("subdir"))
-  expect_true(dir.exists("subdir/nested"))
-  expect_true(dir.exists("subdir/nested/data.qs2"))
   expect_true(file.exists("subdir/nested/data.qs2/data.qs2"))
+  expect_false(dir.exists("data.qs2"))
+  expect_false(dir.exists(".st_data"))
 })
 
 test_that("st_load with subdirectories works correctly", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
   st_init()
-
-  # Save and load nested
   test_data <- data.frame(a = 6:10, b = letters[6:10])
   st_save(test_data, "subdir/nested/data.qs2", verbose = FALSE)
-  loaded_data <- st_load("subdir/nested/data.qs2", verbose = FALSE)
-
-  expect_identical(test_data, loaded_data)
+  expect_identical(st_load("subdir/nested/data.qs2", verbose = FALSE), test_data)
 })
 
 test_that("absolute path under root works", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
   st_init()
-
-  # Save with absolute path under root
   abs_path <- file.path(getwd(), "abs_test.qs2")
   test_data <- data.frame(z = 11:15)
   st_save(test_data, abs_path, verbose = FALSE)
-
-  # Check it was stored correctly - now directly under root
-  expect_true(dir.exists("abs_test.qs2"))
   expect_true(file.exists("abs_test.qs2/abs_test.qs2"))
-
-  # Load it back
-  loaded_data <- st_load(abs_path, verbose = FALSE)
-  expect_identical(test_data, loaded_data)
+  expect_identical(st_load(abs_path, verbose = FALSE), test_data)
+  expect_identical(st_load("abs_test.qs2", verbose = FALSE), test_data)
 })
 
-test_that("absolute path outside root throws error", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+test_that("absolute path outside root throws error without writing", {
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  outside <- withr::local_tempdir()
+  withr::local_dir(tdir)
   st_init()
-
-  # Try to save with path outside root
-  outside_path <- file.path(tempdir(), "outside.qs2")
-  test_data <- data.frame(x = 1:3)
-
+  outside_path <- file.path(outside, "outside.qs2")
   expect_error(
-    st_save(test_data, outside_path, verbose = FALSE),
+    st_save(data.frame(x = 1:3), outside_path, verbose = FALSE),
     "not under alias root"
+  )
+  expect_false(file.exists(outside_path))
+  expect_equal(nrow(stamp:::.st_catalog_read()$artifacts), 0L)
+})
+
+test_that("st_info reports exact current catalog and snapshot identity", {
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
+  st_init()
+  saved <- st_save(data.frame(x = 1:5, y = letters[1:5]), "test.qs2", verbose = FALSE)
+  info <- st_info("test.qs2")
+  expect_named(info, c("sidecar", "catalog", "snapshot_dir", "parents"))
+  expect_identical(info$catalog$latest_version_id, saved$version_id)
+  expect_equal(info$catalog$n_versions, 1L)
+  expect_identical(info$sidecar$content_hash, saved$metadata$content_hash)
+  expect_identical(basename(info$snapshot_dir), saved$version_id)
+  expect_true(dir.exists(info$snapshot_dir))
+  expect_identical(info$parents, list())
+})
+
+test_that("st_versions reports exact saved identity", {
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
+  st_init()
+  saved <- st_save(data.frame(x = 1:5, y = letters[1:5]), "test.qs2", verbose = FALSE)
+  versions <- st_versions("test.qs2")
+  expect_s3_class(versions, "data.table")
+  expect_equal(nrow(versions), 1L)
+  expect_identical(versions$version_id, saved$version_id)
+  expect_identical(versions$content_hash, saved$metadata$content_hash)
+})
+
+test_that("versioning creates exactly the saved version directories", {
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2", versioning = "content")
+  st_init()
+  first <- st_save(data.frame(x = 1:5, y = letters[1:5]), "test.qs2", verbose = FALSE)
+  second <- st_save(data.frame(x = 1:5, y = letters[6:10]), "test.qs2", verbose = FALSE)
+  expect_false(identical(first$version_id, second$version_id))
+  expect_setequal(st_versions("test.qs2")$version_id, c(first$version_id, second$version_id))
+  expect_setequal(
+    basename(list.dirs("test.qs2/versions", recursive = FALSE)),
+    c(first$version_id, second$version_id)
   )
 })
 
-test_that("st_info works with new structure", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+test_that("st_load_version reads the requested snapshot rather than current data", {
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
   st_init()
+  first_data <- data.frame(x = 1:5, y = letters[1:5])
+  second_data <- data.frame(x = 1:5, y = letters[6:10])
+  first <- st_save(first_data, "test.qs2", verbose = FALSE)
+  second <- st_save(second_data, "test.qs2", verbose = FALSE)
+  expect_identical(st_load_version("test.qs2", first$version_id, verbose = FALSE), first_data)
+  expect_identical(st_load_version("test.qs2", second$version_id, verbose = FALSE), second_data)
+  expect_identical(st_load("test.qs2", verbose = FALSE), second_data)
+})
 
+test_that("st_changed detects content changes with new structure", {
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
+  st_init()
   test_data <- data.frame(x = 1:5, y = letters[1:5])
   st_save(test_data, "test.qs2", verbose = FALSE)
-
-  info <- st_info("test.qs2")
-
-  expect_type(info, "list")
-  expect_true("sidecar" %in% names(info))
-  expect_true("catalog" %in% names(info))
-  expect_true("snapshot_dir" %in% names(info))
-  expect_true("parents" %in% names(info))
-})
-
-test_that("st_versions works with new structure", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
-  st_init()
-
-  test_data <- data.frame(x = 1:5, y = letters[1:5])
-  st_save(test_data, "test.qs2", verbose = FALSE)
-
-  versions <- st_versions("test.qs2")
-
-  expect_s3_class(versions, "data.table")
-  expect_equal(nrow(versions), 1)
-  expect_true("version_id" %in% names(versions))
-  expect_true("content_hash" %in% names(versions))
-})
-
-test_that("versioning creates multiple versions", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
-  st_init()
-
-  # Save first version
-  test_data_v1 <- data.frame(x = 1:5, y = letters[1:5])
-  st_save(test_data_v1, "test.qs2", verbose = FALSE)
-
-  # Save second version with different data
-  test_data_v2 <- data.frame(x = 1:5, y = letters[6:10])
-  st_save(test_data_v2, "test.qs2", verbose = FALSE)
-
-  versions <- st_versions("test.qs2")
-  expect_equal(nrow(versions), 2)
-
-  # Check multiple version directories exist - now directly under root
-  version_dirs <- list.dirs("test.qs2/versions", recursive = FALSE)
-  expect_equal(length(version_dirs), 2)
-})
-
-test_that("st_load_version works with new structure", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
-  st_init()
-
-  # Save two versions
-  test_data_v1 <- data.frame(x = 1:5, y = letters[1:5])
-  st_save(test_data_v1, "test.qs2", verbose = FALSE)
-
-  test_data_v2 <- data.frame(x = 1:5, y = letters[6:10])
-  st_save(test_data_v2, "test.qs2", verbose = FALSE)
-
-  # Get version IDs - they're ordered by created_at descending, so last row is oldest
-  versions <- st_versions("test.qs2")
-  first_version <- versions$version_id[nrow(versions)] # Get oldest version
-
-  # Load first (oldest) version
-  loaded_v1 <- st_load_version("test.qs2", first_version, verbose = FALSE)
-
-  expect_identical(test_data_v1, loaded_v1)
-})
-
-test_that("st_changed detects changes with new structure", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
-  st_init()
-
-  test_data <- data.frame(x = 1:5, y = letters[1:5])
-  st_save(test_data, "test.qs2", verbose = FALSE)
-
-  # No change
-  result_same <- st_changed("test.qs2", x = test_data, mode = "content")
-  expect_false(result_same$changed)
-
-  # Changed data
-  test_data_new <- data.frame(x = 1:5, y = letters[6:10])
-  result_changed <- st_changed("test.qs2", x = test_data_new, mode = "content")
-  expect_true(result_changed$changed)
+  same <- st_changed("test.qs2", x = test_data, mode = "content")
+  expect_false(same$changed)
+  expect_false(same$details$content_changed)
+  expect_identical(same$reason, "no_change")
+  changed <- st_changed("test.qs2", x = data.frame(x = 1:5, y = letters[6:10]), mode = "content")
+  expect_true(changed$changed)
+  expect_true(changed$details$content_changed)
+  expect_identical(changed$reason, "content")
 })
 
 test_that("multiple files in different directories work independently", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
   st_init()
-
-  # Save files in different locations
-  data1 <- data.frame(a = 1:3)
-  data2 <- data.frame(b = 4:6)
-  data3 <- data.frame(c = 7:9)
-
-  st_save(data1, "file1.qs2", verbose = FALSE)
-  st_save(data2, "dir1/file2.qs2", verbose = FALSE)
-  st_save(data3, "dir1/dir2/file3.qs2", verbose = FALSE)
-
-  # Load them back
-  loaded1 <- st_load("file1.qs2", verbose = FALSE)
-  loaded2 <- st_load("dir1/file2.qs2", verbose = FALSE)
-  loaded3 <- st_load("dir1/dir2/file3.qs2", verbose = FALSE)
-
-  expect_identical(data1, loaded1)
-  expect_identical(data2, loaded2)
-  expect_identical(data3, loaded3)
+  paths <- c("file1.qs2", "dir1/file2.qs2", "dir1/dir2/file3.qs2")
+  objects <- list(data.frame(a = 1:3), data.frame(b = 4:6), data.frame(c = 7:9))
+  for (i in seq_along(paths)) st_save(objects[[i]], paths[[i]], verbose = FALSE)
+  for (i in seq_along(paths)) {
+    expect_identical(st_load(paths[[i]], verbose = FALSE), objects[[i]])
+    expect_equal(nrow(st_versions(paths[[i]])), 1L)
+  }
+  expect_equal(nrow(stamp:::.st_catalog_read()$artifacts), 3L)
 })
 
-test_that("catalog stores logical paths correctly", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+test_that("catalog stores exact logical rather than payload paths", {
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
+  local_st_opts(default_format = "qs2")
   st_init()
-
-  # Save with relative path
-  test_data <- data.frame(x = 1:5)
-  st_save(test_data, "subdir/test.qs2", verbose = FALSE)
-
-  # Read catalog directly
-  cat <- stamp:::.st_catalog_read(alias = NULL)
-
-  # Check that path is stored (logical path)
-  expect_equal(nrow(cat$artifacts), 1)
-  artifact_path <- cat$artifacts$path[1]
-  expect_true(nzchar(artifact_path))
-  expect_true(grepl("test\\.qs2$", artifact_path))
+  st_save(data.frame(x = 1:5), "subdir/test.qs2", verbose = FALSE)
+  catalog <- stamp:::.st_catalog_read()
+  expect_equal(nrow(catalog$artifacts), 1L)
+  expected_path <- as.character(fs::path(tdir, "subdir", "test.qs2"))
+  if (.Platform$OS.type == "windows") expected_path <- tolower(expected_path)
+  expect_identical(catalog$artifacts$path, expected_path)
 })
 
-test_that("path normalization helper validates inputs", {
-  skip_on_cran()
-
-  tdir <- tempfile(pattern = "stamp_test_")
-  dir.create(tdir, recursive = TRUE)
-  withr::defer(unlink(tdir, recursive = TRUE))
-
-  old_wd <- getwd()
-  withr::defer(setwd(old_wd))
-  setwd(tdir)
-
+test_that("path normalization agrees for relative and absolute logical paths", {
+  local_stamp_state()
+  tdir <- withr::local_tempdir()
+  withr::local_dir(tdir)
   st_init()
-
-  # Test with valid relative path
-  norm <- stamp:::.st_normalize_user_path(
-    "test.qs2",
-    alias = NULL,
-    must_exist = FALSE
-  )
-  expect_type(norm, "list")
-  expect_true("logical_path" %in% names(norm))
-  expect_true("storage_path" %in% names(norm))
-  expect_true("rel_path" %in% names(norm))
-  expect_equal(norm$rel_path, "test.qs2")
-
-  # Test with valid absolute path under root
-  abs_path <- file.path(getwd(), "test.qs2")
+  norm <- stamp:::.st_normalize_user_path("test.qs2", alias = NULL, must_exist = FALSE)
   norm_abs <- stamp:::.st_normalize_user_path(
-    abs_path,
-    alias = NULL,
-    must_exist = FALSE
+    file.path(getwd(), "test.qs2"), alias = NULL, must_exist = FALSE
   )
-  expect_equal(norm_abs$rel_path, "test.qs2")
+  expect_identical(norm$rel_path, "test.qs2")
+  expect_identical(norm_abs$rel_path, "test.qs2")
   expect_true(norm_abs$is_absolute)
+  expect_false(norm$is_absolute)
+  expect_identical(norm$logical_path, norm_abs$logical_path)
+  expect_identical(norm$storage_path, norm_abs$storage_path)
+  expected_logical <- as.character(fs::path(tdir, "test.qs2"))
+  expected_storage <- as.character(fs::path(tdir, "test.qs2", "test.qs2"))
+  actual_storage <- as.character(norm$storage_path)
+  if (.Platform$OS.type == "windows") {
+    expected_logical <- tolower(expected_logical)
+    expected_storage <- tolower(expected_storage)
+    actual_storage <- tolower(actual_storage)
+  }
+  expect_identical(norm$logical_path, expected_logical)
+  expect_identical(actual_storage, expected_storage)
 })

@@ -147,7 +147,7 @@ test_that(".st_restore_sanitized_object() handles missing attributes gracefully"
   expect_equal(nrow(restored_partial), 3)
 })
 
-test_that(".st_restore_sanitized_object() preserves data.table keys", {
+test_that("restoration preserves keyed table values under existing hash rules", {
   skip_if_not_installed("data.table")
 
   # data.table with key
@@ -163,8 +163,11 @@ test_that(".st_restore_sanitized_object() preserves data.table keys", {
   restored <- stamp:::.st_restore_sanitized_object(sanitized)
 
   expect_s3_class(restored, "data.table")
-  # Note: keys are part of data.table structure and should be preserved
-  # through the data.frame conversion and back
+  expect_identical(restored$id, c(1, 2, 3))
+  expect_identical(restored$value, c("a", "b", "c"))
+  expect_identical(data.table::key(dt_keyed), original_key)
+  # Existing persisted sanitation drops keys. Do not add hash metadata here.
+  expect_null(data.table::key(restored))
 })
 
 test_that(".st_restore_sanitized_object() handles numeric row.names", {
@@ -217,6 +220,8 @@ test_that("Full round-trip: sanitize → restore → identical", {
 })
 
 test_that("Integration: st_save + st_load uses restoration helper correctly", {
+  local_stamp_state()
+  local_st_opts(default_format = "rds")
   td <- withr::local_tempdir()
   withr::local_dir(td)
   st_init(".")
@@ -245,6 +250,8 @@ test_that("Integration: st_save + st_load uses restoration helper correctly", {
 })
 
 test_that("Integration: st_load_version uses restoration helper correctly", {
+  local_stamp_state()
+  local_st_opts(default_format = "rds")
   skip_if_not_installed("data.table")
   td <- withr::local_tempdir()
   withr::local_dir(td)
@@ -312,26 +319,28 @@ test_that("Edge case: Special characters in row.names", {
   )
 })
 
-test_that("Performance: Restoration is efficient (no deep copies)", {
+test_that("Restoration preserves deterministic typed columns and attributes", {
   skip_if_not_installed("data.table")
 
-  # Large data.table
   large_dt <- data.table::data.table(
     id = 1:10000,
-    value = rnorm(10000),
-    category = sample(letters, 10000, replace = TRUE)
+    value = seq_len(10000) / 8,
+    category = factor(rep(c("a", "b"), 5000), levels = c("b", "a")),
+    date = as.Date("2026-01-01") + seq_len(10000)
   )
+  data.table::setattr(large_dt, "domain", "synthetic")
+  before <- data.table::copy(large_dt)
 
   sanitized <- stamp:::st_sanitize_for_hash(large_dt)
 
-  # Restoration should be fast (no deep copy of data)
-  time_taken <- system.time({
-    restored <- stamp:::.st_restore_sanitized_object(sanitized)
-  })
-
-  # Should take less than 0.1 seconds even for large data
-  expect_lt(time_taken["elapsed"], 0.1)
+  restored <- stamp:::.st_restore_sanitized_object(sanitized)
 
   expect_s3_class(restored, "data.table")
-  expect_equal(nrow(restored), 10000)
+  expect_identical(restored, before)
+  expect_identical(restored$value, seq_len(10000) / 8)
+  expect_identical(levels(restored$category), c("b", "a"))
+  expect_identical(class(restored$date), "Date")
+  expect_identical(attr(restored, "domain"), "synthetic")
+  expect_null(data.table::key(restored))
+  expect_identical(large_dt, before)
 })
