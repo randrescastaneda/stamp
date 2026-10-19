@@ -1,4 +1,5 @@
 test_that("st_filter() subsets on named filters", {
+  local_stamp_state()
   df <- data.frame(
     country = c("PER", "USA", "PER"),
     year = c(2020L, 2020L, 2021L),
@@ -12,6 +13,7 @@ test_that("st_filter() subsets on named filters", {
 })
 
 test_that("st_filter() rejects unnamed filters instead of silently matching all", {
+  local_stamp_state()
   df <- data.frame(country = c("PER", "USA"), stringsAsFactors = FALSE)
 
   expect_error(st_filter(df, list("PER")), "must be named")
@@ -20,6 +22,7 @@ test_that("st_filter() rejects unnamed filters instead of silently matching all"
 })
 
 test_that("st_filter() surfaces unknown columns under both strict settings", {
+  local_stamp_state()
   df <- data.frame(country = c("PER", "USA"), stringsAsFactors = FALSE)
 
   expect_error(st_filter(df, list(cuntry = "PER")), "Unknown filter columns")
@@ -31,6 +34,7 @@ test_that("st_filter() surfaces unknown columns under both strict settings", {
 })
 
 test_that("st_filter() validates strict rather than coercing it", {
+  local_stamp_state()
   df <- data.frame(country = "PER", stringsAsFactors = FALSE)
 
   expect_error(st_filter(df, list(cuntry = "X"), strict = "yes"), "strict")

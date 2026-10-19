@@ -23,7 +23,10 @@ st_save(
 )
 }
 \arguments{
-\item{x}{object to save}
+\item{x}{Object to save, including \code{NULL} when supported by the format. Use
+RDS or QS2 to round-trip \code{NULL} as an R value. \code{NULL} does not mean delete
+or omit the save; CSV, FST and Parquet reject it rather than store an empty
+table.}
 
 \item{file}{destination path. Can be:
 \itemize{
@@ -90,4 +93,27 @@ route may return NULL metadata/version_id rather than a successful save.
 }
 \description{
 Save an R object to disk with metadata & versioning (atomic move)
+
+Native RDS/QS2 saves record an original data.table's ordered key columns in
+reserved sidecar metadata under \code{attrs$stamp_data_table}, not in the content
+hash or sanitized payload. Unkeyed inputs stay unkeyed; keys are never inferred
+from primary-key annotations, column names or sorted rows. Key-only changes
+can create a metadata version even when the content hash is unchanged.
+Legacy snapshots without a descriptor cannot recover a lost key.
+
+The limited pilot \code{st_opts(reference_copy_on_save = TRUE)} copies a root
+environment once before metadata capture, sanitization, and the existing
+save sequence. Its default is \code{FALSE}, which keeps legacy behavior. Only the
+native RDS writer and ordinary unclassed environment graphs with NULL/atomic
+binding values and recursively atomic attributes are supported. Classed/R6
+environments, promises, active bindings, lists, closures, S4 objects, and
+opaque resources are declined before save side effects. Graphs are bounded
+to 10000 inspected values/bindings and 64 levels. Special environments are
+declined as roots or binding values; recognized special parents stay shared,
+uninspected serialization boundaries. List-valued attributes are unsupported.
+Unrecognized environments with namespace/package markers are rejected before
+copying, without evaluating marker bindings.
+Non-environment roots (including lists, data.frames, data.tables, and NULL)
+and direct calls to \code{st_hash_obj()} or change-detection APIs are unchanged.
+This is not a generic reference-object copy or isolation guarantee.
 }

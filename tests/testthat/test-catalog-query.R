@@ -1,13 +1,5 @@
 # Tests for st_catalog_query() ------------------------------------------------
 
-# Helper: initialise a named temp alias and clean up after the test
-local_alias <- function(name, env = parent.frame()) {
-  td <- withr::local_tempdir(.local_envir = env)
-  st_init(td, alias = name, verbose = FALSE)
-  withr::defer(rlang::env_unbind(stamp:::.stamp_aliases, name), envir = env)
-  td
-}
-
 # --- Empty catalog ------------------------------------------------------------
 
 test_that("empty alias returns zero-row data.table with correct schema", {
@@ -143,8 +135,8 @@ test_that("path column matches the saved artifact path", {
 # --- NULL alias uses default alias -------------------------------------------
 
 test_that("NULL alias queries the default alias without error", {
+  local_stamp_state()
   td <- withr::local_tempdir()
-  withr::defer(st_init(withr::local_tempdir(), verbose = FALSE)) # restore default
   st_init(td, verbose = FALSE) # set default alias to td
 
   p <- fs::path(td, "default_art.rds")
@@ -160,4 +152,34 @@ test_that("NULL alias queries the default alias without error", {
 
 test_that("querying an uninitialised alias propagates an error", {
   expect_error(st_catalog_query(alias = "cq_does_not_exist_xyz"))
+})
+
+test_that("query rejects a latest ID that belongs to another artifact", {
+  local_alias("cq_identity")
+  cat <- stamp:::.st_catalog_empty()
+  cat <- stamp:::.st_catalog_upsert_artifact(cat, "a", "a.rds", "rds", "v")
+  cat <- stamp:::.st_catalog_append_version(cat, list(
+    version_id = "v", artifact_id = "b", content_hash = "hash",
+    code_hash = NA_character_, size_bytes = 1, created_at = "2026-01-01Z",
+    sidecar_format = "none"))
+  stamp:::.st_catalog_write(cat, "cq_identity")
+  expect_error(st_catalog_query("cq_identity"), "integrity check failed")
+})
+
+test_that("query returns exact latest values and rejects dangling pointers", {
+  td <- local_alias("cq_exact")
+  p <- fs::path(td, "item.rds")
+  first <- st_save(list(x = 1L), p, alias = "cq_exact", verbose = FALSE)
+  second <- st_save(list(x = 2L), p, alias = "cq_exact", verbose = FALSE)
+  result <- st_catalog_query("cq_exact")
+  expect_identical(result$version_id, second$version_id)
+  expect_identical(result$content_hash, second$metadata$content_hash)
+  expect_identical(result$code_hash, second$metadata$code_hash)
+  expect_equal(result$size_bytes, as.numeric(second$metadata$size_bytes))
+  expect_identical(result$created_at, second$metadata$created_at)
+  cat <- stamp:::.st_catalog_read("cq_exact")
+  cat$artifacts$latest_version_id <- "missing"
+  stamp:::.st_catalog_write(cat, "cq_exact")
+  expect_error(st_catalog_query("cq_exact"), "missing latest version")
+  expect_false(identical(first$version_id, second$version_id))
 })

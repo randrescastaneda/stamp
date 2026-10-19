@@ -7,7 +7,7 @@
 st_prune_versions(path = NULL, policy = Inf, dry_run = TRUE, alias = NULL)
 }
 \arguments{
-\item{path}{Optional artifact logical path to restrict pruning.
+\item{path}{Optional character vector of artifact logical paths to restrict pruning.
 If NULL (default), applies the policy to all artifacts in the catalog.}
 
 \item{policy}{One of:

@@ -393,6 +393,106 @@ test_that("only missing current bytes is distinguishable from corrupt proof", {
   expect_length(m2_state_committed(store, request), 1L)
 })
 
+test_that("historical data recovery never repairs or certifies damaged proof", {
+  store <- m2_state_store()
+  request <- m2_state_request(store)
+  saved <- m2_state_save(store, request)
+  stamp:::.st_execution_success(request$path, request, saved,
+    alias = store$alias)
+  m2_state_save(store, request, list(value = 2L))
+  vdir <- stamp:::.st_version_dir("result.rds", saved$version_id, store$alias)
+  writeLines("{", fs::path(vdir, "sidecar.json"))
+  historical <- fs::dir_ls(vdir, type = "file")
+  historical_bytes <- lapply(historical, m2_state_bytes)
+  markers <- m2_state_committed(store, request)
+  receipt_files <- c(markers, fs::path(fs::path_dir(markers), "receipt.json"),
+    fs::path(m2_state_dir(store, request), "current-execution.json"))
+  receipt_bytes <- lapply(receipt_files, m2_state_bytes)
+  catalog_path <- stamp:::.st_catalog_path(store$alias)
+  catalog_bytes <- m2_state_bytes(catalog_path)
+
+  expect_identical(st_load_version(request$path, saved$version_id,
+    alias = store$alias, verbose = FALSE), list(value = 1L))
+  expect_identical(m2_state_bytes(catalog_path), catalog_bytes)
+  expect_error(st_read_sidecar(request$path, alias = store$alias,
+    version_id = saved$version_id))
+  expect_identical(stamp:::st_execution_info(request$path,
+    alias = store$alias)$state, "invalid")
+  expect_error(st_is_stale(request$path, alias = store$alias,
+    request = request), class = "stamp_blocked_request")
+
+  expect_identical(st_restore(request$path, saved$version_id,
+    alias = store$alias, verbose = FALSE), list(value = 1L))
+  expect_identical(st_load(request$path, alias = store$alias,
+    verbose = FALSE), list(value = 1L))
+  expect_error(st_read_sidecar(request$path, alias = store$alias,
+    version_id = saved$version_id))
+  expect_identical(stamp:::st_execution_info(request$path,
+    alias = store$alias)$state, "invalid")
+  expect_error(st_is_stale(request$path, alias = store$alias,
+    request = request), class = "stamp_blocked_request")
+  expect_identical(fs::dir_ls(vdir, type = "file"), historical)
+  expect_identical(lapply(historical, m2_state_bytes), historical_bytes)
+  expect_identical(m2_state_committed(store, request), markers)
+  expect_identical(lapply(receipt_files, m2_state_bytes), receipt_bytes)
+})
+
+test_that("either readable modern sidecar prevents historical data fallback", {
+  for (damage in c("json_corrupt", "json_legacy", "qs_corrupt", "catalog")) {
+    store <- m2_state_store()
+    local_st_opts(meta_format = "both")
+    request <- m2_state_request(store)
+    saved <- m2_state_save(store, request)
+    vdir <- stamp:::.st_version_dir("result.rds", saved$version_id, store$alias)
+    if (damage == "json_corrupt") {
+      writeLines("{", fs::path(vdir, "sidecar.json"))
+    }
+    if (damage == "json_legacy") {
+      writeLines("{}", fs::path(vdir, "sidecar.json"))
+    }
+    if (damage == "qs_corrupt") {
+      writeBin(charToRaw("corrupt"), fs::path(vdir, "sidecar.qs2"))
+    }
+    if (damage == "catalog") {
+      catalog <- stamp:::.st_catalog_read(store$alias)
+      catalog$versions <- catalog$versions[0L]
+      stamp:::.st_catalog_write(catalog, store$alias)
+    }
+    files <- fs::dir_ls(vdir, type = "file")
+    before <- lapply(files, m2_state_bytes)
+    expect_error(st_load_version(request$path, saved$version_id,
+      alias = store$alias, verbose = FALSE))
+    expect_error(st_read_sidecar(request$path, alias = store$alias,
+      version_id = saved$version_id))
+    expect_identical(lapply(files, m2_state_bytes), before)
+  }
+})
+
+test_that("modern historical key loading does not create catalog indexes", {
+  store <- m2_state_store()
+  request <- m2_state_request(store)
+  x <- data.table::data.table(id = 1:3, value = letters[1:3])
+  data.table::setkey(x, id)
+  saved <- m2_state_save(store, request, x)
+  catalog_path <- stamp:::.st_catalog_path(store$alias)
+  before <- m2_state_bytes(catalog_path)
+  original <- get("setkeyv", asNamespace("data.table"))
+  local_audit_binding("setkey", function(...) stop("unexpected key creation"),
+    env = asNamespace("data.table"))
+  local_audit_binding("setkeyv", function(x, cols, ...) {
+    if (length(cols)) stop("unexpected key sorting")
+    original(x, cols, ...)
+  }, env = asNamespace("data.table"))
+
+  restored <- st_load_version(request$path, saved$version_id,
+    alias = store$alias, verbose = FALSE)
+  expect_identical(restored, x)
+  expect_identical(data.table::key(restored), "id")
+  expect_identical(st_versions(request$path,
+    alias = store$alias)$version_id, saved$version_id)
+  expect_identical(m2_state_bytes(catalog_path), before)
+})
+
 test_that("copied receipts cannot certify another artifact", {
   store <- m2_state_store()
   source <- m2_state_request(store, "source.rds")
@@ -555,6 +655,41 @@ test_that("cross-artifact receipt dependencies protect path-filtered pruning", {
   expect_true(fs::file_exists(fs::path(stamp:::.st_version_dir(
     "parent.rds", a1$version_id, alias = store$alias
   ), "artifact")))
+})
+
+test_that("multi-path retention refuses mixed protected selection atomically", {
+  store <- m2_state_store()
+  parent <- m2_state_request(store, "parent.rds")
+  a1 <- m2_state_save(store, parent)
+  child <- m2_state_request(store, parents = list(list(
+    path = parent$path, version_id = a1$version_id
+  )))
+  b1 <- m2_state_save(store, child)
+  stamp:::.st_execution_success(child$path, child, b1, alias = store$alias)
+  m2_state_save(store, parent, list(value = 2L))
+  other <- m2_state_request(store, "other.rds")
+  o1 <- m2_state_save(store, other)
+  m2_state_save(store, other, list(value = 2L))
+
+  catalog_path <- stamp:::.st_catalog_path(store$alias)
+  catalog_before <- m2_state_bytes(catalog_path)
+  snapshots <- fs::dir_ls(store$root, recurse = TRUE, type = "file",
+    regexp = "/versions/")
+  bytes_before <- lapply(snapshots, m2_state_bytes)
+  selected <- c(other$path, parent$path)
+  preview <- st_prune_versions(selected, policy = 1L, dry_run = TRUE,
+    alias = store$alias)
+  expect_setequal(preview$version_id, c(a1$version_id, o1$version_id))
+  expect_true(preview$protected[preview$version_id == a1$version_id])
+  expect_false(preview$protected[preview$version_id == o1$version_id])
+  expect_error(st_prune_versions(selected, policy = 1L, dry_run = FALSE,
+    alias = store$alias), "protected execution reference")
+  expect_identical(m2_state_bytes(catalog_path), catalog_before)
+  expect_identical(fs::dir_ls(store$root, recurse = TRUE, type = "file",
+    regexp = "/versions/"), snapshots)
+  expect_identical(lapply(snapshots, m2_state_bytes), bytes_before)
+  expect_identical(stamp:::st_execution_info(child$path,
+    alias = store$alias)$version_id, b1$version_id)
 })
 
 test_that("invalid committed proof refuses prune before unrelated deletion", {

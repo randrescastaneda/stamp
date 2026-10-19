@@ -3,7 +3,7 @@
 # Stable, short key for builder registry (uses secretbase only)
 .st_builder_key <- function(path, name = NULL) {
   base <- paste0(
-    .st_norm_path(path),
+    .st_normalize_path(.st_norm_path(path)),
     "|",
     if (is.null(name)) "default" else as.character(name)
   )
@@ -83,7 +83,9 @@ st_clear_builders <- function(path = NULL) {
   target <- .st_norm_path(path)
   for (nm in names(as.list(.st_builders_env))) {
     rec <- rlang::env_get(.st_builders_env, nm)
-    if (identical(rec$path, target)) rlang::env_unbind(.st_builders_env, nm)
+    if (identical(.st_normalize_path(rec$path), .st_normalize_path(target))) {
+      rlang::env_unbind(.st_builders_env, nm)
+    }
   }
   cli::cli_inform(c("v" = "Cleared builders for {.field {path}}"))
   invisible(TRUE)
@@ -105,7 +107,8 @@ st_clear_builders <- function(path = NULL) {
   }
   pars <- .st_version_read_parents(vdir)
   # normalize data.frame -> list(list(path=..., version_id=...))
-  if (is.data.frame(pars) && nrow(pars) > 0L) {
+  if (is.data.frame(pars)) {
+    if (!nrow(pars)) return(list())
     pars <- lapply(seq_len(nrow(pars)), function(i) {
       as.list(pars[i, , drop = FALSE])
     })
@@ -128,7 +131,8 @@ st_clear_builders <- function(path = NULL) {
     return(list())
   }
   pars <- sc$parents
-  if (is.data.frame(pars) && nrow(pars) > 0L) {
+  if (is.data.frame(pars)) {
+    if (!nrow(pars)) return(list())
     pars <- lapply(seq_len(nrow(pars)), function(i) {
       as.list(pars[i, , drop = FALSE])
     })
@@ -159,7 +163,8 @@ st_clear_builders <- function(path = NULL) {
 #'   \code{rebuild_fun(path, parents) -> list(x=..., format=?, metadata=?, code=?, code_label=?)}.
 #'   If omitted (NULL), \code{st_rebuild()} will look up a registered builder
 #'   for \code{path} (by \code{st_register_builder()}).
-#'   On the request route the builder must return exactly one non-NULL `x` field;
+#'   On the request route the builder must return exactly one named `x` field
+#'   (including NULL when the registered format supports it);
 #'   optional format must equal the request's registered identifier, and semantic
 #'   metadata must match it. The builder receives fully resolved exact parents.
 #' @param dry_run If TRUE, invoke no builders and write no outcomes/receipts.
@@ -227,7 +232,8 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
     env_list <- as.list(.st_builders_env)
     for (nm in names(env_list)) {
       rec <- env_list[[nm]]
-      if (identical(rec$path, .st_norm_path(p))) return(rec$fun)
+      if (identical(.st_normalize_path(rec$path),
+                    .st_normalize_path(.st_norm_path(p)))) return(rec$fun)
     }
     stop(
       sprintf(
@@ -459,7 +465,10 @@ st_plan_rebuild <- function(
   stopifnot(
     length(targets) >= 1L,
     is.numeric(depth),
-    (depth >= 1) || is.infinite(depth)
+    length(depth) == 1L,
+    !is.na(depth),
+    depth >= 1,
+    is.infinite(depth) || depth == floor(depth)
   )
   targets <- unique(as.character(targets))
 
@@ -493,9 +502,11 @@ st_plan_rebuild <- function(
   }
 
   frontier <- unique(targets)
+  visited <- character()
   level <- 1L
 
   while (length(frontier) && (is.infinite(depth) || level <= depth)) {
+    visited <- unique(c(visited, frontier))
     # Collect unique immediate children of all frontier nodes
     next_candidates <- unique(unlist(
       lapply(frontier, .children_of),
@@ -520,7 +531,7 @@ st_plan_rebuild <- function(
           )
         }
       }
-      frontier <- unique(next_candidates)
+      frontier <- setdiff(next_candidates, visited)
       level <- level + 1L
       next
     }
@@ -583,7 +594,7 @@ st_plan_rebuild <- function(
       }
     }
 
-    new_frontier <- setdiff(unique(next_candidates), planned_paths)
+    new_frontier <- setdiff(unique(next_candidates), visited)
     if (length(new_frontier) == 0L) {
       break
     }
@@ -600,7 +611,32 @@ st_plan_rebuild <- function(
       stringsAsFactors = FALSE
     ))
   }
-  do.call(rbind, planned_rows)
+  out <- do.call(rbind, planned_rows)
+  # Breadth-first distance is not a dependency order for unequal-depth DAGs.
+  # Promote children only after all scheduled parents have been resolved.
+  dependencies <- lapply(out$path, function(p) {
+    pars <- .st_committed_parents_latest(p)
+    if (!length(pars)) pars <- .st_sidecar_parents(p)
+    intersect(vapply(pars, function(pp) norm(pp$path), character(1)),
+              norm(out$path))
+  })
+  pending <- seq_len(nrow(out))
+  resolved <- character()
+  while (length(pending)) {
+    ready <- pending[vapply(dependencies[pending], function(pars) {
+      all(pars %in% resolved)
+    }, logical(1))]
+    if (!length(ready)) break # Cycles have no dependency-safe order.
+    for (i in ready) {
+      parent_rows <- match(dependencies[[i]], norm(out$path))
+      if (length(parent_rows)) {
+        out$level[i] <- max(out$level[i], out$level[parent_rows] + 1L)
+      }
+    }
+    resolved <- c(resolved, norm(out$path[ready]))
+    pending <- setdiff(pending, ready)
+  }
+  out[order(out$level, out$path), , drop = FALSE]
 }
 
 # Validate identities and cycles before selection, execution or any write.
@@ -828,8 +864,7 @@ st_plan_rebuild <- function(
     # The selector's validation context is gone before invoking user code.
     built <- tryCatch({
       value <- fun(graph$paths[[i]], request$parents)
-      if (!is.list(value) || sum(names(value) == "x", na.rm = TRUE) != 1L ||
-          is.null(value[["x", exact = TRUE]])) {
+      if (!is.list(value) || sum(names(value) == "x", na.rm = TRUE) != 1L) {
         rlang::abort("Builder must return exactly one named x field.")
       }
       value

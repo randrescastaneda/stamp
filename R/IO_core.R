@@ -168,7 +168,33 @@ print.st_path <- function(x, ...) {
 
 #' Save an R object to disk with metadata & versioning (atomic move)
 #'
-#' @param x object to save
+#' Native RDS/QS2 saves record an original data.table's ordered key columns in
+#' reserved sidecar metadata under `attrs$stamp_data_table`, not in the content
+#' hash or sanitized payload. Unkeyed inputs stay unkeyed; keys are never inferred
+#' from primary-key annotations, column names or sorted rows. Key-only changes
+#' can create a metadata version even when the content hash is unchanged.
+#' Legacy snapshots without a descriptor cannot recover a lost key.
+#'
+#' The limited pilot `st_opts(reference_copy_on_save = TRUE)` copies a root
+#' environment once before metadata capture, sanitization, and the existing
+#' save sequence. Its default is `FALSE`, which keeps legacy behavior. Only the
+#' native RDS writer and ordinary unclassed environment graphs with NULL/atomic
+#' binding values and recursively atomic attributes are supported. Classed/R6
+#' environments, promises, active bindings, lists, closures, S4 objects, and
+#' opaque resources are declined before save side effects. Graphs are bounded
+#' to 10000 inspected values/bindings and 64 levels. Special environments are
+#' declined as roots or binding values; recognized special parents stay shared,
+#' uninspected serialization boundaries. List-valued attributes are unsupported.
+#' Unrecognized environments with namespace/package markers are rejected before
+#' copying, without evaluating marker bindings.
+#' Non-environment roots (including lists, data.frames, data.tables, and NULL)
+#' and direct calls to `st_hash_obj()` or change-detection APIs are unchanged.
+#' This is not a generic reference-object copy or isolation guarantee.
+#'
+#' @param x Object to save, including `NULL` when supported by the format. Use
+#'   RDS or QS2 to round-trip `NULL` as an R value. `NULL` does not mean delete
+#'   or omit the save; CSV, FST and Parquet reject it rather than store an empty
+#'   table.
 #' @param file destination path. Can be:
 #'   - A bare filename (e.g., `"data.qs2"`) → saved to `<alias_root>/data.qs2/data.qs2`
 #'   - A path with directory (e.g., `"results/model.rds"`) → saved to `<alias_root>/results/model.rds/model.rds`
@@ -264,12 +290,19 @@ st_save <- function(
 
   # Primary-key handling for tabular objects
   if (!is.null(pk)) {
-    if (!is.data.frame(x)) {
+    if (!is.data.frame(x) ||
+        (is.environment(x) &&
+         isTRUE(st_opts("reference_copy_on_save", .get = TRUE)))) {
       cli::cli_abort("{.arg pk} supplied but object is not a data.frame.")
     }
     x <- st_set_pk(x, pk = pk, domain = domain, unique = unique)
   } else {
-    if (is.data.frame(x)) st_assert_pk(x) # sanity check for attached PK metadata
+    # Do not inspect attributes on unsupported classed pilot environments.
+    if (is.data.frame(x) &&
+        !(is.environment(x) &&
+          isTRUE(st_opts("reference_copy_on_save", .get = TRUE)))) {
+      st_assert_pk(x)
+    }
   }
 
   # Determine format
@@ -284,46 +317,68 @@ st_save <- function(
     )
   }
 
+  if (is.environment(x) &&
+      isTRUE(st_opts("reference_copy_on_save", .get = TRUE))) {
+    x <- .st_reference_copy_for_save(x, fmt, h)
+  }
+
+  attrs <- metadata$attrs %||% list()
+  if (is.list(attrs)) attrs$stamp_data_table <- NULL
+  if (fmt %in% c("rds", "qs2") && .st_is_dt(x)) {
+    if (!is.list(attrs)) {
+      cli::cli_abort("{.arg metadata$attrs} must be a list for data.table restoration metadata.")
+    }
+    attrs$stamp_data_table <- list(version = 1L, key = .st_data_table_key(x))
+  }
+
   # Prepare sanitized object (content-only for tabular data) for hashing & storage
   x_sanitized <- st_sanitize_for_hash(x)
-
-  # Decide if we should create a new version (hashes, code hash, etc.)
-  # Use sanitized object so decision aligns with stored content
-  # Use rel_path for the check so st_should_save can correctly locate the sidecar
-  dec <- st_should_save(
-    rel_path,
-    x = x_sanitized,
-    code = code,
-    alias = versioning_alias,
-    request = request,
-    semantic_schema = semantic_schema,
-    metadata = metadata
-  )
-  if (modern && !dec$save &&
-      !identical(st_read_sidecar(rel_path, alias = versioning_alias)$format,
-                 fmt)) {
-    dec <- list(save = TRUE, reason = "format_changed")
-  }
-  if (!dec$save) {
-    if (isTRUE(verbose)) {
-      cli::cli_inform(c(
-        "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {logical_path}}"
-      ))
-    }
-    return(invisible(list(
-      path = logical_path,
-      skipped = TRUE,
-      reason = dec$reason,
-      version_id = .st_save_retained_pin(rel_path, versioning_alias)
-    )))
-  }
 
   # Ensure storage directory exists (idempotent)
   fs::dir_create(fs::path_dir(storage_path), recurse = TRUE)
 
   # Write + sidecar + catalog under a best-effort file lock
+  decision_error <- NULL
   out <- tryCatch(
     .st_with_lock(storage_path, {
+      # Change detection reads the live payload; serialize it with replacement.
+      dec <- tryCatch({
+        if (!modern && isTRUE(verbose)) {
+          st_should_save(rel_path, x = x, code = code,
+                         alias = versioning_alias)
+        } else if (!modern) {
+          suppressWarnings(st_should_save(
+            rel_path, x = x, code = code, alias = versioning_alias
+          ))
+        } else if (isTRUE(verbose)) {
+          st_should_save(rel_path, x = x, code = code,
+                         alias = versioning_alias, request = request,
+                         semantic_schema = semantic_schema, metadata = metadata)
+        } else {
+          suppressWarnings(st_should_save(
+            rel_path, x = x, code = code, alias = versioning_alias,
+            request = request, semantic_schema = semantic_schema,
+            metadata = metadata
+          ))
+        }
+      }, error = function(e) {
+        decision_error <<- e
+        stop(e)
+      })
+      if (modern && !dec$save &&
+          !identical(st_read_sidecar(rel_path, alias = versioning_alias)$format,
+                     fmt)) {
+        dec <- list(save = TRUE, reason = "format_changed")
+      }
+      if (!dec$save) {
+        if (isTRUE(verbose)) {
+          cli::cli_inform(c(
+            "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {logical_path}}"
+          ))
+        }
+        list(path = logical_path, skipped = TRUE, reason = dec$reason,
+             version_id = .st_save_retained_pin(rel_path, versioning_alias))
+      } else {
       # 1) Atomic artifact write (overwrite-in-place policy lives here)
       .st_write_atomic(
         obj = x_sanitized,
@@ -379,9 +434,9 @@ st_save <- function(
           },
           code_label = code_label %||% NA_character_,
           parents = parents %||% list(),
-          attrs = list()
+          attrs = attrs
         ),
-        metadata
+        metadata[names(metadata) != "attrs"]
       )
       if (modern && !is.null(semantic$schema)) {
         meta$semantic <- list(
@@ -416,8 +471,8 @@ st_save <- function(
       # 3) Sidecar write (should be atomic inside the helper)
       .st_write_sidecar(rel_path, meta, alias = versioning_alias)
 
-      # 4) Catalog snapshot + version commit
-      # Use logical_path in catalog (user-facing path)
+      # Allocate the immutable ID and finish its snapshot under the catalog
+      # lock before publishing the pointer, including same-clock collisions.
       vid <- .st_catalog_record_version(
         artifact_path = logical_path,
         format = fmt,
@@ -430,26 +485,16 @@ st_save <- function(
           alias = versioning_alias
         ),
         alias = versioning_alias,
-        parents = parents
-      )
-      # Defensive fallback: if for any reason the catalog helper returned
-      # an empty or non-character id, compute a stable local version id
-      # based on timestamp and available hashes so callers (and tests)
-      # receive a non-empty identifier.
-      if (!is.character(vid) || !nzchar(vid)) {
-        if (modern) cli::cli_abort("Save did not return a valid version ID.")
-        vid <- .st_version_id(
-          meta$created_at,
-          meta$content_hash,
-          meta$code_hash
-        )
-      }
-      .st_version_commit_files(
-        rel_path,
-        vid,
         parents = parents,
-        alias = versioning_alias
+        commit_files = function(version_id) {
+          .st_version_commit_files(
+            rel_path, version_id, parents = parents, alias = versioning_alias
+          )
+        }
       )
+      if (!is.character(vid) || length(vid) != 1L || is.na(vid) || !nzchar(vid)) {
+        cli::cli_abort("Save did not return a valid committed version ID.")
+      }
 
       # 5) Optional retention for this artifact
       .st_apply_retention(rel_path, alias = versioning_alias)
@@ -464,9 +509,12 @@ st_save <- function(
         ))
       }
       list(path = logical_path, metadata = meta, version_id = vid)
+      }
     }),
     error = function(e) {
       if (modern) stop(e)
+      # Decision errors propagated before locking; retain that error policy.
+      if (!is.null(decision_error)) stop(decision_error)
       # Best-effort: surface a warning and allow the function to fall back
       # to a safe return value rather than failing the whole process.
       if (isTRUE(verbose)) {
@@ -503,12 +551,18 @@ st_save <- function(
 #'   exist, an error is raised. Use aliases to operate across multiple stamp folders.
 #' @return the loaded object
 #' @details
+#' Native RDS/QS2 loads restore only an original data.table key recorded in the
+#' selected sidecar. The descriptor must have valid columns and agree with the
+#' existing row order; invalid metadata aborts rather than sorting the result.
+#' An absent legacy descriptor does not imply or create a key. This does not
+#' promise key fidelity for projected/combined partitions or arbitrary classes.
+#'
 #' The `version` argument allows you to load specific versions:
-#'   * `NULL` (default): loads the most recent version available.
-#'   * Negative integer (e.g., `-1`) or zero (`0`): loads that number of versions
-#'     before the most recent version. So, if `0`, it loads the current
-#'     version, which is equivalent to `NULL`. If `-1`, it will load the version
-#'     right before the current one, `-2` loads two versions before, and so on.
+#'   * `NULL` (default): loads the current live artifact.
+#'   * Zero (`0`): loads the latest committed snapshot, which can differ from an
+#'     edited or uncommitted live file.
+#'   * Negative integer: loads that many retained snapshots before the latest;
+#'     `-1` is previous, `-2` is two retained versions back, and so on.
 #'   * Positive numbers: Error.
 #'   * Character: treated as a specific version ID (e.g., "20250801T162739Z-d86e8").
 #'   * Interactive selection (e.g., `"select"`, `"pick"`, `"choose"`) is supported
@@ -590,14 +644,20 @@ st_load <- function(
 
   # Read sidecar once (we'll reuse it for verify, pk/schema, etc.)
   meta <- tryCatch(
-    st_read_sidecar(rel_path, alias = loading_alias),
+    if (isTRUE(verbose)) {
+      st_read_sidecar(rel_path, alias = loading_alias)
+    } else {
+      suppressWarnings(st_read_sidecar(rel_path, alias = loading_alias))
+    },
     error = function(e) NULL
   )
 
   # (1) Optional FILE integrity check: sidecar$file_hash vs current file hash
   if (isTRUE(st_opts("verify_on_load", .get = TRUE))) {
     if (
-      is.list(meta) && is.character(meta$file_hash) && nzchar(meta$file_hash)
+      is.list(meta) && is.character(meta$file_hash) &&
+        length(meta$file_hash) == 1L && !is.na(meta$file_hash) &&
+        nzchar(meta$file_hash)
     ) {
       now <- tryCatch(st_hash_file(storage_path), error = function(e) {
         NA_character_
@@ -621,6 +681,7 @@ st_load <- function(
     if (
       is.list(meta) &&
         is.character(meta$content_hash) &&
+        length(meta$content_hash) == 1L && !is.na(meta$content_hash) &&
         nzchar(meta$content_hash)
     ) {
       h_now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
@@ -683,6 +744,8 @@ st_load <- function(
   ) {
     attr(res, "stamp_domain") <- meta$domain
   }
+
+  res <- .st_restore_data_table_key(res, meta, fmt)
 
   if (isTRUE(verbose)) {
     cli::cli_inform(c(
@@ -824,9 +887,12 @@ st_switch <- function(alias) {
 #' @param version Version identifier to restore to. Can be:
 #'   \itemize{
 #'     \item A specific version_id string
-#'     \item "latest" - most recent version
-#'     \item "oldest" - first saved version
-#'     \item Integer offset from latest (1 = previous, 2 = two versions back, etc.)
+#'     \item "latest" - latest committed snapshot, equivalent to 0
+#'     \item "oldest" - oldest retained snapshot (the default)
+#'     \item Non-positive integer offset (0 = latest, -1 = previous,
+#'       -2 = two retained versions back, etc.)
+#'     \item Deprecated positive position (1 = latest, 2 = previous, etc.).
+#'       These retain their old meaning with a deprecation warning.
 #'   }
 #' @param verbose Logical; if TRUE, prints informative messages.
 #' @param alias Optional stamp alias to target a specific stamp folder.
@@ -845,6 +911,15 @@ st_switch <- function(alias) {
 #' This allows you to revert changes by restoring to any previous version.
 #' The restoration itself becomes a new version in the history, so you can
 #' always go forward again if needed.
+#' A failed save is reported as a restore error rather than a successful restore.
+#'
+#' Numeric offsets count through retained history in the order returned by
+#' \code{st_versions()}. Zero selects the latest committed snapshot, which may
+#' differ from an edited or uncommitted live file. Positive positions are
+#' deprecated and will be removed in a future release. Replace a positive
+#' position \code{p} with \code{1 - p} to select the same snapshot. Deprecation
+#' warnings are not suppressed by \code{verbose = FALSE}. The default remains
+#' \code{version = "oldest"}.
 #'
 #' @examples
 #' \dontrun{
@@ -857,7 +932,7 @@ st_switch <- function(alias) {
 #' st_save(df2, "data.qs2")
 #'
 #' # Restore to previous version
-#' st_restore("data.qs2", version = "oldest")
+#' st_restore("data.qs2", version = -1)
 #'
 #' # Or restore to a specific version ID
 #' versions <- st_versions("data.qs2")
@@ -896,14 +971,28 @@ st_restore <- function(
     ...
   )
 
-  # Save it back (this creates a new version and updates the artifact)
-  st_save(
-    obj,
-    file = file,
-    verbose = FALSE,
-    alias = versioning_alias,
-    ...
-  )
+  # Use the snapshot's recorded writer, not a potentially changed default.
+  vdir <- .st_version_dir(rel_path, version_id, alias = versioning_alias)
+  json <- fs::path(vdir, "sidecar.json")
+  qs2 <- fs::path(vdir, "sidecar.qs2")
+  meta <- tryCatch({
+    if (fs::file_exists(json)) {
+      jsonlite::read_json(json, simplifyVector = TRUE)
+    } else if (fs::file_exists(qs2)) {
+      .st_read_qs2(qs2)
+    } else {
+      NULL
+    }
+  }, error = function(e) NULL)
+  if (!is.list(meta)) meta <- NULL
+  save_args <- list(...)
+  if (is.null(save_args$format)) save_args$format <- meta$format
+  saved <- do.call(st_save, c(list(
+    x = obj, file = file, verbose = FALSE, alias = versioning_alias
+  ), save_args))
+  if (!isTRUE(saved$skipped) && is.null(saved$version_id)) {
+    cli::cli_abort("Restore failed while saving {.file {file}}.")
+  }
 
   if (isTRUE(verbose)) {
     cli::cli_inform(c(
@@ -921,43 +1010,54 @@ st_restore <- function(
 #'
 #' @param version Version to restore. Can be specified as:
 #'   \itemize{
-#'     \item Integer offset from latest (1 = current/latest, 2 = previous, 3 = two versions back, etc.)
+#'     \item Non-positive integer offset (0 = latest, -1 = previous, etc.)
+#'     \item Deprecated positive position (1 = latest, 2 = previous, etc.)
 #'     \item Character string "latest" for the most recent version
-#'     \item Character string "oldest" for the first saved version
+#'     \item Character string "oldest" for the oldest retained version
 #'     \item Version ID string from the version history
 #'   }
-#' @note When using integer offsets, version = 1 restores the current/latest version,
-#'   which is equivalent to specifying version = "latest". This allows for consistent
-#'   offset-based indexing where higher numbers represent older versions.
+#' @note Offsets count through retained snapshots, newest first. Positive
+#'   positions retain their old meaning with a deprecation warning; replace
+#'   position \code{p} with offset \code{1 - p}. The public restore default is
+#'   unchanged. No stored version IDs or snapshots are modified by resolution.
 #' @param versions_df data.frame from st_versions() with version_id column
 #' @param file Original file path for error messages
 #' @return Character scalar version_id
 #' @keywords internal
 #' @importFrom utils head
 .st_resolve_version_identifier <- function(version, versions_df, file) {
-  # Numeric: treat as offset from latest (1 = current, 2 = previous, 3 = two back, etc.)
+  n_versions <- nrow(versions_df)
+  if (n_versions == 0L) {
+    cli::cli_abort("No versions found for {.file {file}}.")
+  }
+
   if (is.numeric(version)) {
-    if (length(version) != 1L || version != as.integer(version)) {
-      cli::cli_abort("Numeric version must be a single integer offset.")
+    if (length(version) != 1L || is.na(version) ||
+        !is.finite(version) || version != trunc(version)) {
+      cli::cli_abort("Numeric version must be a single finite integer offset.")
     }
-    offset <- as.integer(version)
-    if (offset < 1 || offset > nrow(versions_df)) {
+    legacy <- version > 0
+    index <- if (legacy) version else 1 - version
+    if (index < 1 || index > n_versions) {
       cli::cli_abort(
         c(
-          "Version offset {.val {offset}} out of range. Available versions: 1-{nrow(versions_df)}.",
-          "i" = paste0(
-            "See available versions with {.fn st_versions}: {.code print(st_versions(\"",
-            file,
-            "\"))}"
-          )
+          "Version offset {.val {version}} out of range for {n_versions} retained version{?s}.",
+          "i" = "Use offsets from {.val {1 - n_versions}} to {.val {0}}; see {.fn st_versions}."
         )
       )
     }
-    return(versions_df$version_id[offset])
+    if (legacy) {
+      cli::cli_warn(c(
+        "Positive numeric restore selectors are deprecated.",
+        "i" = "Use {.code version = {1 - version}} to select the same snapshot.",
+        "i" = "Positive selectors retain their old meaning until removal in a future release."
+      ), class = c("stamp_deprecated_positive_version", "deprecatedWarning"))
+    }
+    return(versions_df$version_id[index])
   }
 
   # Character: keywords or specific version_id
-  if (!is.character(version) || length(version) != 1L) {
+  if (!is.character(version) || length(version) != 1L || is.na(version)) {
     cli::cli_abort(
       "Version must be a single value: integer, 'latest', 'oldest', or version_id string."
     )
@@ -996,7 +1096,8 @@ st_restore <- function(
 #' Explain why an artifact would change
 #' @inheritParams st_changed
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#' @return Character scalar: "no_change", "missing_artifact", "missing_meta", or e.g. "content+code"
+#' @return Character scalar: "no_change", "missing_artifact", "missing_meta",
+#'   "metadata" for an original data.table key change, or a combined reason.
 #' @export
 st_changed_reason <- function(
   path,
@@ -1007,13 +1108,11 @@ st_changed_reason <- function(
 ) {
   mode <- match.arg(mode)
   # Delegate directly to st_changed(), which normalizes the path internally
-  res <- st_changed(
-    path,
-    x = x,
-    code = code,
-    mode = mode,
-    alias = alias
-  )
+  res <- if (missing(x)) {
+    st_changed(path, code = code, mode = mode, alias = alias)
+  } else {
+    st_changed(path, x = x, code = code, mode = mode, alias = alias)
+  }
   res$reason
 }
 
@@ -1145,8 +1244,12 @@ st_should_save <- function(path, x = NULL, code = NULL, alias = NULL,
         return(result(TRUE, "request_changed", pin))
       }
     }
-    changed <- st_changed(path, x = x, code = code, mode = "any",
-                          alias = versioning_alias)
+    changed <- if (missing(x)) {
+      st_changed(path, code = code, mode = "any", alias = versioning_alias)
+    } else {
+      st_changed(path, x = x, code = code, mode = "any",
+                 alias = versioning_alias)
+    }
     if (changed$changed) return(result(TRUE, changed$reason, pin))
     if (identical(st_opts("versioning", .get = TRUE), "timestamp")) {
       return(result(TRUE, "policy_timestamp", pin))
@@ -1169,13 +1272,11 @@ st_should_save <- function(path, x = NULL, code = NULL, alias = NULL,
 
   # Policy: by default write when content OR code changed
   # (per earlier decision; no extra option needed)
-  res <- st_changed(
-    path,
-    x = x,
-    code = code,
-    mode = "any",
-    alias = versioning_alias
-  )
+  res <- if (missing(x)) {
+    st_changed(path, code = code, mode = "any", alias = versioning_alias)
+  } else {
+    st_changed(path, x = x, code = code, mode = "any", alias = versioning_alias)
+  }
   if (res$changed) {
     return(list(save = TRUE, reason = res$reason))
   }
@@ -1271,13 +1372,11 @@ st_should_save <- function(path, x = NULL, code = NULL, alias = NULL,
     stop("Temp file not created: ", tmp, call. = FALSE)
   }
   if (fs::file_exists(path)) {
-    if (isTRUE(overwrite)) {
-      fs::file_delete(path) # atomic move below requires dest not to exist
-    } else {
+    if (!isTRUE(overwrite)) {
       stop("Destination exists and overwrite = FALSE: ", path, call. = FALSE)
     }
   }
-  fs::file_move(tmp, path) # atomic on same filesystem
+  fs::file_move(tmp, path) # same-filesystem rename replaces the destination
   invisible(path)
 }
 
@@ -1295,6 +1394,9 @@ st_should_save <- function(path, x = NULL, code = NULL, alias = NULL,
   if (requireNamespace("filelock", quietly = TRUE)) {
     dir.create(dirname(lockfile), recursive = TRUE, showWarnings = FALSE)
     lock <- filelock::lock(lockfile, timeout = 5000) # 5s
+    if (is.null(lock)) {
+      cli::cli_abort("Could not acquire lock for {.file {path}} (timeout).")
+    }
     on.exit(try(filelock::unlock(lock), silent = TRUE), add = TRUE)
     eval(substitute(expr), envir = eval_env)
   } else {

@@ -1,9 +1,7 @@
-library(data.table)
-
 test_that("data.table hashing ignores volatile internals", {
   skip_if_not_installed("collapse")  
 
-  dt <- data.table(a = 1:5, b = letters[1:5])
+  dt <- data.table::data.table(a = 1:5, b = letters[1:5])
   # Create via different path (duplicate then unique)
   dt_alt <- collapse::rowbind(dt, dt) |> collapse::funique()
 
@@ -17,11 +15,12 @@ test_that("data.table hashing ignores volatile internals", {
 
 test_that("saving + loading restores data.table class", {
   tdir <- withr::local_tempdir()
-  local_st_opts()
+  local_stamp_state()
+  local_st_opts(default_format = "rds", warn_missing_pk_on_load = FALSE)
   st_init(tdir)
 
-  dt <- data.table(a = 1:3, b = letters[1:3])
-  path <- file.path(tdir, "dt.qs2")
+  dt <- data.table::data.table(a = 1:3, b = letters[1:3])
+  path <- file.path(tdir, "dt.rds")
   st_save(dt, path)
   loaded <- st_load(path)
   expect_true(inherits(loaded, "data.table"))

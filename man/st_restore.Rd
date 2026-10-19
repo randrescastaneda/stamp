@@ -17,9 +17,12 @@ st_restore(file, version = "oldest", verbose = TRUE, alias = NULL, ...)
 \item{version}{Version identifier to restore to. Can be:
 \itemize{
 \item A specific version_id string
-\item "latest" - most recent version
-\item "oldest" - first saved version
-\item Integer offset from latest (1 = previous, 2 = two versions back, etc.)
+\item "latest" - latest committed snapshot, equivalent to 0
+\item "oldest" - oldest retained snapshot (the default)
+\item Non-positive integer offset (0 = latest, -1 = previous,
+-2 = two retained versions back, etc.)
+\item Deprecated positive position (1 = latest, 2 = previous, etc.).
+These retain their old meaning with a deprecation warning.
 }}
 
 \item{verbose}{Logical; if TRUE, prints informative messages.}
@@ -47,6 +50,15 @@ The function:
 This allows you to revert changes by restoring to any previous version.
 The restoration itself becomes a new version in the history, so you can
 always go forward again if needed.
+A failed save is reported as a restore error rather than a successful restore.
+
+Numeric offsets count through retained history in the order returned by
+\code{st_versions()}. Zero selects the latest committed snapshot, which may
+differ from an edited or uncommitted live file. Positive positions are
+deprecated and will be removed in a future release. Replace a positive
+position \code{p} with \code{1 - p} to select the same snapshot. Deprecation
+warnings are not suppressed by \code{verbose = FALSE}. The default remains
+\code{version = "oldest"}.
 }
 \examples{
 \dontrun{
@@ -59,7 +71,7 @@ df2 <- data.frame(x = 6:10)
 st_save(df2, "data.qs2")
 
 # Restore to previous version
-st_restore("data.qs2", version = "oldest")
+st_restore("data.qs2", version = -1)
 
 # Or restore to a specific version ID
 versions <- st_versions("data.qs2")

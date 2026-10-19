@@ -1,8 +1,10 @@
 test_that("aliases isolate catalogs and versions", {
+  local_stamp_state()
   st_opts_reset()
+  local_st_opts(default_format = "rds", warn_missing_pk_on_load = FALSE)
 
-  root1 <- fs::path(tempdir(), paste0("stamp-root-1_", Sys.time() %>% as.numeric() %>% as.integer()))
-  root2 <- fs::path(tempdir(), paste0("stamp-root-2_", Sys.time() %>% as.numeric() %>% as.integer()))
+  root1 <- withr::local_tempdir()
+  root2 <- withr::local_tempdir()
   fs::dir_create(root1, recurse = TRUE)
   fs::dir_create(root2, recurse = TRUE)
 
@@ -44,6 +46,6 @@ test_that("aliases isolate catalogs and versions", {
   # Load uses alias-specific version store
   xa <- st_load(pathA, alias = aliasA)
   xb <- st_load(pathB, alias = aliasB)
-  expect_true(is.data.frame(xa))
-  expect_true(is.data.frame(xb))
+  expect_identical(xa$a, xA$a)
+  expect_identical(xb$b, xB$b)
 })

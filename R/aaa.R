@@ -193,6 +193,7 @@ st_state_get <- function(key, default = NULL) {
   code_hash = TRUE, # compute code hash when code= is supplied
   store_file_hash = FALSE, # compute file hash at save (extra I/O)
   verify_on_load = FALSE, # verify file hash on load if available
+  reference_copy_on_save = FALSE, # limited opt-in environment save pilot
 
   # Folder structure
   data_folder = ".st_data", # folder for user data (preserves directory structure)

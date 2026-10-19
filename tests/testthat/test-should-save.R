@@ -1,5 +1,6 @@
 test_that("st_should_save skips when content and code unchanged", {
-  skip_on_cran()
+  local_stamp_state()
+  local_st_opts()
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
@@ -14,7 +15,8 @@ test_that("st_should_save skips when content and code unchanged", {
 })
 
 test_that("st_should_save writes when content or code changed", {
-  skip_on_cran()
+  local_stamp_state()
+  local_st_opts()
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
@@ -34,10 +36,8 @@ test_that("st_should_save writes when content or code changed", {
 })
 
 test_that("st_should_save writes when sidecar missing (missing_meta)", {
-  skip(
-    "Sidecar path handling for missing metadata not fully functional in current codebase"
-  )
-  skip_on_cran()
+  local_stamp_state()
+  local_st_opts()
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
@@ -46,14 +46,15 @@ test_that("st_should_save writes when sidecar missing (missing_meta)", {
   st_save(x, p, code = function(z) z)
 
   # remove sidecar files
-  scj <- stamp:::.st_sidecar_path(p, ext = "json")
-  scq <- stamp:::.st_sidecar_path(p, ext = "qs2")
+  scj <- stamp:::.st_sidecar_path("nometa.qs", ext = "json")
+  scq <- stamp:::.st_sidecar_path("nometa.qs", ext = "qs2")
   if (fs::file_exists(scj)) {
     fs::file_delete(scj)
   }
   if (fs::file_exists(scq)) {
     fs::file_delete(scq)
   }
+  expect_null(st_read_sidecar(p))
 
   dec <- st_should_save(p, x = x, code = function(z) z)
   expect_true(dec$save)
@@ -61,7 +62,8 @@ test_that("st_should_save writes when sidecar missing (missing_meta)", {
 })
 
 test_that("st_should_save respects versioning policy timestamp and off", {
-  skip_on_cran()
+  local_stamp_state()
+  local_st_opts()
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "rds")
@@ -81,7 +83,8 @@ test_that("st_should_save respects versioning policy timestamp and off", {
 })
 
 test_that("st_save correctly skips saving identical content (regression test)", {
-  skip_on_cran()
+  local_stamp_state()
+  local_st_opts()
   td <- withr::local_tempdir()
   st_init(td)
   st_opts(default_format = "qs2")

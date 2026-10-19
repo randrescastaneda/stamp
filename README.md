@@ -143,11 +143,22 @@ The functions below are organized by workflow. **New users** should start with *
 
 ### Save & Load
 
-- **`st_save(x, path, ...)`** - Save an artifact with automatic versioning, metadata, and lineage tracking
+- **`st_save(x, file, ...)`** - Save an artifact with automatic versioning, metadata, and lineage tracking
   - Optional: `pk` (primary key), `parents` (lineage), `code` (provenance), `domain` (category), `alias` (target directory)
-- **`st_load(path, ...)`** - Load the latest version of an artifact
-  - Optional: `verify = TRUE` (check content hash), `alias` (source directory)
+- **`st_load(file, ...)`** - Load the current artifact
+  - Optional: `alias` (source directory). Use `st_opts(verify_on_load = TRUE)` for integrity warnings; there is no `verify` argument.
 - **`st_load_version(path, version_id)`** - Load a specific historical version by ID
+
+An experimental, disabled-by-default `st_opts(reference_copy_on_save = TRUE)`
+pilot protects only supported root ordinary-environment graphs in native RDS
+`st_save()` calls by copying once. Ordinary values keep their existing path.
+It is not a global hashing policy: direct `st_hash_obj()` and comparison APIs
+remain unchanged. Classed/R6 environments, active/lazy bindings, special roots,
+opaque resources and unsupported graph values are outside the pilot and rejected
+when it is enabled. Recognized special parents stay shared, uninspected boundaries;
+ordinary parent environments are inspected and copied. See `?st_save` for the
+accepted values and graph limits. Do not enable it broadly as generic
+reference-object support.
 
 ### Formats
 
@@ -158,10 +169,20 @@ The functions below are organized by workflow. **New users** should start with *
 
 - **`st_versions(path)`** - List all versions of an artifact with metadata (timestamp, size, hashes)
 - **`st_latest(path)`** - Get the version ID of the most recent version
-- **`st_changed(x, path)`** - Check if an object differs from the saved version
-- **`st_changed_reason(x, path)`** - Explain why content/code changed
-- **`st_should_save(x, path)`** - Determine whether saving would create a new version
-- **`st_restore(file, version = "oldest", ...)`** - Restore an artifact to a previous version, writing it back as the current one
+- **`st_changed(path, x = NULL)`** - Check if an object differs from the saved version
+- **`st_changed_reason(path, x = NULL)`** - Explain why content/code changed
+- **`st_should_save(path, x = NULL)`** - Determine whether saving would create a new version
+- **`st_restore(file, version = "oldest", ...)`** - Restore a retained snapshot. Use `0` for latest, `-1` for previous, or `-n` for `n` retained versions back. Positive positions are deprecated; the default remains `"oldest"`.
+
+For `st_changed()`, `st_changed_reason()` and `st_should_save()`, omit `x` to
+leave object content unchecked. Explicit `x = NULL` compares with a NULL value.
+Use RDS or QS2 to save and restore NULL as an R object; it is not a deletion.
+
+Native RDS/QS2 saves also preserve original data.table keys in per-version
+sidecars. Unkeyed inputs remain unkeyed; PK declarations do not create keys.
+Key-only changes can create metadata versions without changing the data hash.
+Loading never sorts rows to invent or repair a key, and legacy snapshots without
+descriptors cannot recover keys that were not recorded.
 
 ### Lineage & Dependencies
 
@@ -183,7 +204,7 @@ The functions below are organized by workflow. **New users** should start with *
 
 - **`st_add_pk(path, keys)`** - Add or update primary key definition for an artifact
 - **`st_get_pk(x_or_meta)`** - Retrieve primary key columns from metadata
-- **`st_inspect_pk(path)`** - Validate primary key uniqueness and coverage
+- **`st_inspect_pk(path)`** - Inspect recorded primary-key metadata; this does not scan the payload for uniqueness
 - **`st_pk(x = NULL, keys, ...)`** - Normalize a primary-key specification, optionally validating it against `x`
 - **`st_with_pk(x, keys)`** - Attach primary-key metadata to a data.frame in memory, without saving
 
@@ -194,15 +215,15 @@ The functions below are organized by workflow. **New users** should start with *
 ### Aliases (Multi-Directory Support)
 
 - **`st_alias_list()`** - List all registered aliases
-- **`st_alias_get(name = NULL)`** - Get configuration for an alias
+- **`st_alias_get(alias = NULL)`** - Get configuration for an alias
 - **`st_switch(alias)`** - Switch the session's default alias
 
 ### Builders & Rebuilds ⚠️ *Experimental*
 
 > **Note**: The builder system is under active development. Safe for prototyping, but consider pinning your stamp version in production code until the API stabilizes (expected in v1.0).
 
-- **`st_register_builder(path, builder_fn)`** - Register a function to rebuild an artifact from its parents
-- **`st_clear_builders(paths = NULL)`** - Clear registered builders
+- **`st_register_builder(path, fun, name = NULL)`** - Register a function to rebuild an artifact from its parents
+- **`st_clear_builders(path = NULL)`** - Clear registered builders
 - **`st_builders()`** - List the currently registered builders
 - **`st_plan_rebuild(targets, ...)`** - Compute rebuild plan (which targets are stale and why)
 - **`st_rebuild(plan)`** - Execute a rebuild plan, calling builders and saving results

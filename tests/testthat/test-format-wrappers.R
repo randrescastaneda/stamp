@@ -87,6 +87,8 @@ test_that("registered format handlers have verbose parameter", {
 })
 
 test_that("verbose parameter works end-to-end with st_save/st_load", {
+  local_stamp_state()
+  local_st_opts(warn_missing_pk_on_load = FALSE)
   td <- withr::local_tempdir()
   st_init(td)
   test_file <- file.path(td, "test.rds")
@@ -110,6 +112,7 @@ test_that("verbose parameter works end-to-end with st_save/st_load", {
 })
 
 test_that("custom registered formats get wrapped with verbose", {
+  local_stamp_state()
   # Register a custom format with a noisy reader/writer
   noisy_read <- function(path, ...) {
     warning("Noisy read warning")

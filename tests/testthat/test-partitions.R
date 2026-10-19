@@ -1,5 +1,5 @@
 test_that("st_save_part and st_list_parts work and st_load_parts binds", {
-  skip_on_cran()
+  local_stamp_state()
   local_st_opts(warn_missing_pk_on_load = FALSE, default_format = "rds")
   td <- withr::local_tempdir()
   st_init(td)
@@ -24,8 +24,7 @@ test_that("st_save_part and st_list_parts work and st_load_parts binds", {
 })
 
 test_that("st_list_parts returns empty for missing base and st_load_parts dt mode works", {
-  skip_on_cran()
-  skip_if_not_installed("data.table")
+  local_stamp_state()
   local_st_opts(warn_missing_pk_on_load = FALSE, default_format = "rds")
   td <- withr::local_tempdir()
   st_init(td)
@@ -41,7 +40,7 @@ test_that("st_list_parts returns empty for missing base and st_load_parts dt mod
 })
 
 test_that("st_part_path rejects invalid partition keys and sanitizes values", {
-  skip_on_cran()
+  local_stamp_state()
   # invalid characters in partition value
   expect_error(
     stamp:::st_part_path("/tmp", list(a = "bad/value")),

@@ -307,9 +307,11 @@ stamp-owned names such as path, format, parents, attrs or execution.
 
 Pinned `st_read_sidecar(version_id = ...)` errors on missing required historical
 proof instead of substituting current metadata, without loading artifact data.
-`st_load_version()` uses the physical format saved in the exact snapshot, even
-when it overrides the extension or the current version uses another format.
-Legacy missing format fields retain their extension/default inference.
+`st_load_version()` uses the physical format recorded in the exact snapshot when
+metadata are available, even if it overrides the extension or current format.
+Legacy compatibility permits extension/default data recovery when metadata are
+unavailable. This neither repairs metadata nor certifies execution proof; any
+readable modern marker requires strict pinned metadata validation.
 
 
 

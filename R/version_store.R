@@ -182,13 +182,7 @@
 #' @keywords internal
 .st_catalog_write <- function(cat, alias = NULL) {
   p <- .st_catalog_path(alias = alias)
-  fs::dir_create(fs::path_dir(p), recurse = TRUE)
-  tmp <- fs::file_temp(tmp_dir = fs::path_dir(p), pattern = fs::path_file(p))
-  .st_write_qs2(cat, tmp)
-  if (fs::file_exists(p)) {
-    fs::file_delete(p)
-  }
-  fs::file_move(tmp, p)
+  .st_write_atomic(cat, p, .st_write_qs2, overwrite = TRUE)
 }
 
 # Public API -------------------------------------------------------------------
@@ -248,7 +242,7 @@ st_versions <- function(path, alias = NULL) {
     )
   }
 
-  out <- ver[artifact_id == aid]
+  out <- ver[which(ver$artifact_id == aid)]
   if (nrow(out) == 0L) {
     return(out)
   }
@@ -306,11 +300,18 @@ st_latest <- function(path, alias = NULL) {
 #' Resolve version specification to a concrete version_id (internal)
 #'
 #' @param path artifact path
-#' @param version NULL (latest), integer (relative), character (specific version ID),
+#' @param version NULL (latest), 0 (latest), negative integer (versions back),
+#'   character (specific version ID),
 #'   or "select"/"pick"/"choose" to show interactive menu
 #' @return character version_id or NA_character_
 #' @keywords internal
 .st_resolve_version <- function(path, version = NULL, alias = NULL) {
+  if (is.numeric(version) && (
+    length(version) != 1L || is.na(version) ||
+      !is.finite(version) || version != trunc(version)
+  )) {
+    cli::cli_abort("Invalid numeric version specification: must be a single finite integer")
+  }
   # NULL or 0 -> latest
   if (is.null(version) || (is.numeric(version) && version == 0)) {
     return(st_latest(path, alias = alias))
@@ -320,7 +321,7 @@ st_latest <- function(path, alias = NULL) {
   if (is.numeric(version) && length(version) == 1L && version > 0) {
     cli::cli_abort(c(
       "x" = "Positive version numbers are not allowed.",
-      "i" = "Use NULL for latest, 0 for current, or negative integers for relative versions."
+      "i" = "Use 0 for the latest committed snapshot, or negative integers for relative versions."
     ))
   }
 
@@ -338,7 +339,7 @@ st_latest <- function(path, alias = NULL) {
       }
 
       # vers is already sorted by created_at descending (newest first)
-      idx <- abs(as.integer(version)) + 1L
+      idx <- abs(version) + 1
       if (idx > nrow(vers)) {
         cli::cli_abort(c(
           "x" = "Version index {version} goes beyond available versions.",
@@ -435,7 +436,18 @@ st_latest <- function(path, alias = NULL) {
 #'
 #' The function will abort if the requested version snapshot does not
 #' exist or if there is no registered format handler for the artifact's
-#' format.
+#' format. When available, snapshot sidecar metadata selects the reader
+#' independently of the current default format. With
+#' `st_opts(verify_on_load = TRUE)`, recorded file and content hashes are
+#' checked and mismatches warn when `verbose = TRUE`. This does not apply
+#' the live loader's mutable PK/schema/domain annotations. If no readable
+#' metadata identifies a modern snapshot, unavailable or unreadable metadata
+#' permits data recovery using the path extension or default format. This does
+#' not certify execution proof or repair historical metadata; exact pinned
+#' metadata and execution-proof readers still fail closed on damaged proof.
+#' Any readable modern marker requires strict exact snapshot metadata validation.
+#' Live metadata updates from [st_add_pk()] do not modify previously committed
+#' snapshots.
 #'
 #' @param path Character path to the artifact (same value used with `st_save`/`st_load`).
 #' @param version_id Character version identifier (as returned by `st_save` or present in the catalog).
@@ -443,6 +455,11 @@ st_latest <- function(path, alias = NULL) {
 #' @param verbose Logical; if TRUE (default), print informational messages.
 #' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return The object produced by the format-specific read handler (typically an R object loaded from disk).
+#' @details Native RDS/QS2 snapshots use only their own recorded original
+#'   data.table key descriptor. No key is inferred from live metadata, PKs or
+#'   sorted rows. Invalid or row-order-inconsistent descriptors abort without
+#'   reordering the returned data; legacy snapshots without descriptors retain
+#'   their previous behavior.
 #' @examples
 #' \dontrun{
 #' # load a historical version of a dataset
@@ -469,8 +486,26 @@ st_load_version <- function(
     )
   }
 
-  meta <- st_read_sidecar(rel_path, alias = versioning_alias,
-                          version_id = version_id)
+  # Inspect both copies so an unreadable/legacy preferred copy cannot hide a
+  # readable modern marker. Raw data recovery is not proof certification.
+  meta_json <- fs::path(vdir, "sidecar.json")
+  meta_qs2 <- fs::path(vdir, "sidecar.qs2")
+  json <- tryCatch({
+    if (fs::file_exists(meta_json)) {
+      jsonlite::read_json(meta_json, simplifyVector = TRUE)
+    } else NULL
+  }, error = function(e) NULL)
+  qs <- tryCatch({
+    if (fs::file_exists(meta_qs2)) .st_read_qs2(meta_qs2) else NULL
+  }, error = function(e) NULL)
+  if (!is.list(json)) json <- NULL
+  if (!is.list(qs)) qs <- NULL
+  if (.st_sidecar_is_modern(json) || .st_sidecar_is_modern(qs)) {
+    meta <- st_read_sidecar(rel_path, alias = versioning_alias,
+      version_id = version_id)
+  } else {
+    meta <- json %||% qs
+  }
   fmt <- meta$format
   if (is.null(fmt)) {
     if (.st_sidecar_is_modern(meta)) {
@@ -486,11 +521,30 @@ st_load_version <- function(
     cli::cli_abort("Unknown format {.field {fmt}} for version load.")
   }
 
+  if (isTRUE(st_opts("verify_on_load", .get = TRUE)) &&
+      is.character(meta$file_hash) && length(meta$file_hash) == 1L &&
+      !is.na(meta$file_hash) && nzchar(meta$file_hash)) {
+    now <- tryCatch(st_hash_file(art), error = function(e) NA_character_)
+    if (!is.na(now) && !identical(now, meta$file_hash) && isTRUE(verbose)) {
+      cli::cli_warn("File hash mismatch for historical version {.field {version_id}} (sidecar vs disk).")
+    }
+  }
+
   # Read the artifact with the registered reader
   res <- h$read(art, verbose = verbose, ...)
 
+  if (isTRUE(st_opts("verify_on_load", .get = TRUE)) &&
+      is.character(meta$content_hash) && length(meta$content_hash) == 1L &&
+      !is.na(meta$content_hash) && nzchar(meta$content_hash)) {
+    now <- tryCatch(st_hash_obj(res), error = function(e) NA_character_)
+    if (!is.na(now) && !identical(now, meta$content_hash) && isTRUE(verbose)) {
+      cli::cli_warn("Loaded object hash mismatch for historical version {.field {version_id}} (content hash differs from sidecar).")
+    }
+  }
+
   # Restore original object attributes (data.table class, row.names, etc.)
   res <- .st_restore_sanitized_object(res)
+  res <- .st_restore_data_table_key(res, meta, fmt)
 
   if (isTRUE(verbose)) {
     cli::cli_inform(c(
@@ -508,6 +562,11 @@ st_load_version <- function(
 #' @export
 st_lineage <- function(path, depth = 1L, alias = NULL) {
   stopifnot(is.numeric(depth), depth >= 1)
+  norm <- .st_normalize_user_path(
+    path, alias = alias, must_exist = FALSE, auto_switch = FALSE
+  )
+  path <- norm$logical_path
+  alias <- norm$alias
   visited <- list()
   rows <- list()
 
@@ -517,10 +576,12 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     }
 
     # Convert child_path to rel_path for version operations
-    root <- .st_root_dir(alias = alias)
-    child_rel_path <- as.character(fs::path_rel(child_path, start = root))
-
-    vdir <- .st_version_dir(child_rel_path, child_vid, alias = alias)
+    child_norm <- .st_normalize_user_path(
+      child_path, must_exist = FALSE, auto_switch = FALSE
+    )
+    child_rel_path <- child_norm$rel_path
+    vdir <- .st_version_dir(child_rel_path, child_vid,
+                           alias = child_norm$alias)
     # Prefer committed parents.json in the version snapshot. If not present
     # and we're at the first level, fall back to the artifact sidecar parents
     # for convenience. Recursive walking beyond level 1 will only use
@@ -528,7 +589,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     parents <- .st_version_read_parents(vdir)
     if (!length(parents) && level == 1L) {
       sc <- tryCatch(
-        st_read_sidecar(child_rel_path, alias = alias),
+        st_read_sidecar(child_rel_path, alias = child_norm$alias),
         error = function(e) NULL
       )
       if (is.list(sc) && length(sc$parents)) {
@@ -568,6 +629,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     ))
   }
 
+  visited[[paste(.st_norm_path(path), vid, sep = "@")]] <- TRUE
   walk(path, vid, 1L)
   if (!length(rows)) {
     return(data.frame(
@@ -646,29 +708,32 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
   # Compute version directory using rel_path
   vdir <- .st_version_dir(rel_path, version_id, alias = alias)
   if (fs::dir_exists(vdir)) {
-    cli::cli_abort("Refusing to overwrite an immutable version snapshot.")
+    cli::cli_abort("Version snapshot {.field {version_id}} already exists; snapshots are immutable.")
   }
   .st_dir_create(fs::path_dir(vdir))
-  .st_dir_create(vdir)
+  staged <- fs::file_temp(tmp_dir = fs::path_dir(vdir), pattern = "snapshot-")
+  .st_dir_create(staged)
+  on.exit(unlink(staged, recursive = TRUE), add = TRUE)
 
   # Get actual artifact path for copying
   artifact_path <- .st_artifact_path(rel_path, alias = alias)
 
   # artifact copy
-  fs::file_copy(artifact_path, fs::path(vdir, "artifact"), overwrite = TRUE)
+  fs::file_copy(artifact_path, fs::path(staged, "artifact"))
 
   # sidecars (if present)
   scj <- .st_sidecar_path(rel_path, "json", alias = alias)
   scq <- .st_sidecar_path(rel_path, "qs2", alias = alias)
   if (fs::file_exists(scj)) {
-    fs::file_copy(scj, fs::path(vdir, "sidecar.json"), overwrite = TRUE)
+    fs::file_copy(scj, fs::path(staged, "sidecar.json"))
   }
   if (fs::file_exists(scq)) {
-    fs::file_copy(scq, fs::path(vdir, "sidecar.qs2"), overwrite = TRUE)
+    fs::file_copy(scq, fs::path(staged, "sidecar.qs2"))
   }
 
   # parents snapshot
-  .st_version_write_parents(vdir, parents)
+  .st_version_write_parents(staged, parents)
+  fs::file_move(staged, vdir)
 
   invisible(vdir)
 }
@@ -755,7 +820,9 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' @param code_hash Character code hash (if available).
 #' @param created_at Character ISO8601 timestamp of creation.
 #' @param sidecar_format Character sidecar format present ("json", "qs2", "both", "none").
-#' @return Character version id (SipHash of artifact id, hashes, timestamp).
+#' @param commit_files Optional function called with the allocated version ID
+#'   under the catalog lock, before publishing the catalog entry.
+#' @return Character collision-safe version identifier.
 #' @noRd
 .st_catalog_record_version <- function(
   artifact_path,
@@ -766,7 +833,8 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
   created_at,
   sidecar_format,
   alias = NULL,
-  parents = NULL
+  parents = NULL,
+  commit_files = NULL
 ) {
   aid <- .st_artifact_id(artifact_path)
   vid <- secretbase::siphash13(
@@ -845,6 +913,9 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       }
     }
 
+    # Allocate the immutable ID under this lock, but publish its snapshot
+    # before the catalog pointer. Failed snapshot writes must not be indexed.
+    if (!is.null(commit_files)) commit_files(vid)
     .st_catalog_write(cat, alias = alias)
   })
 
@@ -882,6 +953,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     tmp_dir = fs::path_dir(pfile),
     pattern = fs::path_file(pfile)
   )
+  on.exit(unlink(tmp), add = TRUE)
   jsonlite::write_json(
     parents,
     tmp,
@@ -889,9 +961,6 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     pretty = TRUE,
     digits = NA
   )
-  if (fs::file_exists(pfile)) {
-    fs::file_delete(pfile)
-  }
   fs::file_move(tmp, pfile)
   invisible(NULL)
 }
@@ -998,7 +1067,12 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 .st_children_once <- function(path, version_id = NULL, alias = NULL) {
   cat <- .st_catalog_read(alias)
   # Prefer parents_index when available; fall back to scanning if empty
-  if (NROW(cat$parents_index) > 0L) {
+  # Old indices can contain case-sensitive parent IDs that do not resolve to
+  # canonical artifact IDs on Windows. Read their snapshots, without rewriting
+  # persisted identities, rather than returning an incomplete indexed result.
+  index_resolves <- all(cat$parents_index$parent_artifact_id %in%
+                          cat$artifacts$artifact_id)
+  if (NROW(cat$parents_index) > 0L && index_resolves) {
     pai <- .st_artifact_id(path)
     idx <- if (!is.null(version_id) && nzchar(version_id)) {
       cat$parents_index[
@@ -1043,7 +1117,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       stringsAsFactors = FALSE
     ))
   }
-  target_path_abs <- .st_norm_path(path)
+  target_path_abs <- .st_normalize_path(.st_norm_path(path))
 
   rows <- list()
   for (k in seq_len(NROW(cat$versions))) {
@@ -1051,13 +1125,15 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     aid <- vrow$artifact_id[[1L]]
     cvid <- vrow$version_id[[1L]]
     cpth <- .st_artifact_path_from_id(aid, cat = cat)
-    if (!nzchar(cpth)) {
+    if (is.na(cpth) || !nzchar(cpth)) {
       next
     }
 
     # Convert cpth (logical path) to rel_path for version operations
     root <- .st_root_dir(alias = alias)
-    c_rel_path <- as.character(fs::path_rel(cpth, start = root))
+    c_rel_path <- as.character(fs::path_rel(
+      .st_normalize_path(cpth), start = .st_normalize_path(root)
+    ))
 
     vdir <- .st_version_dir(c_rel_path, cvid, alias = alias)
     parents <- .st_version_read_parents(vdir)
@@ -1065,7 +1141,7 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       next
     }
     for (p in parents) {
-      p_path_abs <- .st_norm_path(p$path)
+      p_path_abs <- .st_normalize_path(.st_norm_path(p$path))
       if (!identical(p_path_abs, target_path_abs)) {
         next
       }
@@ -1124,10 +1200,15 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' @export
 st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
   stopifnot(is.numeric(depth), depth >= 1)
-  target_path_abs <- .st_norm_path(path)
+  norm <- .st_normalize_user_path(
+    path, alias = alias, must_exist = FALSE, auto_switch = FALSE
+  )
+  target_path_abs <- norm$logical_path
+  alias <- norm$alias
 
   out_rows <- list()
   seen <- new.env(parent = emptyenv()) # to avoid cycles
+  expanded <- new.env(parent = emptyenv())
 
   add_rows <- function(df, level) {
     if (!NROW(df)) {
@@ -1148,6 +1229,12 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
     if (level > depth) {
       return(invisible(NULL))
     }
+    key <- paste(p_path_abs, p_vid %||% "*", sep = "@")
+    if (exists(key, envir = expanded, inherits = FALSE) &&
+        get(key, envir = expanded, inherits = FALSE) <= level) {
+      return(invisible(NULL))
+    }
+    assign(key, level, envir = expanded)
     kids <- .st_children_once(p_path_abs, version_id = p_vid, alias = alias)
     if (!NROW(kids)) {
       return(invisible(NULL))
@@ -1330,7 +1417,7 @@ st_catalog_query <- function(alias = NULL) {
   # Returns exactly nrow(cat$artifacts) rows in a healthy catalog.
   result <- cat$versions[
     cat$artifacts,
-    on = .(version_id = latest_version_id),
+    on = .(artifact_id, version_id = latest_version_id),
     nomatch = 0L,
     c(
       list(path = i.path),

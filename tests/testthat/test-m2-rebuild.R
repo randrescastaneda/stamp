@@ -133,6 +133,30 @@ m2_rb_pin_chain <- function(store, requests) {
   requests
 }
 
+test_that("request-aware builders persist explicit NULL and then converge", {
+  store <- m2_rb_store()
+  request <- m2_rb_request(store, "null.rds")
+  calls <- 0L
+  builder <- function(path, parents) {
+    calls <<- calls + 1L
+    list(x = NULL)
+  }
+  built <- st_rebuild(m2_rb_plan(list(request)), rebuild_fun = builder)
+  expect_identical(built$status, "built")
+  expect_identical(calls, 1L)
+  expect_false(is.na(built$version_id))
+  expect_null(st_load_version(request$path, built$version_id,
+    alias = store$alias, verbose = FALSE))
+  info <- st_execution_info(request$path, alias = store$alias)
+  expect_identical(info$version_id, built$version_id)
+  before <- m2_rb_tree(store$root)
+  repeated <- st_rebuild(m2_rb_plan(list(request)), rebuild_fun = builder)
+  expect_identical(repeated$status, "skipped")
+  expect_identical(calls, 1L)
+  expect_identical(repeated$version_id, built$version_id)
+  expect_identical(m2_rb_tree(store$root), before)
+})
+
 test_that("request-aware formals append without changing legacy shapes", {
   expect_identical(names(formals(st_plan_rebuild)),
     c("targets", "depth", "include_targets", "mode", "requests"))

@@ -66,7 +66,7 @@ st_extmap_report <- function() {
 .mirror_opts_to_base <- function() {
   # expose read-only mirrors under options("stamp.*") for discoverability
   # authoritative values remain in .stamp_opts (used by st_opts())
-  vals <- as.list(environment(.stamp_opts)) # read env contents
+  vals <- as.list(.stamp_opts)
   if (length(vals)) {
     # prefix all names with "stamp."
     onames <- paste0("stamp.", names(vals))
@@ -103,8 +103,6 @@ st_extmap_report <- function() {
 
 .onUnload <- function(libpath) {
   # restore previous CLI theme if we changed it
-  if (!is.null(.st_cli_old_theme)) {
-    options(cli.user_theme = .st_cli_old_theme)
-  }
+  options(cli.user_theme = .st_cli_old_theme)
   invisible()
 }

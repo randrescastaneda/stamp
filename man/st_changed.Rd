@@ -15,7 +15,9 @@ st_changed(
 \arguments{
 \item{path}{Artifact path on disk.}
 
-\item{x}{Current in-memory object (for content comparison).}
+\item{x}{Current in-memory object for content comparison. Omit this argument
+to leave content unchecked. Explicitly supplying \code{x = NULL} compares the
+stored content with the R value \code{NULL}; it does not omit the comparison.}
 
 \item{code}{Optional function/expression/character (for code comparison).}
 
@@ -25,9 +27,22 @@ st_changed(
 If \code{NULL}, uses "default" for backwards compatibility.}
 }
 \value{
-A list: \verb{list(changed = <lgl>, reason = <chr>, detail = <named list>)}
+A list: \verb{list(changed = <lgl>, reason = <chr>, details = <named list>)}.
+\code{metadata_changed} is included when original data.table key state is relevant.
 }
 \description{
 Compares the \emph{current} object/code/file to the latest saved metadata
 (from the sidecar) and reports if a change is detected.
+
+Omitted \code{x} leaves \code{details$content_changed} unchecked (\code{NA}); file and code
+comparisons still follow their existing options. Explicit \code{x = NULL} is a
+content comparison against \code{NULL}. This distinction also applies to
+\code{st_changed_reason()} and \code{st_should_save()}. To retain the old behavior of
+explicitly passing \code{x = NULL} to skip content comparison, omit \code{x} instead.
+
+For native RDS/QS2 artifacts and a supplied object, original data.table key
+changes are reported separately as \code{details$metadata_changed}. The content
+hash still excludes keys. \code{mode = "any"} includes metadata differences;
+\code{mode = "content"} remains hash-only. Reasons report all detected components
+and can include \code{"metadata"}, even when a different mode selects the flag.
 }

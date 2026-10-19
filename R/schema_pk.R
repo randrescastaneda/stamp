@@ -18,7 +18,8 @@
 #' @return A list with element `keys` containing the canonical character vector.
 #' @export
 st_pk <- function(x = NULL, keys, validate = TRUE, check_unique = FALSE) {
-  stopifnot(is.character(keys), length(keys) >= 1L, all(nzchar(keys)))
+  stopifnot(is.character(keys), length(keys) >= 1L,
+            !anyNA(keys), all(nzchar(keys)))
   keys <- unique(as.character(keys))
 
   if (!is.null(x)) {
@@ -210,7 +211,7 @@ st_filter <- function(df, filters = list(), strict = TRUE) {
   }
 
   nms <- names(filters)
-  if (is.null(nms) || !all(nzchar(nms))) {
+  if (is.null(nms) || anyNA(nms) || !all(nzchar(nms))) {
     cli::cli_abort(c(
       "x" = "Every element of {.arg filters} must be named.",
       "i" = "Use {.code list(country = \"PER\")}, not {.code list(\"PER\")}."

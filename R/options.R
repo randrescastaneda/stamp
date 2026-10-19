@@ -61,6 +61,15 @@
     }
   }
 
+  if ("reference_copy_on_save" %in% names(dots)) {
+    flag <- dots$reference_copy_on_save
+    if (!is.logical(flag) || length(flag) != 1L || is.na(flag)) {
+      cli::cli_abort(
+        "Option {.field reference_copy_on_save} must be TRUE or FALSE."
+      )
+    }
+  }
+
   invisible(NULL)
 }
 
@@ -77,7 +86,15 @@
 #' \code{retain_versions}, \code{code_hash}, \code{store_file_hash},
 #' \code{verify_on_load}, \code{default_format}, \code{verbose},
 #' \code{timezone}, \code{timeformat}, \code{usetz},
-#' \code{require_pk_on_load}, \code{warn_missing_pk_on_load}.
+#' \code{require_pk_on_load}, \code{warn_missing_pk_on_load},
+#' \code{reference_copy_on_save}.
+#'
+#' `reference_copy_on_save` is a scalar logical, defaulting to `FALSE`. When
+#' `TRUE`, only [st_save()] of a supported ordinary root environment with the
+#' native RDS writer uses a single owned copy. Unsupported environment graphs
+#' error before save side effects. Non-environment roots and direct hashing or
+#' change-detection calls keep legacy behavior. See [st_save()] for the pilot's
+#' deliberately limited value graph and special-parent boundary.
 #'
 #' For a single authoritative source of truth, see \code{.stamp_default_opts} in
 #' \code{R/aaa.R}; changes to that object determine the set of supported keys.

@@ -191,6 +191,10 @@ st_normalize_attrs <- function(x) {
 #' NOTE: The returned object is a shallow copy; column data is not duplicated.
 #' @keywords internal
 st_sanitize_for_hash <- function(x) {
+  # NULL cannot carry attributes and has no original format to restore.
+  if (is.null(x)) {
+    return(x)
+  }
   # Skip re-sanitization for non-data.table objects (performance optimization)
   # Note: data.tables are excluded because as.data.frame() must run each time
   # to ensure .internal.selfref and other DT internals are properly stripped
@@ -386,6 +390,10 @@ st_hash_file <- function(path) {
 #' @return The restored object with original attributes
 #' @keywords internal
 .st_restore_sanitized_object <- function(res) {
+  # Attribute cleanup below uses data.table's by-reference setters.
+  if (.st_is_dt(res)) {
+    res <- data.table::copy(res)
+  }
   if (!is.data.frame(res)) {
     # Only clean up stamp_sanitized for non-dataframes
     if (!is.null(attr(res, "stamp_sanitized"))) {
@@ -435,6 +443,62 @@ st_hash_file <- function(path) {
 }
 
 
+# Original keys are restoration metadata, never inferred from rows or PKs.
+.st_data_table_key <- function(x) {
+  if (.st_is_dt(x)) return(unname(data.table::key(x)) %||% character())
+  character()
+}
+
+.st_recorded_data_table_key <- function(meta) {
+  if (!is.list(meta) || !is.list(meta$attrs) ||
+      !"stamp_data_table" %in% names(meta$attrs)) return(NULL)
+  descriptor <- meta$attrs$stamp_data_table
+  if (!is.list(descriptor) || !is.numeric(descriptor$version) ||
+      length(descriptor$version) != 1L || is.na(descriptor$version) ||
+      descriptor$version != 1 || !"key" %in% names(descriptor)) {
+    cli::cli_abort("Invalid or unsupported data.table key metadata.")
+  }
+  keys <- descriptor$key
+  # Empty JSON arrays simplify differently from empty QS2 character vectors.
+  if (is.list(keys) && !length(keys)) keys <- character()
+  if (!is.character(keys) || anyNA(keys) || any(!nzchar(keys)) ||
+      anyDuplicated(keys)) {
+    cli::cli_abort("Invalid data.table key metadata: key names must be unique strings.")
+  }
+  unname(keys)
+}
+
+.st_restore_data_table_key <- function(res, meta, format) {
+  if (!format %in% c("rds", "qs2")) return(res)
+  keys <- .st_recorded_data_table_key(meta)
+  if (is.null(keys)) return(res) # Legacy descriptor absent: do not invent a key.
+  if (!.st_is_dt(res)) {
+    cli::cli_abort("Recorded data.table key metadata requires a data.table result.")
+  }
+  if (any(!keys %in% names(res))) {
+    cli::cli_abort("Recorded data.table key metadata refers to missing columns.")
+  }
+  if (length(keys)) {
+    # Sort only a validation copy of key columns, never the returned object.
+    ordered <- data.table::copy(res[, keys, with = FALSE])
+    data.table::setattr(ordered, "sorted", NULL)
+    data.table::setattr(ordered, "index", NULL)
+    columns <- paste0("stamp_key_", seq_along(keys))
+    data.table::setnames(ordered, columns)
+    marker <- ".stamp_row_order"
+    data.table::set(ordered, j = marker, value = seq_len(nrow(res)))
+    data.table::setorderv(ordered, columns, na.last = FALSE)
+    if (!identical(ordered[[marker]], seq_len(nrow(res)))) {
+      cli::cli_abort("Recorded data.table key is inconsistent with row order; refusing to reorder rows.")
+    }
+  }
+  if (identical(.st_data_table_key(res), keys)) return(res)
+  res <- data.table::copy(res)
+  data.table::setattr(res, "sorted", if (length(keys)) keys else NULL)
+  res
+}
+
+
 # -------- Change detection via hashing --------------------------------
 
 #' Check whether an artifact would change if saved now
@@ -442,12 +506,27 @@ st_hash_file <- function(path) {
 #' Compares the *current* object/code/file to the latest saved metadata
 #' (from the sidecar) and reports if a change is detected.
 #'
+#' Omitted `x` leaves `details$content_changed` unchecked (`NA`); file and code
+#' comparisons still follow their existing options. Explicit `x = NULL` is a
+#' content comparison against `NULL`. This distinction also applies to
+#' `st_changed_reason()` and `st_should_save()`. To retain the old behavior of
+#' explicitly passing `x = NULL` to skip content comparison, omit `x` instead.
+#'
+#' For native RDS/QS2 artifacts and a supplied object, original data.table key
+#' changes are reported separately as `details$metadata_changed`. The content
+#' hash still excludes keys. `mode = "any"` includes metadata differences;
+#' `mode = "content"` remains hash-only. Reasons report all detected components
+#' and can include `"metadata"`, even when a different mode selects the flag.
+#'
 #' @param path Artifact path on disk.
-#' @param x    Current in-memory object (for content comparison).
+#' @param x Current in-memory object for content comparison. Omit this argument
+#'   to leave content unchecked. Explicitly supplying `x = NULL` compares the
+#'   stored content with the R value `NULL`; it does not omit the comparison.
 #' @param code Optional function/expression/character (for code comparison).
 #' @param mode Which changes to check: "content", "code", "file", or "any".
 #' @inheritParams st_init
-#' @return A list: `list(changed = <lgl>, reason = <chr>, detail = <named list>)`
+#' @return A list: `list(changed = <lgl>, reason = <chr>, details = <named list>)`.
+#'   `metadata_changed` is included when original data.table key state is relevant.
 #' @export
 # Returns list(changed, reason, details)
 st_changed <- function(
@@ -489,10 +568,20 @@ st_changed <- function(
   # --- compute components (only what we can)
   det <- list(content_changed = NA, code_changed = NA, file_changed = NA)
 
-  if (!is.null(x)) {
+  if (!missing(x)) {
     ch_old <- meta$content_hash %||% NA_character_
     ch_new <- st_hash_obj(x)
     det$content_changed <- !identical(ch_old, ch_new)
+    fmt <- meta$format %||% .st_guess_format(norm$logical_path) %||%
+      st_opts("default_format", .get = TRUE)
+    if (is.character(fmt) && length(fmt) == 1L && !is.na(fmt) &&
+        fmt %in% c("rds", "qs2")) {
+      recorded_key <- .st_recorded_data_table_key(meta)
+      if (.st_is_dt(x) || !is.null(recorded_key)) {
+        det$metadata_changed <- !identical(recorded_key %||% character(),
+                                           .st_data_table_key(x))
+      }
+    }
   } else {
     det$content_changed <- NA
   }
@@ -524,7 +613,8 @@ st_changed <- function(
     any = any(
       isTRUE(det$content_changed),
       isTRUE(det$code_changed),
-      isTRUE(det$file_changed)
+      isTRUE(det$file_changed),
+      isTRUE(det$metadata_changed)
     )
   )
 
@@ -532,7 +622,8 @@ st_changed <- function(
   parts <- c(
     if (isTRUE(det$content_changed)) "content",
     if (isTRUE(det$code_changed)) "code",
-    if (isTRUE(det$file_changed)) "file"
+    if (isTRUE(det$file_changed)) "file",
+    if (isTRUE(det$metadata_changed)) "metadata"
   )
   reason <- if (length(parts)) paste(parts, collapse = "+") else "no_change"
 

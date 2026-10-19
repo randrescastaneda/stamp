@@ -1,6 +1,8 @@
 test_that("st_info reports catalog counts and snapshot dir correctly", {
+  local_stamp_state()
+  local_st_opts(default_format = "rds", meta_format = "json",
+                versioning = "content", retain_versions = Inf)
   root <- withr::local_tempdir()
-  st_opts_reset()
   st_init(root = root, state_dir = ".s", alias = "I")
 
   p <- fs::path(root, "D.qs")
@@ -13,16 +15,16 @@ test_that("st_info reports catalog counts and snapshot dir correctly", {
   expect_true(is.list(inf))
   expect_true(is.list(inf$catalog))
   expect_equal(inf$catalog$n_versions, 2L)
-  expect_true(
-    is.character(inf$catalog$latest_version_id) ||
-      is.na(inf$catalog$latest_version_id)
-  )
-  expect_true(fs::dir_exists(inf$snapshot_dir) || is.na(inf$snapshot_dir))
+  expect_equal(inf$catalog$latest_version_id, st_latest(p, alias = "I"))
+  expect_true(fs::dir_exists(inf$snapshot_dir))
+  expect_identical(st_load(p, alias = "I", verbose = FALSE), data.frame(a = 3:4))
 })
 
 test_that("st_prune_versions dry-run selects older versions under policies", {
+  local_stamp_state()
+  local_st_opts(default_format = "rds", meta_format = "json",
+                versioning = "content", retain_versions = Inf)
   root <- withr::local_tempdir()
-  st_opts_reset()
   st_init(root = root, state_dir = ".s", alias = "R")
 
   p <- fs::path(root, "X.qs")
@@ -43,14 +45,18 @@ test_that("st_prune_versions dry-run selects older versions under policies", {
     alias = "R"
   )
   expect_true(is.data.frame(dr2))
-  expect_equal(nrow(dr2), 1L)
+  # Count and age are a UNION: all three recent versions survive.
+  expect_equal(nrow(dr2), 0L)
+  expect_equal(nrow(st_versions(p, alias = "R")), 3L)
 })
 
 test_that("st_children returns reverse lineage rows for committed parents", {
-  st_opts_reset()
+  local_stamp_state()
+  local_st_opts(default_format = "rds", meta_format = "json",
+                versioning = "content", retain_versions = Inf)
   root <- withr::local_tempdir()
   # Use a unique alias name to avoid conflicts with other tests
-  test_alias <- paste0("L_", as.integer(Sys.time()))
+  test_alias <- "children-audit"
   st_init(root = root, state_dir = ".s", alias = test_alias)
 
   pA <- fs::path(root, "A.qs")
@@ -71,8 +77,12 @@ test_that("st_children returns reverse lineage rows for committed parents", {
 
   kids <- st_children(pA, depth = 1L, alias = test_alias)
   expect_true(is.data.frame(kids))
-  expect_true(nrow(kids) >= 1L)
+  expect_equal(nrow(kids), 1L)
   # Compare normalized paths since paths may differ in case on Windows
   pB_norm <- stamp:::.st_normalize_path(pB)
-  expect_true(any(kids$child_path == pB_norm))
+  expect_equal(kids$child_path, pB_norm)
+  expect_equal(stamp:::.st_normalize_path(kids$parent_path),
+               stamp:::.st_normalize_path(pA))
+  expect_equal(kids$parent_version, vA)
+  expect_equal(kids$child_version, st_latest(pB, alias = test_alias))
 })

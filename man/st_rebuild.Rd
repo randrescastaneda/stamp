@@ -17,7 +17,8 @@ including preview skips, after its selected prerequisites finish.}
 \code{rebuild_fun(path, parents) -> list(x=..., format=?, metadata=?, code=?, code_label=?)}.
 If omitted (NULL), \code{st_rebuild()} will look up a registered builder
 for \code{path} (by \code{st_register_builder()}).
-On the request route the builder must return exactly one non-NULL \code{x} field;
+On the request route the builder must return exactly one named \code{x} field
+(including NULL when the registered format supports it);
 optional format must equal the request's registered identifier, and semantic
 metadata must match it. The builder receives fully resolved exact parents.}
 

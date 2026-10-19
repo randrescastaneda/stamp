@@ -106,7 +106,7 @@ for (mode in c("json", "qs2", "both")) {
   })
 }
 
-test_that("legacy JSON-first access ignores corrupt unused QS2 sidecars", {
+test_that("legacy JSON-first access warns without using corrupt QS2 proof", {
   store <- m2_metadata_store("both")
   saved <- st_save(1:3, "lazy.rds", metadata = list(note = "legacy"),
                    alias = store$alias, verbose = FALSE)
@@ -117,10 +117,45 @@ test_that("legacy JSON-first access ignores corrupt unused QS2 sidecars", {
   )) {
     writeBin(charToRaw("not a QS2 stream"), path)
   }
-  expect_identical(st_read_sidecar("lazy.rds", store$alias)$note, "legacy")
-  expect_identical(st_read_sidecar(
+  expect_warning(current <- st_read_sidecar("lazy.rds", store$alias),
+                 "QS2.*unreadable")
+  expect_warning(historical <- st_read_sidecar(
     "lazy.rds", store$alias, version_id = saved$version_id
-  )$note, "legacy")
+  ), "QS2.*unreadable")
+  expect_identical(current$note, "legacy")
+  expect_identical(historical$note, "legacy")
+  expect_false(stamp:::.st_sidecar_is_modern(current))
+  expect_false(stamp:::.st_sidecar_is_modern(historical))
+})
+
+test_that("modern saves compare original data.table keys and retain typed proof", {
+  store <- m2_metadata_store("both")
+  path <- "keyed.rds"
+  request <- m2_metadata_request(path)
+  value <- data.table::data.table(id = 1:3, value = 4:6)
+  data.table::setkeyv(value, "id")
+  first <- st_save(value, path, request = request,
+                   alias = store$alias, verbose = FALSE)
+  same <- st_save(value, path, request = request,
+                  alias = store$alias, verbose = FALSE)
+  expect_true(same$skipped)
+  expect_identical(same$version_id, first$version_id)
+  data.table::setkeyv(value, NULL)
+  second <- st_save(value, path, request = request,
+                    alias = store$alias, verbose = FALSE)
+  expect_type(second$version_id, "character")
+  expect_false(identical(second$version_id, first$version_id))
+  expect_identical(data.table::key(st_load_version(
+    path, first$version_id, alias = store$alias, verbose = FALSE
+  )), "id")
+  expect_null(data.table::key(st_load_version(
+    path, second$version_id, alias = store$alias, verbose = FALSE
+  )))
+  old <- st_read_sidecar(path, store$alias, version_id = first$version_id)
+  new <- st_read_sidecar(path, store$alias, version_id = second$version_id)
+  expect_identical(old$content_hash, new$content_hash)
+  expect_identical(old$execution, new$execution)
+  expect_identical(st_execution_info(path, alias = store$alias)$state, "absent")
 })
 
 for (mode in c("json", "qs2")) {
