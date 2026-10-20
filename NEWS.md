@@ -1,356 +1,335 @@
 # stamp 0.0.11
 
-## Opt-In Reference Save Pilot
-* Add `reference_copy_on_save = FALSE`. The default and direct hashing/comparison
-  behavior remain unchanged. Enable explicitly only for the documented limited
-  root ordinary-environment graph in native RDS `st_save()` calls.
-* Copy once before the original save sequence; do not add per-stage copies that
-  change normalization/write ordering. Preserve existing value-input behavior,
-  hash algorithms, IDs and ordinary save policy.
-* Validate unsupported environment/resource/binding boundaries without forcing
-  lazy or active bindings. Enabled pilot errors are deliberate scope checks,
-  not a new default rejection policy or successful R6 serialization support.
-* Identify special environments without reading input bindings, and reject
-  counterfeit namespace/package markers before serialization can resolve them
-  to actual system environments.
+This release makes saving, loading, and keeping older versions more reliable.
+It does not move your existing files or change their saved version IDs. Most
+ordinary save and load calls can stay the same. Review the workflow changes
+below before updating, especially if your code passes `x = NULL` or uses
+experimental functions.
 
-## Original data.table Keys
-* Preserve only original data.table keys in native RDS/QS2 sidecars and committed
-  snapshots. Keyed inputs retain their recorded key; unkeyed inputs stay unkeyed.
-  No key is inferred from PK annotations, column names or sorted values.
-* Validate recorded columns and existing row order before restoring metadata.
-  Do not sort the returned object or call a non-empty sorting key setter to
-  manufacture a key. Invalid descriptors fail clearly; legacy missing descriptors
-  retain old behavior and cannot recover unrecorded keys.
-* Keep sanitized payloads and content-hash rules unchanged. Key-only changes are
-  reported as `metadata` with `metadata_changed` detail and can create a new
-  version under content policy. `mode = "content"` remains hash-only.
-* Reserve `metadata$attrs$stamp_data_table` for the original descriptor while
-  preserving unrelated user attrs. No catalog schema or existing-ID migration.
+## Changes to Existing Workflows
 
-## NULL Values and Comparisons
-* **API behavior change**: explicit `x = NULL` now requests comparison with a
-  NULL object in `st_changed()`, `st_changed_reason()` and `st_should_save()`.
-  To skip object comparison, omit `x` instead. Calls already omitting `x`
-  preserve their existing file/code-only behavior.
-* Allow content-policy replacement with NULL in native RDS/QS2 artifacts, and
-  restoration of a retained NULL snapshot over a non-NULL current value.
-  Repeated unchanged NULL saves follow the existing no-change policy.
-* NULL is a stored value, not deletion, NA or an empty table. Built-in CSV, FST
-  and Parquet writers reject NULL without replacing the previous artifact.
-  The existing save warning/fallback policy, IDs and hash algorithms are unchanged.
+* **Comparing with NULL:** In `st_changed()`, `st_changed_reason()`, and
+  `st_should_save()`, writing `x = NULL` now means "compare with the R value NULL."
+  Previously, it meant "do not compare the object." To keep that old behavior,
+  leave out `x`: use `st_changed("data.rds")`, not
+  `st_changed("data.rds", x = NULL)`. Calls that already leave out `x` need no
+  change. Also update any helper functions that explicitly pass `x = NULL`.
+* **Choosing a saved version:** `st_restore()` now accepts the same numbering as
+  `st_load()`: `0` means the latest recorded version, `-1` the previous available
+  version, and `-2` two versions back. These numbers count only versions still
+  available after any older versions have been removed.
+* **Replacing old restore numbers:** Positive numbers in `st_restore()` still
+  select the same versions as before, but now produce a warning. Replace `1`
+  with `0`, `2` with `-1`, and so on. In general, replace a positive number `p`
+  with `1 - p`. Positive numbers will stop being supported in a future release.
+  If you leave out `version`, `st_restore()` still chooses the oldest available
+  version. Names such as `"latest"`, `"oldest"`, and exact version IDs still work.
+* **Current file versus saved history:** `st_load()` without a `version` still
+  reads the current file on disk. Use `version = 0` to read the latest recorded
+  version instead. These can differ if the file was edited outside stamp.
+* **Experimental tools for split datasets:** `st_part_path()`, `st_save_part()`,
+  `st_write_parts()`, `st_list_parts()`, and `st_load_parts()` are no longer
+  available as public functions. They need more testing with real-world data.
+  Scripts using them must be reviewed; there is currently no supported public
+  replacement. Access through `stamp:::` remains possible, but these functions
+  can change without notice. Their user guide has also been withdrawn for now.
+* **File paths:** `st_path()` is no longer a public function. Although earlier
+  documentation suggested otherwise, its results did not work with `st_save()`
+  or `st_load()`. Pass a text path such as `"results/model.rds"` instead.
+* **Filtering data:** `st_filter()` now reports invalid filters with errors or
+  warnings rather than silently ignoring them. Give every filter a column name.
+  Unknown columns produce an error by default, or a warning with
+  `strict = FALSE`. Set `strict` to `TRUE` or `FALSE`, not a number or text. This
+  helps prevent a script from unknowingly continuing with data that were not
+  filtered as intended.
 
-## Version Selector Transition
-* Align numeric `st_restore()` selectors with `st_load()`: `0` selects the
-  latest committed snapshot, `-1` the previous retained snapshot, and `-n`
-  goes back `n` retained snapshots.
-* Deprecate positive restore positions without silently changing their meaning:
-  `1` still selects latest, `2` previous, with a warning. Replace position `p`
-  with offset `1 - p`. Positive support will be removed in a future release.
-* Keep the `version = "oldest"` restore default, keywords, exact IDs and save
-  policy unchanged. Reject malformed/nonfinite offsets before changing files.
+## Safer Saving and Version History
 
-## Audit Hardening
-* Preserve unrelated artifacts, snapshots, and surviving lineage edges during
-  path-scoped retention, and reject invalid fractional/count policies.
-* Complete version snapshots before publishing catalog entries, preserve prior
-  files when replacement fails, and stop before entering a timed-out lock.
-  These changes do not provide a multi-file rollback or crash-durability guarantee.
-* Load historical artifacts with their recorded format, detect historical hash
-  mismatches when verification is enabled, and report failed restores as errors.
-  Do not report a file-hash mismatch when no file hash was recorded in QS2 metadata.
-* Preserve existing snapshot directories rather than overwriting version history.
-* Correct recursive rebuild propagation and dependency ordering without changing
-  persisted artifact IDs. The separately approved selector transition is above.
-* Read the current sidecar after JSON/QS2 format transitions and make conflicting
-  dual sidecars visible while retaining JSON priority.
-* Correct physical paths for projected partition reads and report partition read
-  failures. Partition helpers and `st_path()` remain internal and deferred.
-* Support hashing `NULL`, avoid modifying caller-owned data.tables during
-  restoration, reject missing PK/filter names, and restore load/unload state.
-  Existing successful hash equivalence rules are unchanged.
-* Add isolated regression, fault-injection, competing-writer and lifecycle tests,
-  developer audit/benchmark tools, and Windows/Linux R CMD check workflows.
-  The function audit records unresolved contracts and unverified environments;
-  passing scenarios do not establish complete verification.
-* Correct README argument order, option-based verification, builder signatures,
-  and primary-key inspection descriptions.
+* A failed file replacement no longer deletes the previous file first. A new
+  version is added to the history list only after its saved files are ready,
+  and an existing saved version cannot be overwritten.
+* Saves to the same file coordinate with one another. If stamp cannot get its
+  turn to write, it stops that save attempt instead of writing at the same time
+  as another process.
+* Removing old versions of one file no longer removes other files' history or
+  their recorded dependencies. Invalid version counts, such as fractional
+  numbers, are rejected instead of being rounded.
+* Older versions are read using the file format recorded when they were saved.
+  Changing your default format later will not make stamp choose the wrong
+  reader for those versions. A failed restore is now reported as a failure,
+  not as a successful restore.
+* File checks also work when loading saved versions. Use
+  `st_opts(verify_on_load = TRUE)` to enable checks; keep `verbose = TRUE` to see
+  warnings when recorded checks do not match. Files without a recorded file
+  fingerprint are not incorrectly reported as damaged.
+* Rebuilding results now follows their dependencies more reliably, so inputs
+  are rebuilt before results that depend on them. Existing file and version IDs
+  stay the same.
+* The extra information stored alongside each data file now follows changes
+  between JSON and QS2 correctly. If both copies exist and disagree, stamp can
+  warn and uses the JSON copy rather than silently choosing between them.
 
-## Breaking Changes
-* **BREAKING**: The Hive-style partition helpers are now internal. `st_part_path()`,
-  `st_save_part()`, `st_write_parts()`, `st_list_parts()` and `st_load_parts()` are no
-  longer exported
-  - The functions are unchanged and remain under test; only their visibility changed
-  - They have not yet been validated against real-world data, so they are withheld from
-    the public API until that validation is complete
-  - Code that depends on them can still reach them via `stamp:::`, with no stability
-    guarantee
-* **BREAKING**: `st_path()` is no longer exported. It was never consumed by `st_save()`
-  or `st_load()` despite being documented as an accepted input, so passing one raised an
-  error. It stays internal until it is wired through every path-taking function
-* **BREAKING**: `st_filter()` now fails loudly instead of silently returning unfiltered
-  data. Unnamed `filters` elements are an error, unknown columns warn when
-  `strict = FALSE`, and a non-logical `strict` is rejected rather than coerced
-* **DOCS**: The "Working with Partitioned Datasets" vignette is withdrawn from the package
-  and the pkgdown site while the partition API is internal
+These fixes reduce the risk of losing data, but a save involving several files
+is not an all-or-nothing operation. They do not guarantee recovery from a
+computer crash halfway through saving. Keep backups of important data.
 
-## New Functions
-* **NEW**: `st_execution_info()` inspects committed execution/outcome proof
-  without artifact-data deserialization. Exact IDs never fall back to latest.
-* **NEW**: `st_record_outcome()` records externally classified failed/blocked
-  facts only; successful execution proof is published by request-aware rebuilds.
-* **NEW**: `st_catalog_query()` — query latest version metadata for all artifacts in an alias
-  - Returns a `data.table` with one row per artifact (latest version only): `path`, `version_id`, `content_hash`, `code_hash`, `size_bytes`, `created_at`
-  - Replaces the need to iterate individually over artifact paths to build a catalog snapshot
-  - Returns an empty `data.table` with the correct schema when the catalog has no artifacts
-  - Validates that every artifact resolves to a version row; aborts with a repair hint on catalog corruption
-  - Uninitialised alias aborts immediately with a clear `st_init()` hint
+## Keeping data.table Keys
 
-## Requested Execution And Metadata
-* Explicit requests add declared calculation/helper/constant coverage, exact
-  parent pins, typed semantic metadata and registered physical format proof to
-  planning/currentness. Existing calls without requests retain the legacy route.
-* Request-aware rebuilds revalidate every selected candidate after actual parent
-  results. Equal B output can retain B1 after execution against A2 while a new
-  receipt records A2; B1 provenance is unchanged and C can skip on the same B1.
-* Durable failure classes govern recovery: deterministic failures require a
-  reviewed failure ID plus input/component change; external failures permit one
-  analyst-started attempt; unknown failures block. Missing builders are
-  recoverable configuration blocks, not actual unknown execution failures.
-* Semantic schema/value changes create versions even for equal data. Typed
-  historical sidecar reads preserve NULL/NA/empty and integer/double distinctions
-  across JSON/QS2/both modes; exact unavailable metadata errors, without fallback.
-* Unchanged saves return validated retained version IDs but never execution
-  receipts. Descriptive-only no-op edits do not rewrite sidecars. Historical
-  data loading uses the pinned saved physical format rather than its extension.
-* Retention protects committed execution references and retained original
-  ancestry; protected or invalid deletion selections refuse before deletion.
-  These are serial isolated guarantees, not Force/automatic retry support,
-  cryptographic authenticity, SMB atomicity or multiwriter certification.
+* RDS and QS2 saves now remember the original key of a `data.table`, including
+  when loading older versions saved with this release. A key identifies the
+  columns used to organize rows and speed up lookups. Tables without a key stay
+  without one; declaring row identifiers, called a primary key, does not create
+  a data.table key.
+* Loading does not rearrange rows to create or repair a key. If the recorded key
+  does not match the columns or row order, loading stops with an error. Keys
+  that were not recorded in older saved versions cannot be recovered by this
+  update.
+* Changing only the key can now create a new version, even if the table values
+  are unchanged. Scripts that inspect change reasons may see `"metadata"` and
+  `details$metadata_changed`. Using `mode = "content"` still compares only the
+  data content, not the key.
+* If you add your own information through `metadata$attrs`, leave
+  `metadata$attrs$stamp_data_table` for stamp to manage. Other user information
+  is preserved. No changes to existing saved version IDs are needed.
+
+## Saving NULL
+
+* You can save `NULL` in RDS or QS2 files, replace an existing value with it,
+  and restore a saved NULL value. Repeating an unchanged save still follows the
+  usual rules for avoiding unnecessary versions.
+* `NULL` is an R value meaning "no object." Saving it does not delete the file,
+  and it is different from a missing value (`NA`) or a table with no rows.
+* CSV, FST, and Parquet cannot store NULL this way. Those save attempts are
+  rejected without replacing the previous data file. Use RDS or QS2 if NULL is
+  a possible result of your workflow.
+
+## Optional Copying of Environments
+
+* Some advanced R objects, called environments, can change in place. An
+  experimental option lets `st_save()` work on a copy of certain simple
+  environments, so adding save-related information does not change the
+  original object in your R session.
+* The option is **off by default**. Enable it explicitly with
+  `st_opts(reference_copy_on_save = TRUE)`, and read `?st_save` for its limits.
+  It applies only when the object passed directly to `st_save()` is a supported
+  environment and you use stamp's built-in RDS writer. It does not apply to
+  environments hidden inside a list or model. Ordinary tables, lists, models,
+  and NULL keep their existing save behavior.
+* This is not general support for R6 objects or every kind of environment. With
+  the option enabled, unsupported environments are rejected before saving,
+  rather than guessing how to copy them. Links to some R or package environments
+  remain shared, so the copy is not fully independent in every respect.
+* Direct calls to `st_hash_obj()` and the comparison functions are unchanged.
+  Leaving the option off preserves existing environment-saving behavior.
+
+## A Summary of Saved Files
+
+* The new `st_catalog_query()` returns one table showing the latest recorded
+  version of each file in a chosen stamp folder, also called an alias. It
+  includes file paths, version IDs, sizes, dates, and fingerprints used to
+  recognize data and code changes. You no longer need to inspect each file
+  separately to build this summary.
+* An empty history returns an empty table with the usual columns. If the saved
+  records are inconsistent, the function stops with a repair hint. If the folder
+  has not been set up, it tells you to use `st_init()` first.
+
+## Requested Rebuilds and Execution Records
+
+* You can now give stamp an explicit request describing a calculation, its
+  helper functions and constants, the exact saved input versions, meaningful
+  metadata, and the registered file format. Planning and checks for whether a
+  result is up to date use that information. Existing calls without a request
+  keep their previous behavior.
+* Rebuilds with a request recheck each selected result after its inputs have
+  actually been rebuilt. If a calculation runs with a new input version but
+  produces the same output, stamp can keep the existing output version and
+  record the new execution separately. The output's original provenance is not
+  rewritten, and later calculations can skip rebuilding if their input version
+  has not changed.
+* The new `st_execution_info()` inspects saved execution and outcome records
+  without loading the data object. If you request an exact record ID, stamp
+  never silently substitutes the latest record.
+* The new `st_record_outcome()` records externally classified failed or blocked
+  attempts. It cannot record success; successful execution records are created
+  by rebuilds with a request. Saving an object by itself does not prove that a
+  requested calculation ran.
+* Recovery depends on the recorded failure class. A `"deterministic"` failure
+  requires a reviewed failure ID and a change to an input or calculation
+  component. An `"external"` failure permits one analyst-started attempt; an
+  `"unknown"` failure blocks execution. A missing builder is a recoverable
+  configuration problem, not an unknown failure from running the calculation.
+* Changes to the declared semantic schema or values, meaning metadata that
+  affects what the result represents, create a new version even when the data
+  are unchanged. Historical metadata reads preserve distinctions between NULL,
+  NA, empty values, and integer versus double values in JSON, QS2, and combined
+  modes. If the exact requested metadata are unavailable, stamp reports an
+  error rather than substituting another version.
+* An unchanged save returns a checked, retained version ID, but not an execution
+  record. Changes only to descriptive metadata do not rewrite the information
+  stored alongside an unchanged file. Older data versions use their recorded
+  physical file format rather than relying on the filename extension.
+* Removing old versions now protects references from saved execution records
+  and the original input history needed by retained versions. Protected or
+  invalid removal selections are refused before deleting anything. These
+  guarantees cover isolated, serial operations, not forced execution, automatic
+  retries, cryptographic authenticity, atomic operations over SMB network
+  shares, or certified operation with multiple writers.
+
+## Other Fixes and Documentation
+
+* Removing stamp's bookkeeping from a loaded data.table no longer changes an
+  object your code already holds. Missing names in row identifiers or
+  filters are rejected more clearly. Loading and unloading the package restores
+  the command-line display settings it changes.
+* The experimental split-dataset tools have fixes for reading selected columns
+  and reporting missing or unreadable files. They remain outside the supported
+  public functions.
+* Added tests for failed saves, simultaneous writers, and repeated loading and
+  unloading. Added developer tools to review functions and measure performance,
+  plus automated checks for Windows and Linux. This does not mean every object
+  type or operating-system setup has been verified.
+* Updated examples to use the correct function arguments and explain how to turn
+  file checks on. Clarified that `st_inspect_pk()` reads the recorded row
+  identifiers; it does not check the data for duplicate rows.
 
 # stamp 0.0.10
 
-## Bug Fixes
-* **FIXED**: Content-based versioning now correctly skips saving when content is identical
-  - Fixed path handling bug in `st_save()` that caused duplicate versions with identical `content_hash`
-  - `st_save()` now correctly passes `rel_path` to `st_should_save()` instead of `storage_path`
-  - Prevents double-nesting of paths during normalization
-* **IMPROVED**: Simplified `st_changed_reason()` to remove redundant path pre-resolution
-* **CLEANUP**: Removed dead code (`.st_resolve_file_path()`, `.st_resolve_and_normalize()`)
+* Fixed unnecessary duplicate versions when saving unchanged data. A file-path
+  error had prevented stamp from recognizing that the content was the same.
+  Existing `st_save()` calls need no changes; workflows may now produce fewer
+  duplicate versions.
+* Fixed paths being repeated inside one another during saving. Simplified the
+  checks used by `st_changed_reason()` and removed unused support code, without
+  changing how users call these functions.
 
 # stamp 0.0.9
 
-## Major Changes
+## New Folder Layout
 
-### Simplified Storage Structure
-* **BREAKING**: Changed artifact storage structure to separate state and data:
-  - `.stamp/` contains only state (catalog, temp, logs)
-  - Artifacts stored directly as `<path>/<filename>/<filename>` under project root
-  - Example: `st_save(data, "results/model.rds")` → `<root>/results/model.rds/model.rds`
-  - Bare filenames stored directly under root: `st_save(data, "data.qs2")` → `<root>/data.qs2/data.qs2`
-  - More transparent storage location matching user's mental model
+* **Upgrade warning:** This release changed where files and their history are
+  stored. Back up existing stamp folders and review the layout before updating
+  a workflow from an older release.
+* Data files are stored in their own folders under the project root. For
+  example, `st_save(data, "results/model.rds")` stores the current data at
+  `<root>/results/model.rds/model.rds`. A bare name such as `"data.qs2"` is stored
+  at `<root>/data.qs2/data.qs2`.
+* Each file now keeps its own `versions/` folder. Previously, version history
+  was kept centrally under `<root>/.stamp/versions/<version_id>/`. The `.stamp/`
+  folder now holds bookkeeping, temporary files, and logs rather than the data.
+* The old internal `.st_versions_root()` helper now warns that it is being
+  retired. Code relying on that internal helper needs updating.
 
-### Distributed Version Storage
-* **BREAKING**: Version history now stored per-artifact instead of centralized:
-  - Old: `<root>/.stamp/versions/<version_id>/`
-  - New: `<root>/<path>/<filename>/versions/<version_id>/`
-  - Each artifact folder contains its own `versions/` directory
-  - `.st_versions_root()` deprecated with warning (may be removed in future)
+## Restoring and Finding Files
 
-### New Functions
-* **NEW**: `st_restore()` - Restore artifacts to previous versions
-  - Supports version keywords: "latest", "oldest"
-  - Supports specific version IDs
-  - Supports integer offsets from latest (1 = previous, 2 = two back, etc.)
-  - Creates new version entry for restoration (allows redo)
+* Added `st_restore()` to bring back an earlier saved version by name, ID, or
+  position in the history. Restoring is recorded as another version, so the
+  history is kept. See 0.0.11 above for the current numbering rules.
+* Made file paths work more consistently across saving, loading, and history
+  queries. You can use a bare filename, a path with subfolders, or a full path
+  inside the project root.
+* Fixed Windows path errors that could prevent old versions from being removed.
 
-## Path Handling
-* **Enhanced**: Centralized path normalization via `.st_normalize_user_path()`
-  - Accepts bare filenames (stored directly under root)
-  - Accepts relative paths with subdirectories
-  - Accepts absolute paths under project root (converted to relative)
-  - Consistent path handling across all save/load/query functions
-  - Improved Windows path handling in `st_prune_versions()`
+## Checks and Guides
 
-## Bug Fixes
-* **FIXED**: Path normalization issue in `st_prune_versions()` on Windows
-  - Replaced `fs::path_rel()` with `.st_extract_rel_path()` to prevent malformed paths
-  - Fixes deletion failures with excessive `../` components in temp directory hierarchies
-
-## Testing
-* **UPDATED**: Comprehensive test suite updated for new storage structure
-  - All tests now use direct-path storage (removed `.st_data` references)
-  - Tests covering save/load, subdirectories, versioning, queries work with new architecture
-* **NEW**: Test suite for `st_restore()` functionality (`test-restore.R`)
-  - 11 tests covering restoration scenarios and error handling
-* **VERIFIED**: Performance testing with 1,000 versions (50 artifacts × 20 versions)
-  - Pruning performance: ~242 versions/second
-
-## Documentation
-* **UPDATED**: README now documents the simplified storage structure
-* **UPDATED**: Function documentation reflects direct-path storage
-* **DEPRECATED**: `.st_versions_root()` marked as deprecated with migration guidance
-
-## Internal Changes
-* All core functions updated to use direct-path storage structure:
-  - `st_init()` 
-  - `st_save()`, `st_load()`, `st_load_version()`
-  - `st_info()`, `st_versions()`, `st_changed()`
-  - `st_rebuild()`, `st_prune_versions()`
-  - Catalog operations, sidecar management, version store
-* Path helpers reorganized for better maintainability:
-  - Updated `.st_file_storage_dir()` to work directly with root
-  - Simplified `.st_extract_rel_path()` to only handle paths under root
-  - Enhanced path extraction to prevent Windows path resolution issues
+* Updated tests and documentation for the new folder layout and added restore
+  tests. A performance check with 1,000 versions across 50 files removed about
+  242 versions per second in that test setup; this is not a speed guarantee for
+  other computers or datasets.
 
 # stamp 0.0.8
 
-## New Features
+## Working with Several Folders
 
-### Alias Support
-* **NEW**: Alias support across the package to manage multiple independent stamp folders.
-  - Alias acts purely as a selector (not embedded in filesystem paths).
-  - Backward-compatible default alias retained.
+* Added aliases: names that let you choose between independent stamp folders.
+  The alias selects the folder; its name is not added to the saved file path.
+  Existing workflows using the default folder continue to work.
+* Added a guide explaining how to choose and switch aliases, with clearer
+  function documentation and shorter README instructions.
 
-### Reverse Lineage Index
-* **NEW**: Catalog `parents_index` accelerates reverse lineage queries used by `st_children()`.
-  - Falls back to snapshot scanning when index is not present.
+## Finding Versions and Dependencies
 
-
-
-## Internal Improvements
-
-### Latest Version Derivation
-* **Improved**: `st_latest()` derives latest from `st_versions()` ordering to avoid stale artifact rows.
-
-### Catalog Robustness & Concurrency
-* **Enhanced**: Deterministic upsert/append operations and idempotent file locks during catalog writes.
-* **Defensive**: Schema checks and coercions for loaded catalogs; atomic writes for integrity.
-
-### Lineage Traversal
-* **Refined**: `st_lineage()` prioritizes committed `parents.json`; level-1 fallback to sidecar parents for convenience.
-
-## Documentation & Metadata
-* **Vignette**: Added `vignettes/using-alias.Rmd` explaining alias usage, switching, constraints, and troubleshooting.
-* **README**: Trimmed alias section; linked to the dedicated vignette.
-* **Roxygen**: Added `alias` parameter documentation to public functions that accept it.
-* **Globals**: Expanded `utils::globalVariables` to cover `data.table` NSE symbols.
-* **DESCRIPTION**: Added `withr` and `pkgload` to `Suggests` for tests/vignettes.
-* **.Rbuildignore**: Now ignores `.vscode`.
-* **LICENSE**: Converted to CRAN-compliant stub for `MIT + file LICENSE`.
-
-## Bug Fixes
-* **Fixed**: Resolved `Rd \usage` mismatch for internal `.st_version_write_parents()`.
+* Made `st_children()` faster at finding results that depend on a file by keeping
+  a lookup list. Older histories without that list can still be searched.
+* Improved how `st_latest()` finds the newest version, reducing the risk of
+  using an outdated history entry.
+* Improved checks and coordination when updating the history list, including
+  when more than one process is saving. Dependency queries use information
+  saved with each version when it is available.
+* Updated package setup, testing requirements, license files, and help pages.
+  These maintenance changes do not require changes to ordinary save/load calls.
 
 # stamp 0.0.7
 
-## New Features
+## Quieter Automated Workflows
 
-### Verbose Argument Support
-* **NEW**: `st_save()`, `st_load()`, and `st_load_version()` now accept a `verbose` argument
-  - `verbose = TRUE` (default): displays informational messages (backward compatible)
-  - `verbose = FALSE`: suppresses all stamp messages and format warnings
-  - Useful for batch processing and automated scripts
-* Format wrappers automatically suppress warnings when `verbose = FALSE`
-* Consistent verbose handling across all save/load functions
+* Added `verbose` to `st_save()`, `st_load()`, and `st_load_version()`.
+  `verbose = TRUE` keeps the usual progress messages. Set `verbose = FALSE` to
+  hide routine messages and file-format warnings, which is useful in scripts
+  and scheduled jobs.
 
-## Internal Improvements
+## Loading Tables More Consistently
 
-### Restoration Logic Refactor
-* **Refactored**: Consolidated duplicated restoration code into shared helper functions
-  - New internal helper `.st_restore_sanitized_object()` restores sanitized objects (data.frames, data.tables)
-  - New internal helper `.st_has_custom_rownames()` detects custom vs. default row.names
-  - Both `st_load()` and `st_load_version()` now use the same restoration logic
-* **Improved**: Row.names handling now treats all default representations equivalently
-  - Compact form: `c(NA, -n)`, expanded integer: `1:n`, expanded character: `"1":"n"`
-  - Sanitization uses `.set_row_names(as.integer(NROW(x)))` for consistent compact representation
-* **Enhanced**: Full round-trip fidelity for data.frames with custom row.names and data.table objects
-* **Tested**: Comprehensive test suite added in `tests/testthat/test-restoration-helpers.R`
-  - 70+ tests covering helpers, edge cases, integration, and performance
-  - Tests validate no internal attribute leakage to user code
-
-### Test Infrastructure
-* Integration tests use isolated temporary directories to prevent artifact reuse
-* Format wrapper tests added in `tests/testthat/test-format-wrappers.R`
+* Improved how tables are returned after loading, including data.table objects
+  and tables with custom row names. The current-file and older-version loaders
+  now use the same cleanup steps, so users see fewer internal bookkeeping
+  details on their objects.
+* Made ordinary numbered row names compare consistently, even when R stores
+  them differently. This helps avoid treating equivalent tables as different.
+* Added tests for table restoration and quiet operation. Tests use separate
+  temporary folders so that one test's files do not affect another.
 
 # stamp 0.0.6
 
-## Breaking Changes
+## File Formats and Required Packages
 
-### Format Handling: qs vs qs2
-* **BREAKING**: `.qs` and `.qs2` are now treated as distinct formats with separate handlers
-  - `.qs` files use the `{qs}` package (`qs::qread` / `qs::qsave`)
-  - `.qs2` files use the `{qs2}` package (`qs2::qs_read` / `qs2::qs_save`)
-  - **No automatic fallback** from `qs2` to `qs` when `{qs2}` is not installed
-  - Operations requiring a missing package will abort with a clear error message
-* `{qs2}` moved from `Imports` to `Suggests` in DESCRIPTION
-  - Install `{qs2}` explicitly if you need `.qs2` format support
-  - Tests that require `{qs2}` now skip gracefully when the package is unavailable
-
-### Extension Mapping
-* Centralized extension-to-format mapping in `.st_extmap_defaults` table
-* Added maintainer helpers: `st_extmap_defaults()` and `st_extmap_report()`
-* Extension mapping now explicit and documented for easier maintenance
-
-## Internal Changes
-* Removed all qs2→qs fallback logic from format registry and I/O functions
-* Format handlers in `.st_formats_env` now independently check for required packages
-* Improved error messages when format-specific packages are missing
+* **Upgrade warning for this release:** `.qs` and `.qs2` were given separate
+  readers and writers. `.qs` used the `qs` package; `.qs2` used `qs2`. A missing
+  `qs2` package no longer caused stamp to try `qs` instead.
+* The `qs2` package became optional rather than being installed automatically
+  with stamp. Users of QS2 files needed to install it explicitly. Missing
+  file-format packages now produce clearer error messages.
+* Made the connection between file extensions and their readers and writers
+  easier to inspect and maintain. Added maintainer tools for reporting those
+  choices. These notes describe the 0.0.6 changes; check `st_formats()` for the
+  formats available in your installed version.
 
 # stamp 0.0.5
 
-## Major Features
+## Loading Earlier Versions
 
-### Version Loading
-* **NEW**: `st_load()` now accepts a `version` argument to load specific historical versions
-  - `version = NULL` or `0` loads the latest version (default behavior)
-  - `version = -1, -2, ...` loads relative versions (previous, two back, etc.)
-  - `version = "version_id"` loads a specific version by ID
-  - `version = "select"`, `"pick"`, or `"choose"` shows interactive menu in console
-* Interactive version selection menu displays timestamps, file sizes, and version IDs
-* New internal function `.st_resolve_version()` handles version resolution logic
+* Added the `version` argument to `st_load()`. You can choose a saved version by
+  its ID, use negative numbers to go back through the history, or use
+  `"select"`, `"pick"`, or `"choose"` to open a selection menu. See 0.0.11 above
+  for the current distinction between the file on disk and recorded versions.
+* The selection menu shows dates, file sizes, and version IDs to help identify
+  the version you need. Added examples for these ways of loading data.
 
-## Bug Fixes & Improvements
+## More Reliable Version Ordering
 
-### Timestamp Precision
-* **FIXED**: Timestamp precision increased from seconds to microseconds (ISO8601 format with `%OS6`)
-  - Resolves ordering issues when multiple versions are saved within the same second
-  - Format: `"2025-10-30T15:42:07.123456Z"` (backward compatible with old format)
-  - Ensures reliable version ordering in rapid-fire save scenarios (e.g., automated pipelines)
-* Updated `.st_now_utc()` to use microsecond precision
-* Updated `.st_version_id()` to handle fractional seconds in timestamps
-* Interactive menu timestamp parser handles both old (seconds) and new (microseconds) formats
-
-### Data Loading
-* `st_load_version()` now properly cleans loaded data, removing internal attributes (`st_original_format`, `stamp_sanitized`) and restoring `data.table` class when appropriate
-* Consistent cleanup behavior between `st_load()` and `st_load_version()`
-
-## Documentation
-* Added vignette section demonstrating version loading workflows
-* Examples showing interactive version selection and relative version indexing
-* Updated documentation for `st_load()` with comprehensive `@param version` details
-
-# stamp 0.0.5
-* add ability to load specific versions via `st_load(version=...)`
-* improve timestamp precision to microseconds to avoid ordering issues in versioning
-* update `st_load_version()` to clean loaded data properly
+* Recorded save times more precisely, including fractions of a second. This
+  helps order versions created very quickly, such as in an automated workflow.
+  Older timestamps remain readable.
+* Improved `st_load_version()` so it removes stamp's internal bookkeeping and
+  returns data.table objects in the expected form, consistent with `st_load()`.
 
 # stamp 0.0.4
 
-* add normalization of attributes
-* Sanitize data.tables for consistent hashing
-* improve logic of `st_hash_obj()`
-* Avoid redundancies and make more efficient the use of `st_hash_obj()`
+* Improved how stamp compares objects, especially data.tables, so differences
+  in R's internal bookkeeping are less likely to create unnecessary versions.
+* Reduced repeated work when calculating the fingerprints used to recognize
+  unchanged objects.
 
 # stamp 0.0.3
-* standardize helpers to use data.table
-* Add get started vignette
-* Add builders and plan vignette
+
+* Added a getting-started guide and a guide to recording rebuild steps and
+  planning which results need updating.
+* Standardized the package's support code around data.table.
 
 # stamp 0.0.2
-* first version to share
+
+* Made an early version available for others to use.
 
 # stamp 0.0.1
-* first stable version without testing or vignettes
 
-* Initial CRAN submission.
+* Introduced the first stable version and prepared the initial CRAN submission.
+  Automated tests and user guides were not yet included.
