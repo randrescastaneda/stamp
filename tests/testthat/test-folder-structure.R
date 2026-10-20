@@ -197,7 +197,10 @@ test_that("catalog stores exact logical rather than payload paths", {
   catalog <- stamp:::.st_catalog_read()
   expect_equal(nrow(catalog$artifacts), 1L)
   expected_path <- as.character(fs::path(tdir, "subdir", "test.qs2"))
-  if (.Platform$OS.type == "windows") expected_path <- tolower(expected_path)
+  if (.Platform$OS.type == "windows") {
+    expected_path <- tolower(normalizePath(
+      expected_path, winslash = "/", mustWork = TRUE))
+  }
   expect_identical(catalog$artifacts$path, expected_path)
 })
 
@@ -220,7 +223,8 @@ test_that("path normalization agrees for relative and absolute logical paths", {
   expected_storage <- as.character(fs::path(tdir, "test.qs2", "test.qs2"))
   actual_storage <- as.character(norm$storage_path)
   if (.Platform$OS.type == "windows") {
-    expected_logical <- tolower(expected_logical)
+    expected_logical <- tolower(as.character(fs::path(
+      normalizePath(tdir, winslash = "/", mustWork = TRUE), "test.qs2")))
     expected_storage <- tolower(expected_storage)
     actual_storage <- tolower(actual_storage)
   }

@@ -280,7 +280,14 @@ test_that("lineage and children return exact chain edges with alias-relative pat
   expect_identical(children$level, 1:2)
   expect_identical(children$child_version, c(b$version_id, c$version_id))
   expect_identical(children$parent_version, c(a$version_id, b$version_id))
-  expect_identical(tolower(children$child_path), tolower(paths[2:3]))
+  expected_children <- paths[2:3]
+  actual_children <- children$child_path
+  if (.Platform$OS.type == "windows") {
+    expected_children <- tolower(normalizePath(
+      expected_children, winslash = "/", mustWork = TRUE))
+    actual_children <- tolower(actual_children)
+  }
+  expect_identical(actual_children, expected_children)
   expect_identical(nrow(st_children(paths[[1]], "missing", alias = "av")), 0L)
   expect_false(st_is_stale(paths[[2]], alias = "av"))
   st_save(4L, paths[[1]], alias = "av", verbose = FALSE)

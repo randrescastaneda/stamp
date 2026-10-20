@@ -127,9 +127,14 @@ test_that("path column matches the saved artifact path", {
 
   result <- st_catalog_query(alias = "cq_path")
 
-  # Compare case-insensitively: on Windows paths are stored normalised to
-  # lowercase while withr::local_tempdir() may return mixed-case paths.
-  expect_equal(tolower(fs::path_norm(result$path)), tolower(fs::path_norm(p)))
+  # Canonicalize existing paths independently of stamp, including 8.3 names.
+  expected <- as.character(fs::path_norm(p))
+  actual <- as.character(fs::path_norm(result$path))
+  if (.Platform$OS.type == "windows") {
+    expected <- tolower(normalizePath(p, winslash = "/", mustWork = TRUE))
+    actual <- tolower(actual)
+  }
+  expect_identical(actual, expected)
 })
 
 # --- NULL alias uses default alias -------------------------------------------

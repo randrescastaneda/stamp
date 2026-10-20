@@ -63,7 +63,7 @@ test_that("sidecar parents shaped as data.frame are normalized and used for firs
   expect_identical(lin$child_version, child_version)
   expect_identical(lin$parent_path, stamp:::.st_norm_path(p1))
   expected_child <- if (.Platform$OS.type == "windows") {
-    fs::path_abs(tolower(as.character(p2)))
+    fs::path_abs(tolower(normalizePath(p2, winslash = "/", mustWork = TRUE)))
   } else {
     fs::path_abs(p2)
   }
