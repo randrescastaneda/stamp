@@ -242,7 +242,7 @@ st_versions <- function(path, alias = NULL) {
     )
   }
 
-  out <- ver[artifact_id == aid]
+  out <- ver[which(ver$artifact_id == aid)]
   if (nrow(out) == 0L) {
     return(out)
   }
@@ -440,9 +440,14 @@ st_latest <- function(path, alias = NULL) {
 #' independently of the current default format. With
 #' `st_opts(verify_on_load = TRUE)`, recorded file and content hashes are
 #' checked and mismatches warn when `verbose = TRUE`. This does not apply
-#' the live loader's mutable PK/schema/domain annotations. Legacy snapshots
-#' without sidecars use the path extension or default format. Live metadata
-#' updates from [st_add_pk()] do not modify previously committed snapshots.
+#' the live loader's mutable PK/schema/domain annotations. If no readable
+#' metadata identifies a modern snapshot, unavailable or unreadable metadata
+#' permits data recovery using the path extension or default format. This does
+#' not certify execution proof or repair historical metadata; exact pinned
+#' metadata and execution-proof readers still fail closed on damaged proof.
+#' Any readable modern marker requires strict exact snapshot metadata validation.
+#' Live metadata updates from [st_add_pk()] do not modify previously committed
+#' snapshots.
 #'
 #' @param path Character path to the artifact (same value used with `st_save`/`st_load`).
 #' @param version_id Character version identifier (as returned by `st_save` or present in the catalog).
@@ -481,21 +486,36 @@ st_load_version <- function(
     )
   }
 
-  # Snapshot metadata is authoritative: the extension/default may have changed.
+  # Inspect both copies so an unreadable/legacy preferred copy cannot hide a
+  # readable modern marker. Raw data recovery is not proof certification.
   meta_json <- fs::path(vdir, "sidecar.json")
   meta_qs2 <- fs::path(vdir, "sidecar.qs2")
-  meta <- tryCatch({
+  json <- tryCatch({
     if (fs::file_exists(meta_json)) {
       jsonlite::read_json(meta_json, simplifyVector = TRUE)
-    } else if (fs::file_exists(meta_qs2)) {
-      .st_read_qs2(meta_qs2)
-    } else {
-      NULL
-    }
+    } else NULL
   }, error = function(e) NULL)
-  if (!is.list(meta)) meta <- NULL
-  fmt <- meta$format %||% .st_guess_format(path) %||%
-    st_opts("default_format", .get = TRUE)
+  qs <- tryCatch({
+    if (fs::file_exists(meta_qs2)) .st_read_qs2(meta_qs2) else NULL
+  }, error = function(e) NULL)
+  if (!is.list(json)) json <- NULL
+  if (!is.list(qs)) qs <- NULL
+  if (.st_sidecar_is_modern(json) || .st_sidecar_is_modern(qs)) {
+    meta <- st_read_sidecar(rel_path, alias = versioning_alias,
+      version_id = version_id)
+  } else {
+    meta <- json %||% qs
+  }
+  fmt <- meta$format
+  if (is.null(fmt)) {
+    if (.st_sidecar_is_modern(meta)) {
+      cli::cli_abort("Modern snapshot is missing its physical format.")
+    }
+    fmt <- .st_guess_format(path) %||% st_opts("default_format", .get = TRUE)
+  }
+  if (!is.character(fmt) || length(fmt) != 1L || is.na(fmt) || !nzchar(fmt)) {
+    cli::cli_abort("Invalid saved physical format for version load.")
+  }
   h <- rlang::env_get(.st_formats_env, fmt, default = NULL)
   if (is.null(h)) {
     cli::cli_abort("Unknown format {.field {fmt}} for version load.")
@@ -764,9 +784,11 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
     # Capture argument in a local variable to avoid data.table NSE shadowing
     # the function argument with the same-named column on the RHS of :=.
     new_vid <- as.character(latest_version_id)
+    new_format <- as.character(format)
     a[
       idx,
       `:=`(
+        format = new_format,
         latest_version_id = new_vid,
         n_versions = as.integer(n_versions) + 1L
       )
@@ -798,7 +820,9 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' @param code_hash Character code hash (if available).
 #' @param created_at Character ISO8601 timestamp of creation.
 #' @param sidecar_format Character sidecar format present ("json", "qs2", "both", "none").
-#' @return Character version id (SipHash of artifact id, hashes, timestamp).
+#' @param commit_files Optional function called with the allocated version ID
+#'   under the catalog lock, before publishing the catalog entry.
+#' @return Character collision-safe version identifier.
 #' @noRd
 .st_catalog_record_version <- function(
   artifact_path,
@@ -809,7 +833,8 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
   created_at,
   sidecar_format,
   alias = NULL,
-  parents = NULL
+  parents = NULL,
+  commit_files = NULL
 ) {
   aid <- .st_artifact_id(artifact_path)
   vid <- secretbase::siphash13(
@@ -827,6 +852,18 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 
   .st_with_lock(lock_path, {
     cat <- .st_catalog_read(alias = alias)
+
+    # Equal-content semantic versions may share the clock's timestamp.
+    base_vid <- vid
+    suffix <- 1L
+    rel_path <- as.character(fs::path_rel(
+      artifact_path, start = .st_normalize_path(.st_root_dir(alias = alias))
+    ))
+    while (vid %in% cat$versions$version_id ||
+           fs::dir_exists(.st_version_dir(rel_path, vid, alias = alias))) {
+      suffix <- suffix + 1L
+      vid <- paste0(base_vid, sprintf("-%010d", suffix))
+    }
 
     # Upsert artifact row using helper
     cat <- .st_catalog_upsert_artifact(
@@ -876,6 +913,9 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
       }
     }
 
+    # Allocate the immutable ID under this lock, but publish its snapshot
+    # before the catalog pointer. Failed snapshot writes must not be indexed.
+    if (!is.null(commit_files)) commit_files(vid)
     .st_catalog_write(cat, alias = alias)
   })
 
@@ -1233,16 +1273,37 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
 # Is a child stale because one (or more) of its parents advanced?
 # Looks only at committed parents.json of the child's latest snapshot.
 # If no parents are recorded, returns FALSE (nothing to compare).
-#' Is a child artifact stale because its parents advanced?
+#' Inspect parent staleness or requested artifact currentness
 #'
-#' Inspect the committed parents.json for the latest snapshot of `path` and
-#' determine whether any parent now has a different latest version id.
+#' With no request, inspect committed parents.json for the latest snapshot and
+#' determine whether any parent advanced. With a complete request, validate
+#' durable proof, prerequisites and failure precedence without executing work.
 #'
 #' @param path Character path to the artifact to inspect.
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#' @return Logical scalar. `TRUE` if any parent advanced, otherwise `FALSE`.
+#' @param request Optional complete calculation request. NULL preserves legacy
+#'   parent-only inspection. A verified matching success returns FALSE; eligible
+#'   work returns TRUE; blocked proof raises `stamp_blocked_request` with
+#'   `decision = "blocked"` and a precise `reason`. See [st_plan_rebuild()] for
+#'   the request schema. This function neither invokes builders nor writes state.
+#' @return Logical scalar. With no request, `TRUE` if any parent advanced,
+#'   otherwise `FALSE`. Request-aware calls never report blocked work as current.
 #' @export
-st_is_stale <- function(path, alias = NULL) {
+st_is_stale <- function(path, alias = NULL, request = NULL) {
+  if (!is.null(request)) {
+    norm <- .st_normalize_user_path(path, alias = alias,
+      must_exist = FALSE, verbose = FALSE)
+    requested <- .st_request_normalize(request, norm$alias)
+    if (!identical(requested$path,
+        .st_execution_path(path, norm$alias)$logical_path)) {
+      .st_request_abort("invalid_request", "Request path differs from artifact.")
+    }
+    decision <- .st_execution_decide(requested, norm$alias)
+    if (decision$decision == "blocked") {
+      .st_request_abort(decision$reason, decision$msg %||% decision$reason)
+    }
+    return(decision$decision == "run")
+  }
   # Don't normalize yet - let st_latest do it
   # We just need to find the version directory for this artifact
 

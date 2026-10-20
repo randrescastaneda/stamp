@@ -20,6 +20,7 @@ navbar:
   components:
     github:
       icon: fa-github
+      aria-label: GitHub repository
       href: https://github.com/randrescastaneda/stamp
 
 reference:
@@ -45,6 +46,8 @@ reference:
       - st_prune_versions
       - st_rebuild
       - st_plan_rebuild
+      - st_execution_info
+      - st_record_outcome
 
   - title: "Lineage & Builders"
     contents:

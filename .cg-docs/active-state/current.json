@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "compound-gpid-active-state-v1",
+  "updatedAt": "2026-10-15T18:03:24Z",
+  "workflow": "/cg-work",
+  "status": "completed",
+  "branch": "feat/m2-stamp-generic-gaps",
+  "plan": ".cg-docs/plans/2026-10-14-m2-stamp-generic-gaps.md",
+  "executionReport": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md",
+  "currentPhase": 5,
+  "evidenceStatus": [
+    {"id": "V1", "status": "passed", "artifact": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md"},
+    {"id": "V7", "status": "passed", "artifact": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md"},
+    {"id": "V3", "status": "passed", "artifact": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md"},
+    {"id": "V5", "status": "passed", "artifact": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md"},
+    {"id": "V2", "status": "passed", "artifact": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md"},
+    {"id": "V4", "status": "passed", "artifact": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md"},
+    {"id": "V8", "status": "passed", "artifact": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md"},
+    {"id": "V9", "status": "passed", "artifact": ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md"}
+  ],
+  "unresolvedDecisions": [],
+  "artifactRefs": [
+    {"kind": "review", "path": ".cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-review.md", "status": "fixed"},
+    {"kind": "verification", "path": ".cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-verify-review.md", "status": "fixed"}
+  ],
+  "nextCommand": null
+}

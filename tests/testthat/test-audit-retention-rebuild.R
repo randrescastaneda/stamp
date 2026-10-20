@@ -272,10 +272,12 @@ test_that("registered builders rebuild exact chained values and latest parents",
   expect_equal(stamp:::.st_committed_parents_latest(c)[[1]]$version_id,
                st_latest(b))
   expect_equal(st_read_sidecar(b)$code_label, "audit-b")
-  # The existing API reports unchanged st_save results as failed rebuilds.
-  # Preserve its warning policy here; independently verify the no-write invariant.
+  # An unchanged save returns a validated retained pin, not a failed rebuild.
+  # The actual builder may run without creating another catalog version.
   unchanged <- stamp:::.st_catalog_read()
-  expect_warning(st_rebuild(plan[1, ]), "st_save\\(\\) failed")
+  expect_warning(repeated <- st_rebuild(plan[1, ]), NA)
+  expect_identical(repeated$status, "built")
+  expect_identical(repeated$version_id, st_latest(b))
   expect_equal(stamp:::.st_catalog_read(), unchanged)
   empty <- st_rebuild(plan[FALSE, ])
   expect_equal(nrow(empty), 0L)

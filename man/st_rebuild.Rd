@@ -2,24 +2,52 @@
 % Please edit documentation in R/rebuild.R
 \name{st_rebuild}
 \alias{st_rebuild}
-\title{Rebuild artifacts from a plan (level order)}
+\title{Rebuild planned artifacts in dependency order}
 \usage{
 st_rebuild(plan, rebuild_fun = NULL, dry_run = FALSE)
 }
 \arguments{
 \item{plan}{A data.frame from \code{st_plan_rebuild(...)} with columns:
-\code{level, path, reason, latest_version_before}.}
+\code{level, path, reason, latest_version_before}.
+Request-bearing plans additionally contain a request list-column and
+decision, request_id and receipt_id. Every selected row is revalidated,
+including preview skips, after its selected prerequisites finish.}
 
 \item{rebuild_fun}{Optional function called as:
 \code{rebuild_fun(path, parents) -> list(x=..., format=?, metadata=?, code=?, code_label=?)}.
 If omitted (NULL), \code{st_rebuild()} will look up a registered builder
-for \code{path} (by \code{st_register_builder()}).}
+for \code{path} (by \code{st_register_builder()}).
+On the request route the builder must return exactly one named \code{x} field
+(including NULL when the registered format supports it);
+optional format must equal the request's registered identifier, and semantic
+metadata must match it. The builder receives fully resolved exact parents.}
 
-\item{dry_run}{If TRUE, do not write anything; just report what would happen.}
+\item{dry_run}{If TRUE, invoke no builders and write no outcomes/receipts.
+Reports a preview, not successful execution evidence.}
 }
 \value{
-Invisibly, a data.frame with the build results (status, version_id, msg).
+Invisibly, a data.frame with level, path, reason, status, version_id
+and msg.
+Request-aware results also include request_id, receipt_id and outcome_id.
+Their statuses are built, unchanged, skipped, blocked, failed and dry_run.
+Only validated successful or reused outputs have a usable version_id.
 }
 \description{
-Rebuild artifacts from a plan (level order)
+Rebuild planned artifacts in dependency order
+}
+\details{
+Request-aware execution revalidates each candidate after actual upstream
+results. A changed parent alone can require an actual builder call while
+retaining equal output and publishing a new receipt; original snapshot
+provenance is not rewritten. A satisfied repeat writes neither a receipt nor
+a version. Missing builder configuration is recoverable blocked work, not an
+actual unknown execution failure. Invoked builder errors inheriting
+\code{stamp_deterministic_failure} or \code{stamp_external_failure} retain that class;
+other actual failures are unknown and block further execution.
+
+Deterministic recovery requires both changed input/component proof and
+\code{request$review$outcome_id} naming the governing deterministic failure.
+Intervening blocked observations do not replace that failure. External
+failures permit one attempt on the next analyst-started rebuild with valid
+prerequisites; no automatic retry is scheduled. There is no Force interface.
 }

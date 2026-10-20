@@ -6,6 +6,7 @@ language: "R"
 tags: [testthat, segfault, r-cmd-check, windows, subprocess, verification]
 root-cause: "In-process test harness artifact on this R 4.5.1/Windows setup; the package's tests are fine, confirmed by R CMD check running the same suite in a clean subprocess"
 severity: "P2"
+related: [".cg-docs/solutions/testing-patterns/2026-10-15-installed-r-checks-for-durable-request-convergence.md"]
 ---
 
 # In-process testthat::test_local() segfaults silently — verify via R CMD check instead
@@ -69,5 +70,8 @@ check status, with no crashes across the whole session.
 
 ## Related
 
+- [Durable request convergence in installed R checks](2026-10-15-installed-r-checks-for-durable-request-convergence.md)
+  extends this historical crash workaround with real-store/restart assertions
+  and distinguishes bounded local checks from full CRAN-release verification.
 - `.cg-docs/reviews/2026-09-30-cran-release-without-partitions-review.md` —
   verification protocol used throughout the fix-triage pass on this package.

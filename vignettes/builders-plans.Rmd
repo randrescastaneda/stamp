@@ -43,12 +43,12 @@ set.seed(123)
 - Builder: a function registered with `st_register_builder(path, builder_fn)`.
   Signature: `function(path, parents)`. It must return a list with at least:
   - `x`: the object to save
-  - `code`: the producing function(s) used to compute `x` (used to compute code_hash)
+  - optional `code`: producing function(s) used to compute the saved code hash
   - optional `code_label`: a short tag used in sidecars
 
-- Plan: the result of `st_plan_rebuild()` which inspects recorded parents,
-  `code_hash` values and artifact presence. It describes actions required to
-  bring targets up-to-date.
+- Plan: the result of `st_plan_rebuild()`. The legacy route inspects recorded
+  parents and artifact presence; it is not complete requested-calculation proof.
+  Explicit requests below add declared component, semantic and execution proof.
 
 - Rebuild: executing the plan with `st_rebuild(plan)`. `st_rebuild()` calls the
   registered builders and then `st_save()` for each produced artifact, recording
@@ -56,7 +56,7 @@ set.seed(123)
 
 ## Minimal example (single-target)
 
-```{r single-target}
+```{r single-target, eval=FALSE}
 # Suppose we have a summary target path
 summary_path <- "outputs/welfare_summary.qs2"
 
@@ -103,7 +103,7 @@ If your target depends on multiple functions (e.g. `bar()` calls helpers
 `h1()` and `h2()`), include them explicitly in `code` so `st_save()` computes a
 combined hash that changes if any helper changes:
 
-```{r code-multi}
+```{r code-multi, eval=FALSE}
 # Good: include all contributing functions
 st_save(
   x,
@@ -114,13 +114,17 @@ st_save(
 )
 ```
 
-This ensures `st_is_stale()` and plan computation detect code changes across the
-whole chain.
+This records producing code for save comparisons. To select work against current
+helper/constants/rules before execution, use explicit requests below.
 
-## Modes: strict vs relaxed
+## Legacy Modes: Strict And Propagate
 
-- `mode = "strict"` treats missing parents or mismatched code hashes conservatively — prefer this for correctness.
-- `mode = "relaxed"` may skip some checks to avoid unnecessary recomputation in noisy environments; use with caution.
+- `mode = "strict"` selects immediate recorded parent-version mismatches.
+- `mode = "propagate"` also schedules their recorded downstream descendants.
+
+These modes apply when `requests = NULL`; neither discovers current calculation
+dependencies. Request-aware selection uses the explicit graph and rechecks each
+candidate after actual parent execution.
 
 ## Tips & best practices
 
@@ -142,17 +146,172 @@ Windows PATH length issues.
 
 ## Appendix: example plan interpretation
 
-A plan is a list-of-lists; each entry includes `target` (path), a `reason`
-(`parent_changed`, `code_changed`, or `missing`) and builder info. Inspect the
-plan and filter or reorder actions before calling `st_rebuild()`.
+A plan is a data frame with path, level and reason columns. Request-aware plans
+also carry request/decision/receipt fields and preview state. Inspect the rows,
+but regenerate the plan after changing recipes instead of editing its internals.
 
 Example (pseudo-inspection):
 
-```{r plan-inspect}
+```{r plan-inspect, eval=FALSE}
 plan <- st_plan_rebuild(targets = summary_path, include_targets = TRUE)
 # Show targets that are stale
-Filter(function(x) x$reason != "uptodate", plan)
+plan[c("path", "reason")]
 ```
+
+## Request-Aware Execution
+
+A request declares exact parent pins, physical format, semantic metadata and
+result-affecting component digests. Stamp canonicalizes paths/order and validates
+retained bytes. The caller must declare every known helper, constant and rule;
+stamp does not discover hidden closure dependencies. Source SHA/label alone is
+not complete proof. Optional `audit` identities do not affect request equality.
+
+This runnable root example hashes actual code formals/body under the caller's
+`r-formals-body-v1` contract. Constants use a fixed-order named list with exact R
+types (`r-values-v1`). The builder invokes that same calculation.
+
+```{r requested-root, eval=TRUE}
+library(stamp)
+local({
+  root <- tempfile("stamp-request-")
+  dir.create(root)
+  on.exit(unlink(root, recursive = TRUE), add = TRUE)
+  alias <- basename(root)
+  st_init(root, alias = alias, verbose = FALSE)
+  old <- st_opts(.get = TRUE)
+  on.exit(suppressMessages(do.call(st_opts, old)), add = TRUE)
+  st_opts(versioning = "content", retain_versions = Inf, meta_format = "json")
+  seed <- 1:3
+  offset <- 2L
+  helper <- function(x, offset) x + offset
+  calculate <- function() helper(seed, offset)
+  component <- function(value, schema) {
+    list(hash = st_hash_obj(value), algorithm = "siphash13", schema = schema)
+  }
+  code_record <- function(fun) list(formals = formals(fun), body = body(fun))
+  request <- list(
+    schema = 1L, path = file.path(root, "requested.rds"),
+    root = TRUE, parents = list(),
+    required_components = c("calculation", "helper", "constants"),
+    components = list(
+      calculation = component(code_record(calculate), "r-formals-body-v1"),
+      helper = component(code_record(helper), "r-formals-body-v1"),
+      constants = component(list(seed = seed, offset = offset), "r-values-v1")
+    ),
+    semantic_schema = list(rule = list(
+      type = "character", shape = "scalar", required = TRUE,
+      nullable = FALSE, allow_na = FALSE
+    )),
+    semantic = list(rule = "add-v1"), format = "rds"
+  )
+  builder <- function(path, parents) {
+    list(x = calculate(), metadata = list(rule = "add-v1"))
+  }
+  plan <- st_plan_rebuild(request$path, include_targets = TRUE,
+    requests = list(request))
+  plan[c("decision", "reason")]
+  st_rebuild(plan, rebuild_fun = builder, dry_run = TRUE) # no invocation/writes
+  st_rebuild(plan, rebuild_fun = builder)
+  st_execution_info(request$path, alias = alias)[c("state", "receipt_id")]
+  repeat_plan <- st_plan_rebuild(request$path, include_targets = TRUE,
+    requests = list(request))
+  st_rebuild(repeat_plan, rebuild_fun = builder) # satisfied: skip, no writes
+})
+```
+
+Non-roots use `root = FALSE` and
+`parents = list(list(path = ..., version_id = ...))` with validated persisted
+byte references. A NULL pin is permitted only for an explicit selected parent
+recipe; it resolves before the child executes. Supply an unnamed request list
+with unique normalized paths, including each target when `include_targets = TRUE`.
+
+Plans show run/skip/blocked candidates but are not execution records. Rebuild
+revalidates after actual parent results. `st_is_stale(request = ...)` raises
+`stamp_blocked_request` on blocked proof, rather than reporting currentness.
+`st_should_save(request = ..., x = result)` only compares supplied results for
+saving; neither it nor an unchanged raw save proves a builder executed.
+
+### Retained Output And Failures
+
+After A1 becomes A2, B must actually execute against A2. Equal sanitized content,
+producing code, complete component proof, semantic schema/values and format allow
+B to retain B1 with a new execution receipt binding A2. Original B1 sidecars/A1
+provenance stay unchanged; C rechecks and skips against the same B1. Changed B
+component or semantic proof creates a new version even for equal result data.
+A fully satisfied repeat creates neither a version nor an execution receipt.
+
+Deterministic failures require both changed input/component proof and
+`request$review = list(outcome_id = <governing failure ID>)`. Review alone,
+source audit or semantic/format-only edits do not permit recovery. Blocked
+observations do not replace actual failures. External failures permit one
+attempt on the next analyst-started rebuild; unknown actual failures stay
+blocked. Builder errors may declare `stamp_deterministic_failure` or
+`stamp_external_failure`. Missing builder registration is a recoverable
+configuration block, not an actual unknown execution failure. No Force or
+automatic retry is provided.
+
+`st_record_outcome()` records only failed/blocked facts, never success.
+`st_execution_info()` and pinned sidecar reads are data-free (byte checksum
+streaming is allowed), and explicit IDs never fall back to current metadata.
+Committed references protect outputs, effective inputs and original retained
+ancestry from pruning; inspect `st_prune_versions(..., dry_run = TRUE)` first.
+These are serial isolated-execution guarantees, not SMB atomicity, multiwriter
+safety or cryptographic authenticity.
+
+## Typed Semantic History
+
+Descriptors declare type, shape, required, nullable and allow_na. Integers and
+doubles, optional absence, NULL, typed NA and empty vectors remain distinct.
+Scalar means length one; vector permits zero or more values. Classed/nested
+values, NaN and infinities are rejected. The following example needs QS2 for
+the `both` sidecar mode.
+
+```{r typed-history, eval=TRUE}
+library(stamp)
+local({
+  root <- tempfile("stamp-metadata-")
+  dir.create(root)
+  on.exit(unlink(root, recursive = TRUE), add = TRUE)
+  alias <- basename(root)
+  st_init(root, alias = alias, verbose = FALSE)
+  old <- st_opts(.get = TRUE)
+  on.exit(suppressMessages(do.call(st_opts, old)), add = TRUE)
+  st_opts(versioning = "content", retain_versions = Inf, meta_format = "both")
+  schema <- list(
+    count = list(type = "integer", shape = "scalar", required = TRUE,
+      nullable = FALSE, allow_na = FALSE),
+    weights = list(type = "double", shape = "vector", required = FALSE,
+      nullable = TRUE, allow_na = TRUE)
+  )
+  first <- st_save(1:3, "typed.rds", alias = alias, verbose = FALSE,
+    metadata = list(count = 1L, weights = numeric(), note = "first"),
+    semantic_schema = schema)
+  second <- st_save(1:3, "typed.rds", alias = alias, verbose = FALSE,
+    metadata = list(count = 1L, weights = NULL, note = "second"),
+    semantic_schema = schema)
+  st_read_sidecar("typed.rds", alias, first$version_id)$weights # numeric(0)
+  st_read_sidecar("typed.rds", alias, second$version_id)$weights # NULL
+  same <- st_save(1:3, "typed.rds", alias = alias, verbose = FALSE,
+    metadata = list(count = 1L, weights = NULL, note = "description edit"),
+    semantic_schema = schema)
+  same[c("skipped", "version_id")] # descriptions are not rewritten
+  st_execution_info("typed.rds", alias = alias)$state # raw saves: absent
+})
+```
+
+Semantic/schema changes create immutable versions even for equal data;
+descriptive-only unchanged saves are ignored. JSON/QS2/both preserve declared
+types; contradictory modern sidecars block. Legacy descriptive lists are not
+reinterpreted. Modern metadata names must be unique and cannot collide with
+stamp-owned names such as path, format, parents, attrs or execution.
+
+Pinned `st_read_sidecar(version_id = ...)` errors on missing required historical
+proof instead of substituting current metadata, without loading artifact data.
+`st_load_version()` uses the physical format recorded in the exact snapshot when
+metadata are available, even if it overrides the extension or current format.
+Legacy compatibility permits extension/default data recovery when metadata are
+unavailable. This neither repairs metadata nor certifies execution proof; any
+readable modern marker requires strict pinned metadata validation.
 
 
 

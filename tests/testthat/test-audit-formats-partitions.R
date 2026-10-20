@@ -317,7 +317,9 @@ test_that("unloadable partition keys produce warnings and no success manifest", 
     data.frame(value = 1L), base, list(k = "a"), format = "rds", verbose = FALSE
   ))
   expect_identical(skipped$path, first$path)
-  expect_null(skipped$version_id)
+  expect_identical(skipped$version_id, first$version_id)
+  expect_identical(st_load_version(first$path, skipped$version_id,
+    verbose = FALSE), data.frame(value = 1L))
 })
 
 test_that("returned reader and writer wrappers propagate errors and messages", {

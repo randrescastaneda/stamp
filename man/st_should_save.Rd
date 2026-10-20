@@ -5,7 +5,15 @@
 \title{Decide if a save should proceed given current st_opts()
 Uses versioning policy and code-change rule.}
 \usage{
-st_should_save(path, x = NULL, code = NULL, alias = NULL)
+st_should_save(
+  path,
+  x = NULL,
+  code = NULL,
+  alias = NULL,
+  request = NULL,
+  semantic_schema = NULL,
+  metadata = list()
+)
 }
 \arguments{
 \item{path}{Artifact path on disk.}
@@ -17,9 +25,22 @@ stored content with the R value \code{NULL}; it does not omit the comparison.}
 \item{code}{Optional function/expression/character (for code comparison).}
 
 \item{alias}{Optional stamp alias to target a specific stamp folder.}
+
+\item{request}{Optional complete requested proof for the supplied result.
+Invalid or incomparable proof raises \code{stamp_blocked_request} before writes.
+This is a save comparator, not permission to skip builder execution or a
+replacement for durable failure gates in \code{\link[=st_rebuild]{st_rebuild()}}.}
+
+\item{semantic_schema}{Optional named semantic field descriptors.}
+
+\item{metadata}{Named metadata list supplying declared semantic values.}
 }
 \value{
-\verb{list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)}
+A list with \code{save} and \code{reason}. Request-aware results additionally
+contain \code{latest_version_id} (a validated character pin on skip, otherwise
+a character pin or \code{NA_character_}) and \code{decision} (\code{"run"} or \code{"skip"}).
+Blocked requests raise \code{stamp_blocked_request} carrying \code{decision = "blocked"} and \code{reason}, never a successful result/output pin. NULL request
+preserves the legacy return shape.
 }
 \description{
 Decide if a save should proceed given current st_opts()

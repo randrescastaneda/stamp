@@ -2,9 +2,9 @@
 % Please edit documentation in R/format_registry.R
 \name{st_read_sidecar}
 \alias{st_read_sidecar}
-\title{Read sidecar metadata (internal)}
+\title{Read current or exact historical sidecar metadata}
 \usage{
-st_read_sidecar(rel_path, alias = NULL)
+st_read_sidecar(rel_path, alias = NULL, version_id = NULL)
 }
 \arguments{
 \item{rel_path}{Character relative path from alias root, or an absolute path.
@@ -12,12 +12,23 @@ If an absolute path is provided, it will be normalized to a relative path.}
 
 \item{alias}{Optional alias. If \code{NULL} and an absolute path is provided,
 the alias will be auto-detected from the path.}
+
+\item{version_id}{Optional exact version identifier. Reads only that retained
+snapshot and errors if its artifact or required sidecars are unavailable.
+There is no fallback to current metadata. NULL keeps the current reader.
+No artifact format reader is called; metadata parsing is data-free.}
 }
 \value{
-A list (parsed JSON / qs object) or \code{NULL} if not found.
+A metadata list, with typed declared semantic fields for modern
+sidecars. Legacy metadata remains in its original reader representation.
+A current read with no sidecar returns NULL; explicit unavailable versions
+or inconsistent modern envelopes error.
 }
 \description{
 Read the sidecar metadata for a file if it exists, returning \code{NULL}
 when no sidecar file is present. Preference order is JSON first,
 then QS2.
+Modern metadata restores declared semantic fields to their original R types
+and validates both sidecars when both were required. Legacy JSON-first reads
+do not reinterpret arbitrary descriptive lists as semantic/execution proof.
 }

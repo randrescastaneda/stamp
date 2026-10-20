@@ -1,0 +1,923 @@
+{
+  "edge_count": 5,
+  "edges": [
+    {
+      "edge_type": "decided_from",
+      "source": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md",
+      "target": ".cg-docs/brainstorms/2026-09-28-cran-release-without-partitions.md",
+      "target_missing": false
+    },
+    {
+      "edge_type": "reviews",
+      "source": ".cg-docs/reviews/2026-09-30-cran-release-without-partitions-review.md",
+      "target": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md",
+      "target_missing": false
+    },
+    {
+      "edge_type": "reviews",
+      "source": ".cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-review.md",
+      "target": ".cg-docs/plans/2026-10-14-m2-stamp-generic-gaps.md",
+      "target_missing": false
+    },
+    {
+      "edge_type": "verifies",
+      "source": ".cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-verify-review.md",
+      "target": ".cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-review.md",
+      "target_missing": false
+    },
+    {
+      "edge_type": "references",
+      "source": ".cg-docs/solutions/testing-patterns/2026-10-15-installed-r-checks-for-durable-request-convergence.md",
+      "target": ".cg-docs/plans/2026-10-14-m2-stamp-generic-gaps.md",
+      "target_missing": false
+    }
+  ],
+  "entities": [
+    {
+      "date": "2026-09-28",
+      "entity_type": "brainstorm",
+      "path": ".cg-docs/brainstorms/2026-09-28-cran-release-without-partitions.md",
+      "slug": "2026-09-28-cran-release-without-partitions",
+      "status": "decided",
+      "summary": "<!-- Valid status values: decided, in-progress, abandoned -->",
+      "tags": [
+        "cran",
+        "release",
+        "api-surface",
+        "partitions",
+        "packaging"
+      ],
+      "title": "Ship stamp to CRAN without partitions",
+      "top_keywords": [
+        "description",
+        ".rbuildignore",
+        "approach",
+        "namespace",
+        "r/partitions.r",
+        "@nord",
+        "stamp",
+        "partitions",
+        "cran",
+        "ready_cran"
+      ]
+    },
+    {
+      "date": "2026-03-23",
+      "entity_type": "plan",
+      "path": ".cg-docs/plans/2026-03-23-fix-verbose-suppression.md",
+      "slug": "2026-03-23-fix-verbose-suppression",
+      "status": "active",
+      "summary": "Ensure that `st_init()`, `st_save()`, and `st_load()` emit zero informational messages or warnings when `verbose = FALSE`. Currently `st_init()` lacks a `verbose` parameter entirely, and all three functions may leak messages through internal helpers.",
+      "tags": [
+        "bugfix",
+        "verbose",
+        "messaging",
+        "UX"
+      ],
+      "title": "Fix verbose suppression in st_init, st_save, st_load",
+      "top_keywords": [
+        "verbose",
+        "st_init()",
+        "st_init",
+        "verbose = false",
+        "st_load",
+        "st_save",
+        "expect_silent()",
+        "st_save()",
+        "st_load()",
+        "cli::cli_abort()"
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "entity_type": "plan",
+      "path": ".cg-docs/plans/2026-09-30-cran-release-without-partitions.md",
+      "slug": "2026-09-30-cran-release-without-partitions",
+      "status": "completed",
+      "summary": "Make `stamp` submittable to CRAN: clear the four mechanical `R CMD check` findings, and remove the Hive-style partition API from the public surface while keeping its implementation in-tree and under test.",
+      "tags": [
+        "cran",
+        "release",
+        "api-surface",
+        "partitions",
+        "packaging",
+        "roxygen"
+      ],
+      "title": "CRAN release: unexport partitions and clear check blockers",
+      "top_keywords": [
+        "test scenarios",
+        "description",
+        "namespace",
+        "r cmd check",
+        "readme.md",
+        "readme.rmd",
+        "news.md",
+        "version_retention_prune.rmd",
+        "partitions",
+        "_pkgdown.yml"
+      ]
+    },
+    {
+      "date": "2026-10-15",
+      "entity_type": "plan",
+      "path": ".cg-docs/plans/2026-10-14-m2-stamp-generic-gaps.md",
+      "slug": "2026-10-14-m2-stamp-generic-gaps",
+      "status": "completed",
+      "summary": "Prepare the stamp-local work for task `m2-stamp-local-plan-2026-10-14`, milestone `m2-walking-skeleton`, feature `close-stamp-gaps-for-skeleton`. Cover `create-engine-skeleton` only at the generic producer/consumer interface boundary. Stamp remains domain-neutral and the sole rebuild authority.",
+      "tags": [
+        "m2",
+        "stamp",
+        "contracts",
+        "fingerprints",
+        "receipts",
+        "metadata",
+        "currentness",
+        "test-safety"
+      ],
+      "title": "M2 Stamp Generic Gaps: Contracts, Safe Gates, and Conditional Implementation",
+      "top_keywords": [
+        "test scenarios",
+        "r/version_store.r",
+        "r/execution_state.r",
+        "/cg-work",
+        "r/rebuild.r",
+        "version_store.r",
+        "cg-work",
+        "rebuild.r",
+        "execution_state.r",
+        "execution"
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "entity_type": "review",
+      "path": ".cg-docs/reviews/2026-09-30-cran-release-without-partitions-review.md",
+      "slug": "2026-09-30-cran-release-without-partitions-review",
+      "status": "",
+      "summary": "**Review mode**: standard (8 agents) **Scope**: `324ece4..HEAD` — commits `8dc5c67`, `3bed3e0`, `e26edfc`; 42 files, +199 / -906 **Findings**: 27 (P0: 0, P1: 6, P2: 14, P3: 7)",
+      "tags": [],
+      "title": "2026-09-30-cran-release-without-partitions-review",
+      "top_keywords": [
+        "partitions.r",
+        "[manual]",
+        "[safe_auto]",
+        "st_path",
+        ".qs",
+        "st_load_parts()",
+        "[advisory]",
+        "test-write-parts.r",
+        "post-cran-partitions",
+        "@keywords internal"
+      ]
+    },
+    {
+      "date": "2026-10-15",
+      "entity_type": "review",
+      "path": ".cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-review.md",
+      "slug": "2026-10-14-m2-stamp-generic-gaps-review",
+      "status": "",
+      "summary": "Review mode: standard. Auto route: documentation-only changes, raised from light by more than 50 non-test lines. Eight required specialist reviews completed with usable output. Scope is the execution contract report, active-state pointer, and permitted Plan frontmatter, not package implementation. Six unique findings: P0 0, P1 1, P2 5, P3 0. Duplicate documentation/testing findings are merged below. All findings are manual contract decisions; none was automatically promoted to approved behavior.",
+      "tags": [],
+      "title": "2026-10-14-m2-stamp-generic-gaps-review",
+      "top_keywords": [
+        "phase",
+        "review",
+        "automatic",
+        "rebuild.r",
+        "execution_state.r",
+        "format_registry.r",
+        "automatic review\n\nfull",
+        "findings",
+        "report",
+        "format"
+      ]
+    },
+    {
+      "date": "2026-10-15",
+      "entity_type": "review",
+      "path": ".cg-docs/reviews/2026-10-14-m2-stamp-generic-gaps-verify-review.md",
+      "slug": "2026-10-14-m2-stamp-generic-gaps-verify-review",
+      "status": "",
+      "summary": "Executed `/cg-review mode:verify` after all five Plan phases. Confirmed the parent exists and is the newest standard review with fixed findings (2026-10-15; other review dated 2026-09-30). Dispatch was restricted to cg-code-quality and cg-testing, with the parent's 24 exact fixed findings and required suppression context. P0/P1 and cross-file breakage were never suppressed; P2/P3 suppression required an explicit fixed-function/block anchor. Both agents returned usable read-only results.",
+      "tags": [],
+      "title": "2026-10-14-m2-stamp-generic-gaps-verify-review",
+      "top_keywords": [
+        "final",
+        "verification",
+        "review",
+        "finding",
+        "v1-v9",
+        "result",
+        "/cg-review mode:verify",
+        ".cg-docs/work-reports/2026-10-15-m2-stamp-generic-gaps.md",
+        "v1, v2, v3, v4, v5, v7, v8, v9",
+        "final verification review\n\nexecuted"
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/bugs/2026-10-02-docs-describe-nonexistent-api.md",
+      "slug": "2026-10-02-docs-describe-nonexistent-api",
+      "status": "",
+      "summary": "Across one review-and-fix cycle on the `stamp` package, the same defect class surfaced **five separate times**: documentation describing functions, formats, or arguments that do not exist (or no longer exist) in the installed package. Confirmed instances: - `st_auto_partition` referenced in docs, never existed as an export - `st_hash_code` / `st_hash_file` referenced in docs, never existed as exports - A vignette live-chunk calling `st_path()` after `st_path()` was unexported (would have broken `R CMD check` on every rebuild) - `st_formats()`'s own example comment omitting `parquet` from the list of formats it actually returns - 8 of the package's exported functions (`st_opts_get`, `st_formats`,...",
+      "tags": [
+        "documentation",
+        "readme",
+        "vignettes",
+        "pkgdown",
+        "roxygen",
+        "api-drift",
+        "cran"
+      ],
+      "title": "README and vignettes drift out of sync with the actual exported API",
+      "top_keywords": [
+        "readme.rmd",
+        "_pkgdown.yml",
+        "namespace",
+        "r cmd check",
+        "man/*.rd",
+        "readme",
+        "vignettes",
+        "st_path()",
+        "reference:",
+        "api"
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/bugs/2026-10-02-st-opts-test-state-leak.md",
+      "slug": "2026-10-02-st-opts-test-state-leak",
+      "status": "",
+      "summary": "Ten `test_that()` blocks in `tests/testthat/test-write-parts.R` (and one in `test-hash-sanitize.R`) opened with: intending to snapshot and restore the package's option state so that changes made inside one test (e.g. `st_opts(default_format = \"rds\")`) wouldn't leak into other tests. Separately, `test-partitions.R` called `st_opts(warn_missing_pk_on_load = FALSE)` at **file top level**, outside any `test_that()` block, with no cleanup at all.",
+      "tags": [
+        "testthat",
+        "st_opts",
+        "test-isolation",
+        "state-leakage",
+        "withr"
+      ],
+      "title": "options()/on.exit() does not restore st_opts() state — it's a no-op",
+      "top_keywords": [
+        "test-partitions.r",
+        "test_that()",
+        "options()",
+        "options",
+        "st_opts",
+        "st_opts(warn_missing_pk_on_load = false)",
+        "st_opts()",
+        "state",
+        "exit",
+        "restore"
+      ]
+    },
+    {
+      "date": "2026-10-15",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/git-workflows/2026-10-15-publish-before-wiki-compound.md",
+      "slug": "2026-10-15-publish-before-wiki-compound",
+      "status": "",
+      "summary": "An earlier Compound capture correctly skipped wiki enrichment because `wiki/_wiki.yml` did not exist. The user then requested a precise sequence: commit/push the completed feature, initialize the wiki, and run Compound again. Two different states must remain explicit: the implementation already published to Git, and the wiki/knowledge files generated afterward. A successful first push cannot certify that later files were committed or published. A project `wiki/` folder is also not an automatically published GitHub Wiki site.",
+      "tags": [
+        "git",
+        "wiki",
+        "compound",
+        "ownership",
+        "documentation"
+      ],
+      "title": "Initialize a managed wiki without confusing post-push files with published work",
+      "top_keywords": [
+        "wiki/",
+        ".rbuildignore",
+        "initialize",
+        "cg-wiki",
+        "work",
+        "wiki",
+        "managed",
+        "published",
+        "ownership",
+        "post-push"
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/testing-patterns/2026-10-02-in-process-testthat-segfault.md",
+      "slug": "2026-10-02-in-process-testthat-segfault",
+      "status": "",
+      "summary": "Three separate attempts to run `testthat::test_local()` / `testthat::test_file()` directly in the development terminal (to verify a fix before doing a full `R CMD check`) crashed the R process with exit code `0xC0000005` (ACCESS_VIOLATION) and printed **zero output** — not even a partial test summary. This looked like either a broken test harness or a serious regression in the package.",
+      "tags": [
+        "testthat",
+        "segfault",
+        "r-cmd-check",
+        "windows",
+        "subprocess",
+        "verification"
+      ],
+      "title": "In-process testthat::test_local() segfaults silently — verify via R CMD check instead",
+      "top_keywords": [
+        "r cmd check",
+        "testthat::test_local()",
+        "testthat",
+        "test_file()",
+        "program files",
+        "cmd",
+        "in-process",
+        "test_local",
+        "verify",
+        "segfaults"
+      ]
+    },
+    {
+      "date": "2026-10-15",
+      "entity_type": "solution",
+      "path": ".cg-docs/solutions/testing-patterns/2026-10-15-installed-r-checks-for-durable-request-convergence.md",
+      "slug": "2026-10-15-installed-r-checks-for-durable-request-convergence",
+      "status": "",
+      "summary": "The stamp generic-request work needed to prove more than successful saving: after A changes from A1 to A2, B must execute against A2, yet may retain B1 when its result and producing proof are unchanged. C should then skip against B1. The old B1 snapshot must still name A1, while a new execution receipt names A2. The next identical request must perform no work, including after a fresh R process starts. Reviews found failures that an ordinary green save/load test did not cover: unintended replacement of explicit historical pins, unverified same-size parent byte edits, representation-dependent request IDs, abandoned receipt publication,...",
+      "tags": [
+        "request-proofs",
+        "immutable-history",
+        "r-cmd-check",
+        "subprocess",
+        "windows"
+      ],
+      "title": "Verify durable request convergence with installed R subprocesses",
+      "top_keywords": [
+        "durable",
+        "request",
+        "installed",
+        "subprocesses",
+        "verify",
+        "convergence",
+        "2026-10-02-in-process-testthat-segfault.md",
+        "2026-10-02-docs-describe-nonexistent-api.md",
+        "2026-10-02-st-opts-test-state-leak.md",
+        "2026-10-15-publish-before-wiki-compound.md"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#unexport-partition-api",
+      "slug": "unexport-partition-api",
+      "status": "done",
+      "summary": "Unexport partition API",
+      "tags": [],
+      "title": "Unexport partition API",
+      "top_keywords": [
+        "unexport",
+        "partition",
+        "api",
+        "2026-09-28-cran-release-without-partitions.md",
+        "cran",
+        "submission",
+        "feature",
+        "milestone",
+        "objective",
+        "stamp"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#fix-rbuildignore-gaps",
+      "slug": "fix-rbuildignore-gaps",
+      "status": "done",
+      "summary": "Fix .Rbuildignore gaps",
+      "tags": [],
+      "title": "Fix .Rbuildignore gaps",
+      "top_keywords": [
+        "fix",
+        "rbuildignore",
+        "gaps",
+        "2026-09-28-cran-release-without-partitions.md",
+        "cran",
+        "submission",
+        "feature",
+        "milestone",
+        "objective",
+        "stamp"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#rewrite-description-description",
+      "slug": "rewrite-description-description",
+      "status": "done",
+      "summary": "Rewrite DESCRIPTION Description",
+      "tags": [],
+      "title": "Rewrite DESCRIPTION Description",
+      "top_keywords": [
+        "description",
+        "description\nmilestone",
+        "rewrite",
+        "2026-09-28-cran-release-without-partitions.md",
+        "cran",
+        "submission",
+        "feature",
+        "milestone",
+        "objective",
+        "stamp"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#fix-malformed-roxygen-in-version-store",
+      "slug": "fix-malformed-roxygen-in-version-store",
+      "status": "done",
+      "summary": "Fix malformed roxygen in version_store.R",
+      "tags": [],
+      "title": "Fix malformed roxygen in version_store.R",
+      "top_keywords": [
+        "fix",
+        "malformed",
+        "roxygen",
+        "version_store",
+        "version_store.r",
+        "2026-09-28-cran-release-without-partitions.md",
+        "cran",
+        "submission",
+        "feature",
+        "milestone"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#escape-angle-brackets-in-roxygen",
+      "slug": "escape-angle-brackets-in-roxygen",
+      "status": "done",
+      "summary": "Escape angle brackets in roxygen",
+      "tags": [],
+      "title": "Escape angle brackets in roxygen",
+      "top_keywords": [
+        "escape",
+        "angle",
+        "brackets",
+        "roxygen",
+        "2026-09-28-cran-release-without-partitions.md",
+        "cran",
+        "submission",
+        "feature",
+        "milestone",
+        "objective"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#install-tinytex-for-local-pdf-manual-check",
+      "slug": "install-tinytex-for-local-pdf-manual-check",
+      "status": "done",
+      "summary": "Install TinyTeX for local PDF manual check",
+      "tags": [],
+      "title": "Install TinyTeX for local PDF manual check",
+      "top_keywords": [
+        "install",
+        "tinytex",
+        "local",
+        "pdf",
+        "manual",
+        "2026-09-28-cran-release-without-partitions.md",
+        "cran",
+        "submission",
+        "feature",
+        "milestone"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#validate-partitions-against-real-data",
+      "slug": "validate-partitions-against-real-data",
+      "status": "idea",
+      "summary": "Validate partitions against real data",
+      "tags": [],
+      "title": "Validate partitions against real data",
+      "top_keywords": [
+        "validate",
+        "partitions",
+        "real",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone",
+        "post-cran",
+        "objective",
+        "re-export",
+        "hive-style"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#settle-partition-api-semantics",
+      "slug": "settle-partition-api-semantics",
+      "status": "idea",
+      "summary": "Settle partition API semantics",
+      "tags": [],
+      "title": "Settle partition API semantics",
+      "top_keywords": [
+        "partition",
+        "api",
+        "semantics",
+        "settle",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone",
+        "post-cran",
+        "partitions",
+        "objective"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#integrate-partitions-with-versioning-sidecars-and-retention",
+      "slug": "integrate-partitions-with-versioning-sidecars-and-retention",
+      "status": "idea",
+      "summary": "Integrate partitions with versioning, sidecars, and retention",
+      "tags": [],
+      "title": "Integrate partitions with versioning, sidecars, and retention",
+      "top_keywords": [
+        "partitions",
+        "integrate",
+        "versioning",
+        "sidecars",
+        "retention",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone",
+        "post-cran",
+        "objective"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#benchmark-partition-performance",
+      "slug": "benchmark-partition-performance",
+      "status": "idea",
+      "summary": "Benchmark partition performance",
+      "tags": [],
+      "title": "Benchmark partition performance",
+      "top_keywords": [
+        "partition",
+        "performance",
+        "benchmark",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone",
+        "post-cran",
+        "partitions",
+        "objective",
+        "validate"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#re-export-partition-api",
+      "slug": "re-export-partition-api",
+      "status": "idea",
+      "summary": "Re-export partition API",
+      "tags": [],
+      "title": "Re-export partition API",
+      "top_keywords": [
+        "re-export",
+        "partition",
+        "api",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone",
+        "post-cran",
+        "partitions",
+        "objective",
+        "validate"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#fix-warned-formats-globalenv-leak",
+      "slug": "fix-warned-formats-globalenv-leak",
+      "status": "idea",
+      "summary": "Fix warned_formats globalenv leak in st_load_parts",
+      "tags": [],
+      "title": "Fix warned_formats globalenv leak in st_load_parts",
+      "top_keywords": [
+        "fix",
+        "warned_formats",
+        "globalenv",
+        "leak",
+        "st_load_parts",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone",
+        "post-cran",
+        "partitions"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#fix-windows-case-folding-of-partition-keys",
+      "slug": "fix-windows-case-folding-of-partition-keys",
+      "status": "idea",
+      "summary": "Fix Windows case-folding of partition key values and the mislabelled test skips",
+      "tags": [],
+      "title": "Fix Windows case-folding of partition key values and the mislabelled test skips",
+      "top_keywords": [
+        "fix windows",
+        "partition",
+        "fix",
+        "windows",
+        "case-folding",
+        "mislabelled",
+        "test",
+        "skips",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#use-drop-true-in-partition-split-and-interaction",
+      "slug": "use-drop-true-in-partition-split-and-interaction",
+      "status": "idea",
+      "summary": "Use drop=TRUE in partition split() and interaction() to avoid NA partitions",
+      "tags": [],
+      "title": "Use drop=TRUE in partition split() and interaction() to avoid NA partitions",
+      "top_keywords": [
+        "partition",
+        "partitions",
+        "drop",
+        "split",
+        "interaction",
+        "avoid",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone",
+        "post-cran"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#validate-partition-folder-key-against-contents",
+      "slug": "validate-partition-folder-key-against-contents",
+      "status": "idea",
+      "summary": "Validate partition folder key against file contents instead of overwriting the column on load",
+      "tags": [],
+      "title": "Validate partition folder key against file contents instead of overwriting the column on load",
+      "top_keywords": [
+        "validate",
+        "partition",
+        "folder",
+        "contents",
+        "instead",
+        "overwriting",
+        "column",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#abort-on-unreadable-partitions-in-st-load-parts",
+      "slug": "abort-on-unreadable-partitions-in-st-load-parts",
+      "status": "idea",
+      "summary": "Abort instead of silently discarding unreadable partitions in st_load_parts",
+      "tags": [],
+      "title": "Abort instead of silently discarding unreadable partitions in st_load_parts",
+      "top_keywords": [
+        "partitions",
+        "abort",
+        "instead",
+        "silently",
+        "discarding",
+        "unreadable",
+        "st_load_parts",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#propagate-save-failures-in-st-write-parts",
+      "slug": "propagate-save-failures-in-st-write-parts",
+      "status": "idea",
+      "summary": "Propagate save failures in st_write_parts instead of downgrading them to warnings",
+      "tags": [],
+      "title": "Propagate save failures in st_write_parts instead of downgrading them to warnings",
+      "top_keywords": [
+        "propagate",
+        "failures",
+        "st_write_parts",
+        "instead",
+        "downgrading",
+        "warnings",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone",
+        "post-cran"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#scope-partition-expression-filters-to-baseenv",
+      "slug": "scope-partition-expression-filters-to-baseenv",
+      "status": "idea",
+      "summary": "Scope partition expression filters to baseenv and pre-validate filter variable names",
+      "tags": [],
+      "title": "Scope partition expression filters to baseenv and pre-validate filter variable names",
+      "top_keywords": [
+        "partition",
+        "scope",
+        "expression",
+        "filters",
+        "baseenv",
+        "pre-validate",
+        "filter",
+        "variable",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#replace-quadratic-reduce-rbind-in-partition-combine",
+      "slug": "replace-quadratic-reduce-rbind-in-partition-combine",
+      "status": "idea",
+      "summary": "Replace quadratic Reduce(rbind) with rbindlist in partition combine",
+      "tags": [],
+      "title": "Replace quadratic Reduce(rbind) with rbindlist in partition combine",
+      "top_keywords": [
+        "partition",
+        "replace",
+        "quadratic",
+        "reduce",
+        "rbind",
+        "rbindlist",
+        "combine",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#single-tree-walk-in-st-list-parts",
+      "slug": "single-tree-walk-in-st-list-parts",
+      "status": "idea",
+      "summary": "Replace six recursive tree walks with a single walk in st_list_parts",
+      "tags": [],
+      "title": "Replace six recursive tree walks with a single walk in st_list_parts",
+      "top_keywords": [
+        "replace",
+        "six",
+        "recursive",
+        "tree",
+        "walks",
+        "single",
+        "walk",
+        "st_list_parts",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#harden-partition-key-value-sanitation",
+      "slug": "harden-partition-key-value-sanitation",
+      "status": "idea",
+      "summary": "Harden partition key value sanitation for backslash, reserved names, NA and empty string",
+      "tags": [],
+      "title": "Harden partition key value sanitation for backslash, reserved names, NA and empty string",
+      "top_keywords": [
+        "partition",
+        "harden",
+        "sanitation",
+        "backslash",
+        "reserved",
+        "empty",
+        "string",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#preserve-partition-key-column-types-on-load",
+      "slug": "preserve-partition-key-column-types-on-load",
+      "status": "idea",
+      "summary": "Preserve partition key column types on load instead of flattening to character",
+      "tags": [],
+      "title": "Preserve partition key column types on load instead of flattening to character",
+      "top_keywords": [
+        "partition",
+        "preserve",
+        "column",
+        "types",
+        "instead",
+        "flattening",
+        "character",
+        "2026-09-28-cran-release-without-partitions.md",
+        "feature",
+        "milestone"
+      ]
+    },
+    {
+      "date": "",
+      "entity_type": "feature",
+      "path": "roadmap.json#wire-st-path-through-path-taking-functions",
+      "slug": "wire-st-path-through-path-taking-functions",
+      "status": "idea",
+      "summary": "Wire st_path() through all path-taking functions, then re-export",
+      "tags": [],
+      "title": "Wire st_path() through all path-taking functions, then re-export",
+      "top_keywords": [
+        "st_path",
+        "wire",
+        "path-taking",
+        "functions",
+        "re-export",
+        "2026-09-30-cran-release-without-partitions-review.md",
+        "feature",
+        "milestone",
+        "post-cran",
+        "public"
+      ]
+    }
+  ],
+  "entity_count": 35,
+  "generated": "2026-10-15",
+  "schema_version": "0.2.0",
+  "topic_count": 2,
+  "topics": [
+    {
+      "entity_count": 23,
+      "entity_paths": [
+        "roadmap.json#unexport-partition-api",
+        "roadmap.json#fix-rbuildignore-gaps",
+        "roadmap.json#rewrite-description-description",
+        "roadmap.json#fix-malformed-roxygen-in-version-store",
+        "roadmap.json#escape-angle-brackets-in-roxygen",
+        "roadmap.json#install-tinytex-for-local-pdf-manual-check",
+        "roadmap.json#validate-partitions-against-real-data",
+        "roadmap.json#settle-partition-api-semantics",
+        "roadmap.json#integrate-partitions-with-versioning-sidecars-and-retention",
+        "roadmap.json#benchmark-partition-performance",
+        "roadmap.json#re-export-partition-api",
+        "roadmap.json#fix-warned-formats-globalenv-leak",
+        "roadmap.json#fix-windows-case-folding-of-partition-keys",
+        "roadmap.json#use-drop-true-in-partition-split-and-interaction",
+        "roadmap.json#validate-partition-folder-key-against-contents",
+        "roadmap.json#abort-on-unreadable-partitions-in-st-load-parts",
+        "roadmap.json#propagate-save-failures-in-st-write-parts",
+        "roadmap.json#scope-partition-expression-filters-to-baseenv",
+        "roadmap.json#replace-quadratic-reduce-rbind-in-partition-combine",
+        "roadmap.json#single-tree-walk-in-st-list-parts",
+        "roadmap.json#harden-partition-key-value-sanitation",
+        "roadmap.json#preserve-partition-key-column-types-on-load",
+        "roadmap.json#wire-st-path-through-path-taking-functions"
+      ],
+      "keywords": [
+        "2026-09-28-cran-release-without-partitions.md",
+        "partition",
+        "partitions"
+      ],
+      "label": "2026-09-28-Cran-Release-Without-Partitions.Md / Partition / Partitions",
+      "slug": "2026-09-28-cran-release-without-partitions-md-partition-partitions"
+    },
+    {
+      "entity_count": 3,
+      "entity_paths": [
+        ".cg-docs/solutions/bugs/2026-10-02-docs-describe-nonexistent-api.md",
+        ".cg-docs/solutions/bugs/2026-10-02-st-opts-test-state-leak.md",
+        ".cg-docs/solutions/testing-patterns/2026-10-02-in-process-testthat-segfault.md"
+      ],
+      "keywords": [
+        "r cmd check",
+        "readme.rmd",
+        "_pkgdown.yml"
+      ],
+      "label": "R Cmd Check / Readme.Rmd / _Pkgdown.Yml",
+      "slug": "r-cmd-check-readme-rmd-pkgdown-yml"
+    }
+  ]
+}

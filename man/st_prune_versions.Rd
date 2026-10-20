@@ -7,7 +7,7 @@
 st_prune_versions(path = NULL, policy = Inf, dry_run = TRUE, alias = NULL)
 }
 \arguments{
-\item{path}{Optional character vector of artifact paths to restrict pruning.
+\item{path}{Optional character vector of artifact logical paths to restrict pruning.
 If NULL (default), applies the policy to all artifacts in the catalog.}
 
 \item{policy}{One of:
@@ -24,7 +24,10 @@ newer than \emph{days}; union of the two conditions)
 }
 \value{
 Invisibly, a data.frame of pruned (or would-prune) versions with
-columns: artifact_path, version_id, created_at, size_bytes.
+columns artifact_id, artifact_path, version_id, created_at, size_bytes,
+protected and reason. Protected candidates have reason
+\code{"execution_reference"}; other candidates have \code{"policy"}. Some no-op
+cases return an empty data.frame without columns.
 }
 \description{
 Prune stored versions according to a retention policy
@@ -52,7 +55,7 @@ condition is applied on this order.
 \strong{Dry runs vs destructive mode.} With \code{dry_run = TRUE}, the function only
 reports what \emph{would} be pruned (and estimates reclaimed space). With
 \code{dry_run = FALSE}, it deletes the snapshot directories under
-\verb{<state_dir>/versions/...} and updates the catalog accordingly:
+each artifact's \verb{versions/} folder and updates the catalog accordingly:
 \itemize{
 \item removes rows from the \code{versions} table,
 \item adjusts each artifact’s \code{n_versions} and \code{latest_version_id}
@@ -70,6 +73,12 @@ right after \code{st_save()} for the just-written artifact (keep-all is the defa
 \item Pruning never touches the \strong{live artifact files} (\code{A.qs}, etc.) — only the
 stored version snapshots and catalog entries.
 \item Use \code{dry_run = TRUE} first to verify what would be removed.
+\item Committed records protect output/parent pins and retained original ancestry.
+Before applying a path-filtered deletion, the relevant alias-wide proof is
+validated. Invalid proof or a protected selection causes refusal before any
+deletion. Automatic save-time retention uses the same protection.
+\item Committed execution records themselves are retained; receipt garbage
+collection is not provided.
 }
 }
 \examples{

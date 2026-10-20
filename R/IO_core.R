@@ -200,8 +200,12 @@ print.st_path <- function(x, ...) {
 #'   - A path with directory (e.g., `"results/model.rds"`) → saved to `<alias_root>/results/model.rds/model.rds`
 #'   When using a path with directory and an explicit `alias`, the alias root must be
 #'   a parent of the path, otherwise an error is raised.
-#' @param format optional format override ("qs2" | "rds" | "csv" | "fst" | "json")
-#' @param metadata named list of extra metadata (merged into sidecar)
+#' @param format Optional registered format identifier. With a request, NULL
+#'   uses its exact, case-sensitive identifier; a different explicit format
+#'   errors. Without a request, legacy extension/default precedence applies.
+#' @param metadata Named list of extra metadata. Modern saves require unique,
+#'   nonempty names and reject stamp-owned keys. Declared semantic fields must
+#'   match the request exactly; other descriptive fields do not affect equality.
 #' @param code Optional function/expression/character whose hash is stored as `code_hash`.
 #' @param parents Optional list of parent descriptors:
 #'   `list(list(path = "<path>", version_id = "<id>"), ...)`.
@@ -210,13 +214,32 @@ print.st_path <- function(x, ...) {
 #' @param domain optional character scalar or vector label(s) for the dataset
 #' @param unique logical; enforce uniqueness of pk at save time (default TRUE)
 #' @param ... forwarded to format writer
+#' @param request Optional complete execution request. Exact-name-only after
+#'   `...`; its registered physical format and semantic proof must match the
+#'   save. See [st_plan_rebuild()] for the record schema. Exact parent pins must
+#'   have persisted valid byte checksums. A raw save never publishes a receipt.
+#' @param semantic_schema Optional named semantic field descriptors. Changes to
+#'   declared types, shapes or values create a new immutable version even when
+#'   data are equal. Descriptive-only edits on unchanged saves are ignored.
+#'   Each descriptor has exactly `type` (`logical`, `integer`, `double` or
+#'   `character`), `shape` (`scalar` or `vector`), and nonmissing logical scalar
+#'   flags `required`, `nullable`, `allow_na`. Scalars have length one; vectors
+#'   may be empty. No type coercion, classed/nested values, NaN or infinities are
+#'   accepted. Optional absence, explicit NULL, typed NA and empty vectors are
+#'   distinct. NULL preserves legacy/descriptive behavior unless a request
+#'   supplies the schema. This argument is also exact-name-only after `...`.
 #' @param verbose logical; if `FALSE`, suppress informational messages and package-generated
 #'   warnings (default TRUE). When `FALSE`, messages about skipped saves or save
 #'   failures emitted by `st_save()` will not be shown.
 #' @param alias Optional stamp alias to target a specific stamp folder.
 #'   If `NULL` (default), uses the default alias. If the default alias does not
 #'   exist, an error is raised. Use aliases to operate across multiple stamp folders.
-#' @return invisibly, a list with path, metadata, and version_id (or skipped=TRUE)
+#' @return Invisibly, a new-save list with `path`, `metadata` and `version_id`.
+#'   An unchanged save returns `path`, `skipped = TRUE`, `reason` and a validated
+#'   retained `version_id`, with no receipt or descriptive metadata rewrite.
+#'   Request-aware and
+#'   semantic-schema-enabled save failures propagate; the legacy write-error
+#'   route may return NULL metadata/version_id rather than a successful save.
 #' @export
 st_save <- function(
   x,
@@ -231,7 +254,9 @@ st_save <- function(
   unique = TRUE,
   verbose = TRUE,
   alias = NULL,
-  ...
+  ...,
+  request = NULL,
+  semantic_schema = NULL
 ) {
   # Input validation for verbose
   stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
@@ -249,6 +274,19 @@ st_save <- function(
   storage_path <- norm$storage_path
   versioning_alias <- norm$alias
   rel_path <- norm$rel_path
+
+  modern <- !is.null(request) || !is.null(semantic_schema)
+  semantic <- NULL
+  if (modern) {
+    inputs <- .st_save_inputs(
+      norm, request, semantic_schema, metadata, format, parents
+    )
+    request <- inputs$request
+    semantic <- inputs$semantic
+    semantic_schema <- semantic$schema
+    format <- inputs$format
+    if (!is.null(request)) parents <- request$parents
+  }
 
   # Primary-key handling for tabular objects
   if (!is.null(pk)) {
@@ -305,25 +343,41 @@ st_save <- function(
     .st_with_lock(storage_path, {
       # Change detection reads the live payload; serialize it with replacement.
       dec <- tryCatch({
-        if (isTRUE(verbose)) {
+        if (!modern && isTRUE(verbose)) {
           st_should_save(rel_path, x = x, code = code,
                          alias = versioning_alias)
-        } else {
+        } else if (!modern) {
           suppressWarnings(st_should_save(
             rel_path, x = x, code = code, alias = versioning_alias
+          ))
+        } else if (isTRUE(verbose)) {
+          st_should_save(rel_path, x = x, code = code,
+                         alias = versioning_alias, request = request,
+                         semantic_schema = semantic_schema, metadata = metadata)
+        } else {
+          suppressWarnings(st_should_save(
+            rel_path, x = x, code = code, alias = versioning_alias,
+            request = request, semantic_schema = semantic_schema,
+            metadata = metadata
           ))
         }
       }, error = function(e) {
         decision_error <<- e
         stop(e)
       })
+      if (modern && !dec$save &&
+          !identical(st_read_sidecar(rel_path, alias = versioning_alias)$format,
+                     fmt)) {
+        dec <- list(save = TRUE, reason = "format_changed")
+      }
       if (!dec$save) {
         if (isTRUE(verbose)) {
           cli::cli_inform(c(
             "v" = "Skip save (reason: {.field {dec$reason}}) for {.file {logical_path}}"
           ))
         }
-        list(path = logical_path, skipped = TRUE, reason = dec$reason)
+        list(path = logical_path, skipped = TRUE, reason = dec$reason,
+             version_id = .st_save_retained_pin(rel_path, versioning_alias))
       } else {
       # 1) Atomic artifact write (overwrite-in-place policy lives here)
       .st_write_atomic(
@@ -372,7 +426,8 @@ st_save <- function(
           } else {
             NA_character_
           },
-          file_hash = if (isTRUE(st_opts("store_file_hash", .get = TRUE))) {
+          file_hash = if (modern ||
+                          isTRUE(st_opts("store_file_hash", .get = TRUE))) {
             st_hash_file(storage_path)
           } else {
             NA_character_
@@ -383,6 +438,25 @@ st_save <- function(
         ),
         metadata[names(metadata) != "attrs"]
       )
+      if (modern && !is.null(semantic$schema)) {
+        meta$semantic <- list(
+          schema = 1L,
+          definition = .st_proof_encode(semantic$schema),
+          values = .st_proof_encode(semantic$values)
+        )
+      }
+      if (!is.null(request)) {
+        meta$execution <- list(
+          schema = 1L, request = .st_proof_encode(request)
+        )
+      }
+      if (modern) {
+        meta$attrs$stamp <- list(
+          protocol = "stamp-sidecar-v1",
+          semantic = !is.null(semantic$schema), execution = !is.null(request),
+          sidecars = st_opts("meta_format", .get = TRUE) %||% "json"
+        )
+      }
 
       # Mirror PK/domain from the object into sidecar when applicable
       if (is.data.frame(x_sanitized)) {
@@ -397,22 +471,9 @@ st_save <- function(
       # 3) Sidecar write (should be atomic inside the helper)
       .st_write_sidecar(rel_path, meta, alias = versioning_alias)
 
-      # Finish the snapshot before publishing a catalog pointer to it. Keep the
-      # existing catalog ID formula unchanged for persisted-store compatibility.
-      vid <- secretbase::siphash13(paste(
-        .st_artifact_id(logical_path),
-        meta$content_hash %||% "",
-        meta$code_hash %||% "",
-        meta$created_at %||% "",
-        sep = "|"
-      ))
-      .st_version_commit_files(
-        rel_path,
-        vid,
-        parents = parents,
-        alias = versioning_alias
-      )
-      recorded_vid <- .st_catalog_record_version(
+      # Allocate the immutable ID and finish its snapshot under the catalog
+      # lock before publishing the pointer, including same-clock collisions.
+      vid <- .st_catalog_record_version(
         artifact_path = logical_path,
         format = fmt,
         size_bytes = meta$size_bytes,
@@ -424,14 +485,23 @@ st_save <- function(
           alias = versioning_alias
         ),
         alias = versioning_alias,
-        parents = parents
+        parents = parents,
+        commit_files = function(version_id) {
+          .st_version_commit_files(
+            rel_path, version_id, parents = parents, alias = versioning_alias
+          )
+        }
       )
-      if (!identical(recorded_vid, vid)) {
-        cli::cli_abort("Catalog did not confirm the committed version ID.")
+      if (!is.character(vid) || length(vid) != 1L || is.na(vid) || !nzchar(vid)) {
+        cli::cli_abort("Save did not return a valid committed version ID.")
       }
 
       # 5) Optional retention for this artifact
       .st_apply_retention(rel_path, alias = versioning_alias)
+      if (modern &&
+          !identical(.st_save_retained_pin(rel_path, versioning_alias), vid)) {
+        cli::cli_abort("Saved version is not available after retention.")
+      }
 
       if (isTRUE(verbose)) {
         cli::cli_inform(c(
@@ -442,6 +512,7 @@ st_save <- function(
       }
     }),
     error = function(e) {
+      if (modern) stop(e)
       # Decision errors propagated before locking; retain that error policy.
       if (!is.null(decision_error)) stop(decision_error)
       # Best-effort: surface a warning and allow the function to fall back
@@ -1049,15 +1120,142 @@ st_changed_reason <- function(
 #' Uses versioning policy and code-change rule.
 #' @inheritParams st_changed
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#' @return `list(save = <lgl>, reason = <chr>, latest_version_id = <chr or NA>)`
+#' @param request Optional complete requested proof for the supplied result.
+#'   Invalid or incomparable proof raises `stamp_blocked_request` before writes.
+#'   This is a save comparator, not permission to skip builder execution or a
+#'   replacement for durable failure gates in [st_rebuild()].
+#' @param semantic_schema Optional named semantic field descriptors.
+#' @param metadata Named metadata list supplying declared semantic values.
+#' @return A list with `save` and `reason`. Request-aware results additionally
+#'   contain `latest_version_id` (a validated character pin on skip, otherwise
+#'   a character pin or `NA_character_`) and `decision` (`"run"` or `"skip"`).
+#'   Blocked requests raise `stamp_blocked_request` carrying `decision =
+#'   "blocked"` and `reason`, never a successful result/output pin. NULL request
+#'   preserves the legacy return shape.
 #' @export
 # Returns list(save, reason)
-st_should_save <- function(path, x = NULL, code = NULL, alias = NULL) {
+st_should_save <- function(path, x = NULL, code = NULL, alias = NULL,
+                           request = NULL, semantic_schema = NULL,
+                           metadata = list()) {
   # Normalize path
   norm <- .st_normalize_user_path(path, alias = alias, must_exist = FALSE)
   storage_path <- norm$storage_path
   rel_path <- norm$rel_path
   versioning_alias <- norm$alias
+
+  if (!is.null(request) || !is.null(semantic_schema)) {
+    inputs <- .st_save_inputs(norm, request, semantic_schema, metadata)
+    request <- inputs$request
+    result <- function(save, reason, pin = NA_character_) {
+      out <- list(save = save, reason = reason)
+      if (!is.null(request)) {
+        out$latest_version_id <- pin
+        out$decision <- if (save) "run" else "skip"
+      }
+      return(out)
+    }
+    if (!fs::file_exists(storage_path)) {
+      previous <- st_latest(rel_path, alias = versioning_alias)
+      if (!is.na(previous)) {
+        tryCatch(
+          .st_execution_validate_pin(rel_path, previous, versioning_alias),
+          error = function(e) {
+            if (!is.null(request)) {
+              .st_save_block("invalid_state", conditionMessage(e))
+            }
+            stop(e)
+          }
+        )
+      }
+      return(result(TRUE, "missing_artifact"))
+    }
+    meta <- tryCatch(
+      st_read_sidecar(rel_path, alias = versioning_alias),
+      error = function(e) {
+        if (!is.null(request)) {
+          .st_save_block("invalid_state", conditionMessage(e))
+        }
+        stop(e)
+      }
+    )
+    if (is.na(st_latest(rel_path, alias = versioning_alias))) {
+      return(result(TRUE, "missing_saved_proof"))
+    }
+    pin <- tryCatch(
+      .st_save_retained_pin(rel_path, versioning_alias),
+      error = function(e) {
+        if (!is.null(request)) {
+          .st_save_block("invalid_state", conditionMessage(e))
+        }
+        stop(e)
+      }
+    )
+    if (is.null(meta)) {
+      if (!is.null(request)) {
+        .st_save_block("invalid_state", "Required current metadata are absent.")
+      }
+      cli::cli_abort("Required current metadata are absent.")
+    }
+    old_semantic <- if (!.st_sidecar_is_modern(meta) ||
+                         !meta$attrs$stamp$semantic) {
+      list(schema = NULL, values = list())
+    } else {
+      list(schema = .st_proof_decode(meta$semantic$definition),
+           values = .st_proof_decode(meta$semantic$values))
+    }
+    saved <- NULL
+    if (!is.null(request) && .st_sidecar_is_modern(meta) &&
+        meta$attrs$stamp$execution) {
+      saved <- tryCatch(
+        .st_request_normalize(
+          .st_proof_decode(meta$execution$request), alias = versioning_alias
+        ),
+        error = function(e) .st_save_block("invalid_state", conditionMessage(e))
+      )
+      if (!identical(saved$path, as.character(norm$logical_path)) ||
+          !identical(saved$format, meta$format) ||
+          !identical(saved$semantic_schema, old_semantic$schema) ||
+          !identical(saved$semantic, old_semantic$values) ||
+          !identical(saved$parents, .st_parents_normalize(meta$parents))) {
+        .st_save_block("invalid_state", "Saved request and sidecar disagree.")
+      }
+      common <- intersect(names(saved$components), names(request$components))
+      for (name in common) {
+        old <- saved$components[[name]]
+        new <- request$components[[name]]
+        if (!identical(old$algorithm, new$algorithm) ||
+            !identical(old$schema, new$schema)) {
+          .st_save_block("incomparable_proof", "Component proofs disagree.")
+        }
+      }
+    }
+    if (!identical(inputs$semantic, old_semantic)) {
+      return(result(TRUE, "semantic_changed", pin))
+    }
+    if (!is.null(request)) {
+      if (!identical(meta$format, request$format)) {
+        return(result(TRUE, "format_changed", pin))
+      }
+      if (is.null(saved)) {
+        return(result(TRUE, "missing_saved_proof", pin))
+      }
+      if (!identical(saved$components, request$components) ||
+          !identical(saved$required_components, request$required_components)) {
+        return(result(TRUE, "request_changed", pin))
+      }
+    }
+    changed <- if (missing(x)) {
+      st_changed(path, code = code, mode = "any", alias = versioning_alias)
+    } else {
+      st_changed(path, x = x, code = code, mode = "any",
+                 alias = versioning_alias)
+    }
+    if (changed$changed) return(result(TRUE, changed$reason, pin))
+    if (identical(st_opts("versioning", .get = TRUE), "timestamp")) {
+      return(result(TRUE, "policy_timestamp", pin))
+    }
+    return(result(FALSE, "no_change_policy", pin))
+  }
 
   # First write always allowed
   if (!fs::file_exists(storage_path)) {
@@ -1094,6 +1292,67 @@ st_should_save <- function(path, x = NULL, code = NULL, alias = NULL) {
 
   # default: no change → skip
   list(save = FALSE, reason = "no_change_policy")
+}
+
+.st_save_block <- function(reason, message) {
+  cli::cli_abort(message, class = "stamp_blocked_request",
+                 decision = "blocked", reason = reason)
+}
+
+.st_save_retained_pin <- function(path, alias) {
+  pin <- st_latest(path, alias = alias)
+  if (!is.character(pin) || length(pin) != 1L || is.na(pin) || !nzchar(pin)) {
+    cli::cli_abort("No validated retained version is available.")
+  }
+  binding <- .st_execution_validate_pin(path, pin, alias = alias)
+  if (!.st_execution_current(binding)) {
+    cli::cli_abort("Current storage disagrees with the retained version.")
+  }
+  return(pin)
+}
+
+.st_save_inputs <- function(norm, request, semantic_schema, metadata,
+                            format = NULL, parents = NULL) {
+  if (!is.null(request)) {
+    request <- .st_request_normalize(request, alias = norm$alias)
+    if (!identical(request$path, as.character(norm$logical_path))) {
+      .st_save_block("invalid_request", "Request path differs from save path.")
+    }
+    if (!is.null(format) && !identical(format, request$format)) {
+      .st_save_block("invalid_request", "Save format differs from request.")
+    }
+    format <- request$format
+    if (!is.null(parents)) {
+      explicit <- request
+      explicit$parents <- parents
+      explicit$root <- length(parents) == 0L
+      explicit <- .st_request_normalize(explicit, alias = norm$alias)
+      if (!identical(explicit$parents, request$parents)) {
+        .st_save_block("invalid_request", "Save parents differ from request.")
+      }
+    }
+    if (!is.null(semantic_schema)) {
+      declared <- .st_semantic_validate(semantic_schema, metadata)
+      if (!identical(declared$schema, request$semantic_schema)) {
+        .st_save_block("invalid_request", "Save semantic schema differs.")
+      }
+    }
+    semantic_schema <- request$semantic_schema
+  }
+  semantic <- .st_semantic_validate(semantic_schema, metadata)
+  if (!is.null(request)) {
+    if (!identical(semantic$values, request$semantic)) {
+      .st_save_block("invalid_request", "Save semantic values differ.")
+    }
+    for (parent in request$parents) {
+      tryCatch(
+        .st_execution_validate_pin(parent$path, parent$version_id,
+                                   alias = norm$alias, require_checksum = TRUE),
+        error = function(e) .st_save_block("missing_parent", conditionMessage(e))
+      )
+    }
+  }
+  return(list(request = request, semantic = semantic, format = format))
 }
 
 #' @keywords internal
