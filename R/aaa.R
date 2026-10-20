@@ -154,15 +154,33 @@ st_state_get <- function(key, default = NULL) {
 #' Normalize path for platform-aware comparison (internal)
 #' @keywords internal
 .st_normalize_path <- function(path) {
+  path <- as.character(fs::path_norm(path))
   if (.Platform$OS.type == "windows") {
-    tolower(normalizePath(
-      as.character(path),
-      winslash = "/",
-      mustWork = FALSE
-    ))
-  } else {
-    as.character(path)
+    path <- vapply(path, function(p) {
+      if (is.na(p)) {
+        return(NA_character_)
+      }
+      # normalizePath cannot expand 8.3 names if any component is missing.
+      # Canonicalize the existing ancestor, then restore the missing tail.
+      ancestor <- p
+      tail <- character()
+      while (!file.exists(ancestor)) {
+        parent <- as.character(fs::path_dir(ancestor))
+        if (identical(parent, ancestor)) {
+          break
+        }
+        tail <- c(as.character(fs::path_file(ancestor)), tail)
+        ancestor <- parent
+      }
+      canonical <- normalizePath(ancestor, winslash = "/", mustWork = FALSE)
+      for (part in tail) {
+        canonical <- fs::path(canonical, part)
+      }
+      as.character(fs::path_norm(canonical))
+    }, character(1), USE.NAMES = FALSE)
+    path <- tolower(path)
   }
+  return(path)
 }
 
 #' Helper: produce an absolute path safely (internal)

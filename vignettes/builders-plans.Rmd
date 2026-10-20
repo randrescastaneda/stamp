@@ -56,7 +56,7 @@ set.seed(123)
 
 ## Minimal example (single-target)
 
-```{r single-target}
+```{r single-target, eval=FALSE}
 # Suppose we have a summary target path
 summary_path <- "outputs/welfare_summary.qs2"
 
@@ -103,7 +103,7 @@ If your target depends on multiple functions (e.g. `bar()` calls helpers
 `h1()` and `h2()`), include them explicitly in `code` so `st_save()` computes a
 combined hash that changes if any helper changes:
 
-```{r code-multi}
+```{r code-multi, eval=FALSE}
 # Good: include all contributing functions
 st_save(
   x,
@@ -152,7 +152,7 @@ but regenerate the plan after changing recipes instead of editing its internals.
 
 Example (pseudo-inspection):
 
-```{r plan-inspect}
+```{r plan-inspect, eval=FALSE}
 plan <- st_plan_rebuild(targets = summary_path, include_targets = TRUE)
 # Show targets that are stale
 plan[c("path", "reason")]

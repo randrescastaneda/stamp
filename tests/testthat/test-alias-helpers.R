@@ -88,3 +88,118 @@ test_that("st_switch re-bases default alias and affects calls without alias", {
 
   expect_error(st_switch("nope"), regexp = "Alias not found")
 })
+
+test_that("missing descendants normalize like their existing ancestor", {
+  td <- withr::local_tempdir()
+  root <- fs::path(td, "Stamp Mixed Case Root")
+  fs::dir_create(root)
+  root_spelling <- as.character(root)
+  expected_root <- as.character(fs::path_norm(root))
+  if (.Platform$OS.type == "windows") {
+    root_spelling <- utils::shortPathName(root_spelling)
+    expected_root <- tolower(normalizePath(root, winslash = "/"))
+  }
+  missing <- fs::path(root_spelling, "Missing", "Nested", "Leaf.rds")
+  expected <- as.character(fs::path(expected_root, "Missing/Nested/Leaf.rds"))
+  if (.Platform$OS.type == "windows") {
+    expected <- tolower(expected)
+  }
+
+  expect_false(file.exists(missing))
+  expect_identical(
+    stamp:::.st_normalize_path(c(root_spelling, missing, NA_character_)),
+    c(expected_root, expected, NA_character_)
+  )
+  expect_identical(stamp:::.st_normalize_path(character()), character())
+  fs::dir_create(fs::path_dir(missing))
+  expect_identical(stamp:::.st_normalize_path(missing), expected)
+  fs::file_create(missing)
+  expect_identical(stamp:::.st_normalize_path(missing), expected)
+  if (.Platform$OS.type != "windows") {
+    expect_false(identical(
+      stamp:::.st_normalize_path(fs::path(root, "Case.rds")),
+      stamp:::.st_normalize_path(fs::path(root, "case.rds"))
+    ))
+  }
+})
+
+test_that("absolute missing children route to named aliases without a default", {
+  local_stamp_state()
+  rlang::env_unbind(
+    stamp:::.stamp_aliases, rlang::env_names(stamp:::.stamp_aliases)
+  )
+  local_st_opts(default_format = "rds", warn_missing_pk_on_load = FALSE)
+  td <- withr::local_tempdir()
+  root <- fs::path(td, "Stamp Mixed Case Root")
+  fs::dir_create(root)
+  root_spelling <- as.character(root)
+  if (.Platform$OS.type == "windows") {
+    root_spelling <- utils::shortPathName(root_spelling)
+  }
+  path <- fs::path(root_spelling, "missing", "nested", "leaf.rds")
+  expect_null(stamp:::.st_detect_alias_from_path(path))
+  expect_error(stamp:::.st_normalize_user_path(path), "No stamp folder")
+  st_init(root, alias = "named_root", verbose = FALSE)
+  expect_null(st_alias_get("default"))
+  expect_identical(stamp:::.st_detect_alias_from_path(path), "named_root")
+  expect_true(stamp:::.st_path_matches_alias(path, "named_root"))
+  expect_identical(
+    stamp:::.st_normalize_user_path(path)$alias, "named_root"
+  )
+  expect_identical(
+    stamp:::.st_normalize_user_path(path, alias = "named_root")$rel_path,
+    "missing/nested/leaf.rds"
+  )
+  relative <- stamp:::.st_normalize_user_path(
+    "relative.rds", alias = "named_root"
+  )
+  expect_identical(relative$rel_path, "relative.rds")
+  expect_error(
+    stamp:::.st_normalize_user_path(
+      path, alias = "named_root", must_exist = TRUE
+    ),
+    "does not exist"
+  )
+
+  saved <- st_save(data.frame(x = 1:3), path, verbose = FALSE)
+  expect_true(is.list(saved))
+  expect_identical(st_load(path, alias = "named_root")$x, 1:3)
+  st_init(fs::path(td, "other"), verbose = FALSE)
+  another <- fs::path(root_spelling, "still", "missing", "leaf.rds")
+  expect_identical(
+    stamp:::.st_normalize_user_path(another)$alias, "named_root"
+  )
+})
+
+test_that("canonical alias matching rejects sibling and traversal escapes", {
+  local_stamp_state()
+  rlang::env_unbind(
+    stamp:::.stamp_aliases, rlang::env_names(stamp:::.stamp_aliases)
+  )
+  td <- withr::local_tempdir()
+  root <- fs::path(td, "Stamp Mixed Case Root")
+  fs::dir_create(root)
+  st_init(root, alias = "bounded_root", verbose = FALSE)
+  root_spelling <- as.character(root)
+  if (.Platform$OS.type == "windows") {
+    root_spelling <- utils::shortPathName(root_spelling)
+  }
+  outside <- c(
+    as.character(fs::path(paste0(root, "-sibling"), "missing/leaf.rds")),
+    paste0(root_spelling, "/../outside/missing/leaf.rds")
+  )
+  for (path in outside) {
+    expect_false(stamp:::.st_path_matches_alias(path, "bounded_root"))
+    expect_null(stamp:::.st_detect_alias_from_path(path))
+    expect_error(
+      stamp:::.st_normalize_user_path(path, alias = "bounded_root"),
+      "not under alias root"
+    )
+  }
+  for (path in list(NA_character_, character(), "", c("a", "b"))) {
+    expect_error(
+      stamp:::.st_normalize_user_path(path, alias = "bounded_root"),
+      "non-missing, non-empty character scalar"
+    )
+  }
+})
