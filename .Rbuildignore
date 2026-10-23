@@ -18,6 +18,7 @@
 ^build_vignettes\.R$
 ^\.current_task$
 ^\.cg-docs$
+^\.clickup$
 ^\.kilo$
 ^\.quarto$
 ^\.Rhistory$

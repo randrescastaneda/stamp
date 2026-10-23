@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "stamp",
+  "objective": "Deliver the stamp R package with verified behavior, documentation, and tests.",
+  "clickup": {
+    "workspace_id": "37469623",
+    "list_id": "901103090146",
+    "root_task_ids": [
+      "8676zwauh"
+    ]
+  },
+  "github": {
+    "repository": "randrescastaneda/stamp",
+    "base_branch": "master",
+    "status_map": {
+      "in_progress": "in progress",
+      "review": "in review",
+      "done": "done"
+    },
+    "require_checks": true
+  },
+  "routing": {
+    "prefer": [
+      "official",
+      "github-cli"
+    ]
+  }
+}
