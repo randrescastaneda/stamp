@@ -6,7 +6,7 @@
 \alias{stamp-package}
 \title{stamp: Reproducible Artifact Store with Sidecars and Version History}
 \description{
-Saves R objects with sidecar metadata (hashes, provenance, primary keys), keeps an immutable version history, and prunes old versions, so that analytical outputs remain traceable and reproducible across sessions.
+Stores 'R' objects with sidecar metadata, including hashes, provenance, and primary keys. Keeps an immutable version history and removes older versions according to retention policies. Tracks changes and dependencies so that analytical outputs remain traceable and reproducible across sessions.
 }
 \seealso{
 Useful links:
@@ -18,12 +18,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: R.Andres Castaneda \email{acastanedaa@worldbank.org} (\href{https://orcid.org/0000-0003-1154-1374}{ORCID})
+\strong{Maintainer}: R.Andres Castaneda \email{acastanedaa@worldbank.org} (\href{https://orcid.org/0000-0003-1154-1374}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
-  \item R.Andres Castaneda \email{acastanedaa@worldbank.org} (\href{https://orcid.org/0000-0003-1154-1374}{ORCID})
-  \item Diana C. Garcia Rojas \email{dgarciarojas@worldbank.org} (\href{https://orcid.org/0000-0001-9423-3865}{ORCID})
+  \item R.Andres Castaneda \email{acastanedaa@worldbank.org} (\href{https://orcid.org/0000-0003-1154-1374}{ORCID}) [copyright holder]
+  \item Diana C. Garcia Rojas \email{dgarciarojas@worldbank.org} (\href{https://orcid.org/0000-0001-9423-3865}{ORCID}) [copyright holder]
 }
 
 }
