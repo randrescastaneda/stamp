@@ -36,6 +36,11 @@ Only validated successful or reused outputs have a usable version_id.
 Rebuild planned artifacts in dependency order
 }
 \details{
+On the legacy route, a selected parent that fails or is blocked prevents its
+dependents from running or publishing versions. Such dependents report
+\code{blocked} with \code{msg = "failed_parent"} and no usable version ID. Independent
+branches can still rebuild.
+
 Request-aware execution revalidates each candidate after actual upstream
 results. A changed parent alone can require an actual builder call while
 retaining equal output and publishing a new receipt; original snapshot

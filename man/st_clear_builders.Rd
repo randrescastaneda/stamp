@@ -9,6 +9,14 @@ st_clear_builders(path = NULL)
 \arguments{
 \item{path}{Optional character path; if provided, only builders for that path are removed.}
 }
+\value{
+Invisibly, \code{TRUE} after removing the selected registrations.
+}
 \description{
 Clear all builders (or only those for a given path)
+}
+\examples{
+path <- tempfile(fileext = ".rds")
+st_register_builder(path, function(path, parents) list(x = 1L))
+st_clear_builders(path)
 }

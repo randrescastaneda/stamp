@@ -70,6 +70,11 @@ st_builders <- function() {
 
 #' Clear all builders (or only those for a given path)
 #' @param path Optional character path; if provided, only builders for that path are removed.
+#' @return Invisibly, `TRUE` after removing the selected registrations.
+#' @examples
+#' path <- tempfile(fileext = ".rds")
+#' st_register_builder(path, function(path, parents) list(x = 1L))
+#' st_clear_builders(path)
 #' @export
 st_clear_builders <- function(path = NULL) {
   if (is.null(path)) {
@@ -93,6 +98,20 @@ st_clear_builders <- function(path = NULL) {
 
 # ---- Internal helpers --------------------------------------------------------
 
+.st_rebuild_path <- function(path) {
+  vapply(
+    as.character(path),
+    function(p) {
+      if (!fs::is_absolute_path(p)) {
+        p <- .st_normalize_user_path(p, verbose = FALSE)$logical_path
+      }
+      .st_normalize_path(p)
+    },
+    character(1),
+    USE.NAMES = FALSE
+  )
+}
+
 # Read committed parents for the latest version dir; if missing and this is
 # a first-level convenience, caller may choose to fall back to sidecar parents.
 .st_committed_parents_latest <- function(path, alias = NULL) {
@@ -108,7 +127,9 @@ st_clear_builders <- function(path = NULL) {
   pars <- .st_version_read_parents(vdir)
   # normalize data.frame -> list(list(path=..., version_id=...))
   if (is.data.frame(pars)) {
-    if (!nrow(pars)) return(list())
+    if (!nrow(pars)) {
+      return(list())
+    }
     pars <- lapply(seq_len(nrow(pars)), function(i) {
       as.list(pars[i, , drop = FALSE])
     })
@@ -132,7 +153,9 @@ st_clear_builders <- function(path = NULL) {
   }
   pars <- sc$parents
   if (is.data.frame(pars)) {
-    if (!nrow(pars)) return(list())
+    if (!nrow(pars)) {
+      return(list())
+    }
     pars <- lapply(seq_len(nrow(pars)), function(i) {
       as.list(pars[i, , drop = FALSE])
     })
@@ -175,6 +198,11 @@ st_clear_builders <- function(path = NULL) {
 #'   Their statuses are built, unchanged, skipped, blocked, failed and dry_run.
 #'   Only validated successful or reused outputs have a usable version_id.
 #' @details
+#' On the legacy route, a selected parent that fails or is blocked prevents its
+#' dependents from running or publishing versions. Such dependents report
+#' `blocked` with `msg = "failed_parent"` and no usable version ID. Independent
+#' branches can still rebuild.
+#'
 #' Request-aware execution revalidates each candidate after actual upstream
 #' results. A changed parent alone can require an actual builder call while
 #' retaining equal output and publishing a new receipt; original snapshot
@@ -232,8 +260,14 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
     env_list <- as.list(.st_builders_env)
     for (nm in names(env_list)) {
       rec <- env_list[[nm]]
-      if (identical(.st_normalize_path(rec$path),
-                    .st_normalize_path(.st_norm_path(p)))) return(rec$fun)
+      if (
+        identical(
+          .st_rebuild_path(rec$path),
+          .st_rebuild_path(p)
+        )
+      ) {
+        return(rec$fun)
+      }
     }
     stop(
       sprintf(
@@ -245,6 +279,7 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
   }
 
   results <- vector("list", nrow(plan))
+  unsuccessful <- character()
   by_level <- split(seq_len(nrow(plan)), plan$level)
 
   for (lvl in sort(as.integer(names(by_level)))) {
@@ -276,6 +311,29 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
         next
       }
 
+      if (
+        any(vapply(
+          pars,
+          function(parent) {
+            .st_rebuild_path(parent$path) %in% unsuccessful
+          },
+          logical(1)
+        ))
+      ) {
+        cli::cli_inform("   BLOCKED: selected parent did not rebuild")
+        results[[i]] <- data.frame(
+          level = plan$level[[i]],
+          path = p,
+          reason = reason,
+          status = "blocked",
+          version_id = NA_character_,
+          msg = "failed_parent",
+          stringsAsFactors = FALSE
+        )
+        unsuccessful <- c(unsuccessful, .st_rebuild_path(p))
+        next
+      }
+
       fun <- NULL
       err <- NULL
       built <- NULL
@@ -302,6 +360,7 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
           msg = msg,
           stringsAsFactors = FALSE
         )
+        unsuccessful <- c(unsuccessful, .st_rebuild_path(p))
         next
       }
 
@@ -326,6 +385,7 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
           msg = msg,
           stringsAsFactors = FALSE
         )
+        unsuccessful <- c(unsuccessful, .st_rebuild_path(p))
         next
       }
 
@@ -360,6 +420,7 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
           msg = msg,
           stringsAsFactors = FALSE
         )
+        unsuccessful <- c(unsuccessful, .st_rebuild_path(p))
         next
       }
 
@@ -472,7 +533,7 @@ st_plan_rebuild <- function(
   )
   targets <- unique(as.character(targets))
 
-  norm <- function(p) .st_norm_path(p)
+  norm <- .st_rebuild_path
 
   planned_paths <- character(0)
   planned_rows <- list()
@@ -501,7 +562,7 @@ st_plan_rebuild <- function(
     }
   }
 
-  frontier <- unique(targets)
+  frontier <- norm(targets)
   visited <- character()
   level <- 1L
 
@@ -616,17 +677,27 @@ st_plan_rebuild <- function(
   # Promote children only after all scheduled parents have been resolved.
   dependencies <- lapply(out$path, function(p) {
     pars <- .st_committed_parents_latest(p)
-    if (!length(pars)) pars <- .st_sidecar_parents(p)
-    intersect(vapply(pars, function(pp) norm(pp$path), character(1)),
-              norm(out$path))
+    if (!length(pars)) {
+      pars <- .st_sidecar_parents(p)
+    }
+    intersect(
+      vapply(pars, function(pp) norm(pp$path), character(1)),
+      norm(out$path)
+    )
   })
   pending <- seq_len(nrow(out))
   resolved <- character()
   while (length(pending)) {
-    ready <- pending[vapply(dependencies[pending], function(pars) {
-      all(pars %in% resolved)
-    }, logical(1))]
-    if (!length(ready)) break # Cycles have no dependency-safe order.
+    ready <- pending[vapply(
+      dependencies[pending],
+      function(pars) {
+        all(pars %in% resolved)
+      },
+      logical(1)
+    )]
+    if (!length(ready)) {
+      break
+    } # Cycles have no dependency-safe order.
     for (i in ready) {
       parent_rows <- match(dependencies[[i]], norm(out$path))
       if (length(parent_rows)) {
@@ -641,57 +712,88 @@ st_plan_rebuild <- function(
 
 # Validate identities and cycles before selection, execution or any write.
 .st_rebuild_graph <- function(requests) {
-  if (!is.list(requests) || is.object(requests) ||
-      !is.null(names(requests))) {
+  if (!is.list(requests) || is.object(requests) || !is.null(names(requests))) {
     .st_request_abort("invalid_request", "Requests must be an unnamed list.")
   }
   norms <- lapply(requests, function(request) {
     if (!is.list(request)) {
       .st_request_abort("invalid_request", "A recipe must be a request list.")
     }
-    norm <- .st_normalize_user_path(request$path,
-      must_exist = FALSE, verbose = FALSE)
+    norm <- .st_normalize_user_path(
+      request$path,
+      must_exist = FALSE,
+      verbose = FALSE
+    )
     .st_execution_path(request$path, norm$alias)
   })
   paths <- vapply(norms, `[[`, character(1L), "logical_path")
   if (anyDuplicated(paths)) {
-    .st_request_abort("invalid_request", "Duplicate normalized recipe identity.")
+    .st_request_abort(
+      "invalid_request",
+      "Duplicate normalized recipe identity."
+    )
   }
   parents <- lapply(seq_along(requests), function(i) {
     raw <- requests[[i]]$parents
-    if (!is.list(raw)) return(character())
-    unique(unlist(lapply(raw, function(parent) {
-      if (!is.list(parent) || !.st_proof_string(parent$path)) return(NULL)
-      .st_execution_path(parent$path, norms[[i]]$alias)$logical_path
-    }), use.names = FALSE))
+    if (!is.list(raw)) {
+      return(character())
+    }
+    unique(unlist(
+      lapply(raw, function(parent) {
+        if (!is.list(parent) || !.st_proof_string(parent$path)) {
+          return(NULL)
+        }
+        .st_execution_path(parent$path, norms[[i]]$alias)$logical_path
+      }),
+      use.names = FALSE
+    ))
   })
   remaining <- seq_along(paths)
   ordered <- integer()
   while (length(remaining)) {
-    ready <- remaining[vapply(remaining, function(i) {
-      !any(parents[[i]] %in% paths[remaining])
-    }, logical(1L))]
-    if (!length(ready)) .st_request_abort("cycle", "Cyclic request graph.")
+    ready <- remaining[vapply(
+      remaining,
+      function(i) {
+        !any(parents[[i]] %in% paths[remaining])
+      },
+      logical(1L)
+    )]
+    if (!length(ready)) {
+      .st_request_abort("cycle", "Cyclic request graph.")
+    }
     take <- ready[order(paths[ready], method = "radix")][[1L]]
     ordered <- c(ordered, take)
     remaining <- setdiff(remaining, take)
   }
-  return(list(norms = norms, paths = paths, parents = parents,
-    order = ordered))
+  return(list(norms = norms, paths = paths, parents = parents, order = ordered))
 }
 
 .st_plan_requests <- function(targets, depth, include_targets, requests) {
-  stopifnot(is.character(targets), length(targets) >= 1L,
-    is.numeric(depth), length(depth) == 1L, !is.na(depth), depth >= 1,
-    is.logical(include_targets), length(include_targets) == 1L,
-    !is.na(include_targets))
+  stopifnot(
+    is.character(targets),
+    length(targets) >= 1L,
+    is.numeric(depth),
+    length(depth) == 1L,
+    !is.na(depth),
+    depth >= 1,
+    is.logical(include_targets),
+    length(include_targets) == 1L,
+    !is.na(include_targets)
+  )
   graph <- .st_rebuild_graph(requests)
-  targets <- unique(vapply(targets, function(path) {
-    norm <- .st_normalize_user_path(path, must_exist = FALSE, verbose = FALSE)
-    .st_execution_path(path, norm$alias)$logical_path
-  }, character(1L)))
+  targets <- unique(vapply(
+    targets,
+    function(path) {
+      norm <- .st_normalize_user_path(path, must_exist = FALSE, verbose = FALSE)
+      .st_execution_path(path, norm$alias)$logical_path
+    },
+    character(1L)
+  ))
   if (include_targets && any(!targets %in% graph$paths)) {
-    .st_request_abort("invalid_request", "Every included target needs a recipe.")
+    .st_request_abort(
+      "invalid_request",
+      "Every included target needs a recipe."
+    )
   }
   levels <- rep(Inf, length(requests))
   levels[graph$paths %in% targets] <- 0
@@ -699,20 +801,35 @@ st_plan_rebuild <- function(
   visited <- targets
   level <- 1L
   while (length(frontier) && level <= depth) {
-    children <- which(vapply(graph$parents, function(parents) {
-      any(parents %in% frontier)
-    }, logical(1L)) & !graph$paths %in% visited)
+    children <- which(
+      vapply(
+        graph$parents,
+        function(parents) {
+          any(parents %in% frontier)
+        },
+        logical(1L)
+      ) &
+        !graph$paths %in% visited
+    )
     levels[children] <- level
     frontier <- graph$paths[children]
     visited <- c(visited, frontier)
     level <- level + 1L
   }
-  selected <- graph$order[is.finite(levels[graph$order]) &
-    (include_targets | levels[graph$order] > 0)]
-  out <- data.frame(level = integer(), path = character(), reason = character(),
-    latest_version_before = character(), decision = character(),
-    request_id = character(), receipt_id = character(),
-    stringsAsFactors = FALSE)
+  selected <- graph$order[
+    is.finite(levels[graph$order]) &
+      (include_targets | levels[graph$order] > 0)
+  ]
+  out <- data.frame(
+    level = integer(),
+    path = character(),
+    reason = character(),
+    latest_version_before = character(),
+    decision = character(),
+    request_id = character(),
+    receipt_id = character(),
+    stringsAsFactors = FALSE
+  )
   out$request <- I(list())
   decisions <- vector("list", length(requests))
   parent_versions <- list()
@@ -723,13 +840,22 @@ st_plan_rebuild <- function(
     if (is.list(request$parents)) {
       for (j in seq_along(request$parents)) {
         parent <- request$parents[[j]]
-        if (!is.list(parent) || !.st_proof_string(parent$path)) next
-        path <- .st_execution_path(parent$path, graph$norms[[i]]$alias)$logical_path
+        if (!is.list(parent) || !.st_proof_string(parent$path)) {
+          next
+        }
+        path <- .st_execution_path(
+          parent$path,
+          graph$norms[[i]]$alias
+        )$logical_path
         index <- match(path, graph$paths)
         if (!is.na(index) && index %in% selected) {
           prior <- decisions[[index]]
-          if (prior$decision == "blocked") failed <- TRUE
-          if (prior$decision == "run") pending <- c(pending, path)
+          if (prior$decision == "blocked") {
+            failed <- TRUE
+          }
+          if (prior$decision == "run") {
+            pending <- c(pending, path)
+          }
           if (is.null(parent$version_id) && prior$decision == "skip") {
             request$parents[[j]]$version_id <- prior$version_id
           }
@@ -737,23 +863,37 @@ st_plan_rebuild <- function(
       }
     }
     decision <- .st_execution_decide(request, graph$norms[[i]]$alias, pending)
-    if (failed && !decision$reason %in% c("invalid_request",
-        "missing_requested_proof", "incomparable_proof", "invalid_state")) {
+    if (
+      failed &&
+        !decision$reason %in%
+          c(
+            "invalid_request",
+            "missing_requested_proof",
+            "incomparable_proof",
+            "invalid_state"
+          )
+    ) {
       decision$decision <- "blocked"
       decision$reason <- "failed_parent"
     }
     decisions[[i]] <- decision
-    row <- data.frame(level = as.integer(levels[[i]]), path = graph$paths[[i]],
+    row <- data.frame(
+      level = as.integer(levels[[i]]),
+      path = graph$paths[[i]],
       reason = decision$reason,
       latest_version_before = decision$latest_version_before,
-      decision = decision$decision, request_id = decision$request_id,
-      receipt_id = decision$receipt_id, stringsAsFactors = FALSE)
+      decision = decision$decision,
+      request_id = decision$request_id,
+      receipt_id = decision$receipt_id,
+      stringsAsFactors = FALSE
+    )
     row$request <- I(list(decision$request))
     out <- rbind(out, row)
     for (path in graph$parents[[i]]) {
       parent_versions[[path]] <- tryCatch(
         st_latest(path, alias = graph$norms[[i]]$alias),
-        error = function(e) NA_character_)
+        error = function(e) NA_character_
+      )
     }
   }
   # The preview baseline is not the requested pin: historical inputs are valid.
@@ -762,25 +902,44 @@ st_plan_rebuild <- function(
 }
 
 .st_rebuild_requests <- function(plan, rebuild_fun, dry_run) {
-  stopifnot(all(c("level", "path", "reason", "request") %in% names(plan)),
-    is.logical(dry_run), length(dry_run) == 1L, !is.na(dry_run))
+  stopifnot(
+    all(c("level", "path", "reason", "request") %in% names(plan)),
+    is.logical(dry_run),
+    length(dry_run) == 1L,
+    !is.na(dry_run)
+  )
   if (!is.null(rebuild_fun) && !is.function(rebuild_fun)) {
     .st_request_abort("invalid_request", "rebuild_fun must be a function.")
   }
   requests <- lapply(seq_len(nrow(plan)), function(i) plan$request[[i]])
   graph <- .st_rebuild_graph(requests)
   if (!identical(as.character(plan$path), graph$paths)) {
-    .st_request_abort("invalid_request", "Plan paths and recipe identities differ.")
+    .st_request_abort(
+      "invalid_request",
+      "Plan paths and recipe identities differ."
+    )
   }
-  out <- data.frame(level = plan$level, path = plan$path, reason = plan$reason,
-    status = rep("dry_run", nrow(plan)), version_id = rep(NA_character_, nrow(plan)),
-    msg = rep("", nrow(plan)), request_id = rep(NA_character_, nrow(plan)),
+  out <- data.frame(
+    level = plan$level,
+    path = plan$path,
+    reason = plan$reason,
+    status = rep("dry_run", nrow(plan)),
+    version_id = rep(NA_character_, nrow(plan)),
+    msg = rep("", nrow(plan)),
+    request_id = rep(NA_character_, nrow(plan)),
     receipt_id = rep(NA_character_, nrow(plan)),
-    outcome_id = rep(NA_character_, nrow(plan)), stringsAsFactors = FALSE)
-  if (dry_run || !nrow(plan)) return(out)
+    outcome_id = rep(NA_character_, nrow(plan)),
+    stringsAsFactors = FALSE
+  )
+  if (dry_run || !nrow(plan)) {
+    return(out)
+  }
   parent_versions <- attr(plan, "stamp_parent_versions", exact = TRUE)
   if (!is.list(parent_versions)) {
-    .st_request_abort("invalid_request", "Plan parent preview baseline is missing.")
+    .st_request_abort(
+      "invalid_request",
+      "Plan parent preview baseline is missing."
+    )
   }
   for (i in graph$order) {
     request <- requests[[i]]
@@ -790,28 +949,50 @@ st_plan_rebuild <- function(
     if (is.list(request$parents)) {
       for (j in seq_along(request$parents)) {
         parent <- request$parents[[j]]
-        if (!is.list(parent) || !.st_proof_string(parent$path)) next
+        if (!is.list(parent) || !.st_proof_string(parent$path)) {
+          next
+        }
         path <- .st_execution_path(parent$path, alias)$logical_path
         index <- match(path, graph$paths)
         if (!is.na(index)) {
           if (out$status[[index]] %in% c("built", "unchanged", "skipped")) {
-            if (is.null(parent$version_id) || out$status[[index]] != "skipped") {
+            if (
+              is.null(parent$version_id) || out$status[[index]] != "skipped"
+            ) {
               request$parents[[j]]$version_id <- out$version_id[[index]]
             }
             latest <- tryCatch(st_latest(path, alias), error = identity)
-            if (!inherits(latest, "error") &&
-                !identical(latest, out$version_id[[index]])) changed <- TRUE
-          } else failed <- TRUE
+            if (
+              !inherits(latest, "error") &&
+                !identical(latest, out$version_id[[index]])
+            ) {
+              changed <- TRUE
+            }
+          } else {
+            failed <- TRUE
+          }
         } else if (!is.null(parent$version_id)) {
           latest <- tryCatch(st_latest(path, alias), error = identity)
-          if (!inherits(latest, "error") &&
-              !identical(latest, parent_versions[[path]])) changed <- TRUE
+          if (
+            !inherits(latest, "error") &&
+              !identical(latest, parent_versions[[path]])
+          ) {
+            changed <- TRUE
+          }
         }
       }
     }
     decision <- .st_execution_decide(request, alias)
-    if ((failed || changed) && !decision$reason %in% c("invalid_request",
-        "missing_requested_proof", "incomparable_proof", "invalid_state")) {
+    if (
+      (failed || changed) &&
+        !decision$reason %in%
+          c(
+            "invalid_request",
+            "missing_requested_proof",
+            "incomparable_proof",
+            "invalid_state"
+          )
+    ) {
       decision$decision <- "blocked"
       decision$reason <- if (failed) "failed_parent" else "inputs_changed"
     }
@@ -820,12 +1001,16 @@ st_plan_rebuild <- function(
     fun <- rebuild_fun
     if (decision$decision == "run") {
       if (is.null(fun)) {
-        matches <- Filter(function(rec) {
-          registered <- tryCatch(
-            .st_execution_path(rec$registration_path, alias)$logical_path,
-            error = function(e) NULL)
-          identical(registered, graph$paths[[i]])
-        }, as.list(.st_builders_env))
+        matches <- Filter(
+          function(rec) {
+            registered <- tryCatch(
+              .st_execution_path(rec$registration_path, alias)$logical_path,
+              error = function(e) NULL
+            )
+            identical(registered, graph$paths[[i]])
+          },
+          as.list(.st_builders_env)
+        )
         if (length(matches)) fun <- matches[[1L]]$fun
       }
       if (!is.function(fun)) {
@@ -848,68 +1033,119 @@ st_plan_rebuild <- function(
     if (decision$decision == "blocked") {
       out$status[[i]] <- "blocked"
       # Invalid templates/chains cannot receive a structurally valid record.
-      if (configuration_error || !decision$reason %in%
-          c("invalid_request", "missing_requested_proof", "invalid_state")) {
-        recorded <- tryCatch(.st_execution_append(graph$paths[[i]], "blocked",
-          request, failure = list(class = "unknown", message = decision$reason),
-          alias = alias, allow_deferred = TRUE), error = identity)
+      if (
+        configuration_error ||
+          !decision$reason %in%
+            c("invalid_request", "missing_requested_proof", "invalid_state")
+      ) {
+        recorded <- tryCatch(
+          .st_execution_append(
+            graph$paths[[i]],
+            "blocked",
+            request,
+            failure = list(class = "unknown", message = decision$reason),
+            alias = alias,
+            allow_deferred = TRUE
+          ),
+          error = identity
+        )
         if (inherits(recorded, "error")) {
           out$status[[i]] <- "failed"
           out$reason[[i]] <- "publication_failed"
           out$msg[[i]] <- conditionMessage(recorded)
-        } else out$outcome_id[[i]] <- recorded$id
+        } else {
+          out$outcome_id[[i]] <- recorded$id
+        }
       }
       next
     }
     # The selector's validation context is gone before invoking user code.
-    built <- tryCatch({
-      value <- fun(graph$paths[[i]], request$parents)
-      if (!is.list(value) || sum(names(value) == "x", na.rm = TRUE) != 1L) {
-        rlang::abort("Builder must return exactly one named x field.")
-      }
-      value
-    }, error = identity)
+    built <- tryCatch(
+      {
+        value <- fun(graph$paths[[i]], request$parents)
+        if (!is.list(value) || sum(names(value) == "x", na.rm = TRUE) != 1L) {
+          rlang::abort("Builder must return exactly one named x field.")
+        }
+        value
+      },
+      error = identity
+    )
     if (inherits(built, "error")) {
       class <- if (inherits(built, "stamp_deterministic_failure")) {
         "deterministic"
-      } else if (inherits(built, "stamp_external_failure")) "external" else "unknown"
+      } else if (inherits(built, "stamp_external_failure")) {
+        "external"
+      } else {
+        "unknown"
+      }
       failure <- list(class = class, message = conditionMessage(built))
       out$status[[i]] <- "failed"
       out$msg[[i]] <- failure$message
-      recorded <- tryCatch(.st_execution_append(graph$paths[[i]],
-        paste0("failed_", class), request, failure = failure, alias = alias),
-        error = identity)
+      recorded <- tryCatch(
+        .st_execution_append(
+          graph$paths[[i]],
+          paste0("failed_", class),
+          request,
+          failure = failure,
+          alias = alias
+        ),
+        error = identity
+      )
       if (inherits(recorded, "error")) {
         out$reason[[i]] <- "publication_failed"
         out$msg[[i]] <- conditionMessage(recorded)
-      } else out$outcome_id[[i]] <- recorded$id
+      } else {
+        out$outcome_id[[i]] <- recorded$id
+      }
       next
     }
-    published <- tryCatch({
-      args <- list(x = built[["x", exact = TRUE]],
-        file = graph$paths[[i]], alias = alias,
-        parents = request$parents, request = request, verbose = FALSE)
-      for (field in c("format", "metadata", "code", "code_label")) {
-        if (!is.null(built[[field, exact = TRUE]])) {
-          args[[field]] <- built[[field, exact = TRUE]]
+    published <- tryCatch(
+      {
+        args <- list(
+          x = built[["x", exact = TRUE]],
+          file = graph$paths[[i]],
+          alias = alias,
+          parents = request$parents,
+          request = request,
+          verbose = FALSE
+        )
+        for (field in c("format", "metadata", "code", "code_label")) {
+          if (!is.null(built[[field, exact = TRUE]])) {
+            args[[field]] <- built[[field, exact = TRUE]]
+          }
         }
-      }
-      saved <- do.call(st_save, args)
-      .st_execution_success(graph$paths[[i]], request, saved, alias)
-    }, error = identity)
+        saved <- do.call(st_save, args)
+        .st_execution_success(graph$paths[[i]], request, saved, alias)
+      },
+      error = identity
+    )
     if (inherits(published, "error")) {
       out$status[[i]] <- "failed"
       out$reason[[i]] <- "publication_failed"
       out$msg[[i]] <- conditionMessage(published)
-      recorded <- tryCatch(.st_execution_append(graph$paths[[i]],
-        "failed_unknown", request, failure = list(class = "unknown",
-          message = conditionMessage(published)), alias = alias), error = identity)
-      if (!inherits(recorded, "error")) out$outcome_id[[i]] <- recorded$id
+      recorded <- tryCatch(
+        .st_execution_append(
+          graph$paths[[i]],
+          "failed_unknown",
+          request,
+          failure = list(
+            class = "unknown",
+            message = conditionMessage(published)
+          ),
+          alias = alias
+        ),
+        error = identity
+      )
+      if (!inherits(recorded, "error")) {
+        out$outcome_id[[i]] <- recorded$id
+      }
       next
     }
     out$status[[i]] <- if (published$outcome == "success_unchanged") {
       "unchanged"
-    } else "built"
+    } else {
+      "built"
+    }
     out$version_id[[i]] <- published$output$version_id
     out$receipt_id[[i]] <- published$id
     out$outcome_id[[i]] <- published$id

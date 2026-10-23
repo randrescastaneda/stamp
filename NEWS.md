@@ -45,6 +45,10 @@ experimental functions.
 
 ## Safer Saving and Version History
 
+* `st_rebuild()` now blocks dependent builders after a selected legacy builder
+  fails, rather than publishing results that combine new inputs with an old
+  failed-parent output. Blocked descendants keep their existing versions, while
+  independent branches can still run.
 * A failed file replacement no longer deletes the previous file first. A new
   version is added to the history list only after its saved files are ready,
   and an existing saved version cannot be overwritten.
