@@ -3,7 +3,11 @@ test_that("st_init creates .stamp directory", {
   tdir <- withr::local_tempdir()
   withr::local_dir(tdir)
   initialized <- st_init()
-  expect_identical(as.character(initialized), as.character(fs::path(tdir, ".stamp")))
+  # getwd() resolves filesystem aliases such as /var and /private/var.
+  expect_identical(
+    as.character(initialized),
+    as.character(fs::path(getwd(), ".stamp"))
+  )
   expect_true(dir.exists(".stamp"))
 })
 
@@ -24,7 +28,11 @@ test_that("st_save with bare filename creates correct structure", {
     basename(list.dirs("test.qs2/versions", recursive = FALSE)),
     saved$version_id
   )
-  expect_true(file.exists(file.path("test.qs2/versions", saved$version_id, "artifact")))
+  expect_true(file.exists(file.path(
+    "test.qs2/versions",
+    saved$version_id,
+    "artifact"
+  )))
 })
 
 test_that("st_load with bare filename works correctly", {
@@ -59,7 +67,10 @@ test_that("st_load with subdirectories works correctly", {
   st_init()
   test_data <- data.frame(a = 6:10, b = letters[6:10])
   st_save(test_data, "subdir/nested/data.qs2", verbose = FALSE)
-  expect_identical(st_load("subdir/nested/data.qs2", verbose = FALSE), test_data)
+  expect_identical(
+    st_load("subdir/nested/data.qs2", verbose = FALSE),
+    test_data
+  )
 })
 
 test_that("absolute path under root works", {
@@ -97,7 +108,11 @@ test_that("st_info reports exact current catalog and snapshot identity", {
   withr::local_dir(tdir)
   local_st_opts(default_format = "qs2")
   st_init()
-  saved <- st_save(data.frame(x = 1:5, y = letters[1:5]), "test.qs2", verbose = FALSE)
+  saved <- st_save(
+    data.frame(x = 1:5, y = letters[1:5]),
+    "test.qs2",
+    verbose = FALSE
+  )
   info <- st_info("test.qs2")
   expect_named(info, c("sidecar", "catalog", "snapshot_dir", "parents"))
   expect_identical(info$catalog$latest_version_id, saved$version_id)
@@ -114,7 +129,11 @@ test_that("st_versions reports exact saved identity", {
   withr::local_dir(tdir)
   local_st_opts(default_format = "qs2")
   st_init()
-  saved <- st_save(data.frame(x = 1:5, y = letters[1:5]), "test.qs2", verbose = FALSE)
+  saved <- st_save(
+    data.frame(x = 1:5, y = letters[1:5]),
+    "test.qs2",
+    verbose = FALSE
+  )
   versions <- st_versions("test.qs2")
   expect_s3_class(versions, "data.table")
   expect_equal(nrow(versions), 1L)
@@ -128,10 +147,21 @@ test_that("versioning creates exactly the saved version directories", {
   withr::local_dir(tdir)
   local_st_opts(default_format = "qs2", versioning = "content")
   st_init()
-  first <- st_save(data.frame(x = 1:5, y = letters[1:5]), "test.qs2", verbose = FALSE)
-  second <- st_save(data.frame(x = 1:5, y = letters[6:10]), "test.qs2", verbose = FALSE)
+  first <- st_save(
+    data.frame(x = 1:5, y = letters[1:5]),
+    "test.qs2",
+    verbose = FALSE
+  )
+  second <- st_save(
+    data.frame(x = 1:5, y = letters[6:10]),
+    "test.qs2",
+    verbose = FALSE
+  )
   expect_false(identical(first$version_id, second$version_id))
-  expect_setequal(st_versions("test.qs2")$version_id, c(first$version_id, second$version_id))
+  expect_setequal(
+    st_versions("test.qs2")$version_id,
+    c(first$version_id, second$version_id)
+  )
   expect_setequal(
     basename(list.dirs("test.qs2/versions", recursive = FALSE)),
     c(first$version_id, second$version_id)
@@ -148,8 +178,14 @@ test_that("st_load_version reads the requested snapshot rather than current data
   second_data <- data.frame(x = 1:5, y = letters[6:10])
   first <- st_save(first_data, "test.qs2", verbose = FALSE)
   second <- st_save(second_data, "test.qs2", verbose = FALSE)
-  expect_identical(st_load_version("test.qs2", first$version_id, verbose = FALSE), first_data)
-  expect_identical(st_load_version("test.qs2", second$version_id, verbose = FALSE), second_data)
+  expect_identical(
+    st_load_version("test.qs2", first$version_id, verbose = FALSE),
+    first_data
+  )
+  expect_identical(
+    st_load_version("test.qs2", second$version_id, verbose = FALSE),
+    second_data
+  )
   expect_identical(st_load("test.qs2", verbose = FALSE), second_data)
 })
 
@@ -165,7 +201,11 @@ test_that("st_changed detects content changes with new structure", {
   expect_false(same$changed)
   expect_false(same$details$content_changed)
   expect_identical(same$reason, "no_change")
-  changed <- st_changed("test.qs2", x = data.frame(x = 1:5, y = letters[6:10]), mode = "content")
+  changed <- st_changed(
+    "test.qs2",
+    x = data.frame(x = 1:5, y = letters[6:10]),
+    mode = "content"
+  )
   expect_true(changed$changed)
   expect_true(changed$details$content_changed)
   expect_identical(changed$reason, "content")
@@ -179,7 +219,9 @@ test_that("multiple files in different directories work independently", {
   st_init()
   paths <- c("file1.qs2", "dir1/file2.qs2", "dir1/dir2/file3.qs2")
   objects <- list(data.frame(a = 1:3), data.frame(b = 4:6), data.frame(c = 7:9))
-  for (i in seq_along(paths)) st_save(objects[[i]], paths[[i]], verbose = FALSE)
+  for (i in seq_along(paths)) {
+    st_save(objects[[i]], paths[[i]], verbose = FALSE)
+  }
   for (i in seq_along(paths)) {
     expect_identical(st_load(paths[[i]], verbose = FALSE), objects[[i]])
     expect_equal(nrow(st_versions(paths[[i]])), 1L)
@@ -196,10 +238,13 @@ test_that("catalog stores exact logical rather than payload paths", {
   st_save(data.frame(x = 1:5), "subdir/test.qs2", verbose = FALSE)
   catalog <- stamp:::.st_catalog_read()
   expect_equal(nrow(catalog$artifacts), 1L)
-  expected_path <- as.character(fs::path(tdir, "subdir", "test.qs2"))
+  expected_path <- as.character(fs::path(getwd(), "subdir", "test.qs2"))
   if (.Platform$OS.type == "windows") {
     expected_path <- tolower(normalizePath(
-      expected_path, winslash = "/", mustWork = TRUE))
+      expected_path,
+      winslash = "/",
+      mustWork = TRUE
+    ))
   }
   expect_identical(catalog$artifacts$path, expected_path)
 })
@@ -209,9 +254,15 @@ test_that("path normalization agrees for relative and absolute logical paths", {
   tdir <- withr::local_tempdir()
   withr::local_dir(tdir)
   st_init()
-  norm <- stamp:::.st_normalize_user_path("test.qs2", alias = NULL, must_exist = FALSE)
+  norm <- stamp:::.st_normalize_user_path(
+    "test.qs2",
+    alias = NULL,
+    must_exist = FALSE
+  )
   norm_abs <- stamp:::.st_normalize_user_path(
-    file.path(getwd(), "test.qs2"), alias = NULL, must_exist = FALSE
+    file.path(getwd(), "test.qs2"),
+    alias = NULL,
+    must_exist = FALSE
   )
   expect_identical(norm$rel_path, "test.qs2")
   expect_identical(norm_abs$rel_path, "test.qs2")
@@ -219,12 +270,14 @@ test_that("path normalization agrees for relative and absolute logical paths", {
   expect_false(norm$is_absolute)
   expect_identical(norm$logical_path, norm_abs$logical_path)
   expect_identical(norm$storage_path, norm_abs$storage_path)
-  expected_logical <- as.character(fs::path(tdir, "test.qs2"))
-  expected_storage <- as.character(fs::path(tdir, "test.qs2", "test.qs2"))
+  expected_logical <- as.character(fs::path(getwd(), "test.qs2"))
+  expected_storage <- as.character(fs::path(getwd(), "test.qs2", "test.qs2"))
   actual_storage <- as.character(norm$storage_path)
   if (.Platform$OS.type == "windows") {
     expected_logical <- tolower(as.character(fs::path(
-      normalizePath(tdir, winslash = "/", mustWork = TRUE), "test.qs2")))
+      normalizePath(tdir, winslash = "/", mustWork = TRUE),
+      "test.qs2"
+    )))
     expected_storage <- tolower(expected_storage)
     actual_storage <- tolower(actual_storage)
   }
