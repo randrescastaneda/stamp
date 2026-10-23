@@ -52,15 +52,7 @@ incorrectly flagged as changed.
 }
 
 \examples{
-\dontrun{
-# Two ways to create the "same" data
-dt_a <- data.table(x = 1:5)
-dt_b <- data.table(x = 1:5) |> collapse::rowbind(data.table(x = 1:5)) |> collapse::funique()
-
-# They're identical in content
-identical(dt_a, dt_b)  # TRUE
-
-# And now they hash the same too!
-st_hash_obj(dt_a) == st_hash_obj(dt_b)  # TRUE
-}
+x <- data.frame(id = 1:3, value = letters[1:3])
+st_hash_obj(x)
+identical(st_hash_obj(x), st_hash_obj(x))
 }

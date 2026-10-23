@@ -35,9 +35,11 @@ content is the same (due to timestamps, compression variation, etc.). Use
 }
 
 \examples{
-\dontrun{
-# Hash a file
-st_hash_file("data.csv")
-}
+local({
+  path <- tempfile()
+  on.exit(unlink(path))
+  writeLines("example content", path)
+  stamp:::st_hash_file(path)
+})
 }
 \keyword{internal}

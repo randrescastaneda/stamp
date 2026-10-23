@@ -196,13 +196,13 @@ a specific artifact.
 
 ## Integrity checks on load (optional)
 
-If `verify_on_load = TRUE` and a `content_hash` exists in the sidecar, `st_load()` recomputes the object's hash and warns if it differs (indicating the file changed outside **stamp**).
+If `verify_on_load = TRUE` and a `content_hash` exists in the sidecar, `st_load()` recomputes the object's hash and warns if it differs. A mismatch can indicate external changes, stale metadata, or a conversion by the file format.
 
 ```{r}
 invisible(st_load(p, alias = NULL)) # triggers optional verify; warns on mismatch
 ```
 
-If `verify_on_load = TRUE`, `st_load()` recomputes `st_hash_obj()` and compares it to the `content_hash` recorded in the sidecar or snapshot. A mismatch usually means the file was modified outside of stamp and re-saving is recommended.
+If `verify_on_load = TRUE`, `st_load()` recomputes `st_hash_obj()` and compares it to the `content_hash` recorded in the sidecar or snapshot. Compare the loaded data with the original source before updating metadata or saving again. Use RDS or QS2 when exact 'R' object round-trips are required.
 
 ## Troubleshooting
 
@@ -219,10 +219,10 @@ A: By design, a code change **does** create a new version. Confirm `st_opts("cod
 A: `data.table::fread/fwrite` may coerce types (e.g., integers vs doubles). Compare with relaxed checks or coerce types before comparison.
 
 **Q: I see a warning on load about hash mismatch.**
-A: With `verify_on_load = TRUE`, **stamp** recomputes the object hash and warns if it differs from the sidecar’s `content_hash`. This indicates the file was modified outside **stamp** or the sidecar is stale. Re-save to repair.
+A: With `verify_on_load = TRUE`, **stamp** recomputes the object hash and warns if it differs from the sidecar's `content_hash`. The cause can be an external change, stale metadata, or a format conversion such as the CSV type changes described above. Check the data before saving again.
 
 **Q: `qs2` isn’t installed.**
-A: `qs2` is preferred. If unavailable, **stamp** falls back to `{qs}` for read/write under the `"qs2"` handler. Install `{qs2}` for best performance.
+A: `qs2` is a required dependency. The `"qs2"` handler does not fall back to `{qs}`. Restore the `{qs2}` installation before reading or writing QS2 artifacts.
 
 **Q: Sidecars not appearing.**
 A: Check `st_opts("meta_format", .get = TRUE)` — set to `"json"`, `"qs2"`, or `"both"`. Sidecars are written to `stmeta/` next to the artifact.
@@ -242,4 +242,3 @@ Further reading / next steps:
 
 - See the `lineage-rebuilds` vignette for how committed `parents` and sidecar parents interact during `st_rebuild()`.
 - Consider recording `code=` for critical data transformations so provenance is preserved even when object content is identical.
-

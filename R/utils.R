@@ -175,17 +175,16 @@
 #' @return List with components: logical_path, storage_path, rel_path, alias, is_absolute
 #' @keywords internal
 #' @examples
-#' \dontrun{
-#' # Relative path
-#' result <- .st_normalize_user_path("dirA/file.qs")
-#' # result$logical_path = "dirA/file.qs"
-#' # result$storage_path = "<root>/dirA/file.qs/file.qs"
-#' # result$rel_path = "dirA/file.qs"
-#'
-#' # Absolute path
-#' result <- .st_normalize_user_path("/full/path/to/root/dirA/file.qs")
-#' # Validates it's under root, extracts rel_path = "dirA/file.qs"
-#' }
+#' local({
+#'   root <- tempfile("stamp-path-")
+#'   dir.create(root)
+#'   on.exit(unlink(root, recursive = TRUE))
+#'   st_init(root, alias = "path-example", verbose = FALSE)
+#'   stamp:::.st_normalize_user_path("dirA/file.rds", alias = "path-example")
+#'   stamp:::.st_normalize_user_path(
+#'     file.path(root, "dirA", "file.rds"), alias = "path-example"
+#'   )
+#' })
 .st_normalize_user_path <- function(
   user_path,
   alias = NULL,

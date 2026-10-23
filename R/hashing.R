@@ -263,17 +263,9 @@ st_sanitize_for_hash <- function(x) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Two ways to create the "same" data
-#' dt_a <- data.table(x = 1:5)
-#' dt_b <- data.table(x = 1:5) |> collapse::rowbind(data.table(x = 1:5)) |> collapse::funique()
-#'
-#' # They're identical in content
-#' identical(dt_a, dt_b)  # TRUE
-#'
-#' # And now they hash the same too!
-#' st_hash_obj(dt_a) == st_hash_obj(dt_b)  # TRUE
-#' }
+#' x <- data.frame(id = 1:3, value = letters[1:3])
+#' st_hash_obj(x)
+#' identical(st_hash_obj(x), st_hash_obj(x))
 st_hash_obj <- function(x) {
   # 1) Sanitize (content-only for tabular data); skip if already sanitized
   x_clean <- st_sanitize_for_hash(x)
@@ -309,16 +301,14 @@ st_hash_obj <- function(x) {
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
 #' # Hash a function
-#' st_hash_code(function(x) x + 1)
+#' stamp:::st_hash_code(function(x) x + 1)
 #'
 #' # Hash an expression
-#' st_hash_code(quote(x + 1))
+#' stamp:::st_hash_code(quote(x + 1))
 #'
 #' # Hash character code
-#' st_hash_code("x <- 1\ny <- 2")
-#' }
+#' stamp:::st_hash_code("x <- 1\ny <- 2")
 st_hash_code <- function(code) {
   # Convert code to text representation
   if (is.function(code)) {
@@ -368,10 +358,12 @@ st_hash_code <- function(code) {
 #' @keywords internal
 #'
 #' @examples
-#' \dontrun{
-#' # Hash a file
-#' st_hash_file("data.csv")
-#' }
+#' local({
+#'   path <- tempfile()
+#'   on.exit(unlink(path))
+#'   writeLines("example content", path)
+#'   stamp:::st_hash_file(path)
+#' })
 st_hash_file <- function(path) {
   # secretbase::siphash13(file = ...) streams the file without loading into memory
   # This is more efficient than readBin() + hash for large files

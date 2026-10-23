@@ -33,7 +33,8 @@ A list: \verb{list(changed = <lgl>, reason = <chr>, details = <named list>)}.
 \description{
 Compares the \emph{current} object/code/file to the latest saved metadata
 (from the sidecar) and reports if a change is detected.
-
+}
+\details{
 Omitted \code{x} leaves \code{details$content_changed} unchecked (\code{NA}); file and code
 comparisons still follow their existing options. Explicit \code{x = NULL} is a
 content comparison against \code{NULL}. This distinction also applies to

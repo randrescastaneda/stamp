@@ -38,15 +38,13 @@ The code undergoes light normalization before hashing:
 }
 
 \examples{
-\dontrun{
 # Hash a function
-st_hash_code(function(x) x + 1)
+stamp:::st_hash_code(function(x) x + 1)
 
 # Hash an expression
-st_hash_code(quote(x + 1))
+stamp:::st_hash_code(quote(x + 1))
 
 # Hash character code
-st_hash_code("x <- 1\ny <- 2")
-}
+stamp:::st_hash_code("x <- 1\ny <- 2")
 }
 \keyword{internal}

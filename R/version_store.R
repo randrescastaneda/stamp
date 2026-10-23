@@ -286,6 +286,16 @@ st_versions <- function(path, alias = NULL) {
 #' Get the latest version_id for an artifact path
 #' @inheritParams st_path
 #' @param alias Optional stamp alias to target a specific stamp folder.
+#' @return A character version ID, or `NA_character_` if no version is recorded.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-latest-")
+#'   dir.create(root)
+#'   on.exit(unlink(root, recursive = TRUE))
+#'   st_init(root, alias = "latest-example", verbose = FALSE)
+#'   st_save(1:3, "values.rds", alias = "latest-example", verbose = FALSE)
+#'   st_latest("values.rds", alias = "latest-example")
+#' })
 #' @export
 st_latest <- function(path, alias = NULL) {
   # Derive latest from the versions table ordering to avoid relying on

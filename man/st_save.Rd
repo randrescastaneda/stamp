@@ -92,15 +92,14 @@ semantic-schema-enabled save failures propagate; the legacy write-error
 route may return NULL metadata/version_id rather than a successful save.
 }
 \description{
-Save an R object to disk with metadata & versioning (atomic move)
-
 Native RDS/QS2 saves record an original data.table's ordered key columns in
 reserved sidecar metadata under \code{attrs$stamp_data_table}, not in the content
 hash or sanitized payload. Unkeyed inputs stay unkeyed; keys are never inferred
 from primary-key annotations, column names or sorted rows. Key-only changes
 can create a metadata version even when the content hash is unchanged.
 Legacy snapshots without a descriptor cannot recover a lost key.
-
+}
+\details{
 The limited pilot \code{st_opts(reference_copy_on_save = TRUE)} copies a root
 environment once before metadata capture, sanitization, and the existing
 save sequence. Its default is \code{FALSE}, which keeps legacy behavior. Only the

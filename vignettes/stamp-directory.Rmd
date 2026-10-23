@@ -756,7 +756,7 @@ all_files <- fs::dir_info(demo_dir, recurse = TRUE, all = TRUE)
 version_files <- all_files[grepl("/versions/", all_files$path) & all_files$type == "file", ]
 if (nrow(version_files) > 0) {
   # Group by artifact and sum sizes of version files
-  version_files$artifact <- dirname(dirname(version_files$path))
+  version_files$artifact <- dirname(dirname(dirname(version_files$path)))
   agg <- aggregate(size ~ artifact, version_files, sum)
   agg[order(-agg$size), ]
 }
@@ -765,7 +765,7 @@ if (nrow(version_files) > 0) {
 **Solution:**
 ```{r fix-disk, eval=FALSE}
 # Configure retention policy to auto-prune old versions
-st_opts(retention_policy = list(n = 10, days = 90))
+st_opts(retain_versions = list(n = 10, days = 90))
 
 # Manually prune versions for specific artifact
 st_prune_versions(test_path, policy = list(n = 5), dry_run = FALSE)
