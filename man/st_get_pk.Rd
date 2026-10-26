@@ -18,3 +18,9 @@ Extract the primary-key column names from either an in-memory data.frame
 (via the \code{stamp_pk} attribute) or from a sidecar/meta list (a previously
 recorded \code{pk} element). Returns an empty character vector when none is found.
 }
+\examples{
+df <- st_with_pk(data.frame(id = 1:3), "id")
+st_get_pk(df)
+st_get_pk(list(pk = list(keys = c("country", "year"))))
+st_get_pk(data.frame(id = 1:3))
+}

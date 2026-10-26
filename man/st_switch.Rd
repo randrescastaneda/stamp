@@ -18,3 +18,21 @@ Rebase the session "default" alias to the configuration stored under
 stamp folder is used when functions are called without an explicit
 \code{alias} argument.
 }
+\examples{
+local({
+  root <- tempfile("stamp-switch-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  alias <- basename(root)
+  st_init(root, alias = alias, verbose = FALSE)
+  st_switch(alias)
+  st_alias_get()
+})
+}

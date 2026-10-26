@@ -116,3 +116,25 @@ Non-environment roots (including lists, data.frames, data.tables, and NULL)
 and direct calls to \code{st_hash_obj()} or change-detection APIs are unchanged.
 This is not a generic reference-object copy or isolation guarantee.
 }
+\examples{
+local({
+  root <- tempfile("stamp-save-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  df <- data.frame(id = 1:3, value = c(10, 20, 30))
+  saved <- st_save(df, "table.rds", pk = "id", verbose = FALSE)
+  saved$version_id
+  st_load("table.rds", verbose = FALSE)
+  st_save(df, "table.rds", pk = "id", verbose = FALSE)$skipped
+})
+}

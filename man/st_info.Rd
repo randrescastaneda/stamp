@@ -23,3 +23,24 @@ A named list with fields:
 \description{
 Inspect an artifact's current status (sidecar + catalog + snapshot location)
 }
+\examples{
+local({
+  root <- tempfile("stamp-info-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_save(1:3, "values.rds", verbose = FALSE)
+  info <- st_info("values.rds")
+  info$catalog
+  info$sidecar$content_hash
+})
+}

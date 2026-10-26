@@ -25,3 +25,7 @@ Convenience helper to subset a data.frame by a set of named values. The
 (vector). When \code{strict = TRUE}, unknown filter columns raise an error;
 when \code{strict = FALSE} they are skipped with a warning.
 }
+\examples{
+df <- data.frame(country = c("PER", "COL", "PER"), year = c(2020, 2020, 2021))
+st_filter(df, list(country = "PER", year = 2021))
+}

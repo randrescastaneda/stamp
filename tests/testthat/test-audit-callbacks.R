@@ -83,11 +83,13 @@ test_that("option messages report exact string and logical setting values", {
 
 test_that("absolute path fallback returns its lexical input after filesystem error", {
   calls <- 0L
-  local_audit_binding("path_abs", function(...) {
-    calls <<- calls + 1L
-    stop("injected path failure")
-  }, env = asNamespace("fs"))
-  expect_identical(stamp:::.st_make_abs("relative-file.rds"), "relative-file.rds")
+  make_abs <- audit_local_function(stamp:::.st_make_abs,
+    replacements = list(list(quote(fs::path_abs), quote(path_abs))),
+    bindings = list(path_abs = function(...) {
+      calls <<- calls + 1L
+      stop("injected path failure")
+    }))
+  expect_identical(make_abs("relative-file.rds"), "relative-file.rds")
   expect_identical(calls, 1L)
 })
 

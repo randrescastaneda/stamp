@@ -25,3 +25,25 @@ Finds artifacts that depend on \code{path} (i.e., that record it in their
 \code{parents.json} snapshots). If \code{version_id} is given, matches only
 that specific parent version; otherwise, any parent version of \code{path}.
 }
+\examples{
+local({
+  root <- tempfile("stamp-children-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  parent <- st_save(1:3, "input.rds", verbose = FALSE)
+  st_save(6L, "total.rds", verbose = FALSE,
+          parents = list(list(path = parent$path,
+                              version_id = parent$version_id)))
+  st_children("input.rds", version_id = parent$version_id)
+})
+}

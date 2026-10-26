@@ -40,6 +40,14 @@ deliberately limited value graph and special-parent boundary.
 For a single authoritative source of truth, see \code{.stamp_default_opts} in
 \code{R/aaa.R}; changes to that object determine the set of supported keys.
 }
+\examples{
+local({
+  old <- st_opts(.get = TRUE)
+  on.exit(suppressMessages(do.call(st_opts, old)), add = TRUE)
+  st_opts(versioning = "content", retain_versions = 3)
+  st_opts("retain_versions", .get = TRUE)
+})
+}
 \seealso{
 \code{st_opts_reset()}, \code{.stamp_default_opts}
 }

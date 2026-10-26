@@ -161,12 +161,23 @@ rlang::env_bind(
 #' @return Invisibly returns `TRUE` on success.
 #' @export
 #' @examples
-#' st_register_format(
-#'   "txt",
-#'   read  = function(p, ...) readLines(p, ...),
-#'   write = function(x, p, ...) writeLines(x, p, ...),
-#'   extensions = "txt"
-#' )
+#' local({
+#'   stores <- list(stamp:::.st_formats_env, stamp:::.st_extmap_env)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'   }, add = TRUE)
+#'   st_register_format(
+#'     "txt",
+#'     read = function(path, ...) readLines(path, ...),
+#'     write = function(x, path, ...) writeLines(x, path, ...),
+#'     extensions = "txt"
+#'   )
+#'   "txt" %in% st_formats()
+#' })
 st_register_format <- function(name, read, write, extensions = NULL) {
   stopifnot(
     is.character(name),
@@ -452,6 +463,26 @@ st_formats <- function() {
 #'   sidecars. Legacy metadata remains in its original reader representation.
 #'   A current read with no sidecar returns NULL; explicit unavailable versions
 #'   or inconsistent modern envelopes error.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-sidecar-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   saved <- st_save(1:3, "values.rds", metadata = list(label = "Example"),
+#'                    verbose = FALSE)
+#'   st_read_sidecar("values.rds")$label
+#'   st_read_sidecar("values.rds", version_id = saved$version_id)$content_hash
+#' })
 #' @export
 st_read_sidecar <- function(rel_path, alias = NULL, version_id = NULL) {
   rel_path <- as.character(rel_path)

@@ -519,6 +519,25 @@ st_hash_file <- function(path) {
 #' @inheritParams st_init
 #' @return A list: `list(changed = <lgl>, reason = <chr>, details = <named list>)`.
 #'   `metadata_changed` is included when original data.table key state is relevant.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-changed-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_changed("values.rds", x = 1:3, mode = "content")
+#'   st_changed("values.rds", x = 4:6, mode = "content")
+#' })
 #' @export
 # Returns list(changed, reason, details)
 st_changed <- function(

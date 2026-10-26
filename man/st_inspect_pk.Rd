@@ -16,3 +16,22 @@ Character vector of primary-key column names (may be length 0).
 Read the sidecar for \code{path} and return the recorded primary-key column
 names. If no sidecar or pk information is present, returns \code{character(0)}.
 }
+\examples{
+local({
+  root <- tempfile("stamp-pk-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_save(data.frame(id = 1:3), "table.rds", pk = "id", verbose = FALSE)
+  st_inspect_pk("table.rds")
+})
+}

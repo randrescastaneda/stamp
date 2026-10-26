@@ -206,6 +206,26 @@
 #'   \item{created_at}{Character ISO8601 timestamp when the version was recorded.}
 #'   \item{sidecar_format}{Character sidecar format present: "json", "qs2", "both", or "none".}
 #' An empty table is returned when no versions exist for the given path.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-versions-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_save(4:6, "values.rds", verbose = FALSE)
+#'   versions <- st_versions("values.rds")
+#'   versions[, c("version_id", "size_bytes", "created_at"), with = FALSE]
+#' })
 #' @export
 st_versions <- function(path, alias = NULL) {
   # Normalize to get logical_path for artifact_id computation
@@ -290,11 +310,21 @@ st_versions <- function(path, alias = NULL) {
 #' @examples
 #' local({
 #'   root <- tempfile("stamp-latest-")
-#'   dir.create(root)
-#'   on.exit(unlink(root, recursive = TRUE))
-#'   st_init(root, alias = "latest-example", verbose = FALSE)
-#'   st_save(1:3, "values.rds", alias = "latest-example", verbose = FALSE)
-#'   st_latest("values.rds", alias = "latest-example")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_latest("values.rds")
+#'   st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_latest("values.rds")
 #' })
 #' @export
 st_latest <- function(path, alias = NULL) {
@@ -471,10 +501,24 @@ st_latest <- function(path, alias = NULL) {
 #'   reordering the returned data; legacy snapshots without descriptors retain
 #'   their previous behavior.
 #' @examples
-#' \dontrun{
-#' # load a historical version of a dataset
-#' old <- st_load_version("data/cleaned.rds", "20250101T000000Z-abcdef01")
-#' }
+#' local({
+#'   root <- tempfile("stamp-load-version-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   first <- st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_save(4:6, "values.rds", verbose = FALSE)
+#'   st_load_version("values.rds", first$version_id, verbose = FALSE)
+#' })
 #' @export
 st_load_version <- function(
   path,
@@ -568,7 +612,29 @@ st_load_version <- function(
 #' @param path Artifact path (child)
 #' @param depth Integer depth >= 1. Use Inf to walk recursively.
 #' @param alias Optional stamp alias to target a specific stamp folder.
-#' @return data.frame with columns: level, child_path, child_version, parent_path, parent_version
+#' @return A data.frame with columns `level`, `child_path`, `child_version`,
+#'   `parent_path` and `parent_version`. It is empty if no parents are recorded.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-lineage-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   parent <- st_save(1:3, "input.rds", verbose = FALSE)
+#'   st_save(6L, "total.rds", verbose = FALSE,
+#'           parents = list(list(path = parent$path,
+#'                               version_id = parent$version_id)))
+#'   st_lineage("total.rds")
+#' })
 #' @export
 st_lineage <- function(path, depth = 1L, alias = NULL) {
   stopifnot(is.numeric(depth), depth >= 1)
@@ -1207,6 +1273,27 @@ st_lineage <- function(path, depth = 1L, alias = NULL) {
 #' @return \code{data.frame} with columns:
 #'   \code{level}, \code{child_path}, \code{child_version},
 #'   \code{parent_path}, \code{parent_version}.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-children-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   parent <- st_save(1:3, "input.rds", verbose = FALSE)
+#'   st_save(6L, "total.rds", verbose = FALSE,
+#'           parents = list(list(path = parent$path,
+#'                               version_id = parent$version_id)))
+#'   st_children("input.rds", version_id = parent$version_id)
+#' })
 #' @export
 st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
   stopifnot(is.numeric(depth), depth >= 1)
@@ -1298,6 +1385,29 @@ st_children <- function(path, version_id = NULL, depth = 1L, alias = NULL) {
 #'   the request schema. This function neither invokes builders nor writes state.
 #' @return Logical scalar. With no request, `TRUE` if any parent advanced,
 #'   otherwise `FALSE`. Request-aware calls never report blocked work as current.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-stale-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   parent <- st_save(1:3, "input.rds", verbose = FALSE)
+#'   st_save(6L, "total.rds", verbose = FALSE,
+#'           parents = list(list(path = parent$path,
+#'                               version_id = parent$version_id)))
+#'   st_is_stale("total.rds")
+#'   st_save(4:6, "input.rds", verbose = FALSE)
+#'   st_is_stale("total.rds")
+#' })
 #' @export
 st_is_stale <- function(path, alias = NULL, request = NULL) {
   if (!is.null(request)) {
@@ -1385,14 +1495,26 @@ st_is_stale <- function(path, alias = NULL, request = NULL) {
 #' @seealso [st_versions()] to query all versions for a single artifact.
 #' @family version-store
 #' @examples
-#' \dontrun{
-#' # Query all latest versions in a named alias
-#' latest <- st_catalog_query(alias = "my_project")
-#' nrow(latest)  # one row per artifact
-#'
-#' # Use default alias
-#' latest <- st_catalog_query()
-#' }
+#' local({
+#'   root <- tempfile("stamp-catalog-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_save(4:6, "values.rds", verbose = FALSE)
+#'   st_save(list(total = 15L), "summary.rds", verbose = FALSE)
+#'   latest <- st_catalog_query()
+#'   latest[, c("path", "version_id", "size_bytes"), with = FALSE]
+#' })
 #' @export
 st_catalog_query <- function(alias = NULL) {
   # Validate that the named alias is initialised before attempting to read.

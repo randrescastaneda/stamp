@@ -46,3 +46,24 @@ preserves the legacy return shape.
 Decide if a save should proceed given current st_opts()
 Uses versioning policy and code-change rule.
 }
+\examples{
+local({
+  root <- tempfile("stamp-should-save-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_should_save("values.rds", x = 1:3)
+  st_save(1:3, "values.rds", verbose = FALSE)
+  st_should_save("values.rds", x = 1:3)
+  st_should_save("values.rds", x = 4:6)
+})
+}

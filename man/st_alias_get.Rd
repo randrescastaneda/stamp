@@ -10,8 +10,12 @@ st_alias_get(alias = NULL)
 \item{alias}{Optional alias; if NULL, uses "default"}
 }
 \value{
-list(root, state_dir, stamp_path) or NULL if not found
+A list with \code{root}, \code{state_dir} and \code{stamp_path}, or \code{NULL} if the
+alias is not registered.
 }
 \description{
 Get a registered alias configuration
+}
+\examples{
+st_alias_get()
 }

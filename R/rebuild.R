@@ -27,6 +27,19 @@
 #' @param fun  Function with signature \code{function(path, parents)}.
 #' @param name Optional label so you can register multiple builders per path.
 #' @return Invisibly TRUE.
+#' @examples
+#' local({
+#'   builders <- stamp:::.st_builders_env
+#'   old <- as.list(builders, all.names = TRUE)
+#'   on.exit({
+#'     rm(list = ls(builders, all.names = TRUE), envir = builders)
+#'     list2env(old, envir = builders)
+#'   }, add = TRUE)
+#'   path <- tempfile(fileext = ".rds")
+#'   st_register_builder(path, function(path, parents) list(x = 1:3),
+#'                       name = "sequence")
+#'   st_builders()
+#' })
 #' @export
 st_register_builder <- function(path, fun, name = NULL) {
   stopifnot(is.character(path), length(path) == 1L, is.function(fun))
@@ -49,6 +62,8 @@ st_register_builder <- function(path, fun, name = NULL) {
 
 #' List registered builders
 #' @return data.frame with columns: path, name
+#' @examples
+#' st_builders()
 #' @export
 st_builders <- function() {
   ee <- as.list(.st_builders_env)
@@ -72,9 +87,18 @@ st_builders <- function() {
 #' @param path Optional character path; if provided, only builders for that path are removed.
 #' @return Invisibly, `TRUE` after removing the selected registrations.
 #' @examples
-#' path <- tempfile(fileext = ".rds")
-#' st_register_builder(path, function(path, parents) list(x = 1L))
-#' st_clear_builders(path)
+#' local({
+#'   builders <- stamp:::.st_builders_env
+#'   old <- as.list(builders, all.names = TRUE)
+#'   on.exit({
+#'     rm(list = ls(builders, all.names = TRUE), envir = builders)
+#'     list2env(old, envir = builders)
+#'   }, add = TRUE)
+#'   path <- tempfile(fileext = ".rds")
+#'   st_register_builder(path, function(path, parents) list(x = 1L))
+#'   st_clear_builders(path)
+#'   st_builders()
+#' })
 #' @export
 st_clear_builders <- function(path = NULL) {
   if (is.null(path)) {
@@ -217,6 +241,35 @@ st_clear_builders <- function(path = NULL) {
 #' Intervening blocked observations do not replace that failure. External
 #' failures permit one attempt on the next analyst-started rebuild with valid
 #' prerequisites; no automatic retry is scheduled. There is no Force interface.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-rebuild-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   parent <- st_save(1:3, "input.rds", verbose = FALSE)
+#'   st_save(6L, "total.rds", verbose = FALSE,
+#'           parents = list(list(path = parent$path,
+#'                               version_id = parent$version_id)))
+#'   st_save(4:6, "input.rds", verbose = FALSE)
+#'   plan <- st_plan_rebuild("input.rds", mode = "strict")
+#'   result <- st_rebuild(plan, rebuild_fun = function(path, parents) {
+#'     input <- st_load_version(parents[[1]]$path, parents[[1]]$version_id,
+#'                              verbose = FALSE)
+#'     list(x = sum(input), format = "rds")
+#'   })
+#'   result$status
+#'   st_load("total.rds", verbose = FALSE)
+#' })
 #' @export
 st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
   stopifnot(is.data.frame(plan))
@@ -511,6 +564,29 @@ st_rebuild <- function(plan, rebuild_fun = NULL, dry_run = FALSE) {
 #'   level, path, reason, latest_version_before
 #'   With requests, adds request (list-column), decision (run, skip, blocked),
 #'   request_id and receipt_id; includes current skips and blocked candidates.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-plan-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   parent <- st_save(1:3, "input.rds", verbose = FALSE)
+#'   st_save(6L, "total.rds", verbose = FALSE,
+#'           parents = list(list(path = parent$path,
+#'                               version_id = parent$version_id)))
+#'   st_plan_rebuild("input.rds", mode = "strict")
+#'   st_save(4:6, "input.rds", verbose = FALSE)
+#'   st_plan_rebuild("input.rds", mode = "strict")
+#' })
 #' @export
 st_plan_rebuild <- function(
   targets,

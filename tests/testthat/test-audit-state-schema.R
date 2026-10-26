@@ -217,7 +217,7 @@ test_that("lifecycle hooks restore absent and existing CLI themes in child R", {
   td <- withr::local_tempdir()
   script <- fs::path(td, "lifecycle.R")
   result <- fs::path(td, "result.rds")
-  ns_path <- getNamespaceInfo(asNamespace("stamp"), "path")
+  ns_path <- find.package("stamp", lib.loc = .libPaths())
   writeLines(c(
     paste0(".libPaths(", paste(deparse(.libPaths()), collapse = ""), ")"),
     "args <- commandArgs(TRUE)",

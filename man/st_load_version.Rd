@@ -50,8 +50,22 @@ reordering the returned data; legacy snapshots without descriptors retain
 their previous behavior.
 }
 \examples{
-\dontrun{
-# load a historical version of a dataset
-old <- st_load_version("data/cleaned.rds", "20250101T000000Z-abcdef01")
-}
+local({
+  root <- tempfile("stamp-load-version-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  first <- st_save(1:3, "values.rds", verbose = FALSE)
+  st_save(4:6, "values.rds", verbose = FALSE)
+  st_load_version("values.rds", first$version_id, verbose = FALSE)
+})
 }

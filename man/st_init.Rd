@@ -18,11 +18,28 @@ If \code{NULL}, uses "default" for backwards compatibility.}
 warnings (default \code{TRUE}). Errors are never suppressed.}
 }
 \value{
-(invisibly) the absolute state dir
+Invisibly, the absolute path to the state directory.
 }
 \description{
 Initialize a stamp folder under \code{root} using \code{state_dir} and optionally
 register it under an \code{alias}. Aliases allow multiple independent stamp
 folders to be managed in a single R session without changing any
 on-disk path structures.
+}
+\examples{
+local({
+  root <- tempfile("stamp-init-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  state_dir <- st_init(root, verbose = FALSE)
+  dir.exists(state_dir)
+  st_alias_get()
+})
 }

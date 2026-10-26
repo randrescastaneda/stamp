@@ -236,9 +236,10 @@ test_that("failed parent metadata promotion preserves the committed file", {
   td <- withr::local_tempdir()
   original <- list(list(path = "a", version_id = "v"))
   stamp:::.st_version_write_parents(td, original)
-  local_audit_binding("file_move", function(...) stop("injected promotion"),
-                       env = asNamespace("fs"))
-  expect_error(stamp:::.st_version_write_parents(td,
+  write_parents <- audit_local_function(stamp:::.st_version_write_parents,
+    replacements = list(list(quote(fs::file_move), quote(file_move))),
+    bindings = list(file_move = function(...) stop("injected promotion")))
+  expect_error(write_parents(td,
     list(list(path = "b", version_id = "w"))), "injected promotion")
   expect_identical(stamp:::.st_version_read_parents(td), original)
   expect_identical(as.character(fs::path_file(fs::dir_ls(td))), "parents.json")

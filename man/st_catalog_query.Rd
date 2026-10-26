@@ -33,14 +33,26 @@ single artifact, \code{st_catalog_query()} returns exactly one row per
 artifact — the latest version — across the entire alias catalog.
 }
 \examples{
-\dontrun{
-# Query all latest versions in a named alias
-latest <- st_catalog_query(alias = "my_project")
-nrow(latest)  # one row per artifact
-
-# Use default alias
-latest <- st_catalog_query()
-}
+local({
+  root <- tempfile("stamp-catalog-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_save(1:3, "values.rds", verbose = FALSE)
+  st_save(4:6, "values.rds", verbose = FALSE)
+  st_save(list(total = 15L), "summary.rds", verbose = FALSE)
+  latest <- st_catalog_query()
+  latest[, c("path", "version_id", "size_bytes"), with = FALSE]
+})
 }
 \seealso{
 \code{\link[=st_versions]{st_versions()}} to query all versions for a single artifact.

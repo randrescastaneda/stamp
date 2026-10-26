@@ -48,8 +48,15 @@ the alias root, and returns a standardized structure that all other functions ca
 \examples{
 local({
   root <- tempfile("stamp-path-")
-  dir.create(root)
-  on.exit(unlink(root, recursive = TRUE))
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
   st_init(root, alias = "path-example", verbose = FALSE)
   stamp:::.st_normalize_user_path("dirA/file.rds", alias = "path-example")
   stamp:::.st_normalize_user_path(

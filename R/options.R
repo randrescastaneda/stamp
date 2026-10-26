@@ -103,6 +103,13 @@
 #' @param .get Logical. If `TRUE`, performs a read instead of a write.
 #' @return For setters, `invisible(NULL)`. For getters, the requested value(s).
 #' @seealso \code{st_opts_reset()}, \code{.stamp_default_opts}
+#' @examples
+#' local({
+#'   old <- st_opts(.get = TRUE)
+#'   on.exit(suppressMessages(do.call(st_opts, old)), add = TRUE)
+#'   st_opts(versioning = "content", retain_versions = 3)
+#'   st_opts("retain_versions", .get = TRUE)
+#' })
 #' @export
 st_opts <- function(..., .get = FALSE) {
   args <- rlang::list2(...)
@@ -147,6 +154,14 @@ st_opts <- function(..., .get = FALSE) {
 
 #' Reset all options to package defaults
 #' @return `invisible(NULL)`
+#' @examples
+#' local({
+#'   old <- st_opts_get()
+#'   on.exit(suppressMessages(do.call(st_opts, old)), add = TRUE)
+#'   st_opts(retain_versions = 2)
+#'   st_opts_reset()
+#'   st_opts_get("retain_versions")
+#' })
 #' @export
 st_opts_reset <- function() {
   rlang::env_bind(.stamp_opts, !!!.stamp_default_opts)
@@ -155,7 +170,11 @@ st_opts_reset <- function() {
 
 #' Convenience getter (optional sugar)
 #' @param key Option name or `NULL` for all
-#' @return Value or list of all values
+#' @return The requested option value, or `NULL` for an unknown key. With
+#'   `key = NULL`, a named list of all package options.
+#' @examples
+#' st_opts_get("versioning")
+#' names(st_opts_get())
 #' @export
 st_opts_get <- function(key = NULL) {
   if (is.null(key)) {

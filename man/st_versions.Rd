@@ -29,3 +29,24 @@ Return a table of recorded versions for the artifact identified by
 one row per recorded version with the columns described below. Rows are
 ordered by \code{created_at} descending.
 }
+\examples{
+local({
+  root <- tempfile("stamp-versions-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_save(1:3, "values.rds", verbose = FALSE)
+  st_save(4:6, "values.rds", verbose = FALSE)
+  versions <- st_versions("values.rds")
+  versions[, c("version_id", "size_bytes", "created_at"), with = FALSE]
+})
+}

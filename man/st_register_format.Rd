@@ -25,10 +25,21 @@ or override an existing one. Handlers must be functions with the
 expected signatures documented below.
 }
 \examples{
-st_register_format(
-  "txt",
-  read  = function(p, ...) readLines(p, ...),
-  write = function(x, p, ...) writeLines(x, p, ...),
-  extensions = "txt"
-)
+local({
+  stores <- list(stamp:::.st_formats_env, stamp:::.st_extmap_env)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+  }, add = TRUE)
+  st_register_format(
+    "txt",
+    read = function(path, ...) readLines(path, ...),
+    write = function(x, path, ...) writeLines(x, path, ...),
+    extensions = "txt"
+  )
+  "txt" \%in\% st_formats()
+})
 }

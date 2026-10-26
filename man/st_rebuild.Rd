@@ -56,3 +56,33 @@ Intervening blocked observations do not replace that failure. External
 failures permit one attempt on the next analyst-started rebuild with valid
 prerequisites; no automatic retry is scheduled. There is no Force interface.
 }
+\examples{
+local({
+  root <- tempfile("stamp-rebuild-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  parent <- st_save(1:3, "input.rds", verbose = FALSE)
+  st_save(6L, "total.rds", verbose = FALSE,
+          parents = list(list(path = parent$path,
+                              version_id = parent$version_id)))
+  st_save(4:6, "input.rds", verbose = FALSE)
+  plan <- st_plan_rebuild("input.rds", mode = "strict")
+  result <- st_rebuild(plan, rebuild_fun = function(path, parents) {
+    input <- st_load_version(parents[[1]]$path, parents[[1]]$version_id,
+                             verbose = FALSE)
+    list(x = sum(input), format = "rds")
+  })
+  result$status
+  st_load("total.rds", verbose = FALSE)
+})
+}

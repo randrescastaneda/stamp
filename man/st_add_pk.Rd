@@ -27,3 +27,24 @@ function validates the provided keys against the current on-disk artifact
 (and optionally checks uniqueness). Use \code{validate = FALSE} to skip
 validation and perform a pure metadata update.
 }
+\examples{
+local({
+  root <- tempfile("stamp-add-pk-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_save(data.frame(id = 1:3), "table.rds", verbose = FALSE)
+  st_opts(warn_missing_pk_on_load = FALSE)
+  st_add_pk("table.rds", "id", check_unique = TRUE)
+  st_inspect_pk("table.rds")
+})
+}

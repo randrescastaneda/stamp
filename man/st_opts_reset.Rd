@@ -12,3 +12,12 @@ st_opts_reset()
 \description{
 Reset all options to package defaults
 }
+\examples{
+local({
+  old <- st_opts_get()
+  on.exit(suppressMessages(do.call(st_opts, old)), add = TRUE)
+  st_opts(retain_versions = 2)
+  st_opts_reset()
+  st_opts_get("retain_versions")
+})
+}

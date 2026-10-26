@@ -32,3 +32,24 @@ Modern metadata restores declared semantic fields to their original R types
 and validates both sidecars when both were required. Legacy JSON-first reads
 do not reinterpret arbitrary descriptive lists as semantic/execution proof.
 }
+\examples{
+local({
+  root <- tempfile("stamp-sidecar-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  saved <- st_save(1:3, "values.rds", metadata = list(label = "Example"),
+                   verbose = FALSE)
+  st_read_sidecar("values.rds")$label
+  st_read_sidecar("values.rds", version_id = saved$version_id)$content_hash
+})
+}

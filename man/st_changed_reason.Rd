@@ -32,3 +32,23 @@ Character scalar: "no_change", "missing_artifact", "missing_meta",
 \description{
 Explain why an artifact would change
 }
+\examples{
+local({
+  root <- tempfile("stamp-reason-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_save(1:3, "values.rds", verbose = FALSE)
+  st_changed_reason("values.rds", x = 1:3)
+  st_changed_reason("values.rds", x = 4:6)
+})
+}

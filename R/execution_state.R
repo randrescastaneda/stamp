@@ -728,13 +728,18 @@
 #' @examples
 #' local({
 #'   root <- tempfile("stamp-info-")
-#'   dir.create(root)
-#'   on.exit(unlink(root, recursive = TRUE), add = TRUE)
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
 #'   alias <- basename(root)
 #'   st_init(root, alias = alias, verbose = FALSE)
-#'   old <- st_opts(.get = TRUE)
-#'   on.exit(suppressMessages(do.call(st_opts, old)), add = TRUE)
-#'   st_opts(versioning = "content", retain_versions = Inf, meta_format = "json")
 #'   st_execution_info("result.rds", alias = alias)$state # "absent"
 #'   saved <- st_save(1:3, "result.rds", format = "rds",
 #'                    alias = alias, verbose = FALSE)
@@ -814,8 +819,13 @@ st_execution_info <- function(path, receipt_id = NULL, alias = NULL) {
 #' @examples
 #' local({
 #'   root <- tempfile("stamp-outcome-")
-#'   dir.create(root)
-#'   on.exit(unlink(root, recursive = TRUE), add = TRUE)
+#'   aliases <- stamp:::.stamp_aliases
+#'   old <- as.list(aliases, all.names = TRUE)
+#'   on.exit({
+#'     rm(list = ls(aliases, all.names = TRUE), envir = aliases)
+#'     list2env(old, envir = aliases)
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
 #'   alias <- basename(root)
 #'   st_init(root, alias = alias, verbose = FALSE)
 #'   calculate <- function() 1L + 1L

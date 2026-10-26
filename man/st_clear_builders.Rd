@@ -16,7 +16,16 @@ Invisibly, \code{TRUE} after removing the selected registrations.
 Clear all builders (or only those for a given path)
 }
 \examples{
-path <- tempfile(fileext = ".rds")
-st_register_builder(path, function(path, parents) list(x = 1L))
-st_clear_builders(path)
+local({
+  builders <- stamp:::.st_builders_env
+  old <- as.list(builders, all.names = TRUE)
+  on.exit({
+    rm(list = ls(builders, all.names = TRUE), envir = builders)
+    list2env(old, envir = builders)
+  }, add = TRUE)
+  path <- tempfile(fileext = ".rds")
+  st_register_builder(path, function(path, parents) list(x = 1L))
+  st_clear_builders(path)
+  st_builders()
+})
 }

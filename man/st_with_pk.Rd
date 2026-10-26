@@ -19,3 +19,7 @@ Attach primary-key metadata to a data.frame by setting an attribute
 \code{stamp_pk} with the normalized pk list returned by \code{\link[=st_pk]{st_pk()}}. This does
 not modify on-disk sidecars; it is an in-memory convenience.
 }
+\examples{
+df <- st_with_pk(data.frame(id = 1:3, value = letters[1:3]), "id")
+st_get_pk(df)
+}

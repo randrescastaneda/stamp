@@ -61,22 +61,26 @@ warnings are not suppressed by \code{verbose = FALSE}. The default remains
 \code{version = "oldest"}.
 }
 \examples{
-\dontrun{
-# Initialize and create some versions
-st_init()
-df1 <- data.frame(x = 1:5)
-st_save(df1, "data.qs2")
-
-df2 <- data.frame(x = 6:10)
-st_save(df2, "data.qs2")
-
-# Restore to previous version
-st_restore("data.qs2", version = -1)
-
-# Or restore to a specific version ID
-versions <- st_versions("data.qs2")
-st_restore("data.qs2", version = versions$version_id[1])
-}
+local({
+  root <- tempfile("stamp-restore-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_save(1:3, "values.rds", verbose = FALSE)
+  st_save(4:6, "values.rds", verbose = FALSE)
+  restored <- st_restore("values.rds", version = -1, verbose = FALSE)
+  restored
+  st_load("values.rds", verbose = FALSE)
+})
 
 }
 \seealso{

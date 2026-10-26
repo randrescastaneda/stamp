@@ -26,3 +26,27 @@ With no request, inspect committed parents.json for the latest snapshot and
 determine whether any parent advanced. With a complete request, validate
 durable proof, prerequisites and failure precedence without executing work.
 }
+\examples{
+local({
+  root <- tempfile("stamp-stale-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  parent <- st_save(1:3, "input.rds", verbose = FALSE)
+  st_save(6L, "total.rds", verbose = FALSE,
+          parents = list(list(path = parent$path,
+                              version_id = parent$version_id)))
+  st_is_stale("total.rds")
+  st_save(4:6, "input.rds", verbose = FALSE)
+  st_is_stale("total.rds")
+})
+}

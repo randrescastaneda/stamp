@@ -29,3 +29,17 @@ A "builder" knows how to (re)create an artifact. It will be called by
   )
 }
 }
+\examples{
+local({
+  builders <- stamp:::.st_builders_env
+  old <- as.list(builders, all.names = TRUE)
+  on.exit({
+    rm(list = ls(builders, all.names = TRUE), envir = builders)
+    list2env(old, envir = builders)
+  }, add = TRUE)
+  path <- tempfile(fileext = ".rds")
+  st_register_builder(path, function(path, parents) list(x = 1:3),
+                      name = "sequence")
+  st_builders()
+})
+}

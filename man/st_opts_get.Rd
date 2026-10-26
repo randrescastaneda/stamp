@@ -10,8 +10,13 @@ st_opts_get(key = NULL)
 \item{key}{Option name or \code{NULL} for all}
 }
 \value{
-Value or list of all values
+The requested option value, or \code{NULL} for an unknown key. With
+\code{key = NULL}, a named list of all package options.
 }
 \description{
 Convenience getter (optional sugar)
+}
+\examples{
+st_opts_get("versioning")
+names(st_opts_get())
 }

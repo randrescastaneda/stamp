@@ -28,3 +28,8 @@ of column names. When \code{x} (a data.frame) is provided and \code{validate = T
 the function will check that the columns exist (and optionally that they
 uniquely identify rows).
 }
+\examples{
+df <- data.frame(id = 1:3, value = c(10, 20, 30))
+st_pk(df, keys = "id", check_unique = TRUE)
+st_pk(keys = c("country", "year", "country"))
+}

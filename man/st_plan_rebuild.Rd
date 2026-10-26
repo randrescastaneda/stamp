@@ -79,3 +79,27 @@ legacy proof, but legacy parent-only inspection is not complete currentness.
 Contradictory committed modern proof blocks rather than silently recovering.
 Serial isolated publication is supported, not SMB or multiwriter guarantees.
 }
+\examples{
+local({
+  root <- tempfile("stamp-plan-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  parent <- st_save(1:3, "input.rds", verbose = FALSE)
+  st_save(6L, "total.rds", verbose = FALSE,
+          parents = list(list(path = parent$path,
+                              version_id = parent$version_id)))
+  st_plan_rebuild("input.rds", mode = "strict")
+  st_save(4:6, "input.rds", verbose = FALSE)
+  st_plan_rebuild("input.rds", mode = "strict")
+})
+}

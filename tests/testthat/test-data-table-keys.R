@@ -122,16 +122,10 @@ test_that("recorded keys do not use sorting key setters during loading", {
   x <- data.table::data.table(id = 1:3, value = letters[1:3])
   data.table::setkey(x, id)
   saved <- st_save(x, "value.rds", verbose = FALSE)
-  local_audit_binding("setkey", function(...) stop("unexpected key creation"),
-                      env = asNamespace("data.table"))
-  original <- get("setkeyv", asNamespace("data.table"))
-  local_audit_binding("setkeyv", function(x, cols, ...) {
-    if (length(cols)) stop("unexpected key sorting")
-    original(x, cols, ...)
-  }, env = asNamespace("data.table"))
-  expect_identical(data.table::key(st_load("value.rds", verbose = FALSE)), "id")
-  expect_identical(data.table::key(st_load_version("value.rds", saved$version_id,
-                                                   verbose = FALSE)), "id")
+  loaders <- audit_key_loaders()
+  expect_identical(data.table::key(loaders$st_load("value.rds", verbose = FALSE)), "id")
+  expect_identical(data.table::key(loaders$st_load_version("value.rds", saved$version_id,
+                                                    verbose = FALSE)), "id")
 })
 
 test_that("legacy missing descriptors never cause a key to be inferred", {

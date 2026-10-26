@@ -16,6 +16,10 @@
 #' @param check_unique Logical; when `TRUE` assert that `keys` uniquely
 #'   identify rows in `x` (only checked when `x` is provided).
 #' @return A list with element `keys` containing the canonical character vector.
+#' @examples
+#' df <- data.frame(id = 1:3, value = c(10, 20, 30))
+#' st_pk(df, keys = "id", check_unique = TRUE)
+#' st_pk(keys = c("country", "year", "country"))
 #' @export
 st_pk <- function(x = NULL, keys, validate = TRUE, check_unique = FALSE) {
   stopifnot(is.character(keys), length(keys) >= 1L,
@@ -53,6 +57,9 @@ st_pk <- function(x = NULL, keys, validate = TRUE, check_unique = FALSE) {
 #' @param x Data.frame to annotate.
 #' @param keys Character vector of column names making the primary key.
 #' @return The input data.frame with attribute `stamp_pk` set.
+#' @examples
+#' df <- st_with_pk(data.frame(id = 1:3, value = letters[1:3]), "id")
+#' st_get_pk(df)
 #' @export
 st_with_pk <- function(x, keys) {
   stopifnot(is.data.frame(x))
@@ -69,6 +76,11 @@ st_with_pk <- function(x, keys) {
 #' @param x_or_meta Either a data.frame (with attribute `stamp_pk`) or a
 #'   sidecar/meta list as returned by [st_read_sidecar()].
 #' @return Character vector of primary-key column names (may be length 0).
+#' @examples
+#' df <- st_with_pk(data.frame(id = 1:3), "id")
+#' st_get_pk(df)
+#' st_get_pk(list(pk = list(keys = c("country", "year"))))
+#' st_get_pk(data.frame(id = 1:3))
 #' @export
 st_get_pk <- function(x_or_meta) {
   pk <- if (is.data.frame(x_or_meta)) {
@@ -90,6 +102,24 @@ st_get_pk <- function(x_or_meta) {
 #'
 #' @param path Path to the artifact file.
 #' @return Character vector of primary-key column names (may be length 0).
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-pk-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_save(data.frame(id = 1:3), "table.rds", pk = "id", verbose = FALSE)
+#'   st_inspect_pk("table.rds")
+#' })
 #' @export
 st_inspect_pk <- function(path) {
   path <- as.character(path)
@@ -126,6 +156,26 @@ st_inspect_pk <- function(path) {
 #' @param check_unique Logical; when `TRUE` assert that the keys uniquely
 #'   identify rows in the on-disk data (if `validate = TRUE`).
 #' @return Invisibly returns the character vector of keys recorded.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-add-pk-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_save(data.frame(id = 1:3), "table.rds", verbose = FALSE)
+#'   st_opts(warn_missing_pk_on_load = FALSE)
+#'   st_add_pk("table.rds", "id", check_unique = TRUE)
+#'   st_inspect_pk("table.rds")
+#' })
 #' @export
 st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
   path <- as.character(path)
@@ -194,6 +244,9 @@ st_add_pk <- function(path, keys, validate = TRUE, check_unique = FALSE) {
 #' @param strict Logical scalar; when `TRUE` unknown filter columns cause an
 #'   error, otherwise a warning.
 #' @return A subsetted data.frame (same columns as `df`).
+#' @examples
+#' df <- data.frame(country = c("PER", "COL", "PER"), year = c(2020, 2020, 2021))
+#' st_filter(df, list(country = "PER", year = 2021))
 #' @export
 st_filter <- function(df, filters = list(), strict = TRUE) {
   stopifnot(is.data.frame(df))

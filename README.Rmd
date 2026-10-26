@@ -25,6 +25,12 @@ policies.
 
 ## Installation
 
+After the first CRAN release, install stamp with:
+
+``` r
+install.packages("stamp")
+```
+
 You can install the development version of stamp from [GitHub](https://github.com/) with:
 
 ``` r
@@ -36,7 +42,7 @@ devtools::install_github("randrescastaneda/stamp")
 
 ```{r}
 library(stamp)
-root <- "demo_stamp"
+root <- tempfile("stamp-readme-")
 st_init(root)
 
 p <- "demo.qs2"
@@ -224,5 +230,5 @@ For detailed guides and workflows, see the package vignettes:
 - **[Stamp Directory](https://randrescastaneda.github.io/stamp/articles/stamp-directory.html)** - Understanding the `.stamp/` internal structure
 
 ```{r, include = FALSE}
-unlink("demo_stamp", recursive = TRUE)
+unlink(root, recursive = TRUE)
 ```

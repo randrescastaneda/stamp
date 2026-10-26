@@ -476,19 +476,13 @@ test_that("modern historical key loading does not create catalog indexes", {
   saved <- m2_state_save(store, request, x)
   catalog_path <- stamp:::.st_catalog_path(store$alias)
   before <- m2_state_bytes(catalog_path)
-  original <- get("setkeyv", asNamespace("data.table"))
-  local_audit_binding("setkey", function(...) stop("unexpected key creation"),
-    env = asNamespace("data.table"))
-  local_audit_binding("setkeyv", function(x, cols, ...) {
-    if (length(cols)) stop("unexpected key sorting")
-    original(x, cols, ...)
-  }, env = asNamespace("data.table"))
+  loaders <- audit_key_loaders()
 
-  restored <- st_load_version(request$path, saved$version_id,
+  restored <- loaders$st_load_version(request$path, saved$version_id,
     alias = store$alias, verbose = FALSE)
   expect_identical(restored, x)
   expect_identical(data.table::key(restored), "id")
-  expect_identical(st_versions(request$path,
+  expect_identical(loaders$st_versions(request$path,
     alias = store$alias)$version_id, saved$version_id)
   expect_identical(m2_state_bytes(catalog_path), before)
 })

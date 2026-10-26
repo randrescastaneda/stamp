@@ -14,8 +14,31 @@ st_lineage(path, depth = 1L, alias = NULL)
 \item{alias}{Optional stamp alias to target a specific stamp folder.}
 }
 \value{
-data.frame with columns: level, child_path, child_version, parent_path, parent_version
+A data.frame with columns \code{level}, \code{child_path}, \code{child_version},
+\code{parent_path} and \code{parent_version}. It is empty if no parents are recorded.
 }
 \description{
 Show immediate or recursive parents for an artifact
+}
+\examples{
+local({
+  root <- tempfile("stamp-lineage-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  parent <- st_save(1:3, "input.rds", verbose = FALSE)
+  st_save(6L, "total.rds", verbose = FALSE,
+          parents = list(list(path = parent$path,
+                              version_id = parent$version_id)))
+  st_lineage("total.rds")
+})
 }

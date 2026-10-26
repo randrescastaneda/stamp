@@ -20,10 +20,20 @@ Get the latest version_id for an artifact path
 \examples{
 local({
   root <- tempfile("stamp-latest-")
-  dir.create(root)
-  on.exit(unlink(root, recursive = TRUE))
-  st_init(root, alias = "latest-example", verbose = FALSE)
-  st_save(1:3, "values.rds", alias = "latest-example", verbose = FALSE)
-  st_latest("values.rds", alias = "latest-example")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  st_latest("values.rds")
+  st_save(1:3, "values.rds", verbose = FALSE)
+  st_latest("values.rds")
 })
 }

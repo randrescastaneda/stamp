@@ -58,19 +58,24 @@ integer for relative selection.
 }
 }
 \examples{
-\dontrun{
-# Basic usage: load latest version
-data <- st_load("data/mydata.rds")
-
-# Load previous version
-old_data <- st_load("data/mydata.rds", version = -1)
-
-# Load specific version by ID
-vid <- st_versions("data/mydata.rds")$version_id[3]
-specific <- st_load("data/mydata.rds", version = vid)
-
-# Interactive menu (in interactive sessions only)
-# Interactive selection is not supported in non-interactive contexts.
-# Pass explicit version id or a negative integer.
-}
+local({
+  root <- tempfile("stamp-load-")
+  stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+                 stamp:::.stamp_opts)
+  old <- lapply(stores, as.list, all.names = TRUE)
+  on.exit({
+    for (i in seq_along(stores)) {
+      rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+      list2env(old[[i]], envir = stores[[i]])
+    }
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
+  st_opts_reset()
+  st_init(root, verbose = FALSE)
+  first <- st_save(1:3, "values.rds", verbose = FALSE)
+  st_save(4:6, "values.rds", verbose = FALSE)
+  st_load("values.rds", verbose = FALSE)
+  st_load("values.rds", version = -1, verbose = FALSE)
+  st_load("values.rds", version = first$version_id, verbose = FALSE)
+})
 }

@@ -354,9 +354,12 @@ test_that("sidecar promotion and writer failures retain prior bytes and clean te
     p <- stamp:::.st_sidecar_path(rel, fmt)
     old <- readBin(p, "raw", n = file.info(p)$size)
     before <- fs::dir_ls(fs::path_dir(p))
-    local_audit_binding("file_move", function(...) {
-      stop("injected sidecar promotion failure")
-    }, env = asNamespace("fs"))
+    write_atomic <- audit_local_function(stamp:::.st_write_atomic,
+      replacements = list(list(quote(fs::file_move), quote(file_move))),
+      bindings = list(file_move = function(...) {
+        stop("injected sidecar promotion failure")
+      }))
+    local_audit_binding(".st_write_atomic", write_atomic)
     expect_error(stamp:::.st_write_sidecar(rel, list(value = "new")),
                  "injected sidecar promotion failure")
     expect_identical(readBin(p, "raw", n = file.info(p)$size), old)

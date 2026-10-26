@@ -11,7 +11,23 @@
 #'   If `NULL`, uses "default" for backwards compatibility.
 #' @param verbose logical; if `FALSE`, suppress informational messages and
 #'   warnings (default `TRUE`). Errors are never suppressed.
-#' @return (invisibly) the absolute state dir
+#' @return Invisibly, the absolute path to the state directory.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-init-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   state_dir <- st_init(root, verbose = FALSE)
+#'   dir.exists(state_dir)
+#'   st_alias_get()
+#' })
 #' @export
 st_init <- function(
   root = ".",
@@ -240,6 +256,27 @@ print.st_path <- function(x, ...) {
 #'   Request-aware and
 #'   semantic-schema-enabled save failures propagate; the legacy write-error
 #'   route may return NULL metadata/version_id rather than a successful save.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-save-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   df <- data.frame(id = 1:3, value = c(10, 20, 30))
+#'   saved <- st_save(df, "table.rds", pk = "id", verbose = FALSE)
+#'   saved$version_id
+#'   st_load("table.rds", verbose = FALSE)
+#'   st_save(df, "table.rds", pk = "id", verbose = FALSE)$skipped
+#' })
 #' @export
 st_save <- function(
   x,
@@ -569,21 +606,26 @@ st_save <- function(
 #'     and only non-interactive sessions must pass a concrete version id or negative
 #'     integer for relative selection.
 #' @examples
-#' \dontrun{
-#' # Basic usage: load latest version
-#' data <- st_load("data/mydata.rds")
-#'
-#' # Load previous version
-#' old_data <- st_load("data/mydata.rds", version = -1)
-#'
-#' # Load specific version by ID
-#' vid <- st_versions("data/mydata.rds")$version_id[3]
-#' specific <- st_load("data/mydata.rds", version = vid)
-#'
-#' # Interactive menu (in interactive sessions only)
-#' # Interactive selection is not supported in non-interactive contexts.
-#' # Pass explicit version id or a negative integer.
-#' }
+#' local({
+#'   root <- tempfile("stamp-load-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   first <- st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_save(4:6, "values.rds", verbose = FALSE)
+#'   st_load("values.rds", verbose = FALSE)
+#'   st_load("values.rds", version = -1, verbose = FALSE)
+#'   st_load("values.rds", version = first$version_id, verbose = FALSE)
+#' })
 #' @export
 st_load <- function(
   file,
@@ -764,6 +806,26 @@ st_load <- function(
 #'   - catalog: list(latest_version_id, n_versions)
 #'   - snapshot_dir: absolute path to latest version dir (or NA)
 #'   - parents: list(...) parsed from latest version's parents.json (if any)
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-info-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_save(1:3, "values.rds", verbose = FALSE)
+#'   info <- st_info("values.rds")
+#'   info$catalog
+#'   info$sidecar$content_hash
+#' })
 #' @export
 st_info <- function(path, alias = NULL) {
   # Normalize path using new helper
@@ -803,6 +865,8 @@ st_info <- function(path, alias = NULL) {
 
 #' List registered stamp aliases in the current session
 #' @return data.frame with columns: alias, root, state_dir, stamp_path
+#' @examples
+#' st_alias_list()
 #' @export
 st_alias_list <- function() {
   ns <- rlang::env_names(.stamp_aliases)
@@ -839,7 +903,10 @@ st_alias_list <- function() {
 
 #' Get a registered alias configuration
 #' @param alias Optional alias; if NULL, uses "default"
-#' @return list(root, state_dir, stamp_path) or NULL if not found
+#' @return A list with `root`, `state_dir` and `stamp_path`, or `NULL` if the
+#'   alias is not registered.
+#' @examples
+#' st_alias_get()
 #' @export
 st_alias_get <- function(alias = NULL) {
   .st_alias_get(alias)
@@ -854,6 +921,23 @@ st_alias_get <- function(alias = NULL) {
 #'
 #' @param alias Character alias to make the session default.
 #' @return Invisibly returns the alias.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-switch-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   alias <- basename(root)
+#'   st_init(root, alias = alias, verbose = FALSE)
+#'   st_switch(alias)
+#'   st_alias_get()
+#' })
 #' @export
 st_switch <- function(alias) {
   stopifnot(is.character(alias), length(alias) == 1L, nzchar(alias))
@@ -922,22 +1006,26 @@ st_switch <- function(alias) {
 #' \code{version = "oldest"}.
 #'
 #' @examples
-#' \dontrun{
-#' # Initialize and create some versions
-#' st_init()
-#' df1 <- data.frame(x = 1:5)
-#' st_save(df1, "data.qs2")
-#'
-#' df2 <- data.frame(x = 6:10)
-#' st_save(df2, "data.qs2")
-#'
-#' # Restore to previous version
-#' st_restore("data.qs2", version = -1)
-#'
-#' # Or restore to a specific version ID
-#' versions <- st_versions("data.qs2")
-#' st_restore("data.qs2", version = versions$version_id[1])
-#' }
+#' local({
+#'   root <- tempfile("stamp-restore-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_save(4:6, "values.rds", verbose = FALSE)
+#'   restored <- st_restore("values.rds", version = -1, verbose = FALSE)
+#'   restored
+#'   st_load("values.rds", verbose = FALSE)
+#' })
 #'
 #' @seealso \code{\link{st_load_version}}, \code{\link{st_versions}}, \code{\link{st_save}}
 #' @export
@@ -1098,6 +1186,25 @@ st_restore <- function(
 #' @param alias Optional stamp alias to target a specific stamp folder.
 #' @return Character scalar: "no_change", "missing_artifact", "missing_meta",
 #'   "metadata" for an original data.table key change, or a combined reason.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-reason-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_changed_reason("values.rds", x = 1:3)
+#'   st_changed_reason("values.rds", x = 4:6)
+#' })
 #' @export
 st_changed_reason <- function(
   path,
@@ -1132,6 +1239,26 @@ st_changed_reason <- function(
 #'   Blocked requests raise `stamp_blocked_request` carrying `decision =
 #'   "blocked"` and `reason`, never a successful result/output pin. NULL request
 #'   preserves the legacy return shape.
+#' @examples
+#' local({
+#'   root <- tempfile("stamp-should-save-")
+#'   stores <- list(stamp:::.stamp_aliases, stamp:::.stamp_state,
+#'                  stamp:::.stamp_opts)
+#'   old <- lapply(stores, as.list, all.names = TRUE)
+#'   on.exit({
+#'     for (i in seq_along(stores)) {
+#'       rm(list = ls(stores[[i]], all.names = TRUE), envir = stores[[i]])
+#'       list2env(old[[i]], envir = stores[[i]])
+#'     }
+#'     unlink(root, recursive = TRUE)
+#'   }, add = TRUE)
+#'   st_opts_reset()
+#'   st_init(root, verbose = FALSE)
+#'   st_should_save("values.rds", x = 1:3)
+#'   st_save(1:3, "values.rds", verbose = FALSE)
+#'   st_should_save("values.rds", x = 1:3)
+#'   st_should_save("values.rds", x = 4:6)
+#' })
 #' @export
 # Returns list(save, reason)
 st_should_save <- function(path, x = NULL, code = NULL, alias = NULL,

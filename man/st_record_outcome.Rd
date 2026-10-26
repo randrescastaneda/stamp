@@ -35,8 +35,13 @@ the preceding actual execution for failure/review precedence.
 \examples{
 local({
   root <- tempfile("stamp-outcome-")
-  dir.create(root)
-  on.exit(unlink(root, recursive = TRUE), add = TRUE)
+  aliases <- stamp:::.stamp_aliases
+  old <- as.list(aliases, all.names = TRUE)
+  on.exit({
+    rm(list = ls(aliases, all.names = TRUE), envir = aliases)
+    list2env(old, envir = aliases)
+    unlink(root, recursive = TRUE)
+  }, add = TRUE)
   alias <- basename(root)
   st_init(root, alias = alias, verbose = FALSE)
   calculate <- function() 1L + 1L

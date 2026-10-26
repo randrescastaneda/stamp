@@ -12,3 +12,6 @@ data.frame with columns: path, name
 \description{
 List registered builders
 }
+\examples{
+st_builders()
+}

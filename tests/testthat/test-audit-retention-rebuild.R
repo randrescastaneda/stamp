@@ -39,7 +39,7 @@ test_that("rebuild plans cover chains, diamonds, unequal depths and roots", {
   local_st_opts()
   root <- stamp:::.st_normalize_path(withr::local_tempdir())
   paths <- setNames(
-    stamp:::.st_norm_path(file.path(root, paste0(letters[1:6], ".rds"))),
+    stamp:::.st_rebuild_path(file.path(root, paste0(letters[1:6], ".rds"))),
     LETTERS[1:6]
   )
   # A-B-D and A-C-E-D: D must wait for E, not its shortest path from A.
@@ -159,7 +159,7 @@ test_that("planner uses sidecar fallback and excludes children with no parents",
   local_st_opts()
   root <- stamp:::.st_normalize_path(withr::local_tempdir())
   paths <- setNames(
-    stamp:::.st_norm_path(file.path(root, letters[1:4])),
+    stamp:::.st_rebuild_path(file.path(root, letters[1:4])),
     LETTERS[1:4]
   )
   graph <- list(A = c("B", "C"), B = "D", C = character(), D = character())

@@ -12,3 +12,6 @@ data.frame with columns: alias, root, state_dir, stamp_path
 \description{
 List registered stamp aliases in the current session
 }
+\examples{
+st_alias_list()
+}

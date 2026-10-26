@@ -11,10 +11,11 @@
 ^codecov\.yml$
 ^cran-comments\.md$
 ^copilot_logs$
-^.vscode$
+^\.vscode$
 ^doc$
 ^Meta$
 ^test_.*\.R$
+^tests/manual$
 ^build_vignettes\.R$
 ^\.current_task$
 ^\.cg-docs$
