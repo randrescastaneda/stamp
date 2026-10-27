@@ -1,4 +1,4 @@
-# stamp 0.0.11
+# stamp 0.1.0
 
 This release makes saving, loading, and keeping older versions more reliable.
 It does not move your existing files or change their saved version IDs. Most

@@ -5,7 +5,7 @@ Description: Stores 'R' objects with sidecar metadata, including hashes,
     removes older versions according to retention policies. Tracks changes
     and dependencies so that analytical outputs remain traceable and
     reproducible across sessions.
-Version: 0.0.11
+Version: 0.1.0
 Authors@R: c(
     person("R.Andres", "Castaneda",
         email = "acastanedaa@worldbank.org",

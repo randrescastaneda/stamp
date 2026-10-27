@@ -10,6 +10,7 @@
 ^vignettes/articles$
 ^codecov\.yml$
 ^cran-comments\.md$
+^CRAN-SUBMISSION$
 ^copilot_logs$
 ^\.vscode$
 ^doc$
