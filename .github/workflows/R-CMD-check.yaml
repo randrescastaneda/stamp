@@ -54,6 +54,9 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
+      - name: Install HTML validator
+        if: matrix.manual
+        run: sudo apt-get update && sudo apt-get install --yes tidy
       - uses: r-lib/actions/check-r-package@v2
         with:
           args: ${{ matrix.manual && 'c("--as-cran", "--run-donttest")' || matrix.mode == 'cran' && 'c("--no-manual", "--as-cran", "--run-donttest")' || 'c("--no-manual", "--run-donttest")' }}
