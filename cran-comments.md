@@ -2,7 +2,7 @@
 
 This is the first CRAN submission of stamp 0.0.11.
 
-## Test Environment
+## Local Test Environment
 
 * macOS Tahoe 26.7.1, aarch64, R 4.6.1, checked on 2026-10-26.
 
@@ -30,17 +30,39 @@ The NOTE is the expected incoming-feasibility message: "New submission".
 There are currently no CRAN reverse dependencies. This is the first CRAN
 submission.
 
-## Validation Still Required Before Upload
+## Continuous Integration
 
-The current source archive has not yet been checked on Windows, Linux, or
-R-devel. The latest earlier CI run passed on Linux but failed on Windows
-because two graph-test fixtures did not use the planner's canonical paths.
-Those fixtures have been corrected, but a fresh Windows run is still required.
+All eight package-check jobs passed on 2026-10-27 for commit `df2084e`.
+Warnings are treated as failures in every job.
 
-Run the updated R-CMD-check workflow for this candidate before upload. It
-includes macOS, Linux, Windows, R-devel, and R 4.1, with PDF-manual generation
-on Linux and warnings treated as failures. Alternatively, check the source
-archive with win-builder using `devtools::check_win_devel()` and obtain fresh
-Linux results. Record the results here before submitting.
+| Platform | R | Check mode | Result |
+| --- | --- | --- | --- |
+| Ubuntu 24.04, x86_64 | 4.6.1 | CRAN, with manuals | Passed |
+| Ubuntu 24.04, x86_64 | 4.6.1 | Extended | Passed |
+| Ubuntu 24.04, x86_64 | 4.1.3 | Extended | Passed |
+| Ubuntu 24.04, x86_64 | R-devel | Extended | Passed |
+| Windows, x86_64 | 4.6.1 | CRAN | Passed |
+| Windows, x86_64 | 4.6.1 | Extended | Passed |
+| Windows, x86_64 | R-devel | CRAN | Passed |
+| macOS, aarch64 | 4.6.1 | CRAN | Passed |
 
-No CRAN submission or remote-builder upload has been made for this candidate.
+All jobs run `--run-donttest`. CRAN-mode jobs also run `--as-cran`.
+The Linux manual job reports `Status: OK`, including PDF generation and
+HTML validation with HTML Tidy. The local check above also includes the
+incoming-feasibility check and its expected "New submission" NOTE.
+
+* [Package-check results](https://github.com/randrescastaneda/stamp/actions/runs/40505291743)
+* [Coverage check: passed](https://github.com/randrescastaneda/stamp/actions/runs/40505291738)
+
+The package files in the source archive match the checked package source.
+Submission notes and CI configuration are excluded from the source package.
+
+## Win-Builder
+
+The locally checked source archive was uploaded once for an R-devel check on
+2026-10-26. Win-builder accepted the upload with HTTP status 200. It sends
+the report link to the maintainer email address. That report is not available
+in this session, so no win-builder pass is claimed. The separate GitHub
+Windows R-devel check above passed.
+
+No CRAN submission has been made.
