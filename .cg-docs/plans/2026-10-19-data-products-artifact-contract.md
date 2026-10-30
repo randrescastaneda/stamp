@@ -1,3 +1,10 @@
+---
+date: 2026-10-19
+title: "Data Products Plus Adapters: Artifact Contract"
+status: completed
+completed-date: 2026-10-19
+---
+
 # Data Products Plus Adapters: Artifact Contract
 
 Status: approved design direction; executable examples, not production enforcement.
